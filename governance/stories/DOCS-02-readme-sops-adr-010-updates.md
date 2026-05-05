@@ -2,9 +2,11 @@
 type: story
 id: DOCS-02
 title: "Atualização docs operacionais pós ADR-010 (README LLM Strategy + SOP-revisar-pdf cross-refs)"
-status: Ready for Review
+status: Done
 priority: alta
 sprint: "02"
+completed: "2026-05-05"
+closed_at_sha: "8b37513"
 epic: "Sprint-02-release-v0.2.0"
 owner: "@dev (Neo)"
 estimated_effort: "1-2h"
@@ -359,6 +361,8 @@ Story está Done quando:
 | 2026-05-05 | 86 | @sm (River) | Story criada (status Ready) — escopo Morpheus mapeou exato (README 2 seções + sop-revisar-pdf 6 pontos); 7 ACs + 4 phases + Dev Notes copy-paste-ready |
 | 2026-05-05 | 86 | @po (Keymaker) | PO Gate APROVADO 10/10 (GO) — story exemplar com reality check Morpheus + Dev Notes copy-paste-ready + Files NOT to Modify defensive |
 | 2026-05-05 | 86 | @dev (Neo) | Implementação completa: Phase A README LLM Strategy substituição completa + Phase B Limitações entry update + Phase C sop-revisar-pdf 6 pontos cirúrgicos + Phase D regression suite 232+1 baseline preservado; status → Ready for Review |
+| 2026-05-05 | 86 | @qa (Oracle) | Gate PASS — 5/5 adversarial probes (README LLM Strategy + Limitações + sop-revisar-pdf 6 pontos + boundary respect + AC-5 PRAGMATIC); QA Results preenchido; gate file criado |
+| 2026-05-05 | 86 | @devops (Operator) | Commit `8b37513` (5 files +1006/-8) pushed to origin/main; status → Done; **DOCS-02 CLOSED — Sprint 02 5/5 priority alta done — UI-1 priority 4 restante (3-5h)** |
 
 ---
 

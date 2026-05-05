@@ -22,6 +22,39 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@devops / Operator — 2026-05-05): **🚀 DOCS-02 PUSHED TO MAIN — Sprint 02 5/5 priority alta DONE — UI-1 priority 4 restante**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @qa → @devops consumed=true.**
+  - **Batch standalone (5 files):**
+    - 2 docs product: `README.md` + `docs/sop-revisar-pdf.md`
+    - 3 governance: `CHECKPOINT-active.md` + `stories/DOCS-02-...md` + `qa/qa-gate-story-docs-02-...md` (NEW)
+  - **Commit:** `8b37513 docs: alinha README + sop-revisar-pdf com ADR-010 Path C [Story DOCS-02]`
+    - 5 files changed, +1006/-8
+    - Conventional commit message com cross-ref ADR-010 + QA Gate + REV-LLM-01 predecessor
+  - **Push:** `8eea89c..8b37513 main -> main` ✅ origin/main aligned
+  - **Story status:** `Ready for Review` → `Done` (closure governance)
+  - **Decisões Operator D-OPR-S02-DOCS02-A:**
+    - A: Stage explícito 5 files (não `git add -A`) — boundary respect, evita capturar não-intencionais
+    - B: STANDALONE commit — REV-LLM-01 closure já incluiu ADR-010 governance batch; DOCS-02 é alignment puro
+    - C: PROJECT-CHECKPOINT.md atualizado para Sprint 02 5/5 priority alta done; UI-1 (priority 4) restante
+  - **🎯 Sprint 02 progress (atualizado):**
+    - **5 of 5 priority alta done:** REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅ + OPS-CLEANUP-01 ✅ + REV-LLM-01 ✅ + **DOCS-02 ✅ (NEW)**
+    - UI-1 priority 4 restante (3-5h, última story)
+  - **⭐⭐ ZERO HIGH ATIVOS preserved:** DOCS-02 docs-only não tocou code; milestone "zero HIGH em todas as categorias" mantido
+  - **Release v0.2.0 gate (7/8 condições met):**
+    - ✅ Sprint 02 priority alta majority done (5/5)
+    - ✅ ZERO HIGH ativos (incluindo arquitetural)
+    - ✅ ADR-010 governance batch pushed (REV-LLM-01)
+    - ✅ Documentação alinhada (DOCS-02 — esta sessão)
+    - ✅ CI verde anteriores
+    - ✅ Smoke INTEGRAL PASS (253.72s — REV-LLM-01)
+    - ✅ Suite 232 passed + 1 skipped
+    - ⏳ UI-1 (priority 4 — restante)
+  - **Next:** Eric decide próximo step (NÃO auto-emit handoff) — opções:
+    1. UI-1 (priority 4, 3-5h, última story Sprint 02) — pipeline real production-grade sem aviso de divergência
+    2. Release v0.2.0 tag — após UI-1 done (8/8 gate condições)
+    3. Pausa Sprint 02 (parar agora) — Sprint 02 ja entrega significant value: ADR-010 mitigation + docs aligned + zero HIGH
+
 - **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE DOCS-02 PASS — handoff @qa→@devops emitido**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
   - **Handoff @dev → @qa consumed=true.**
