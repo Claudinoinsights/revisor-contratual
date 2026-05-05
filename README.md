@@ -139,16 +139,23 @@ revisor-contratual/
     └── smoke/               ← validações operacionais (paralelismo LLM)
 ```
 
-## LLM Strategy (ADR-003 PATCH SUB-C + PATCH 2)
+## LLM Strategy (ADR-003 PATCH SUB-C + PATCH 2 + ADR-010 Path C)
 
 Fan-out paralelo via `asyncio.gather` em **2 instâncias Ollama distintas**:
 
-- **Advogado** — Sabia-7B Tier configurável (`OLLAMA_HOST_ADVOGADO=127.0.0.1:11434`)
+- **Advogado** — Tier configurável `lean | balanced | premium` (`OLLAMA_HOST_ADVOGADO=127.0.0.1:11434`):
+  - `lean=qwen2.5:3b` (consistência família com economista)
+  - `balanced=qwen2.5:7b` — **DEFAULT** (CPU-friendly per ADR-010 Path C; smoke evidence 253.72s PASS)
+  - `premium=sabia-7b-instruct` (preserved opt-in para futuro upgrade GPU)
 - **Economista** — Qwen 2.5 3B FIXO (`OLLAMA_HOST_ECONOMISTA=127.0.0.1:11435`)
 
-**Footprint:** ~7GB RAM. **Latência:** max(advogado, economista) ≈ 90s paralelo.
+**Footprint:** ~10.7GB disco total (qwen2.5:3b 1.9GB + qwen2.5:7b 4.7GB + sabia-7b-instruct 4.1GB preserved opt-in). **Latência:** ~250-300s INTEGRAL com Qwen 7B em CPU (~250s smoke evidence sessão 86); ~120s com tier premium quando GPU disponível.
+
+**GPU upgrade path:** Toggle `LLM_TIER=premium` em `.env` reverte para Sabia-7B em 1 linha — sem mudança de código, sem nova ADR. Decisão de quando habilitar é operacional (deploy em hardware com GPU CUDA disponível).
 
 **Validação obrigatória pré-release:** rodar `pytest tests/smoke/test_paralelismo_llm.py` — ratio asyncio.gather vs sequencial DEVE ser <0.7. Se falhar, paralelismo é placebo (debug `OLLAMA_HOST` distintos OU `langchain-ollama>=0.2.0`).
+
+**Cross-refs:** ADR-003 SUB-C (paralelismo), ADR-003 PATCH 2 (instâncias distintas), [ADR-010](governance/architecture/adr/adr-010-sabia-q4-mitigation.md) (Qwen 7B fallback default — Sabia Q4 quality issue mitigation).
 
 ## Princípios não-negociáveis
 
@@ -167,7 +174,7 @@ Fan-out paralelo via `asyncio.gather` em **2 instâncias Ollama distintas**:
 | Limitação | Workaround | Endereçada em |
 |-----------|------------|---------------|
 | Marker OCR é opt-in (não vem instalado) | `pip install revisor-contratual[ocr]` para PDFs imagem-only | SOP-003 caso 2 |
-| Modelos Ollama (Sabia-7B + Qwen 3B) NÃO inclusos | Instalar Ollama externo + `ollama pull` | Setup futuro |
+| Modelos Ollama (Qwen 2.5 7B default + Qwen 2.5 3B + Sabia-7B preserved opt-in) NÃO inclusos | Instalar Ollama externo + `ollama pull qwen2.5:3b qwen2.5:7b` + Modelfile Sabia opcional | SOP sop-revisar-pdf (atualizado DOCS-02) + ADR-010 |
 | sentence-transformers (~500MB) é opt-in | populate-vault default `--zero-embeddings=True` (busca lexical funciona; vetorial degraded) | SOP-002 |
 | BACEN python-bcb >=0.3 (PyPI max real) | Pin aspiracional >=0.5 corrigido em STORY 12 | CI Linux validou |
 | UI Streamlit ainda não implementada (CLI MVP only) | Use `revisor revisar` direto na CLI | Roadmap pós-MVP |

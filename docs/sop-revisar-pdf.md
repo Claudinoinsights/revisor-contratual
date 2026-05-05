@@ -11,7 +11,7 @@ Antes de executar `revisor revisar`, confirme:
 - [ ] **Audit chain inicializada:** `revisor init-audit` foi rodado uma vez (cria `.audit-genesis.lock`)
 - [ ] **Vault populado:** `revisor populate-vault --source all` foi executado (sqlite com STJ + STF)
 - [ ] **AUTH_COOKIE_KEY env definida:** `echo $AUTH_COOKIE_KEY` retorna 64 caracteres hex
-- [ ] **Ollama rodando** (se quiser revisão real LLM): instâncias Sabia-7B em `127.0.0.1:11434` e Qwen 2.5 3B em `127.0.0.1:11435` — ver ADR-003 SUB-C
+- [ ] **Ollama rodando** (se quiser revisão real LLM): instâncias Advogado em `127.0.0.1:11434` (DEFAULT Qwen 2.5 7B per ADR-010; `LLM_TIER=premium` reverte para Sabia-7B opt-in) e Qwen 2.5 3B em `127.0.0.1:11435` — ver ADR-003 SUB-C + ADR-010 Path C
 - [ ] **PDF do contrato** disponível localmente (NUNCA é enviado para a rede — LGPD)
 
 Para setup inicial completo, ver [`README.md`](../README.md) seção Quickstart.
@@ -31,7 +31,7 @@ revisor revisar PDF_PATH [OPTIONS]
 | `PDF_PATH` (positional) | obrigatório | Caminho para o arquivo PDF do contrato |
 | `--uf TEXTO` | extraído do PDF | UF do contrato (override extração regex) |
 | `--data-assinatura YYYY-MM-DD` | extraído do PDF | Data assinatura (override) |
-| `--tier {lean\|balanced\|premium}` | `premium` | Tier do Advogado LLM (FR-TESE-02) |
+| `--tier {lean\|balanced\|premium}` | `balanced` | Tier do Advogado LLM (FR-TESE-02; default `balanced`=Qwen 7B per ADR-010) |
 | `--vault-db PATH` | `~/.local/share/revisor-contratual/vault.db` | Caminho vault sqlite |
 | `--audit-path PATH` | `~/.local/share/revisor-contratual/audit.jsonl` | Caminho audit log |
 | `--bacen-cache PATH` | `~/.local/share/revisor-contratual/bacen-cache` | Cache de respostas BACEN SGS |
@@ -60,7 +60,7 @@ revisor revisar contratos/contrato_cdc_veiculos.pdf
 # → ✅ VEREDITO: APROVADO_100 (aderência 100.0%)
 ```
 
-**O que esperar:** ~120-180s end-to-end (com Ollama real) ou ~60s (sem LLM real, smoke).
+**O que esperar:** ~250-300s INTEGRAL com Qwen 7B em CPU (smoke evidence sessão 86: 253.72s PASS); ~120-180s com tier premium quando GPU disponível; ~60s sem LLM real (smoke skipped no CI).
 
 ---
 
@@ -253,7 +253,7 @@ Cada execução de `revisor revisar` gera uma entry no audit log forense.
     "aderencia": 83.3,
     "modalidade": "CDC_VEICULOS_PF",
     "uf_contrato": "BA",
-    "tier_advogado": "premium",
+    "tier_advogado": "balanced",
     "duration_ms": 142531
   }
 }
@@ -340,6 +340,7 @@ Funcionalidades planejadas mas NÃO no v0.1.0:
 - `bloco_workflow/personas/juiz.py` — Juiz Python puro (FR-JUIZ-01..03)
 - `bloco_audit/chain.py:append_audit_entry` — HMAC chain forense
 - ADR-003 PATCH SUB-C — LLM Strategy (Sabia-7B + Qwen 3B paralelo)
+- ADR-010 — Path C Qwen 7B fallback (Sabia Q4 output 3 chars FAIL mitigation; preserva Sabia opt-in para GPU futuro)
 - ADR-005 — HMAC GENESIS audit chain
 
 ---

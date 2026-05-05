@@ -22,6 +22,134 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE DOCS-02 PASS — handoff @qa→@devops emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @dev → @qa consumed=true.**
+  - **5 adversarial probes executados, todos PASS:**
+    - P1 README LLM Strategy section: ✅ PASS (ADR-010 + 3 tiers + DEFAULT marked + Footprint 10.7GB + GPU upgrade path + cross-refs)
+    - P2 README Limitações: ✅ PASS (modelos Ollama list correto + workaround correto)
+    - P3 sop-revisar-pdf 6 pontos: ✅ PASS (greps cumulativos ADR-010=3, tier_advogado=balanced, Qwen 2.5 7B=1)
+    - P4 Boundary respect: ✅ PASS (apenas .md modificados, ZERO .py, ZERO tests)
+    - P5 AC-5 self-critique + link integrity: ✅ PASS (mdformat genuinamente ausente → fallback visual; ADR-010 file existe + path correto)
+  - **Decisão Oracle D-ORC-S02-DOCS02-A:** PASS (zero blockers; AC-5 PRAGMATIC accepted; AC-7 pending Operator)
+  - **AC compliance:** 6 firmes + 1 partial-aceitável (AC-5) + 1 pending-operator (AC-7) = PASS
+  - **Files Oracle (modified/created):**
+    - `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (QA Results section preenchida)
+    - `governance/qa/qa-gate-story-docs-02-readme-sops-adr-010.md` (NEW gate file completo, ~290 linhas)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Handoff emitido:** H-S02-DOCS02-qa2devops → @devops Operator
+    - Path: `.lmas/handoffs/handoff-qa-to-devops-2026-05-05-docs02-merge.yaml`
+    - **STANDALONE commit** (não unified como REV-LLM-01 — DOCS-02 alignment puro pós-batch)
+    - 5 files: README.md + docs/sop-revisar-pdf.md + CHECKPOINT-active + story closure + gate file
+  - **🚦 Sprint 02 status pós-push esperado:**
+    - 5 of 5 stories priority alta done (DOCS-02 closes)
+    - UI-1 priority 4 restante (3-5h)
+    - Release v0.2.0 gate: 6/8 → 7/8 condições met
+  - **Próximo agente:** @devops (Operator) per handoff @qa→@devops
+
+- **Sessão 86** (@dev / Neo — 2026-05-05): **💻 DOCS-02 IMPLEMENTADO — handoff @dev → @qa emitido (Ready for Review)**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @po → @dev consumed=true.**
+  - **4 Phases executadas autonomamente:**
+    - **Phase A (10min)** — README LLM Strategy section substituição completa (linhas 142-151 → expandida com 3 tiers + Footprint 10.7GB + Latência 250s + GPU upgrade path + cross-refs ADR-010)
+    - **Phase B (5min)** — README Limitações entry "Modelos Ollama" (linha 170) atualizada (qwen2.5:3b + qwen2.5:7b + sabia-7b-instruct preserved + workaround correto)
+    - **Phase C (15min)** — sop-revisar-pdf.md 6 pontos cirúrgicos (linhas 14, 34, 63, 256, 342) — defaults atualizados + cross-ref ADR-010
+    - **Phase D (10min)** — Suite regression: 232 passed + 1 skipped em 61.12s (zero regressão); greps cumulativos PASS (ADR-010=3 sop, ADR-010=4 README, tier_advogado=balanced, Qwen 2.5 7B=1)
+  - **Decisões Neo D-NEO-S02-DOCS02-A..B:**
+    - A: AC-5 PRAGMATIC ACCEPTED — mdformat não instalado no projeto; fallback visual aceito per PO advisory; cross-refs ADR-010 íntegros via grep
+    - B: Zero scope creep — todos 6 itens Files NOT to Modify respeitados; diff scope confirmou apenas .md edits intencionais
+  - **AC compliance:** 6 firmes + 1 partial-aceitável (AC-5) + 1 pending-operator (AC-7) = ready for QA gate
+  - **Files Neo (modified/created):**
+    - `README.md` (15 lines diff +13/-2 — Phase A + B)
+    - `docs/sop-revisar-pdf.md` (9 lines diff cirurgicos — Phase C)
+    - `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (Dev Agent Record + Change Log + status Ready for Review)
+    - `.lmas/handoffs/handoff-dev-to-qa-2026-05-05-docs02-gate.yaml` (NEW handoff)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @qa (Oracle) per handoff @dev→@qa
+    - Comando: `*review DOCS-02`
+    - 5 adversarial probes recomendados (REV-LLM-01 6 probes pattern adaptado para docs-only)
+    - Decisão PASS → handoff @qa→@devops para commit standalone (DOCS-02 não tem governance batch)
+
+- **Sessão 86** (@po / Keymaker — 2026-05-05): **🎯 DOCS-02 PO GATE APROVADO 10/10 (GO) — handoff @po → @dev emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito Skill chain.
+  - **Handoff @sm → @po consumed=true.**
+  - **10-point checklist executado:** todos 10 critérios PASS (título claro, user story format, 7 ACs testáveis, 4 phases granulares, dependencies upstream/downstream, files modify/NOT-modify, tests cobrindo ACs, 5 risk+mitigation, effort 1-2h realista, status Ready)
+  - **Score: 10/10 — GO**
+  - **3 observações advisory non-bloqueantes:**
+    - AC-3 contagem "6 pontos / 5 áreas" explicada em Phase C.1 (aceitável)
+    - AC-5 verificabilidade vacuosa se mdformat ausente — sugerir Oracle aceitar grep ADR-010 + visual como fallback
+    - DoD #6 PROJECT-CHECKPOINT update lembrete (já prática REV-LLM-01)
+  - **Forças destacadas (story exemplar):**
+    - Reality check Morpheus documentado em Contexto (linhas 49-51): "3 SOPs → 1 SOP via grep"
+    - Dev Notes copy-paste-ready (D1 README LLM Strategy ANTES/DEPOIS full text + D2 Limitações entry + D3 6 pontos cirurgicos)
+    - Files NOT to Modify defensive (6 itens) — protege contra scope creep direto e indireto
+    - AC-5 fallback pragmatic (mdformat OU preview visual)
+    - Anti-pattern "edit acidental .py confundindo com .md" — defensive thinking documentado
+  - **Files Keymaker (modified):**
+    - `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (Validation Notes section preenchida 10/10)
+    - `.lmas/handoffs/handoff-po-to-dev-2026-05-05-docs02-develop.yaml` (NEW handoff @po→@dev)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @dev (Neo) per handoff @po→@dev
+    - Comando: `*develop-yolo DOCS-02`
+    - 4 phases breakdown: A (README LLM Strategy 10min) + B (README Limitações 5min) + C (sop-revisar-pdf 6 pontos 15min) + D (Validação 10min)
+    - Output esperado: status `Ready for Review` + handoff @dev→@qa
+  - **🚦 Sprint 02 progress (sem mudança até push):**
+    - 4 of 5 stories done (REV-LLM-01 closed)
+    - DOCS-02 NOW @dev pipeline (priority 3)
+    - UI-1 (priority 4) restante após DOCS-02
+    - Release v0.2.0 gate: 6/8 condições met; após DOCS-02 → 7/8
+
+- **Sessão 86** (@sm / River — 2026-05-05): **🌊 DOCS-02 STORY DRAFTED (status Ready) — handoff @sm → @po emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito Skill chain.
+  - **Handoff Morpheus → @sm consumed=true.**
+  - **Story criada:** `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (~280 linhas)
+    - Frontmatter: type=story, id=DOCS-02, status=Ready, priority=alta, sprint="02", owner="@dev (Neo)", effort 1-2h
+    - User story format: novo operador / Eric retomando após meses → docs aligned com ADR-010 → evita FAIL surpresa
+    - 7 ACs (3 Func + 2 Quality + 2 Docs) — todos com critério verificável (grep regex / file diff stat)
+    - Tasks/Subtasks: 4 phases (A: README LLM Strategy 10min · B: README Limitações 5min · C: SOP-revisar-pdf 6 pontos 15min · D: Validação 10min)
+    - Dev Notes copy-paste-ready: D1 README LLM Strategy proposed full text + D2 Limitações entry update + D3 6 pontos sop-revisar-pdf cirurgicos (linhas 14, 34, 63, 256, 342)
+    - Anti-patterns (6 itens) + Files NOT to Modify (6 itens) defensive scope guard
+    - Risk + Mitigation (5 riscos com Probabilidade/Impacto/Mitigação)
+    - Definition of Done (7 critérios)
+  - **Decisões River D-RIV-S02-DOCS02-A..C:**
+    - A: Status Ready desde criação — escopo Morpheus mapeou linhas exatas, zero ambiguidade técnica
+    - B: AC-5 markdownlint aceita "preview visual" como fallback — pragmatic se config não existir
+    - C: ADR-010 cross-ref aparece em README LLM Strategy + sop-revisar-pdf 3 pontos (linha 14 cross-ref, linha 34 nota, linha 342 entry novo)
+  - **Files River (created/modified):**
+    - `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (NEW ~280 linhas)
+    - `.lmas/handoffs/handoff-sm-to-po-2026-05-05-docs02-validate.yaml` (NEW handoff)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @po (Keymaker) per handoff @sm→@po
+    - Comando: `*validate-story-draft DOCS-02`
+    - 10-point checklist; decisão GO (≥7/10) → emit handoff @po→@dev `*develop-yolo`
+    - NO-GO (<7/10) → emit handoff @po→@sm refinement (improvável dado scope mapeado)
+  - **🚦 Sprint 02 progress (sem mudança até push):**
+    - 4 of 5 stories done (REV-LLM-01 closed)
+    - DOCS-02 NOW @po pipeline (priority 3)
+    - UI-1 (priority 4) restante
+    - Release v0.2.0 gate: 6/8 condições met; após DOCS-02 → 7/8
+
+- **Sessão 86** (@lmas-master / Morpheus — 2026-05-05): **📋 DOCS-02 SCOPED — handoff Morpheus → @sm emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — Morpheus inicia novo arco DOCS-02.
+  - **Reality check Morpheus:** Spec inicial mencionou "3 SOPs" mas grep mostrou apenas 1 SOP relevante (sop-revisar-pdf.md). Outras 2 SOPs (vault setup + auth rotation) não mencionam LLM stack — out-of-scope per No Invention rule.
+  - **Decisão Morpheus D-MOR-S02-DOCS02-A:** Scope DOCS-02 = README (2 seções) + 1 SOP (sop-revisar-pdf.md, 6 pontos de update). NÃO 3 SOPs. Mantém effort 1-2h realista.
+  - **Deliverables concretos mapeados (handoff yaml ~280 linhas):**
+    - D1: README seção "LLM Strategy" (linhas 142-151) — Tier configurável + Footprint + Latência + GPU upgrade path
+    - D2: README seção "Limitações conhecidas" (linha 170) — modelos Ollama list + workaround corrigido
+    - D3: docs/sop-revisar-pdf.md (6 pontos: linhas 14, 34, 63, 256, 342) — defaults atualizados + cross-ref ADR-010
+  - **Files Morpheus (modified/created):**
+    - `.lmas/handoffs/handoff-morpheus-to-sm-2026-05-05-docs02-create-story.yaml` (NEW, ~280 linhas spec completo)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @sm (River) per handoff Morpheus → @sm
+    - Comando: `*draft DOCS-02`
+    - Output esperado: `governance/stories/DOCS-02-readme-sops-adr-010-updates.md` (Ready status)
+    - Pipeline restante: @sm → @po → @dev → @qa → @devops (5 Skills)
+  - **🚦 Sprint 02 progress (sem mudança até push):**
+    - 4 of 5 stories done (REV-LLM-01 closed)
+    - DOCS-02 NOW @sm pipeline (priority 3)
+    - UI-1 (priority 4) restante após DOCS-02
+    - Release v0.2.0 gate: 6/8 condições met; após DOCS-02 → 7/8
+
 - **Sessão 86** (@devops / Operator — 2026-05-05): **🚀 REV-LLM-01 + ADR-010 GOVERNANCE BATCH PUSHED TO MAIN — Sprint 02 4/5 stories DONE — ZERO HIGH ATIVOS (incluindo arquitetural)**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
   - **Handoff @qa→@devops consumed=true.**
