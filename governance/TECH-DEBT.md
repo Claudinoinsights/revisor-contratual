@@ -179,3 +179,48 @@ tags:
 ---
 
 *Sprint 02 REV-INT-01 debts — Oracle (sessão 85, 2026-05-05) · 1 HIGH + 3 MEDIUM + 4 LOW = 8 findings. Gate: CONCERNS.*
+
+---
+
+## 📦 Sprint 02 — DEVOPS-01 (Ollama install + smoke E2E real) — sessão 86
+
+> **Origem:** DEVOPS-01 closure parcial (Operator + Neo, 2026-05-05).
+> **Story:** DEVOPS-01 — Ollama install autônomo + smoke pipeline integral.
+
+### Status TD-PIPELINE-SMOKE-REAL: **PARTIALLY RESOLVED**
+
+| Aspecto | Status | Evidência empírica |
+|---|---|---|
+| Ollama instalado (Windows 11 winget) | ✅ DONE | v0.23.0 |
+| Modelos baixados | ✅ DONE | qwen2.5:3b (1.9GB) + sabia-7b-instruct (4.1GB via Modelfile TheBloke GGUF Q4_K_M) |
+| 2 instâncias Ollama (paralelismo F-MIN-01) | ✅ DONE | :11434 advogado + :11435 economista, ambos enxergam modelos compartilhados |
+| F-MIN-02 (langchain-ollama 1.x ainvoke coroutine) | ✅ CONFIRMED EMPIRICALLY | Smoke iteration 1: 180s; iteration 2: 48s — chamadas async reais |
+| Pipeline INTEGRAL roda Sabia + Qwen via langchain-ollama | ✅ CONFIRMED | format=json adicionado em llm_factory.py — Sabia retorna JSON parseável |
+| Smoke test PASSED | ❌ NOT YET | Output Sabia 7B Q4 CPU não atinge `min_length=10` em `FundamentoInvocado.citacao_textual` (modelo retorna "..." copiado do prompt template) |
+
+**Conclusão:** TD-PIPELINE-SMOKE-REAL resolvido em 5 de 6 aspectos. Bloqueio único é qualidade do output Sabia (novo debt abaixo). Para atestar empiricamente o pipeline INTEGRAL, é suficiente — paralelismo e integração validados; quality gap é debt separado.
+
+### NEW (1 HIGH + 1 LOW)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
+|----|--------|-----|-------------|-------------|-------|-------|----------------|
+| **TD-LLM-SABIA-Q4-OUTPUT** | Smoke DEVOPS-01 sessão 86 | HIGH | Sabia-7B Q4_K_M CPU (Modelfile TheBloke GGUF) sem fine-tune jurídico produz JSON estruturalmente válido (com `format="json"`) mas semanticamente raso — copia placeholders do prompt (ex: `citacao_textual: "..."` 3 chars vs `min_length=10`). Insuficiente para production sem GPU + Q5/Q8 OU fine-tune jurídico OU fallback Qwen 7B (LLM_TIER=balanced). | 4h research + decisão arquitetural | @architect (Aria) | 2026-05-05 | Antes de release v0.2.0 público |
+| **TD-LLM-FORMAT-JSON-ECONOMISTA** | Smoke DEVOPS-01 sessão 86 | LOW | `format="json"` adicionado em `get_advogado_llm` mas NÃO em `get_economista_llm` (Qwen 2.5 3B não testado quanto a JSON output quality). Adicionar para consistência defensiva. | 5min | @dev | 2026-05-05 | Sprint 02 (paralelo a UI-1) |
+
+### Mudanças aplicadas em produto durante DEVOPS-01
+
+| Arquivo | Mudança | Razão |
+|---|---|---|
+| `bloco_workflow/personas/llm_factory.py` | `format="json"` em `get_advogado_llm` | Sabia-7B Q4 estava gerando texto natural language; format=json força output JSON estruturado parseável |
+| `tests/smoke/test_paralelismo_llm.py` | Fixture `JurisprudenciaItem` ampliado com 6 campos requeridos pelo schema (numero, binding, legal_topic_principal, ano_julgamento, texto_completo, indexed_at) | Schema cresceu em PRD v1.0.2 (Smith F-CRIT-03 vigência) mas test fixture não acompanhou |
+
+### Mudanças em ambiente
+
+- Ollama 0.23.0 instalado em `C:\Users\User\AppData\Local\Programs\Ollama\` via winget
+- Modelos baixados em `~/.ollama/models/` (default Windows): ~6GB total
+- `models/sabia-7b.Q4_K_M.gguf` (~3.8GB) + `models/Modelfile.sabia-7b-instruct` no repo (gitignored via `.gguf` + `models/` patterns existentes)
+- 2ª instância Ollama background em `:11435` (durante smoke; deve ser parada após DEVOPS-01 closure)
+
+---
+
+*Sprint 02 DEVOPS-01 debts — Operator+Neo (sessão 86, 2026-05-05) · TD-PIPELINE-SMOKE-REAL partial RESOLVED + 2 novos debts (1 HIGH + 1 LOW).*

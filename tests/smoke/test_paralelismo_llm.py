@@ -104,8 +104,14 @@ async def test_paralelismo_llm_real() -> None:
             tribunal="STJ",
             court_id="STJ",
             tipo_doc="SUMULA",
+            numero="539",
+            binding=False,  # Súmula 539 STJ é súmula comum, não SV/Tema Repetitivo
+            peso_vinculacao=3,  # NFR-GOV-01: peso 3 = Súmula STJ
+            legal_topic_principal="anatocismo",
+            ano_julgamento=2010,
             ementa="É permitida a capitalização de juros em periodicidade mensal nos contratos celebrados com instituições integrantes do Sistema Financeiro Nacional a partir de 31 de março de 2000.",
-            peso_vinculacao=3,
+            texto_completo="É permitida a capitalização de juros com periodicidade inferior à anual em contratos celebrados com instituições integrantes do Sistema Financeiro Nacional a partir de 31 de março de 2000 (MP 1963-17/2000, reeditada como MP 2170-36/2001), desde que expressamente pactuada.",
+            indexed_at=datetime.now(),
             data_publicacao=date(2010, 6, 7),
             vigente_em=None,
             superseded_by=None,

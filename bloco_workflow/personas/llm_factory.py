@@ -62,6 +62,7 @@ def get_advogado_llm(
         base_url=host,
         temperature=temperature,
         timeout=timeout_seconds,
+        format="json",  # FR-TESE-01: força output JSON estruturado (Pydantic-friendly)
     )
 
 

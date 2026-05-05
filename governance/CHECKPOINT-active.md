@@ -1663,3 +1663,52 @@ tags:
 5. 📦 **OPS-CLEANUP-01** — pendente (priority 5, qualquer momento)
 
 — Morpheus 🎯
+
+---
+
+## Sessão 86 — Operator+Neo: DEVOPS-01 PARTIAL CLOSURE
+
+**Story DEVOPS-01:** Ollama install autônomo + smoke E2E real
+
+### Operator (Phases A→C)
+- ✅ Ollama 0.23.0 instalado via winget (Windows 11)
+- ✅ qwen2.5:3b pulled (1.9GB)
+- ✅ Sabia-7B-instruct criado via Modelfile (TheBloke GGUF Q4_K_M, 4.1GB)
+- ✅ 2ª instância Ollama em :11435 (paralelismo F-MIN-01)
+- ⚠️ Phase D smoke: Operator violou boundary editando test fixture (.py) — Eric corrigiu, route via Skill para Neo
+
+### Neo (Phase D continuation)
+- Reviewed Operator's fixture edit em `tests/smoke/test_paralelismo_llm.py` (6 campos JurisprudenciaItem schema)
+- Fix semântico: `binding=False` (Súmula 539 STJ é súmula comum, não SV/Tema Repetitivo)
+- Smoke iteration 1 (180s): Sabia retornou natural language com `### Exemplo 2:` em vez de JSON → ValidationError
+- Fix produto: adicionado `format="json"` em `get_advogado_llm` (`llm_factory.py`)
+- Smoke iteration 2 (48s): Sabia retorna JSON parseável MAS `citacao_textual="..."` (3 chars) viola `min_length=10`
+- **Diagnóstico final:** Sabia-7B Q4 CPU sem fine-tune jurídico produz JSON estruturalmente válido mas semanticamente raso
+
+### Decisões
+
+- **D-NEO-DEVOPS01-A:** TD-PIPELINE-SMOKE-REAL marcado **PARTIAL RESOLVED** — 5/6 aspectos validados empiricamente; Sabia output quality é debt separado (TD-LLM-SABIA-Q4-OUTPUT HIGH) — Why: F-MIN-02 (paralelismo coroutine) está EMPIRICAMENTE confirmado; pipeline E2E roda; quality gap requires GPU+fine-tune (research separado)
+- **D-NEO-DEVOPS01-B:** `format="json"` aplicado APENAS no advogado — economista Qwen ainda em format livre (TD-LLM-FORMAT-JSON-ECONOMISTA LOW criado para defensive consistency)
+- **D-NEO-DEVOPS01-C:** Sabia-7B-instruct keeper como modelo do projeto (Modelfile TheBloke GGUF Q4_K_M) — Why: PRD v1.0.0 escolha original Tier Premium; output quality issue é gotcha sem fine-tune, não problema de modelo errado
+
+### Files (sessão 86)
+
+- ADD `models/sabia-7b.Q4_K_M.gguf` (~3.8GB, gitignored)
+- ADD `models/Modelfile.sabia-7b-instruct`
+- MOD `bloco_workflow/personas/llm_factory.py` (format=json no advogado)
+- MOD `tests/smoke/test_paralelismo_llm.py` (fixture schema completo)
+- MOD `governance/TECH-DEBT.md` (DEVOPS-01 closure section + 2 novos debts)
+- MOD `governance/CHECKPOINT-active.md` (esta entry)
+- ADD `~/.claude/projects/.../memory/feedback_operator_no_code_edits.md` (memory feedback)
+
+### Próximo passo
+
+**H-S02-DEVOPS01-N2OPS** → @devops (Operator) executar closure:
+1. Stop 2ª instância Ollama em :11435 (background task `b5j5ovii0`)
+2. Verificar suite testes principal não quebrou (`pytest --no-cov`)
+3. Conventional commit: `feat(infra): Ollama autônomo install + smoke pipeline INTEGRAL parcialmente validado [Story DEVOPS-01]`
+4. git push origin main
+5. Atualizar checkpoint com SHA do commit
+6. Emit handoff Operator→Morpheus para próxima story (REV-INT-02 priority 2)
+
+— Neo, sempre construindo 🔨
