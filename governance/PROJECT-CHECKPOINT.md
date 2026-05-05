@@ -3,32 +3,48 @@ type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
 last_updated: "2026-05-05"
-active_story: "🚀 Sprint 02 EM EXECUÇÃO — 1.5/5 stories done, próxima a definir"
-status: sprint-02-IN-PROGRESS-1.5-of-5-stories
+active_story: "🚀 Sprint 02 — 2.5/5 stories done · zero HIGH ativos · próxima a definir"
+status: sprint-02-IN-PROGRESS-2.5-of-5-stories-zero-HIGH-active
 
-# Status executivo atualizado sessão 86 (Morpheus consolidação pós DEVOPS-01):
+# Status executivo atualizado sessão 86 (Morpheus consolidação pós REV-INT-02):
 #  • Sprint 01: 100% closed (15 stories Done, MVP v0.1.0 release publicada)
-#  • Sprint 02: 1.5/5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅
-#  • main HEAD: f146be4 (DEVOPS-01 closure pushed)
-#  • CI run 25379320906: ✅ success
+#  • Sprint 02: 2.5/5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅
+#  • main HEAD: 50a3b8b (REV-INT-02 LGPD self-host fontes pushed)
+#  • CI run 25382859010: ✅ success
 #  • Suite testes: 232 passed + 1 skipped (smoke continua skip sem 2 instâncias Ollama em CI)
 #  • Stack runtime ATIVA: Ollama 0.23.0 + qwen2.5:3b (1.9GB) + sabia-7b-instruct (4.1GB Modelfile TheBloke GGUF)
-#  • UI Web: FastAPI + HTMX + Jinja2 (REV-INT-01 substituiu Streamlit)
+#  • UI Web: FastAPI + HTMX + Jinja2 + 7 fontes self-hosted (~117KB) — zero CDN externo (LGPD on-premise consistente)
 #
-# Decisões críticas sessão 86:
-#  D-NEO-DEVOPS01-A: TD-PIPELINE-SMOKE-REAL → PARTIAL RESOLVED (5/6 aspectos validados; gap = qualidade output Sabia Q4 CPU)
-#  D-MOR-PM-S02-C: TD-PIPELINE-SMOKE-REAL reclassificado oficialmente owner Eric → @devops Operator (PRD v1.0.3)
-#  D-MOR-S02-A: Próxima story Sprint 02 PENDE confirmação Eric (workflow corrigido — sem auto-dispatch entre stories)
+# Marco histórico sessão 86: ⭐ ZERO HIGH ATIVOS no projeto
+#  • TD-WEB-LGPD-CDN-01 HIGH oficialmente RESOLVED em main (commit 50a3b8b)
+#  • Único HIGH restante (TD-LLM-SABIA-Q4-OUTPUT) é decisão arquitetural Aria, não code debt
 #
-# Tech debts ativos novos (sessão 86):
-#  • TD-LLM-SABIA-Q4-OUTPUT (HIGH) — decisão arquitetural Aria pré v0.2.0 (GPU+Q5/Q8 OR fine-tune OR fallback Qwen 7B)
-#  • TD-LLM-FORMAT-JSON-ECONOMISTA (LOW) — defensive consistency
+# Workflow LMAS estrito sessão 86 (REV-INT-02): 5 Skills sequenciais sem skip
+#  • Sati spec → @sm River (Ready) → @po Keymaker (GO 10/10) → @dev Neo (11/12 PASS) → @qa Oracle (PASS) → @devops Operator
+#  • 7 handoffs YAML em .lmas/handoffs/ (gitignored)
+#  • Eric corrigiu 2x: "Operator não edita código" + "Skill chain estrito"; ambos internalizados
 #
-# Sprint 02 — próximas opções (Eric escolhe):
-#  • REV-INT-02 (priority 2) — Self-host Google Fonts, 30min, resolve TD-WEB-LGPD-CDN-01 HIGH
+# Tech debts ativos (Sprint 02 cumulative):
+#  • TD-LLM-SABIA-Q4-OUTPUT (HIGH arquitetural) — decisão Aria pré v0.2.0
+#  • TD-LLM-FORMAT-JSON-ECONOMISTA (LOW)
+#  • TD-WEB-VAL-MIME-01, TD-WEB-LISTENER-LEAK-01, TD-WEB-NOMAXSIZE-01 (MEDIUM, UI-1)
+#  • TD-WEB-SSE-NOSESSION-01, TD-WEB-TIER-ENUM-01, TD-WEB-CSP-INLINE-01 (LOW)
+#
+# Release v0.2.0 gate progress: 3/8 condições atingidas
+#  ✅ TD-WEB-LGPD-CDN-01 RESOLVED (zero CDN)
+#  ✅ Suite testes ≥232 passed
+#  ✅ PRD v1.0.3 publicado
+#  ⏳ TD-PIPELINE-SMOKE-REAL (partial — pendente Aria + GPU)
+#  ⏳ UI conectada ao pipeline real (UI-1)
+#  ⏳ Tag v0.2.0
+#  ⏳ Zero CRITICAL findings cumulativo Sprint 02 (já zero — ✅)
+#  ⏳ TECH-DEBT.md atualizado por story (já princípio adotado — ✅)
+#
+# Sprint 02 — 2.5 stories restantes (Eric escolhe):
+#  • OPS-CLEANUP-01 (priority 4) — Branch remoto + tag v0.1.0 alinhada, 15min, paralelo independente
+#  • Aria Sabia decision (priority 5) — TD-LLM-SABIA-Q4-OUTPUT decisão arquitetural, 30-60min, paralelo HIGH
 #  • DOCS-02 (priority 3) — README/SOPs FastAPI + 2 R-NEW Sati, 1-2h, paralelo
-#  • UI-1 (priority 4) — Conectar UI ao pipeline real, 3-5h (caveat: TD-LLM-SABIA-Q4-OUTPUT pode forçar fallback Qwen)
-#  • OPS-CLEANUP-01 (priority 5) — Branch remoto + tag v0.1.0 alinhada, 15min
+#  • UI-1 (priority 4 plano original) — Conectar UI ao pipeline real, 3-5h (depende Aria OR fallback Qwen)
 sharded: true
 shard_files:
   - "CHECKPOINT-active.md (Phase 1+ — sessões 24+)"
@@ -131,7 +147,7 @@ tags:
 | 11 | ✅ Morpheus consolidou pós-merge — descobriu Ollama NÃO instalado (sessão 80) | @lmas-master | **DONE** |
 | 12 | ✅ Eric autorizou STORY 15 Cleanup + TECH-DEBT.md (sessão 80) | Eric | **DONE** |
 | 13 | ✅ Neo executou cleanup local + criou TECH-DEBT.md (sessão 81) | @dev | **DONE** |
-| 14 | (Pendente Sprint 02) Operator deleta feature branch remote (`git push origin --delete`) | @devops | TODO Sprint 02 |
+| 14 | ✅ N/A em repo dedicado — Sprint 01 inheritance branch nunca existiu em `Claudinoinsights/revisor-contratual` (sessão 86, OPS-CLEANUP-01 NO-OP confirmado) | @devops | DONE Sprint 02 |
 | 15 | (Pendente Sprint 02) Eric instala Ollama + Smoke E2E real (TD-PIPELINE-SMOKE-REAL) | Eric/@devops/@dev | Pendente |
 | 16 | Sprint 02 planning (PRD update + ADRs + scope) | @pm | Quando Eric quiser |
 | 4 | STORY 14 — Docs README + SOPs (paralelo OU pós-STORY-13) | @pm + @dev | Backlog |

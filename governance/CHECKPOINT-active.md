@@ -1919,3 +1919,112 @@ Eric corrigiu workflow 2x na sessão 86 — auto-dispatch entre stories não é 
 **H-S02-INT02-qa2ops** → @devops (Operator) executar Phase E closure (smoke browser Eric → commit → push → handoff Morpheus)
 
 — Oracle, guardião da qualidade 🛡️
+
+---
+
+## Sessão 86 — Operator: REV-INT-02 PUSHED ✅
+
+**Commit:** `50a3b8b` em main | **Range:** `f146be4..50a3b8b` | **CI run:** `25382859010` ✅ success
+
+### Phase E executada
+
+- E1 — Eric smoke browser test: ✅ AC-3 visual preservation confirmada (tipografia Manrope/Fraunces/JetBrains idêntica pré-mudança)
+- E2 — Pre-push gates: 232 passed + 1 skipped (zero regressão)
+- E3 — Conventional commit `feat(web): self-host Google Fonts ...` com Sprint 02 progress contextualizado
+- E4 — Push `f146be4..50a3b8b` + CI run 25382859010 success
+- E5 — Checkpoint atualizado (esta entry); handoff Operator→Morpheus emitido
+
+### Sprint 02 progress
+
+- ✅ REV-INT-01 (commit f6b935c) — UI Web FastAPI + HTMX
+- ✅ Sprint 02 plan + PRD v1.0.3 DELTA (commit 04a576b)
+- ✅ DEVOPS-01 partial (commit f146be4) — Ollama install + smoke parcial
+- ✅ **REV-INT-02 (commit 50a3b8b) — TD-WEB-LGPD-CDN-01 HIGH RESOLVED**
+
+**2.5 / 5 stories done.** Único HIGH ativo do projeto agora removido.
+
+### Próximos passos sugeridos para Eric
+
+Caminho recomendado original 1→4→5par→2→3 — prosseguir:
+- **#4 OPS-CLEANUP-01** (priority 4, 15min) — branch remoto + tag v0.1.0 alinhada
+- **#5 Aria decision Sabia-7B** (priority 5, paralelo HIGH) — desbloqueia UI-1 production
+- **#2 DOCS-02** (priority 3, 1-2h) — README/SOPs FastAPI + R-NEW Sati
+- **#3 UI-1** (priority 4 plano original, 3-5h) — depende decisão Aria
+
+— Operator, deployando com confiança 🚀
+
+---
+
+## Sessão 86 — Morpheus consolidação pós REV-INT-02
+
+**Marco silencioso:** ⭐ **Zero HIGH ativos no projeto pela primeira vez.**
+
+### Estado pós-push REV-INT-02
+
+- main HEAD `50a3b8b` (REV-INT-02 LGPD fix)
+- CI run `25382859010` ✅ success
+- Sprint 02: **2.5/5 stories done**
+- Release v0.2.0 gate: 3/8 condições atingidas
+
+### Workflow LMAS estrito completo (REV-INT-02)
+
+5 Skills sequenciais sem skip + 7 handoffs YAML:
+- Sati spec → @sm River (Ready) → @po Keymaker (GO 10/10) → @dev Neo (11/12 PASS) → @qa Oracle (PASS) → @devops Operator (commit + push)
+
+Eric AC-3 visual confirmation foi o único checkpoint humano no fluxo.
+
+### Handoffs consumidos sessão 86 (cumulativo)
+
+- Morpheus→@devops (DEVOPS-01 dispatch)
+- Neo→@devops (DEVOPS-01 closure)
+- @devops→Morpheus (DEVOPS-01 done)
+- Morpheus→@sm (REV-INT-02 create)
+- @sm→@po (REV-INT-02 validate)
+- @po→@dev (REV-INT-02 develop)
+- @dev→@qa (REV-INT-02 gate)
+- @qa→@devops (REV-INT-02 merge)
+- @devops→Morpheus (REV-INT-02 done — agora consumed)
+
+### Próximo passo: PEND ESCOLHA ERIC
+
+Workflow estrito sessão 86 corrigido 2x — sem auto-dispatch. Apresentando opções abaixo.
+
+— Morpheus 🎯
+
+---
+
+## Sessão 86 — Operator: OPS-CLEANUP-01 NO-OP confirmado ✅
+
+**Story Done sem mudanças** — repo dedicado `Claudinoinsights/revisor-contratual` já estava limpo.
+
+### Estado verificado (Phase A)
+
+| Verificação | Estado |
+|---|---|
+| `gh release list` | v0.1.0 — Revisor Contratual MVP (Latest, 2026-05-05) |
+| `git branch -a` | main + gh-pages (ambas legítimas) |
+| `git tag -l` | v0.1.0 (única) |
+| `git ls-remote --heads` | refs/heads/main + refs/heads/gh-pages |
+
+### Análise alinhamento tag v0.1.0
+
+- **Tag v0.1.0** = annotated tag apontando para commit `2480f05` ("v0.1.0 MVP — Revisor Contratual extracted from Claudinoinsights/the-matrix", 2026-05-04 23:42)
+- **Release v0.1.0** publicada 2026-05-05 02:44 UTC, target_commitish=main, apontando para tag correta
+- **Main HEAD atual** `50a3b8b` (REV-INT-02 closure, 2026-05-05) — 8 commits ahead da tag, esperado e correto
+- ✅ **Tag v0.1.0 está corretamente ancorada num commit MVP estável** — desalinhamento mencionado em PROJECT-CHECKPOINT.md item 14 era do monorepo antigo, não deste repo dedicado
+
+### Decisão (Phase B)
+
+- **D-OPS-CLEANUP01-A:** NO-OP — Why: repo dedicado criado pós-extração (2026-05-04+) não inherited a branch obsoleta `feature/revisor-contratual-v0.1.0` do monorepo; tag/release v0.1.0 já está corretamente ancorada; branches main+gh-pages são ambas legítimas (gh-pages = landing deploy)
+- **Item 14 PROJECT-CHECKPOINT** marcado N/A em repo dedicado
+
+### Files modified
+
+- MOD `governance/CHECKPOINT-active.md` (esta entry)
+- MOD `governance/PROJECT-CHECKPOINT.md` (item 14 esclarecimento — próxima edição)
+
+### Próximo handoff
+
+**H-S02-OPS01-OPS2MOR** → Morpheus consolidar + apresentar próxima escolha Eric (Sprint 02 restantes: Aria decision, DOCS-02, UI-1)
+
+— Operator, deployando com confiança 🚀
