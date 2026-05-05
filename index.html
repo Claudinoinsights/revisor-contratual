@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisor Contratual — Análise jurídica local de contratos bancários</title>
+<meta name="description" content="Sistema 100% on-premise (LGPD) que analisa contratos de financiamento bancário e produz teses jurídicas fundamentadas em jurisprudência STJ/STF e BACEN.">
+<meta name="keywords" content="revisão contratual, contratos bancários, CDC, anatocismo, BACEN, STJ, STF, jurisprudência, direito bancário, Decimal, Pydantic">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Revisor Contratual — Análise jurídica local">
+<meta property="og:description" content="Sistema LEAN local que analisa contratos bancários CDC com teses jurídicas + fundamentação BACEN/STJ/STF em ≤210s.">
+<meta property="og:url" content="https://claudinoinsights.com/revisor-contratual">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <span>Revisor</span><b>Contratual</b>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Como funciona</a>
+      <a href="#principios">Princípios</a>
+      <a href="#stack">Stack</a>
+      <a href="#download">Download</a>
+      <a href="https://github.com/Claudinoinsights/revisor-contratual" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">v0.1.0 MVP · 100% on-premise · LGPD by design</div>
+    <h1 class="hero-title">
+      Análise jurídica local<br>
+      de contratos<sup>1</sup> bancários
+    </h1>
+    <p class="hero-lead">
+      Sistema LEAN single-process que analisa contratos de financiamento (CDC PF Veículos, TJBA-MVP) e produz, em <strong>≤210s por contrato</strong>, teses jurídicas + contábeis + fiscais com peticionamento e recursos prontos para protocolo, fundamentados em jurisprudência vinculante do STF, STJ e TJ da jurisdição.
+    </p>
+    <div class="hero-cta">
+      <a href="#download" class="btn btn-primary">Baixar v0.1.0</a>
+      <a href="https://github.com/Claudinoinsights/revisor-contratual" class="btn btn-secondary" target="_blank" rel="noopener">Ver código</a>
+    </div>
+    <p class="hero-foot">
+      <sup>1</sup> Apenas CDC PF Veículos suportado em v0.1.0. Modalidades adicionais (CDC_BENS_PF, CDC_IMOBILIARIO, CARTAO_ROTATIVO) já modeladas — lógica de cálculo no roadmap Sprint 02.
+    </p>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat">
+        <div class="stat-value">15</div>
+        <div class="stat-label">Stories Done</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">233</div>
+        <div class="stat-label">Testes verdes</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">9</div>
+        <div class="stat-label">ADRs ativas</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">≤210s</div>
+        <div class="stat-label">Por contrato</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section id="features" class="features">
+  <div class="container">
+    <div class="brand-eyebrow">Como funciona</div>
+    <h2 class="section-title">Pipeline LEAN em 7 etapas determinísticas</h2>
+
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-num">01</div>
+        <h3>Parsing PDF</h3>
+        <p>PyMuPDF4LLM primário. Marker OCR opcional para PDFs escaneados.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">02</div>
+        <h3>Cálculo Decimal</h3>
+        <p>Price + simples em <code>Decimal</code> puro. Float é proibido em finanças jurídicas.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">03</div>
+        <h3>BACEN SGS</h3>
+        <p>Taxa média BACEN da modalidade. Cache + retry exponencial + fallback.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">04</div>
+        <h3>Vault híbrido</h3>
+        <p>BM25 lexical + sqlite-vec semântico (Legal-BERTimbau). Whitelist STJ + STF.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">05</div>
+        <h3>Personas paralelas</h3>
+        <p>Advogado Sabia-7B + Economista Qwen 3B (asyncio.gather, ~7GB RAM).</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">06</div>
+        <h3>Juiz Python puro</h3>
+        <p>3 critérios C1/C2/C3 reprodutíveis. Aderência ≥70% para HITL, =100% para protocolo.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-num">07</div>
+        <h3>Audit forense</h3>
+        <p>HMAC GENESIS chain (SHA-256). Cada execução registrada e verificável.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Princípios -->
+<section id="principios" class="principios">
+  <div class="container">
+    <div class="brand-eyebrow">Princípios não-negociáveis</div>
+    <h2 class="section-title">Por que <em>local-first</em> não é opcional</h2>
+
+    <div class="principios-grid">
+      <div class="principio">
+        <h3>🔒 100% local LGPD</h3>
+        <p>Whitelist HTTP estrita: STJ + STF apenas. PDFs e dados do contrato <strong>nunca</strong> saem da máquina.</p>
+      </div>
+      <div class="principio">
+        <h3>🧮 Decimal everywhere</h3>
+        <p><code>0.1 + 0.2</code> não pode virar <code>0.30000000000000004</code> em peça jurídica. Float é proibido.</p>
+      </div>
+      <div class="principio">
+        <h3>⚖️ Citation-grounded</h3>
+        <p>Validação semântica NLI híbrida bloqueia paráfrases invertidas. Anti-fantasma sintático em 2 camadas.</p>
+      </div>
+      <div class="principio">
+        <h3>📜 Audit forense-grade</h3>
+        <p>HMAC GENESIS chain assina cada operação. AUTH_COOKIE_KEY rotacionável (SOP-001).</p>
+      </div>
+      <div class="principio">
+        <h3>🛡️ Pydantic strict</h3>
+        <p><code>extra='forbid'</code> nos schemas LLM-facing. Campos alucinados são rejeitados antes de virar peça.</p>
+      </div>
+      <div class="principio">
+        <h3>👤 CFOAB obrigatório</h3>
+        <p>Tela de checkbox CFOAB ("li, conferi e adoto" + OAB+UF) antes de PDF — Estatuto OAB art. 32.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stack -->
+<section id="stack" class="stack">
+  <div class="container">
+    <div class="brand-eyebrow">Stack D-LEAN</div>
+    <h2 class="section-title">Sem containers, sem queue, sem cache distribuído</h2>
+
+    <div class="stack-grid">
+      <div class="stack-item">
+        <div class="stack-label">Python</div>
+        <div class="stack-value">3.11 / 3.12</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">UI</div>
+        <div class="stack-value">Streamlit + tokens orsheva</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">LLM</div>
+        <div class="stack-value">Sabia-7B + Qwen 3B (Ollama)</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">Vault</div>
+        <div class="stack-value">sqlite-vec + Legal-BERTimbau</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">Validação</div>
+        <div class="stack-value">Pydantic v2 (extra=forbid)</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">Cálculo</div>
+        <div class="stack-value">Decimal puro</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">BACEN</div>
+        <div class="stack-value">python-bcb + diskcache</div>
+      </div>
+      <div class="stack-item">
+        <div class="stack-label">Audit</div>
+        <div class="stack-value">structlog + HMAC chain</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Download -->
+<section id="download" class="download">
+  <div class="container">
+    <div class="brand-eyebrow">Instalação</div>
+    <h2 class="section-title">Comece em 5 minutos</h2>
+
+    <div class="install-card">
+      <pre class="install-code"><code># 1. Clone + instalação
+git clone https://github.com/Claudinoinsights/revisor-contratual.git
+cd revisor-contratual
+pip install -e ".[dev]"
+
+# 2. Configurar AUTH_COOKIE_KEY (HMAC do audit chain)
+export AUTH_COOKIE_KEY=$(openssl rand -hex 32)
+
+# 3. Inicializar audit chain (1× setup)
+revisor init-audit
+
+# 4. Popular vault jurisprudencial
+revisor populate-vault --source all
+
+# 5. Revisar contrato
+revisor revisar contrato.pdf --uf BA --data-assinatura 2024-03-15
+
+# 6. (Opcional) UI Streamlit
+streamlit run bloco_interface/streamlit_app.py</code></pre>
+      <p class="install-foot">
+        Detalhes: <a href="https://github.com/Claudinoinsights/revisor-contratual/blob/main/README.md" target="_blank" rel="noopener">README.md</a> ·
+        <a href="https://github.com/Claudinoinsights/revisor-contratual/blob/main/docs/sop-revisar-pdf.md" target="_blank" rel="noopener">SOP-003 fluxo completo</a>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">Revisor<b>Contratual</b></div>
+        <p class="footer-tag">v0.1.0 MVP · 100% on-premise · BSL 1.1</p>
+      </div>
+      <div class="footer-links">
+        <h4>Produto</h4>
+        <a href="#features">Pipeline</a>
+        <a href="#principios">Princípios</a>
+        <a href="#stack">Stack</a>
+      </div>
+      <div class="footer-links">
+        <h4>Recursos</h4>
+        <a href="https://github.com/Claudinoinsights/revisor-contratual" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.1.0" target="_blank" rel="noopener">Release v0.1.0</a>
+        <a href="https://github.com/Claudinoinsights/revisor-contratual/blob/main/governance/TECH-DEBT.md" target="_blank" rel="noopener">Roadmap</a>
+      </div>
+      <div class="footer-links">
+        <h4>Design</h4>
+        <a href="https://github.com/Claudinoinsights/revisor-contratual/blob/main/governance/orsheva-brandbook.html" target="_blank" rel="noopener">Brandbook Orsheva 7</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 ClaudinoInsights · <em>Iluminar · Estruturar · Consolidar</em></p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
