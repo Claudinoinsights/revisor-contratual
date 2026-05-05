@@ -132,14 +132,14 @@ async def test_paralelismo_llm_real() -> None:
 
     # Sequencial
     t0 = time.perf_counter()
-    await advogado_redigir_tese_async(calculo, docs, contrato_meta, "premium")
+    await advogado_redigir_tese_async(calculo, docs, contrato_meta, "balanced")
     await economista_analisar_async(contrato_meta, bacen)
     latencia_serial = time.perf_counter() - t0
 
     # Paralelo
     t0 = time.perf_counter()
     await asyncio.gather(
-        advogado_redigir_tese_async(calculo, docs, contrato_meta, "premium"),
+        advogado_redigir_tese_async(calculo, docs, contrato_meta, "balanced"),
         economista_analisar_async(contrato_meta, bacen),
     )
     latencia_paralela = time.perf_counter() - t0

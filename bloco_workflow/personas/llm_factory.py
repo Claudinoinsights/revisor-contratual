@@ -25,11 +25,11 @@ from bloco_contratos.personas import LLMTier
 DEFAULT_HOST_ADVOGADO = "http://127.0.0.1:11434"
 DEFAULT_HOST_ECONOMISTA = "http://127.0.0.1:11435"
 
-# Mapping tier → modelo Sabia (configurável)
+# Mapping tier → modelo Advogado (ADR-010 Path C: Qwen 2.5 default em CPU; Sabia opt-in para GPU)
 TIER_TO_MODEL_ADVOGADO: dict[LLMTier, str] = {
-    "lean": "sabia-3b",
-    "balanced": "sabia-7b",
-    "premium": "sabia-7b-instruct",
+    "lean": "qwen2.5:3b",                # consistência família com economista
+    "balanced": "qwen2.5:7b",            # NOVO DEFAULT (ADR-010 mitigation)
+    "premium": "sabia-7b-instruct",      # preservado opt-in (futuro upgrade GPU)
 }
 
 # Economista FIXO (ADR-003 PATCH SUB-C)
@@ -38,7 +38,7 @@ MODEL_ECONOMISTA = "qwen2.5:3b"
 
 def get_advogado_llm(
     *,
-    tier: LLMTier = "premium",
+    tier: LLMTier = "balanced",
     host: str = DEFAULT_HOST_ADVOGADO,
     temperature: float = 0.2,
     timeout_seconds: float = 120.0,
@@ -89,4 +89,5 @@ def get_economista_llm(
         base_url=host,
         temperature=temperature,
         timeout=timeout_seconds,
+        format="json",  # ADR-010: defensive consistency com get_advogado_llm
     )

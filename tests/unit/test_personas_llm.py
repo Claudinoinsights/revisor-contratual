@@ -216,9 +216,12 @@ class TestLLMFactoryConfig:
         assert "3b" in MODEL_ECONOMISTA.lower()
 
     def test_advogado_tiers_mapeados(self) -> None:
-        """FR-TESE-02: 3 tiers configuráveis."""
+        """FR-TESE-02: 3 tiers configuráveis (ADR-010 — Path C: Qwen default em CPU; Sabia opt-in para GPU)."""
         assert set(TIER_TO_MODEL_ADVOGADO.keys()) == {"lean", "balanced", "premium"}
-        assert all("sabia" in m.lower() for m in TIER_TO_MODEL_ADVOGADO.values())
+        # ADR-010: lean/balanced = Qwen 2.5 (CPU-friendly default); premium = Sabia (opt-in GPU)
+        assert TIER_TO_MODEL_ADVOGADO["lean"].startswith("qwen")
+        assert TIER_TO_MODEL_ADVOGADO["balanced"].startswith("qwen")
+        assert "sabia" in TIER_TO_MODEL_ADVOGADO["premium"].lower()
 
 
 # ─────────────────────────────────────────────────────────────────────

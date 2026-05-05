@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-01"
+last_updated: "2026-05-05"
 status: active
-sprint: "01"
-etapa: "2.0"
+sprint: "02"
+etapa: "ARIA-SABIA-DECISION"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -44,6 +44,7 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 | ADR | Título | Status | Data | Absorve |
 |-----|--------|--------|------|---------|
 | [ADR-003](adr/adr-003-implementacao-tecnica-4-personas.md) | Implementação técnica das 4 personas internas | ✅ Accepted | 2026-05-01 | DP-04 (threshold Juiz) |
+| [ADR-010](adr/adr-010-sabia-q4-mitigation.md) | Mitigação TD-LLM-SABIA-Q4-OUTPUT — fallback Qwen 7B + LLM_TIER configurable | ✅ Accepted | 2026-05-05 | TD-LLM-SABIA-Q4-OUTPUT (HIGH arquitetural) + TD-LLM-FORMAT-JSON-ECONOMISTA |
 
 ### Segurança & Audit
 
@@ -83,8 +84,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 | Item | Origem | Próxima ADR? |
 |------|--------|--------------|
-| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-010 (após decisão Eric) |
-| Política outcomes registry | PRD v1.0.2 | ADR-011 (após decisão Eric) |
+| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-011 (após decisão Eric) — re-numerada |
+| Política outcomes registry | PRD v1.0.2 | ADR-012 (após decisão Eric) — re-numerada |
 | R-NEW Sati R-NEW-01..03 (UX) | qa/sati-ux-rereview | PATCH PRD v1.0.3 (não-arquitetural) |
 | R-NEW-SMITH-06 (HITL anti-bypass refinement) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
 | R-NEW-SMITH-08 (IP fingerprint UX mobilidade) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
@@ -94,11 +95,13 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas:** 9
+- **ADRs ativas (accepted):** 10 (ADR-001..010)
+- **ADRs proposed (aguardando Eric):** 0
 - **ADRs deprecadas/superseded:** 0
 - **R-NEW absorvidas em ADRs:** 7 (Smith-01, -02, -03, -04, -05, -07, -10)
+- **Tech debts absorvidos em ADRs (Sprint 02):** 2 (TD-LLM-SABIA-Q4-OUTPUT + TD-LLM-FORMAT-JSON-ECONOMISTA via ADR-010)
 - **R-NEW diferidas para PATCH v1.0.3:** 6 (Sati R-NEW-01..03 + Smith-06, -08, -09 endossando)
-- **Decisões pendentes Eric:** 2 (DP-05, outcomes registry)
+- **Decisões pendentes Eric:** 2 (DP-05 LGPD retenção, outcomes registry) — ADR-010 Path C aprovado sessão 86
 
 ---
 

@@ -3,31 +3,34 @@ type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
 last_updated: "2026-05-05"
-active_story: "🚀 Sprint 02 — 2.5/5 stories done · zero HIGH ativos · próxima a definir"
-status: sprint-02-IN-PROGRESS-2.5-of-5-stories-zero-HIGH-active
+active_story: "🚀 Sprint 02 — 4/5 stories done · ZERO HIGH ATIVOS (incluindo arquitetural) · DOCS-02 + UI-1 restantes"
+status: sprint-02-IN-PROGRESS-4-of-5-stories-zero-HIGH-arquitetural-resolved
 
-# Status executivo atualizado sessão 86 (Morpheus consolidação pós REV-INT-02):
+# Status executivo atualizado sessão 86 (Morpheus consolidação pós REV-LLM-01 closure):
 #  • Sprint 01: 100% closed (15 stories Done, MVP v0.1.0 release publicada)
-#  • Sprint 02: 2.5/5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅
-#  • main HEAD: 50a3b8b (REV-INT-02 LGPD self-host fontes pushed)
-#  • CI run 25382859010: ✅ success
+#  • Sprint 02: 4/5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅ + OPS-CLEANUP-01 ✅ + REV-LLM-01 ✅ (ADR-010 Path C)
+#  • main HEAD: pending push (REV-LLM-01 + ADR-010 governance batch unified)
+#  • CI runs verde: 25372289901 (REV-INT-01) + 25379320906 (DEVOPS-01) + 25382859010 (REV-INT-02)
 #  • Suite testes: 232 passed + 1 skipped (smoke continua skip sem 2 instâncias Ollama em CI)
-#  • Stack runtime ATIVA: Ollama 0.23.0 + qwen2.5:3b (1.9GB) + sabia-7b-instruct (4.1GB Modelfile TheBloke GGUF)
+#  • Stack runtime ATIVA: Ollama 0.23.0 + qwen2.5:3b (1.9GB) + qwen2.5:7b (4.7GB NEW DEFAULT) + sabia-7b-instruct (4.1GB preserved opt-in)
 #  • UI Web: FastAPI + HTMX + Jinja2 + 7 fontes self-hosted (~117KB) — zero CDN externo (LGPD on-premise consistente)
+#  • Smoke INTEGRAL: 253.72s PASS com Qwen 7B (citacao_textual ≥10 chars, ratio<0.7 paralelismo) — Sabia anteriormente FAIL '...' 3 chars
 #
-# Marco histórico sessão 86: ⭐ ZERO HIGH ATIVOS no projeto
-#  • TD-WEB-LGPD-CDN-01 HIGH oficialmente RESOLVED em main (commit 50a3b8b)
-#  • Único HIGH restante (TD-LLM-SABIA-Q4-OUTPUT) é decisão arquitetural Aria, não code debt
+# Marco histórico sessão 86: ⭐⭐ ZERO HIGH ATIVOS NO PROJETO (incluindo arquitetural)
+#  • TD-WEB-LGPD-CDN-01 HIGH oficialmente RESOLVED em main (commit 50a3b8b — sessão anterior)
+#  • TD-LLM-SABIA-Q4-OUTPUT HIGH arquitetural RESOLVED via ADR-010 Path C (REV-LLM-01 — esta sessão)
+#  • TD-LLM-FORMAT-JSON-ECONOMISTA LOW RESOLVED via ADR-010 implementation (REV-LLM-01 — esta sessão)
+#  • Pioneer milestone: zero HIGH em todas as categorias (code-level + arquitetural)
 #
-# Workflow LMAS estrito sessão 86 (REV-INT-02): 5 Skills sequenciais sem skip
-#  • Sati spec → @sm River (Ready) → @po Keymaker (GO 10/10) → @dev Neo (11/12 PASS) → @qa Oracle (PASS) → @devops Operator
-#  • 7 handoffs YAML em .lmas/handoffs/ (gitignored)
-#  • Eric corrigiu 2x: "Operator não edita código" + "Skill chain estrito"; ambos internalizados
+# Workflow LMAS estrito sessão 86 (REV-INT-02 + REV-LLM-01): 5+ Skills sequenciais sem skip
+#  • REV-INT-02: Sati → @sm → @po → @dev → @qa → @devops (PASSED + pushed)
+#  • REV-LLM-01: Morpheus → @sm → @po → @dev → @qa → @devops (current)
+#  • 8+ handoffs YAML em .lmas/handoffs/ (gitignored)
+#  • Eric corrigiu 2x na sessão 86: "Operator não edita código" + "Skill chain estrito"; ambos internalizados
 #
-# Tech debts ativos (Sprint 02 cumulative):
-#  • TD-LLM-SABIA-Q4-OUTPUT (HIGH arquitetural) — decisão Aria pré v0.2.0
-#  • TD-LLM-FORMAT-JSON-ECONOMISTA (LOW)
-#  • TD-WEB-VAL-MIME-01, TD-WEB-LISTENER-LEAK-01, TD-WEB-NOMAXSIZE-01 (MEDIUM, UI-1)
+# Tech debts ativos (Sprint 02 cumulative — pós REV-LLM-01):
+#  • TD-WEB-VAL-MIME-01, TD-WEB-LISTENER-LEAK-01, TD-WEB-NOMAXSIZE-01 (MEDIUM, UI-1 owned)
+#  • TD-LLM-FACTORY-ANN401 (LOW novo — sugestão Oracle, ANN401 -> Any: pré-existentes em llm_factory.py refactor com TypeAlias/Protocol)
 #  • TD-WEB-SSE-NOSESSION-01, TD-WEB-TIER-ENUM-01, TD-WEB-CSP-INLINE-01 (LOW)
 #
 # Release v0.2.0 gate progress: 3/8 condições atingidas

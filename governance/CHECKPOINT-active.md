@@ -22,6 +22,34 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE REV-LLM-01 PASS — handoff @qa→@devops emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @dev→@qa consumed=true.**
+  - **6 adversarial probes executados, todos PASS:**
+    - P1 llm_factory.py 3 changes: ✅ PASS (git diff cirúrgico, zero scope creep)
+    - P2 test_paralelismo_llm.py schema evolution: ✅ PASS (2x balanced, 0 premium)
+    - P3 smoke pass autêntico: ✅ PASS (blv3mvuyc.output 1 passed in 253.72s — 4 prior FAILED com Sabia)
+    - P4 Sabia preserved opt-in: ✅ PASS (sabia-7b-instruct:latest 4.1GB ainda presente)
+    - P5 ruff scope: ⚠️ PARTIAL ACCEPTED (2 ANN401 PRÉ-EXISTENTES em commit f146be4 DEVOPS-01 — não introduzidas)
+    - P6 schema evolution self-critique: ✅ JUSTIFIED (codifica novo invariant ADR-010, não regression)
+  - **Decisão Oracle D-ORC-S02-LLM01-A:** PASS (zero blockers, AC-7 partial aceitável, AC-9 pending Operator)
+  - **AC compliance:** 7 firmes + 1 partial-aceitável + 1 pending-operator = PASS
+  - **TD-LLM-SABIA-Q4-OUTPUT (HIGH arquitetural) → RESOLVED** (após Operator push)
+  - **TD-LLM-FORMAT-JSON-ECONOMISTA (LOW) → RESOLVED** (após Operator push)
+  - **Files Oracle (modified/created):**
+    - `governance/stories/REV-LLM-01-qwen-fallback.md` (QA Results section preenchida)
+    - `governance/qa/qa-gate-story-rev-llm-01-qwen-fallback.md` (NEW gate file completo, ~370 linhas)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Handoff emitido:** H-S02-LLM01-qa2devops → @devops (Operator) commit + push unificado
+    - Path: `.lmas/handoffs/handoff-qa-to-devops-2026-05-05-revllm01-merge.yaml`
+    - **CRITICAL:** Operator commita BATCH UNIFICADO REV-LLM-01 (5 files) + ADR-010 governance (3 files Aria sessão 86 não pushed) + QA gate file + checkpoint = 9 files num único commit
+    - Conventional commit message copy-paste-ready no gate file QA Results section
+  - **🚦 Sprint 02 progress (após Operator push):**
+    - 4 of 5 stories done (REV-LLM-01 closes)
+    - Zero HIGH ativos no projeto (incluindo arquitetural — TD-LLM-SABIA-Q4-OUTPUT removed)
+    - Release v0.2.0 gate: 6/8 condições met (REV-LLM-01 + ADR-010 done; restam DOCS-02 + UI-1)
+  - **Próximo agente:** @devops (Operator) per handoff @qa→@devops
+
 - **Sessão 83** (@devops / Operator — 2026-05-05): **🎉 SPRINT 01 OFICIALMENTE 100% ENCERRADO — Sprint 02 BACKLOG**.
   - Eric pediu "continue com o recomendado" — modo autônomo per padrão.
   - **Handoff Morpheus consumed=true.**
@@ -2028,3 +2056,231 @@ Workflow estrito sessão 86 corrigido 2x — sem auto-dispatch. Apresentando op�
 **H-S02-OPS01-OPS2MOR** → Morpheus consolidar + apresentar próxima escolha Eric (Sprint 02 restantes: Aria decision, DOCS-02, UI-1)
 
 — Operator, deployando com confiança 🚀
+
+---
+
+## Sessão 86 — Morpheus consolidação pós OPS-CLEANUP-01
+
+**3 commits push em main** desde início da sessão 86 (todos CI verde):
+
+| Commit | Story | CI run |
+|---|---|---|
+| `f6b935c` | REV-INT-01 (FastAPI+HTMX UI) | 25372289901 ✅ |
+| `04a576b` | Sprint 02 plan + PRD v1.0.3 DELTA | (parte do f146be4) |
+| `f146be4` | DEVOPS-01 partial (Ollama + smoke) | 25379320906 ✅ |
+| `50a3b8b` | REV-INT-02 (self-host fonts) | 25382859010 ✅ |
+| `ad251c1` | OPS-CLEANUP-01 NO-OP | (commit governance-only) |
+
+### Sprint 02 progress: 3/5 stories done
+
+- ✅ REV-INT-01 — UI Web FastAPI+HTMX (Sprint 02 priority 1, antecipada)
+- ✅ DEVOPS-01 partial — Ollama autônomo install + smoke 5/6 aspectos
+- ✅ REV-INT-02 — Self-host Google Fonts (TD-WEB-LGPD-CDN-01 RESOLVED)
+- ✅ OPS-CLEANUP-01 — NO-OP confirmado (repo dedicado já clean)
+- ⏳ 2 restantes: Aria Sabia decision (priority 5) + DOCS-02 (priority 3) + UI-1 (priority 4)
+
+### Marcos da sessão 86
+
+- ⭐ **Zero HIGH code-level ativos** (TD-WEB-LGPD-CDN-01 resolved)
+- ⭐ Único HIGH restante (TD-LLM-SABIA-Q4-OUTPUT) é **arquitetural**, não code
+- ⭐ Workflow LMAS estrito Skill-only refinado e validado em REV-INT-02 (5 Skills perfeitas + Eric AC-3)
+- ⭐ Eric correções process: "Operator não edita código" + "sem auto-dispatch" — internalizadas
+
+### Próximo passo: PEND ESCOLHA ERIC
+
+— Morpheus 🎯
+
+---
+
+## Sessão 86 — Aria (@architect): ADR-010 Sabia mitigation criada
+
+**Story ARIA-SABIA-DECISION done** — avaliação técnica + ADR-010 pronto para Eric decidir.
+
+### ADR-010 entregue
+
+- ADD `governance/architecture/adr/adr-010-sabia-q4-mitigation.md` (Status: Proposed)
+- Avaliação técnica de 4 alternatives (Path C recomendado, A/B/Cloud rejeitadas com fundamentação)
+- Implementation impact estimado: ~3h se Path C aprovado (story dedicada via @sm→@dev→@qa→@devops)
+
+### Path C — Fallback Qwen 7B (recomendação)
+
+**Mudanças concretas:**
+1. `llm_factory.TIER_TO_MODEL_ADVOGADO`: balanced muda sabia-7b → qwen2.5:7b (NOVO DEFAULT); premium preservado opt-in
+2. `get_advogado_llm` default `tier="balanced"` (era "premium")
+3. `get_economista_llm` ganha `format="json"` (TD-LLM-FORMAT-JSON-ECONOMISTA endereçado junto)
+4. UI advisory message opcional sobre fallback temporário
+5. PRD v1.0.4 atualiza FR-TESE-02 (próximo PATCH)
+
+### Razões para Path C
+
+- Único compatível com hardware Eric (laptop CPU only)
+- Reversível (LLM_TIER configurable já existe per FR-TESE-02)
+- Pragmático (~3h vs 8-16h Path B fine-tune ou hardware Path A)
+- Qwen 2.5 7B documentadamente superior em structured output Q4 vs Sabia-7B Q4
+- LEAN preservado (não adiciona infrastructure)
+
+### Decisões Aria
+
+- **D-ARI-S02-SABIA-A:** ADR-010 status `proposed` (não `accepted`) — Why: decisão final é Eric per workflow LMAS; Aria recomenda
+- **D-ARI-S02-SABIA-B:** ADR-010 marcado `adr_level: spec` — Why: implementation details específicos (3 mudanças concretas em llm_factory.py + smoke test + UI advisory)
+- **D-ARI-S02-SABIA-C:** ADR-INDEX re-numerado: ADR-011 (LGPD DP-05 futuro), ADR-012 (outcomes registry futuro) — Why: ADR-010 ocupado por Sabia mitigation
+
+### Files modified
+
+- ADD `governance/architecture/adr/adr-010-sabia-q4-mitigation.md` (~10KB)
+- MOD `governance/architecture/ADR-INDEX.md` (entry ADR-010 + estatísticas + re-numeração)
+- MOD `governance/TECH-DEBT.md` (TD-LLM-SABIA-Q4-OUTPUT MITIGATION PROPOSED + TD-LLM-FORMAT-JSON-ECONOMISTA cross-reference)
+- MOD `governance/CHECKPOINT-active.md` (esta entry)
+
+### Próximo handoff
+
+**H-S02-SABIA-ARI2MOR** → Morpheus apresentar ADR-010 a Eric:
+- Eric **decide** entre Path A (GPU) / Path B (fine-tune) / Path C (Qwen recomendado)
+- Após Eric decidir → ADR-010 status `accepted` + dispatch implementation (Path C: story REV-LLM-01 via @sm)
+
+— Aria, arquitetando o futuro 🏗️
+
+---
+
+## Sessão 86 — Eric APROVOU ADR-010 Path C
+
+**Decisão registrada:** Eric escolheu opção #1 (Path C — Qwen 7B fallback).
+
+### Mudanças aplicadas
+
+- ADR-010 status: `proposed` → **`accepted`** (Eric aprovou sessão 86)
+- ADR-INDEX: ADR-010 marcado ✅ Accepted; estatísticas atualizadas (10 ativas, 0 proposed pendentes)
+- ADR-010 frontmatter: adicionado `accepted_by` + `accepted_date`
+
+### Sprint 02 progress: 3.5/5 stories done
+
+ADR-010 ARIA-SABIA-DECISION fechada (story Done). Próxima story: **REV-LLM-01** (implementation Path C).
+
+### Próximo handoff
+
+**H-S02-LLM01-MOR2SM** → @sm (River) criar story REV-LLM-01 conforme ADR-010 implementation specs:
+
+- 3 mudanças cirúrgicas em `bloco_workflow/personas/llm_factory.py`
+- Pull qwen2.5:7b (~4.4GB)
+- Smoke re-run validating citacao_textual ≥10 chars
+- Resolve TD-LLM-SABIA-Q4-OUTPUT + TD-LLM-FORMAT-JSON-ECONOMISTA
+- Workflow estrito: @sm → @po → @dev → @qa → @devops
+
+— Morpheus 🎯
+
+---
+
+## Sessão 86 — River (@sm): Story REV-LLM-01 criada
+
+**Story file inaugurando 2ª story formal Sprint 02** — implementation ADR-010 Path C.
+
+### Files added
+- ADD `governance/stories/REV-LLM-01-qwen-fallback.md` (Ready)
+
+### Story REV-LLM-01 highlights
+
+- **Status:** Ready (implementation specs sem ambiguidade — copy-paste-ready em Dev Notes)
+- **Effort:** 1-2h (3 mudanças .py + pull modelo + smoke + docs)
+- **9 ACs:** 4 Funcionalidade + 3 Quality + 2 Documentação
+- **6 phases:** A pull qwen2.5:7b → B edit llm_factory → C smoke → D regression → E docs → F handoff
+- **Resolve simultaneamente:** TD-LLM-SABIA-Q4-OUTPUT (HIGH) + TD-LLM-FORMAT-JSON-ECONOMISTA (LOW)
+- **Files to modify:** llm_factory.py + TECH-DEBT.md
+- **Risk + Mitigation:** 5 riscos com probabilidade BAIXA-MUITO BAIXA
+
+### Decisão
+
+- **D-RIV-S02-LLM01-A:** Status `Ready` direto — Why: ADR-010 já tem implementation specs detalhados; story é tradução fiel do ADR para checklist executável
+
+### Próximo handoff
+
+**H-S02-LLM01-sm2po** → @po (Keymaker) `*validate-story-draft REV-LLM-01`
+
+— River, removendo obstáculos 🌊
+
+---
+
+## Sessão 86 — Keymaker (@po): Story REV-LLM-01 GATE APROVADA
+
+**10-Point Checklist:** ✅ **10/10 PASS** — story REV-LLM-01 aprovada para development
+
+### Decisão
+
+- **D-KEY-S02-LLM01-A:** GO 10/10 — Why: story exemplar com Dev Notes copy-paste-ready (3 código blocks before/after), anti-patterns explícitos (4), Files NOT to Modify (defensive scope guard), rollback path documentado
+
+### Forças destacadas (story exemplar Sprint 02 #2)
+
+- Copy-paste-ready Dev Notes elimina ambiguidade total para Neo
+- Anti-patterns protegem contra scope creep e erros comuns
+- Cross-references ADR-010 + TECH-DEBT debts explícitos
+- 5 riscos com Probabilidade/Impacto/Mitigação documentados
+
+### Observações advisory (não-bloqueantes)
+
+- AC-5 smoke acceptance flexível (skip aceitável em CI sem 2 hosts)
+- DoD #6 ADR governance batch — Operator decide unified vs separated commit
+
+### Files modified
+
+- MOD `governance/stories/REV-LLM-01-qwen-fallback.md` (Validation Notes section + Change Log entry Keymaker)
+
+### Próximo handoff
+
+**H-S02-LLM01-po2dev** → @dev (Neo) `*develop-yolo REV-LLM-01`
+
+— Keymaker, equilibrando prioridades 🎯
+
+---
+
+## Sessão 86 — Neo (@dev): Story REV-LLM-01 IMPLEMENTADA (Ready for Review)
+
+**ADR-010 Path C implementation done.**
+
+### Phase A — Pull qwen2.5:7b
+- `ollama pull qwen2.5:7b` → 4.7GB downloaded (~3min)
+- Sanity inference OK
+
+### Phase B — Edit llm_factory.py (3 mudanças cirúrgicas)
+- TIER_TO_MODEL_ADVOGADO: lean=qwen2.5:3b, balanced=qwen2.5:7b (NEW DEFAULT), premium=sabia-7b-instruct (preserved)
+- get_advogado_llm default tier='balanced'
+- get_economista_llm format='json'
+- Ruff: E501 fixed; 2 ANN401 pré-existentes (não introduzidas)
+
+### Phase C — Smoke test PASS ⭐
+- **1 passed in 253.72s (~4min15s)**
+- citacao_textual ≥10 chars confirmed (não mais '...')
+- ratio<0.7 paralelismo Qwen 7B+3B em 2 instâncias
+- 1ª iteração interrompida (test tinha tier='premium' hardcoded)
+
+### Phase D — Regression suite
+- 232 passed + 1 skipped (zero regressão)
+- 1ª iteração 1 fail → corrigido test_advogado_tiers_mapeados assertion (schema evolution alinhada ADR-010)
+
+### Phase E — Documentação
+- TECH-DEBT.md: TD-LLM-SABIA-Q4-OUTPUT + TD-LLM-FORMAT-JSON-ECONOMISTA → Resolved Findings (cross-ref ADR-010 + Story REV-LLM-01)
+- Story Dev Agent Record completo
+
+### Decisões Neo
+
+- **D-NEO-S02-LLM01-A:** Schema evolution test_paralelismo_llm.py — Why: AC-5 impossível com tier='premium' hardcoded; precedente sessão 86 anterior modificou mesmo arquivo; mudança alinhada com ADR-010
+- **D-NEO-S02-LLM01-B:** Schema evolution test_personas_llm.py — Why: assertion 'all sabia' obsoleta após mapping; atualizada para invariante semântico ADR-010 (lean/balanced=Qwen, premium=Sabia opt-in)
+
+### Files
+
+**Modified product:**
+- bloco_workflow/personas/llm_factory.py
+
+**Modified test (schema evolution):**
+- tests/smoke/test_paralelismo_llm.py
+- tests/unit/test_personas_llm.py
+
+**Modified governance:**
+- governance/TECH-DEBT.md
+- governance/stories/REV-LLM-01-qwen-fallback.md
+
+**Status: Ready for Review** ⏳
+
+### Próximo handoff
+
+**H-S02-LLM01-dev2qa** → @qa (Oracle) gate review
+
+— Neo, sempre construindo 🔨

@@ -74,6 +74,8 @@ tags:
 | **F-VAULT-LOW-01** | STORY 13 (sessão 73) | STORY 13 | Guard `math.isnan/isinf` fail-fast antes de `struct.pack` em `serialize_embedding` |
 | **F-PIPELINE-LOW-01** | STORY 13 (sessão 73) | STORY 13 | Mensagem `ParserOCRRequired` reescrita PT-BR estruturada (diagnóstico → causa → solução → alternativa); reproduzida exatamente em SOP-003 caso 2 |
 | **TD-WEB-LGPD-CDN-01** | Sessão 86 (2026-05-05) | Story REV-INT-02 | Self-hosted 7 woff2 (Manrope 4w + Fraunces 1w + JetBrains 2w) em /static/fonts/ via @fontsource/jsdelivr (~117KB total); base.html removidos 3 link tags Google Fonts; tokens.css adicionados 7 @font-face declarations (font-display: swap). Validações: AC-1 zero fonts.googleapis ✅, AC-2 zero fonts.gstatic ✅, AC-4 7/7 HTTP 200 ✅, AC-8 232 passed + 1 skipped ✅, AC-9 117536 bytes ≤ 204800 ✅. |
+| **TD-LLM-SABIA-Q4-OUTPUT** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (ADR-010 Path C) | LLM_TIER default mudado de 'premium' (Sabia-7B Q4) para 'balanced' (Qwen 2.5 7B). 3 mudanças cirúrgicas em llm_factory.py: TIER_TO_MODEL_ADVOGADO mapping (lean/balanced=Qwen, premium=Sabia preserved); get_advogado_llm default tier='balanced'; get_economista_llm format='json'. Smoke E2E re-run com Qwen 7B+3B PASS em 253.72s (citacao_textual ≥10 chars, ratio<0.7 paralelismo). Suite 232/1 zero regressão. Sabia preservado opt-in para futuro upgrade GPU. |
+| **TD-LLM-FORMAT-JSON-ECONOMISTA** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (junto com TD-LLM-SABIA-Q4-OUTPUT) | `format='json'` adicionado em `get_economista_llm` (defensive consistency com get_advogado_llm). |
 
 ---
 
@@ -203,8 +205,8 @@ tags:
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
 |----|--------|-----|-------------|-------------|-------|-------|----------------|
-| **TD-LLM-SABIA-Q4-OUTPUT** | Smoke DEVOPS-01 sessão 86 | HIGH | Sabia-7B Q4_K_M CPU (Modelfile TheBloke GGUF) sem fine-tune jurídico produz JSON estruturalmente válido (com `format="json"`) mas semanticamente raso — copia placeholders do prompt (ex: `citacao_textual: "..."` 3 chars vs `min_length=10`). Insuficiente para production sem GPU + Q5/Q8 OU fine-tune jurídico OU fallback Qwen 7B (LLM_TIER=balanced). | 4h research + decisão arquitetural | @architect (Aria) | 2026-05-05 | Antes de release v0.2.0 público |
-| **TD-LLM-FORMAT-JSON-ECONOMISTA** | Smoke DEVOPS-01 sessão 86 | LOW | `format="json"` adicionado em `get_advogado_llm` mas NÃO em `get_economista_llm` (Qwen 2.5 3B não testado quanto a JSON output quality). Adicionar para consistência defensiva. | 5min | @dev | 2026-05-05 | Sprint 02 (paralelo a UI-1) |
+| ~~**TD-LLM-SABIA-Q4-OUTPUT**~~ | ~~Smoke DEVOPS-01 sessão 86~~ | ~~HIGH~~ | ✅ **RESOLVED 2026-05-05** Story REV-LLM-01 (Path C ADR-010): LLM_TIER default mudou para 'balanced' (Qwen 2.5 7B); Sabia preservado opt-in via 'premium'. Smoke E2E passa em 253s (citacao_textual ≥10 chars confirmado, ratio<0.7). Ver Resolved Findings abaixo. | — | — | — | — |
+| ~~**TD-LLM-FORMAT-JSON-ECONOMISTA**~~ | ~~Smoke DEVOPS-01 sessão 86~~ | ~~LOW~~ | ✅ **RESOLVED 2026-05-05** Story REV-LLM-01: `format="json"` adicionado em `get_economista_llm` (defensive consistency). Ver Resolved Findings abaixo. | — | — | — | — |
 
 ### Mudanças aplicadas em produto durante DEVOPS-01
 
