@@ -1,0 +1,8 @@
+# Cloudflare Pages redirects
+# https://developers.cloudflare.com/pages/configuration/redirects/
+
+# Landing root → index
+/  /index.html  200
+
+# Path /revisor-contratual/* → root (caso seja servido em path)
+/revisor-contratual/*  /:splat  200

@@ -1,66 +1,93 @@
 # Landing Institucional — Revisor Contratual
 
-Página estática de marketing/explicação para `claudinoinsights.com/revisor-contratual`.
+Página estática para deploy em `claudinoinsights.com/revisor-contratual` (ou subdomínio dedicado).
 
-## Princípio LGPD
+## ⚙️ Setup pronto para Cloudflare Pages
 
-**Esta landing NÃO processa dados de contratos.** Apenas explica o produto + fornece links para download/clone do código. Preserva NFR-LGPD-01 ("PDF nunca sai da máquina") porque nada é processado server-side.
+Tudo já está configurado neste diretório:
 
-## Conteúdo
-
-| Arquivo | Descrição |
+| Arquivo | Função |
 |---|---|
-| `index.html` | Página única — hero + features + princípios + stack + download |
-| `tokens.css` | Design tokens orsheva-brandbook (subset focado) |
-| `styles.css` | Estilos da landing (orsheva applied) |
+| `index.html` | Landing single-page (7 seções) |
+| `tokens.css` | Design tokens orsheva-brandbook |
+| `styles.css` | Estilos completos |
+| `_headers` | Security headers + cache rules |
+| `_redirects` | Path routing rules |
+| `robots.txt` | SEO |
 
-## Deploy — Cloudflare Pages
+## 🚀 Deploy Cloudflare Pages (3 cliques no dashboard)
 
-### Setup inicial (1×)
+### 1. Conectar repo
 
-```bash
-# Via Cloudflare Dashboard:
-# 1. Pages → Create project → Connect to Git → Claudinoinsights/revisor-contratual
-# 2. Build settings:
-#    - Build command: (none — static)
-#    - Build output directory: landing
-#    - Root directory: /
-# 3. Environment variables: (none)
-# 4. Save and deploy
+```
+Cloudflare Dashboard → Workers & Pages → Create → Pages → Connect to Git
+→ Selecionar: Claudinoinsights/revisor-contratual
+→ Branch: main
 ```
 
-### Routing claudinoinsights.com/revisor-contratual
+### 2. Build settings
 
-```bash
-# Via Cloudflare Dashboard ou Worker:
-# - Custom domain: claudinoinsights.com
-# - Path-based routing: /revisor-contratual/* → revisor-contratual landing
-# - Redirect /revisor-contratual → /revisor-contratual/ (trailing slash)
+```
+Framework preset: None
+Build command: (deixar vazio — site estático)
+Build output directory: landing
+Root directory (advanced): /
 ```
 
-Alternativa via Cloudflare Worker:
+### 3. Deploy
 
-```javascript
-// _routes.json (ou Worker bindings)
-{
-  "version": 1,
-  "include": ["/revisor-contratual/*"],
-  "exclude": []
+```
+Click "Save and Deploy"
+→ Aguarda ~30s
+→ URL gerada: https://revisor-contratual.pages.dev (ou similar)
+```
+
+## 🌐 Custom domain — `claudinoinsights.com/revisor-contratual`
+
+⚠️ **Pré-requisito:** `claudinoinsights.com` precisa estar no Cloudflare DNS (orange cloud proxy). **Diagnóstico atual:** o domínio NÃO está em CF (IP `91.108.126.149` é VPS direto).
+
+### Opção A — Mover DNS de claudinoinsights.com para Cloudflare
+
+1. Cloudflare Dashboard → Add Site → `claudinoinsights.com`
+2. Cloudflare gera nameservers (ex: `nina.ns.cloudflare.com`)
+3. Atualizar nameservers no registrar (GoDaddy, Registro.br, etc)
+4. Aguardar propagação (~24h)
+5. Cuidado: app `/painel` pode precisar de reconfig (origin server precisa permanecer acessível)
+
+### Opção B — Subdomínio dedicado (recomendado, sem mover DNS principal)
+
+Se DNS principal está fora de CF mas você quer subdomínio em CF:
+
+1. Adicionar zona separada para subdomínio (ex: `revisor.claudinoinsights.com`)
+2. Apontar registrar do subdomínio para CF nameservers
+3. Em Pages → Custom domains → Add: `revisor.claudinoinsights.com`
+
+### Opção C — Reverse proxy no VPS atual
+
+Configurar nginx/caddy no VPS `91.108.126.149`:
+
+```nginx
+location /revisor-contratual/ {
+    proxy_pass https://revisor-contratual.pages.dev/;
+    proxy_set_header Host revisor-contratual.pages.dev;
+    proxy_ssl_server_name on;
 }
 ```
 
-### Local preview
+## 🧪 Local preview
 
 ```bash
-# Python http.server (any port livre)
+# Servidor estático Python
 cd landing && python -m http.server 8080
 # Abrir: http://localhost:8080
 ```
 
-## Roadmap
+## 📐 Design system
 
-- [ ] Animations on scroll (Intersection Observer + CSS animations)
-- [ ] Dark mode toggle
-- [ ] Demo iframe Streamlit (após deploy de instância demo)
-- [ ] i18n (EN para audiência internacional, opcional)
-- [ ] Form de contato/lista de espera (sem processamento de dados sensíveis)
+Extraído de `governance/orsheva-brandbook.html`:
+
+- **Paleta Or:** `#EE6B20` (primary accent)
+- **Paleta Sh:** `#2C5380` (secondary)
+- **Neutros:** pearl `#F8F4ED`, bone, stone, ink
+- **Tipografia:** Fraunces (display) · Manrope (body) · JetBrains Mono (code)
+- **Conceito:** Iluminar · Estruturar · Consolidar
