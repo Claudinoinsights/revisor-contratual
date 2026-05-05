@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Pytest + coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Mypy
+.mypy_cache/
+.dmypy.json
+
+# Ruff
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Secrets — NUNCA commitar
+.env
+.env.*
+!.env.example
+*.audit-genesis.lock  # ADR-005 (HMAC anchor)
+relator_mapping.db    # ADR-009 (LGPD pseudonimização — chmod 600)
+
+# Runtime data (ADR-007 + FR-AUDIT-01 + FR-BACKUP-01)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+audit.jsonl
+audit.jsonl.bak
+outcomes.db
+state.db
+bloco_vault/database/
+backups/
+
+# Modelos LLM (baixados em FR-SETUP-01 — não versionar)
+models/
+*.gguf
+*.bin
+*.safetensors
+
+# Cache diskcache
+.diskcache/
+
+# Streamlit
+.streamlit/secrets.toml

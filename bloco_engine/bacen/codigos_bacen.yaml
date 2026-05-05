@@ -1,0 +1,31 @@
+# Mapeamento declarativo: ModalidadeContrato → código SGS BACEN
+#
+# Fonte: https://www3.bcb.gov.br/sgspub/ — Sistema Gerenciador de Séries Temporais
+# Atualizar quando BACEN publicar nova série ou descontinuar antiga.
+#
+# Decisão DP-03 (PRD v1.0.2): MVP cobre CDC_VEICULOS_PF; demais modalidades
+# levantam NotImplementedError até ADR específico cobrir SGS code + caracterização jurídica.
+
+# Índices macroeconômicos referência (sempre disponíveis)
+indices:
+  selic_meta_aa: 432       # Meta Selic % a.a. (definida pelo Copom)
+  selic_efetiva_am: 4189   # Selic efetiva % a.m. (apurada)
+  ipca_mensal: 433         # IPCA mensal % (IBGE/BACEN espelho)
+  cdi_aa: 12               # CDI % a.a.
+
+# Taxas médias de operações de crédito PF (foco MVP)
+taxas_credito_pf:
+  CDC_VEICULOS_PF:
+    sgs_media_mensal: 25471   # Taxa média mensal CDC veículos PF (% a.m.)
+    sgs_media_geral: 20749    # Taxa média acumulada CDC veículos PF (% a.a.)
+    descricao: "CDC para aquisição de veículos — pessoa física"
+
+# Modalidades não suportadas no MVP — levantam NotImplementedError
+# Quando ADR específico for criado, mover para taxas_credito_pf com SGS válido.
+nao_implementadas:
+  CDC_BENS_PF:
+    motivo: "DP-03 — fora do escopo MVP; SGS distinto por subtipo de bem"
+  CDC_IMOBILIARIO:
+    motivo: "DP-03 — taxa SFH/SFI tem regime jurídico próprio (Lei 9.514, MP 2.223)"
+  CARTAO_ROTATIVO:
+    motivo: "DP-03 — Resolução CMN 4.549/2017 limita 30 dias; SGS específico não mapeado"

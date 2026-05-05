@@ -1,0 +1,123 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "revisor-contratual"
+version = "0.1.0"
+description = "Sistema LEAN local de revisão jurídica de contratos bancários — single-process Python, 2 LLMs paralelos, 100% on-premise (LGPD)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary" }
+authors = [{ name = "Eric Claudino", email = "eric@claudinoinsights.com" }]
+keywords = ["legaltech", "revisional", "bancario", "lgpd", "decimal", "ollama"]
+
+dependencies = [
+  # UI
+  "streamlit>=1.40",
+  "streamlit-authenticator>=0.3.3",
+  # Orquestração + LLM (PATCH F-MIN-02: pinning ainvoke async nativo)
+  "langchain>=0.3",
+  "langgraph>=0.2",
+  "langchain-ollama>=0.2.0",
+  # Vault: vec + hybrid search
+  "sqlite-vec>=0.1",
+  "sentence-transformers>=3.0",
+  "rank_bm25>=0.2",
+  # NLI híbrido (ADR-004)
+  "transformers>=4.40",
+  "torch>=2.2",  # CPU build no laptop alvo
+  # Parsing PDF (com OCR opcional)
+  "pymupdf4llm>=0.0.12",
+  "pdf2image>=1.17",  # ADR-006: preview server-side
+  # Scraper HTML (vault — STORY 8 SUB-C)
+  "beautifulsoup4>=4.12",
+  # BACEN
+  "python-bcb>=0.3",  # PyPI max é 0.3.6; suite mocks via sgs_fetcher injection (nunca importa bcb real)
+  "pyyaml>=6.0",
+  # Modelos & util
+  "pydantic>=2.8",
+  "tenacity>=9.0",
+  "diskcache>=5.6",
+  "structlog>=24.4",
+  # Renderização de peças
+  "jinja2>=3.1",
+  "weasyprint>=63.0",
+  # HTTP
+  "httpx>=0.27",
+  # CLI (STORY 10)
+  "click>=8.1",
+  "rich>=13.0",
+]
+
+[project.optional-dependencies]
+ocr = ["marker-pdf>=0.2"]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+  "mypy>=1.10",
+]
+
+[project.scripts]
+# CLIs documentados em ADRs
+revisor = "bloco_interface.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "bloco_contratos*",
+  "bloco_interface*",
+  "bloco_workflow*",
+  "bloco_vault*",
+  "bloco_engine*",
+  "bloco_audit*",
+  "bloco_learning*",
+]
+exclude = ["tests*"]
+
+# Decimal everywhere — float é PROIBIDO em bloco_engine/ferramentas_calculo/
+# Enforce via CI lint (NFR-MAINT-02 + FR-CALC-01)
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [".venv", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "ANN", "ASYNC"]
+ignore = ["ANN101", "ANN102"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+asyncio_mode = "auto"
+addopts = ["-q", "--strict-markers", "--cov-report=term-missing"]
+markers = [
+  "smoke: validações operacionais (paralelismo LLM, etc) — ADR-003 PATCH 2",
+  "unit: testes unitários puros",
+  "integration: testes de integração entre blocos",
+]
+
+[tool.coverage.run]
+source = [
+  "bloco_contratos",
+  "bloco_workflow",
+  "bloco_vault",
+  "bloco_engine",
+  "bloco_audit",
+  "bloco_learning",
+]
+omit = ["tests/*", "**/__init__.py"]
+
+[tool.coverage.report]
+# NFR-MAINT-02: ≥80% bloco_engine, ≥70% workflow/vault, ≥60% geral
+fail_under = 60
+show_missing = true
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+plugins = ["pydantic.mypy"]

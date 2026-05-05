@@ -1,0 +1,118 @@
+name: "Revisor Contratual"
+id: "revisor-contratual"
+prefix: "RC"
+description: "Sistema LEAN local de revisão jurídica de contratos bancários — single-process Python, 2 chamadas LLM PARALELAS via asyncio.gather (Advogado=Sabia-7B Premium configurável + Economista=Qwen 2.5 3B fixo, 2 instâncias Ollama distintas) + sqlite-vec + Decimal + python-bcb. 100% on-premise (LGPD + custo zero de API). 4 personas internas (Perito Python puro + Advogado LLM + Juiz Python puro + Economista LLM PRIMEIRA-CLASSE — mitigação Tema 1378 STJ). Footprint ~7GB RAM total."
+
+llm_strategy:
+  pattern: "fan-out paralelo via asyncio.gather"
+  rationale: "PATCH SUB-C (F-CRIT-A Smith etapa 2.1 + decisão Eric) — única opção que satisfaz NFR-PERF-01 (≤210s) E NFR-PERF-02 (≤8GB)"
+  instances:
+    advogado:
+      model: "sabia-7b:q4_K_M (default Tier Premium)"
+      tier_configurable: "premium | balanced (qwen2.5:7b) | lean (qwen2.5:3b)"
+      footprint: "~5GB (Premium) / ~4.5GB (Balanced) / ~2GB (Lean)"
+      role: "tese citation-grounded fundamentada"
+    economista:
+      model: "qwen2.5:3b-instruct-q4_K_M (FIXO — não configurável)"
+      footprint: "~2GB"
+      role: "análise macro contextual (Selic, atipicidade, peer modalities)"
+  total_footprint: "~7GB (Premium tier) — cabe NFR-PERF-02 ≤8GB"
+
+code_path: "../../packages/revisor-contratual"
+
+stack:
+  frontend: "Streamlit (single-process, asyncio interno)"
+  orchestration: "LangGraph mínimo OU state machine puro Python"
+  llm: "Configurable tier via env LLM_TIER — DEFAULT 'premium' (Sabia-7B Q4 ~5GB — escolha Eric para máxima qualidade jurídica). Tiers alternativos: 'balanced' (Qwen 2.5 7B Q4 ~4.5GB), 'lean' (Qwen 2.5 3B Q4 ~2GB) — para fallback se hardware ficar apertado"
+  rag: "sqlite-vec (extensão SQLite) + Legal-BERTimbau-base (HuggingFace) + BM25 sparse"
+  parsing: "PyMuPDF4LLM primário + Marker para OCR (fallback)"
+  math: "Python Decimal puro (não NumPy Financial — float é proibido para precisão jurídica)"
+  external_api: "python-bcb (OData.TaxaJuros + SGS) com diskcache + tenacity"
+  cache: "diskcache (filesystem, sem Redis)"
+  observability: "structlog → audit.jsonl append-only"
+  hosting: "On-premise / local-first (sem cloud, sem APIs externas pagas, sem containers)"
+
+domain: software-dev
+sub_domain: legaltech
+
+architecture_pattern: "Single-process Python LEAN — 1 chamada LLM por contrato, demais etapas determinísticas"
+
+uf_inicial_vault: "BA"
+tribunal_inicial: "TJBA + STJ + STF"
+multi_uf_design: "Vault e filtros parametrizáveis por UF desde o design. Adicionar nova UF = rodar scraper + reindex (zero código). CLI: python -m bloco_vault.seed.add_uf --uf SP"
+
+auth_required: true
+auth_provider: "streamlit-authenticator + bcrypt (credenciais hash via .env)"
+
+ml_feedback_loop:
+  estagio_1: "Cold Start (Mês 1-12) — Coleta de outcomes em SQLite separado"
+  estagio_2: "Adaptive Re-Ranking (Mês 6-18) — regressão logística sobre features de docs vencedores vs perdedores"
+  estagio_3: "LoRA Fine-Tuning Sabia-7B (Mês 12+) — Unsloth, dataset >=100 outcomes WON, hardware GPU 8-12GB"
+
+blocos:
+  - id: "bloco_contratos"
+    nome: "Pydantic Models Compartilhados"
+    stack: "Pydantic v2"
+  - id: "bloco_interface"
+    nome: "Front-end (Streamlit + auth bcrypt)"
+    stack: "Streamlit + streamlit-authenticator + asyncio interno"
+  - id: "bloco_workflow"
+    nome: "Orquestração lean (state machine + LLM provider abstrato)"
+    stack: "LangGraph minimal + LLM provider (Ollama/llama-cpp/cloud-opt-in)"
+  - id: "bloco_vault"
+    nome: "Vault Jurisprudência multi-UF (sqlite-vec)"
+    stack: "SQLite + sqlite-vec + Legal-BERTimbau-base + BM25 manual + scrapers parametrizáveis por UF"
+  - id: "bloco_engine"
+    nome: "Engine: Parsing + Cálculo + BACEN"
+    stack: "PyMuPDF4LLM + Decimal + python-bcb"
+  - id: "bloco_audit"
+    nome: "Audit log minimalista"
+    stack: "structlog → audit.jsonl"
+  - id: "bloco_learning"
+    nome: "ML Feedback Loop (sucesso/derrota + refresh jurisprudência)"
+    stack: "SQLite outcomes + scikit-learn (adaptive ranking) + Unsloth LoRA (fase 2 fine-tuning)"
+
+# 4 Personas internas (D-04 revogada por Morpheus + Economista promovida a primeira-classe por Smith F-CRIT-06)
+agentes_internos:
+  - "Perito Contábil e Fiscal (FUNÇÃO PYTHON — chama tools de cálculo Decimal + BACEN, sem LLM)"
+  - "Advogado especialista em direito bancário (LLM Sabia-7B Tier Premium — tese fundamentada + citation-grounded + validação semântica FR-TESE-04)"
+  - "Juiz Revisor (FUNÇÃO PYTHON — 3 checagens determinísticas + scoring quantificado)"
+  - "Economista (entidades bancárias) — LLM Sabia-7B (PRIMEIRA-CLASSE desde MVP via Smith F-CRIT-06; análise contextual macro: ciclo Selic, atipicidade de taxa, peer modalities)"
+
+principios_inegociaveis:
+  - "100% local — zero envio de dados de contrato para cloud (LGPD)"
+  - "Determinismo matemático — Decimal puro, nunca float"
+  - "2 chamadas LLM por contrato (Advogado + Economista) — Economista promovida a primeira-classe em v1.0.2"
+  - "Filtro jurisprudencial estrito por UF + tribunais superiores + vigente_em (anti-superseded)"
+  - "Lean stack — sem containers, sem queue, sem cache distribuído (no MVP)"
+  - "Aborta e gera Relatório de Inviabilidade se aderência < 70% (validação determinística)"
+  - "Toda peça (petição inicial + recursos) exige FR-DELIV-06 (checkbox CFOAB 'li, conferi e adoto' + OAB+UF) antes de PDF"
+  - "Citações obrigatoriamente validadas semanticamente (similarity ≥0.7) antes de qualquer renderização"
+  - "Backup automático de outcomes.db a cada N petições (default N=5)"
+
+footprint_alvo:
+  ram_em_uso: "~6 GB (com Sabia-7B Tier L)"
+  disco: "~6 GB (Sabia-7B 5GB + Legal-BERTimbau 250MB + vault 500MB)"
+  containers: 0
+  processos_python: 1
+  latencia_por_contrato: "≤210s (Sabia-7B Q4 CPU + 2 LLM calls — Advogado + Economista)"
+  latencia_se_promover_GPU: "30-60s (RTX 4070 Ti em produção)"
+  custo_vps_mensal: "R$ 50-150 (precisa VPS com 8GB RAM mínimo)"
+  hardware_eric_atual: "16GB RAM — Sabia-7B cabe com 10GB de folga (folga adequada para 2 LLM calls sequenciais)"
+
+created_at: "2026-04-30"
+refactored_at: "2026-05-01"
+patched_at: "2026-05-01 (v1.0.2 PATCH endereçando tribunal severo etapa 1.1)"
+created_by: "@lmas-master (Morpheus)"
+refactored_by: "@analyst (Atlas) — após feedback Eric: stack original 80% sobre-engenheirada"
+patched_by: "@pm (Morgan) — etapa 1.2 PATCH endereçando 6 CRITICAL Smith + 4 EV-IDs ALTA Sati"
+status: active
+phase: "Phase 0 — Tribunal severo iteração 2 (PRD v1.0.2 aguardando re-tribunal)"
+
+architecture_history:
+  - version: "C (Híbrido Pragmático)"
+    superseded_at: "2026-05-01"
+    razao: "16GB RAM era desproporcional para single-user single-contract — Eric sinalizou peso excessivo"
+  - version: "D (LEAN)"
+    decided_at: "2026-05-01"
+    razao: "Refatoração radical: sqlite-vec substitui Qdrant, Qwen 2.5 3B substitui Sabia-7B, asyncio substitui Dramatiq+Redis, structlog substitui OpenTelemetry. Footprint -75%."
