@@ -60,3 +60,4 @@ models/
 
 # Streamlit
 .streamlit/secrets.toml
+worker.js
