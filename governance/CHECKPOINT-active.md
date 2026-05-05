@@ -22,6 +22,52 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@devops / Operator — 2026-05-05): **🎉 UI-1 PUSHED — SPRINT 02 OFICIALMENTE 100% CLOSED — Release v0.2.0 gate 8/8**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito Skill chain (12 Skills consecutivas REV-LLM-01 + DOCS-02 + UI-1).
+  - **Handoff @qa → @devops consumed=true.**
+  - **Batch standalone (8 files):**
+    - 4 product/UI: app.py + processing.html + error.html (NEW) + app.css
+    - 4 governance: TECH-DEBT.md + CHECKPOINT-active.md + stories/UI-1...md (NEW closure) + qa/qa-gate-story-ui-1...md (NEW)
+  - **Commit:** `110986e feat(web): production-grade UI — pipeline real + hardening 5 debts [Story UI-1]`
+    - 8 files changed, +1803/-79
+    - Conventional commit message com cross-refs ADR-010 + REV-LLM-01 + DOCS-02 + REV-INT-02 + QA Gate
+  - **Push:** `98e5541..110986e main -> main` ✅ origin/main aligned
+  - **Story status:** `Ready for Review` → `Done` (closure governance follow-up commit)
+  - **Decisões Operator D-OPR-S02-UI1-A..C:**
+    - A: Stage explícito 8 files (não `git add -A`) — boundary respect
+    - B: STANDALONE commit (REV-LLM-01 + DOCS-02 já fecharam ADR-010 + alignment)
+    - C: NÃO auto-tag v0.2.0 — aguardar instrução explícita Eric per workflow estrito
+  - **🎯 SPRINT 02 100% CLOSED — 6 of 6 priority alta done:**
+    - ✅ REV-INT-01 (Sprint 02 plan)
+    - ✅ DEVOPS-01 partial (Ollama install)
+    - ✅ REV-INT-02 (LGPD self-host fontes — commit 50a3b8b)
+    - ✅ OPS-CLEANUP-01 (NO-OP confirmation — commit ad251c1)
+    - ✅ REV-LLM-01 (ADR-010 Path C — commits 20d4459 + 8eea89c)
+    - ✅ DOCS-02 (alignment ADR-010 — commits 8b37513 + 98e5541)
+    - ✅ **UI-1 (NEW — production-grade UI + 6 debts resolvidos — commit 110986e)**
+  - **⭐⭐ ZERO HIGH ATIVOS preserved + 11 tech debts resolvidos sessão 86:**
+    - REV-LLM-01: 2 (TD-LLM-SABIA-Q4-OUTPUT HIGH arquitetural + TD-LLM-FORMAT-JSON-ECONOMISTA LOW)
+    - UI-1: 6 (TD-WEB-VAL-MIME-01 + TD-WEB-LISTENER-LEAK-01 + TD-WEB-NOMAXSIZE-01 MEDIUM + TD-WEB-TIER-ENUM-01 + TD-WEB-RUFF-UP037 + TD-WEB-SSE-NOSESSION-01 LOW conditional)
+    - REV-INT-02: 1 (TD-WEB-LGPD-CDN-01 HIGH — sessão anterior 50a3b8b)
+    - Mantido: TD-WEB-CSP-INLINE-01 LOW (out-of-scope UI-1)
+  - **🚀 Release v0.2.0 gate 8/8 condições met:**
+    - ✅ Sprint 02 priority alta 100% done (6/6)
+    - ✅ ZERO HIGH ativos (incluindo arquitetural)
+    - ✅ ADR-010 governance batch pushed (REV-LLM-01)
+    - ✅ Documentação alinhada com produto (DOCS-02)
+    - ✅ Production-grade UI shipped (UI-1)
+    - ✅ CI verde múltiplas runs Sprint 02
+    - ✅ Smoke INTEGRAL PASS (253.72s — REV-LLM-01)
+    - ✅ Suite 232 passed + 1 skipped
+  - **Files Operator (modified):**
+    - `governance/stories/UI-1-production-grade-pipeline.md` (status Done + closed_at_sha 110986e + Change Log Operator entry)
+    - `governance/PROJECT-CHECKPOINT.md` (Sprint 02 100% CLOSED + Release v0.2.0 gate 8/8)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo step (Eric decide — NÃO auto-emit handoff):**
+    1. Tag v0.2.0 imediato (Operator executa `git tag -a v0.2.0 + gh release create`)
+    2. Smoke browser local pré-tag (advisory Oracle — 2 instâncias Ollama + qwen2.5:7b/3b → upload PDF CDC → ~250s → verdict real)
+    3. Outras prioridades (Sprint 03 backlog, refactor LOW debts, etc)
+
 - **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE UI-1 PASS (última story Sprint 02) — handoff @qa→@devops emitido**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
   - **Handoff @dev → @qa consumed=true.**

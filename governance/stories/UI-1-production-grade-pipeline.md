@@ -2,8 +2,10 @@
 type: story
 id: UI-1
 title: "Production-grade UI — pipeline real integration + hardening (3 MEDIUM + 2 LOW tech debts)"
-status: Ready for Review
+status: Done
 priority: alta
+completed: "2026-05-05"
+closed_at_sha: "110986e"
 sprint: "02"
 epic: "Sprint-02-release-v0.2.0"
 owner: "@dev (Neo)"
@@ -674,6 +676,8 @@ Story está Done quando:
 | 2026-05-05 | 86 | @sm (River) | Story criada (status Ready) — escopo Morpheus mapeou exato (5 phases + 10 ACs + 5 debts firmes + 1 conditional + 1 LOW skipped); Dev Notes copy-paste-ready (D1 validation + D2 listener + D3 pipeline integration + D4 error UX); Files NOT to Modify defensive (7 itens); Risk+Mitigation 6 riscos |
 | 2026-05-05 | 86 | @po (Keymaker) | PO Gate APROVADO 10/10 (GO) — story exemplar Dev Notes copy-paste-ready + Files NOT to Modify + Phase C plan B explícito |
 | 2026-05-05 | 86 | @dev (Neo) | Implementação completa (sem ativar plan B): Phase A validation + Phase B listener Opção A (sse-container) + Phase C pipeline real `await revisar_contrato` (não asyncio.to_thread — função já async) + Phase D error.html NOVO + custom exception handler + Phase E regression 232+1 baseline preservado em 60.35s; ruff All checks passed; status → Ready for Review |
+| 2026-05-05 | 86 | @qa (Oracle) | Gate PASS — 6/6 adversarial probes (validation + listener Opção A + pipeline real + boundary respect) + AC-9 static review accepted (pipeline real validado em REV-LLM-01); 0 riscos materializados de 6; QA Results preenchido + gate file ~430 linhas |
+| 2026-05-05 | 86 | @devops (Operator) | Commit `110986e` (8 files +1803/-79) pushed to origin/main; status → Done; **UI-1 CLOSED — Sprint 02 OFICIALMENTE 100% CLOSED — Release v0.2.0 gate 8/8** |
 
 ---
 

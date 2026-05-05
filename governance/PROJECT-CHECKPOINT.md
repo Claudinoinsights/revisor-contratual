@@ -3,13 +3,14 @@ type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
 last_updated: "2026-05-05"
-active_story: "🚀 Sprint 02 — 5/5 priority alta DONE · ZERO HIGH ATIVOS (incluindo arquitetural) · UI-1 priority 4 restante (3-5h)"
-status: sprint-02-IN-PROGRESS-5-of-5-priority-alta-done-UI-1-only-remaining
+active_story: "🎉 Sprint 02 OFICIALMENTE 100% CLOSED — 6/6 priority alta DONE · ZERO HIGH ATIVOS (incluindo arquitetural) · Release v0.2.0 gate 8/8 (Eric decide tag)"
+status: sprint-02-OFFICIALLY-100-percent-CLOSED-release-v0.2.0-gate-8-of-8
 
-# Status executivo atualizado sessão 86 (Morpheus consolidação pós DOCS-02 closure):
+# Status executivo atualizado sessão 86 (Morpheus consolidação pós UI-1 closure — Sprint 02 final):
 #  • Sprint 01: 100% closed (15 stories Done, MVP v0.1.0 release publicada)
-#  • Sprint 02: 5/5 priority alta done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅ + OPS-CLEANUP-01 ✅ + REV-LLM-01 ✅ (ADR-010 Path C) + DOCS-02 ✅ (alignment ADR-010)
-#  • main HEAD: 8b37513 (DOCS-02 closure pushed)
+#  • Sprint 02: 6/6 priority alta DONE — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅ + OPS-CLEANUP-01 ✅ + REV-LLM-01 ✅ (ADR-010 Path C) + DOCS-02 ✅ (alignment) + UI-1 ✅ (production-grade pipeline real)
+#  • main HEAD: 110986e (UI-1 closure pushed) → governance closure follow-up SHA pending
+#  • Release v0.2.0 gate: 8/8 condições met → Operator pode taggar v0.2.0 (Eric decide momento)
 #  • CI runs verde: 25372289901 (REV-INT-01) + 25379320906 (DEVOPS-01) + 25382859010 (REV-INT-02)
 #  • Suite testes: 232 passed + 1 skipped (smoke continua skip sem 2 instâncias Ollama em CI)
 #  • Stack runtime ATIVA: Ollama 0.23.0 + qwen2.5:3b (1.9GB) + qwen2.5:7b (4.7GB NEW DEFAULT) + sabia-7b-instruct (4.1GB preserved opt-in)
