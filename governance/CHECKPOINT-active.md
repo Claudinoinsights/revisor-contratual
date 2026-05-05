@@ -22,6 +22,45 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@devops / Operator — 2026-05-05): **🎉🎉 RELEASE v0.2.0 PUBLISHED — https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.2.0**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito; Sprint 02 gate 8/8 met → Operator executou release management workflow autônomo.
+  - **Release artifacts criados:**
+    - `governance/CHANGELOG-v0.2.0.md` (NEW — 200 linhas com Highlights + Features + Docs + Fixes + Stack + Update guide + Sprint 03 backlog)
+    - Commit CHANGELOG: `4f80752 docs(release): CHANGELOG v0.2.0 [Release v0.2.0]`
+    - Tag annotated: `v0.2.0` (pushed origin com release notes completas)
+    - GitHub Release: https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.2.0
+  - **Decisões Operator D-OPR-S02-RELEASE-A..C:**
+    - A: MINOR bump v0.1.0 → v0.2.0 (15 commits desde v0.1.0; new features + docs + fixes; sem breaking changes)
+    - B: CHANGELOG categorizado por escopo (Features/Docs/Fixes/Chores) com cross-refs ADR-010 + 6 stories Sprint 02
+    - C: Tag annotated (não lightweight) com release message completa — preserva contexto histórico no git
+  - **🎯 SPRINT 02 v0.2.0 RELEASE SUMMARY:**
+    - 15 commits desde v0.1.0
+    - 6 stories priority alta + Sprint plan
+    - 11 tech debts resolved (2 HIGH + 3 MEDIUM + 6 LOW)
+    - Suite 232 passed + 1 skipped baseline preservado em todos commits
+    - Smoke INTEGRAL 253.72s PASS (REV-LLM-01)
+    - CI verde múltiplas runs
+  - **⭐⭐ Marcos históricos consolidados v0.2.0:**
+    - Pioneer milestone: ZERO HIGH ATIVOS (incluindo arquitetural — primeira vez no projeto)
+    - 12 Skills LMAS consecutivas em sessão 86 (Morpheus → @sm → @po → @dev → @qa → @devops × 3 = REV-LLM-01 + DOCS-02 + UI-1)
+    - 7 handoffs YAML por story (predecessor chains documentados)
+    - Workflow estrito 100% honrado (Eric corrigiu 2x sessões anteriores; ambos lessons internalized)
+  - **Files Operator (modified/created):**
+    - `governance/CHANGELOG-v0.2.0.md` (NEW)
+    - `governance/PROJECT-CHECKPOINT.md` (active_story → v0.2.0 RELEASED)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo step (Eric decide — workflow estrito, NÃO auto-emit):**
+    1. **Sprint 03 BACKLOG planning** — Morpheus + @pm definir prioridades (TD-WEB-CSP-INLINE-01 LOW, novas modalidades CDC, scrapers TJBA/TJSP, Bloco_learning ML feedback)
+    2. **Smoke browser local pré-uso real** — Eric rodar Ollama 2 instâncias + qwen2.5:7b/3b → upload PDF CDC localmente para validar v0.2.0 funcionando end-to-end
+    3. **Pausa estratégica** — v0.2.0 entregue, fechar sessão e retomar quando Eric quiser
+  - **🚦 Estado final sessão 86:**
+    - Sprint 02 100% CLOSED ✅
+    - Release v0.2.0 PUBLISHED ✅
+    - Zero HIGH ativos preserved ✅
+    - Documentação alinhada ✅
+    - Production-grade UI shipped ✅
+    - **Próxima sessão:** Sprint 03 backlog OR pause estratégica conforme Eric decidir
+
 - **Sessão 86** (@devops / Operator — 2026-05-05): **🎉 UI-1 PUSHED — SPRINT 02 OFICIALMENTE 100% CLOSED — Release v0.2.0 gate 8/8**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito Skill chain (12 Skills consecutivas REV-LLM-01 + DOCS-02 + UI-1).
   - **Handoff @qa → @devops consumed=true.**
