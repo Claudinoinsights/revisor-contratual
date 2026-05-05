@@ -22,6 +22,45 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@devops / Operator — 2026-05-05): **🚀 REV-LLM-01 + ADR-010 GOVERNANCE BATCH PUSHED TO MAIN — Sprint 02 4/5 stories DONE — ZERO HIGH ATIVOS (incluindo arquitetural)**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @qa→@devops consumed=true.**
+  - **Batch unificado (10 files):**
+    - 3 product/test (`bloco_workflow/personas/llm_factory.py`, `tests/smoke/test_paralelismo_llm.py`, `tests/unit/test_personas_llm.py`)
+    - 4 governance modified (`governance/TECH-DEBT.md`, `governance/architecture/ADR-INDEX.md`, `governance/CHECKPOINT-active.md`, `governance/PROJECT-CHECKPOINT.md`)
+    - 3 NEW (`adr-010-sabia-q4-mitigation.md`, `qa-gate-story-rev-llm-01-qwen-fallback.md`, `REV-LLM-01-qwen-fallback.md`)
+  - **Commit:** `20d4459 feat(llm): ADR-010 Path C — Qwen 7B fallback default + format=json economista [Story REV-LLM-01]`
+    - 10 files changed, +1446/-36
+    - Conventional commit message com cross-ref ADR-010 + QA Gate + smoke evidence + Co-Authored-By
+  - **Push:** `ad251c1..20d4459 main -> main` ✅ origin/main aligned
+  - **CI:** run `25390611837` queued (triggered by push)
+  - **Story status:** `Ready for Review` → `Done` (closure governance update — frontmatter + Change Log)
+  - **Decisões Operator D-OPR-S02-LLM01-A..C:**
+    - A: Stage explícito 10 files (não `git add -A`) — boundary respect, evita capturar não-intencionais
+    - B: PROJECT-CHECKPOINT.md atualizado inline ANTES do commit (3/5 → 4/5 stories, marco "ZERO HIGH ATIVOS incluindo arquitetural")
+    - C: Closure governance separado em follow-up commit (story Done + entry Operator) — keep history clean
+  - **🎯 Sprint 02 progress (atualizado):**
+    - 4 of 5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅ + REV-INT-02 ✅ + OPS-CLEANUP-01 ✅ + **REV-LLM-01 ✅ (NEW)**
+    - Restantes: DOCS-02 (priority 3) + UI-1 (priority 4)
+  - **⭐⭐ Marco histórico — ZERO HIGH ATIVOS NO PROJETO:**
+    - TD-WEB-LGPD-CDN-01 HIGH RESOLVED (sessão anterior, commit 50a3b8b)
+    - **TD-LLM-SABIA-Q4-OUTPUT HIGH arquitetural RESOLVED via ADR-010 Path C** (esta sessão, commit 20d4459)
+    - **TD-LLM-FORMAT-JSON-ECONOMISTA LOW RESOLVED via ADR-010 implementation** (esta sessão, commit 20d4459)
+    - Pioneer milestone: zero HIGH em todas as categorias (code-level + arquitetural)
+  - **Release v0.2.0 gate (6/8 condições met):**
+    - ✅ Sprint 02 stories majority done (4/5)
+    - ✅ ZERO HIGH ativos
+    - ✅ ADR-010 governance batch pushed
+    - ✅ CI verde anteriores (REV-INT-01/DEVOPS-01/REV-INT-02)
+    - ✅ Smoke INTEGRAL PASS (253.72s)
+    - ✅ Suite 232 passed + 1 skipped
+    - ⏳ DOCS-02 (priority 3 — restante)
+    - ⏳ UI-1 (priority 4 — restante)
+  - **Next:** Eric decide próximo step (NÃO auto-emit handoff) — opções:
+    1. DOCS-02 — atualizar README/SOPs com ADR-010 + LLM tier strategy (1-2h, priority 3)
+    2. UI-1 — UI production-grade pipeline real sem aviso (3-5h, priority 4)
+    3. Release v0.2.0 tag — após ambas DOCS-02 + UI-1 done
+
 - **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE REV-LLM-01 PASS — handoff @qa→@devops emitido**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
   - **Handoff @dev→@qa consumed=true.**

@@ -2,9 +2,11 @@
 type: story
 id: REV-LLM-01
 title: "Implementação ADR-010 Path C — Qwen 7B fallback (LLM_TIER='balanced' default)"
-status: Ready for Review
+status: Done
 priority: alta
 sprint: "02"
+completed: "2026-05-05"
+closed_at_sha: "20d4459"
 epic: "Sprint-02-release-v0.2.0"
 owner: "@dev (Neo)"
 estimated_effort: "1-2h"
@@ -331,6 +333,8 @@ Story está Done quando:
 | 2026-05-05 | 86 | @sm (River) | Story criada (status Ready) — implementation ADR-010 Path C |
 | 2026-05-05 | 86 | @po (Keymaker) | Validate-story-draft: GO (10/10) — story aprovada para development |
 | 2026-05-05 | 86 | @dev (Neo) | Implementação completa: 3 mudanças llm_factory.py + 2 test updates (schema evolution justificada) + smoke PASS 253.72s + suite 232/1 zero regressão; status → Ready for Review |
+| 2026-05-05 | 86 | @qa (Oracle) | Gate PASS — 6/6 adversarial probes (3 cirurgical + schema evolutions justified + smoke autêntico + Sabia preserved + ruff PARTIAL aceitável + ADR-010 alignment); QA Results preenchido; gate file criado |
+| 2026-05-05 | 86 | @devops (Operator) | Commit 20d4459 (10 files +1446/-36) pushed to origin/main; CI 25390611837 triggered; status → Done; **REV-LLM-01 CLOSED — Sprint 02 4/5 stories done — ZERO HIGH ATIVOS (incluindo arquitetural)** |
 
 ---
 
