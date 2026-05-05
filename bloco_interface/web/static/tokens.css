@@ -1,0 +1,49 @@
+/* ============================================================
+   Revisor Contratual — Design Tokens
+   Paleta Orsheva (laranja accent + neutros warm).
+   Tipografia: Manrope (UI) + Fraunces (display) + JetBrains (mono).
+   ============================================================ */
+
+:root {
+  /* Paleta Or (laranja — accent primary) */
+  --or-50:  #FFF4EC;
+  --or-500: #EE6B20;
+  --or-600: #D45710;
+  --or-700: #AC4408;
+
+  /* Paleta Sh (azul — secondary, raro) */
+  --sh-500: #2C5380;
+
+  /* Neutros */
+  --bg:            #FAFAF8;
+  --surface:       #FFFFFF;
+  --surface-2:     #F5F4F0;
+  --border:        #E8E4DC;
+  --border-strong: #C9C3B5;
+  --text:          #1A1816;
+  --text-muted:    #6B6457;
+  --text-dim:      #9A9082;
+
+  /* Semânticos */
+  --accent:        var(--or-500);
+  --accent-hover:  var(--or-600);
+  --accent-soft:   var(--or-50);
+  --success:       #2C7A4D;
+  --success-soft:  #E8F4ED;
+  --danger:        #B43D3D;
+  --danger-soft:   #FBEAEA;
+
+  /* Tipografia */
+  --f-ui:      "Manrope", "Inter", system-ui, sans-serif;
+  --f-display: "Fraunces", Georgia, serif;
+  --f-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Sizing */
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  /* Layout */
+  --topbar-h:    56px;
+  --sidebar-w:   240px;
+  --container-w: 720px;
+}

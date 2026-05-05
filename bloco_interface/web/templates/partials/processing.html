@@ -1,0 +1,50 @@
+<div hx-ext="sse" sse-connect="/pipeline-stream">
+  <div class="processing-head">Analisando <code>{{ filename }}</code></div>
+
+  <div class="progress"><div id="progress-bar"></div></div>
+
+  <div class="pipeline" id="pipeline-steps">
+    {% for step in steps %}
+      <div class="step pending" data-index="{{ loop.index0 }}">
+        <span class="step-icon">·</span>
+        <span class="step-name">{{ step }}</span>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.body.addEventListener('htmx:sseMessage', function (e) {
+    let data;
+    try {
+      data = JSON.parse(e.detail.data);
+    } catch (_err) {
+      return;
+    }
+
+    if (data.done) {
+      htmx.ajax('GET', '/verdict', { target: '#workspace', swap: 'innerHTML' });
+      return;
+    }
+
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((s, i) => {
+      s.classList.remove('pending', 'active', 'done');
+      const icon = s.querySelector('.step-icon');
+      if (i < data.index) {
+        s.classList.add('done');
+        if (icon) icon.textContent = '✓';
+      } else if (i === data.index) {
+        s.classList.add('active');
+        if (icon) icon.textContent = '○';
+      } else {
+        s.classList.add('pending');
+        if (icon) icon.textContent = '·';
+      }
+    });
+
+    const pct = ((data.index + 1) / data.total) * 100;
+    const bar = document.getElementById('progress-bar');
+    if (bar) bar.style.width = pct + '%';
+  });
+</script>

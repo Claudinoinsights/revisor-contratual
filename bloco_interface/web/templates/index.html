@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+  {% for item in history %}
+    {% include "partials/history-item.html" %}
+  {% endfor %}
+{% endblock %}
+
+{% block workspace %}
+  {% include "partials/idle.html" %}
+{% endblock %}

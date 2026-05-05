@@ -1,0 +1,26 @@
+<form
+  hx-post="/revisar"
+  hx-target="#workspace"
+  hx-swap="innerHTML"
+  hx-encoding="multipart/form-data"
+  class="form-revisar"
+>
+  <label class="upload" for="pdf-input">
+    <input id="pdf-input" type="file" name="pdf" accept="application/pdf" required>
+    <div class="icon">⬆</div>
+    <div class="label">PDF do contrato</div>
+    <div class="hint">drop ou clique</div>
+  </label>
+
+  <div class="form-row">
+    <input type="text" name="uf" placeholder="UF" maxlength="2" autocomplete="off">
+    <input type="date" name="data">
+    <select name="tier">
+      <option value="premium">Premium</option>
+      <option value="balanced">Balanced</option>
+      <option value="lean">Lean</option>
+    </select>
+  </div>
+
+  <button type="submit" class="btn-primary">Revisar contrato →</button>
+</form>

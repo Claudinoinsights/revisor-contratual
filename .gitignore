@@ -58,6 +58,8 @@ models/
 # Cache diskcache
 .diskcache/
 
-# Streamlit
-.streamlit/secrets.toml
+# LMAS runtime — handoff artifacts (governance via .claude/rules/agent-handoff.md)
+.lmas/
+
+# Worker (Cloudflare deploy artifact)
 worker.js

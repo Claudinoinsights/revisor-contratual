@@ -1,0 +1,27 @@
+<div class="verdict">
+  <div class="verdict-row">
+    <div class="verdict-status {{ verdict.status }}">{{ verdict.status_label }}</div>
+    <div class="verdict-num">{{ verdict.aderencia }}%</div>
+  </div>
+
+  <div class="criterios">
+    {% for c in verdict.criterios %}
+      <div class="criterio">
+        <span class="criterio-tag">{{ c.tag }}</span>
+        <div class="criterio-score">{{ c.score }}</div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="actions">
+  <button type="button" class="btn-secondary">Ver tese</button>
+  <button type="button" class="btn-primary">Exportar peça</button>
+  <button
+    type="button"
+    class="btn-secondary"
+    hx-post="/reset"
+    hx-target="#workspace"
+    hx-swap="innerHTML"
+  >Nova revisão</button>
+</div>

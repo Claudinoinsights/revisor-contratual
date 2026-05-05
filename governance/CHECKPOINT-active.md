@@ -1401,3 +1401,126 @@ tags:
     - Heartbeat semanal + canary HTML (anti-false-negative)
     - LGPD_PSEUDONIMIZATION_KEY dedicada (separação de responsabilidades)
   - **Próximo handoff emitido:** H-S01-E2.1-arc2sat1 → @ux-design-expert (Sati) iniciar tribunal severo etapa 2.1 sobre as ADRs (1º reviewer UX)
+
+---
+
+## Sessão 85 (2026-05-05) — Neo · STORY REV-INT-01 IMPLEMENTADO
+
+**Contexto:** Sati entregou design-spec-fastapi-htmx-ui.md (Sprint 02 UI redesign) com handoff formal a Neo. Modo execução: develop-yolo (autônomo).
+
+### Implementação completa (Phases A→E)
+
+**Phase A — Setup deps + estrutura web/**
+- pyproject.toml: removido streamlit + streamlit-authenticator; adicionado fastapi>=0.115, uvicorn[standard]>=0.32, python-multipart>=0.0.20
+- Adicionado entry point: `revisor-web = bloco_interface.web.app:run`
+- Criada estrutura `bloco_interface/web/{templates/partials, static}`
+
+**Phase B — Backend FastAPI**
+- `bloco_interface/web/app.py` (160 linhas): FastAPI + 5 endpoints + 1 static mount
+- Endpoints: GET / (idle), POST /revisar (multipart), GET /pipeline-stream (SSE 7 steps), GET /verdict (mock HITL 78%), POST /reset
+- Mock data: 3 history items + verdict APROVADO_COM_RISCO_HITL com C1=1.00 / C2=0.50 / C3=1.00
+
+**Phase C — Templates Jinja2**
+- base.html (layout root: topbar + sidebar + workspace)
+- index.html (composição idle inicial)
+- partials/{idle, processing, verdict, history-item}.html
+- HTMX local: htmx.min.js (50KB) + htmx-sse.js (9KB) baixados para /static (zero CDN runtime)
+
+**Phase D — CSS tokens.css + app.css**
+- tokens.css: paleta Or (--or-500 #EE6B20), Sh, neutros warm, tipografia Manrope/Fraunces/JetBrains, sizing
+- app.css (320 linhas): topbar fixed, sidebar 240px, container 720px centralizado, upload drop-zone, pipeline com states (.done/.active/.pending + pulse animation), verdict card, criterios grid, mobile @max-width 768px
+
+**Phase E — Cleanup + Smoke validation**
+- Removidos: bloco_interface/streamlit_app.py + streamlit_tokens.css
+- pip install -e ".[dev]": SUCCESS (fastapi/uvicorn/python-multipart instalados)
+- Smoke test endpoints (uvicorn :8501):
+  - GET / → HTTP 200, 2488b
+  - GET /static/{tokens.css, app.css, htmx.min.js, htmx-sse.js} → HTTP 200 todos
+  - POST /revisar (multipart) → HTTP 200, 2353b (partial processing.html)
+  - GET /pipeline-stream → 7 SSE events + done sentinel verificados
+  - GET /verdict → HTTP 200, 938b
+  - POST /reset → HTTP 200, 804b
+- **Suite testes: 232 passed, 1 skipped (zero regressão)**
+- README.md atualizado: seção 6 trocada de `streamlit run` para `revisor-web` / `uvicorn ...`
+
+### Acceptance Criteria (spec section 10)
+
+| Categoria | Status |
+|-----------|--------|
+| Funcionalidade (5 endpoints + SSE 7 events) | ✅ todos verificados via curl |
+| Visual (Orsheva tokens, Manrope, sidebar 3 items) | ✅ verificado em GET / |
+| Quality (zero deps JS externas, suite 232/1) | ✅ HTMX local, suite verde |
+| Cleanup (streamlit_*.py + deps removidos) | ✅ confirmado |
+| Deploy (uvicorn sobe sem erro) | ✅ smoke test completo |
+
+### Files changed (REV-INT-01)
+
+- ADD bloco_interface/web/__init__.py
+- ADD bloco_interface/web/app.py
+- ADD bloco_interface/web/templates/{base,index}.html
+- ADD bloco_interface/web/templates/partials/{idle,processing,verdict,history-item}.html
+- ADD bloco_interface/web/static/{tokens.css,app.css,htmx.min.js,htmx-sse.js}
+- DEL bloco_interface/streamlit_app.py
+- DEL bloco_interface/streamlit_tokens.css
+- MOD pyproject.toml (deps + script entry)
+- MOD README.md (seção 6 — UI Web FastAPI em vez de Streamlit)
+
+### Próximo handoff
+
+**H-S02-INT01-dev2qa1** → @qa (Oracle) executar QA Gate em REV-INT-01:
+- Verificar acceptance criteria spec section 10
+- Smoke browser test (idle → processing → verdict → reset)
+- Confirmar zero regressão suite (232 passed)
+- Decisão: PASS / CONCERNS / FAIL / WAIVED
+
+— Neo, sempre construindo 🔨
+
+---
+
+## Sessão 85 — Oracle QA Gate REV-INT-01
+
+**Verdict: CONCERNS** (22/22 AC PASS · 8 findings · zero CRITICAL)
+
+### Probes adversariais executados
+1. ✅ XSS via filename → defendido (Jinja2 autoescape)
+2. ✅ Path traversal /static → defendido (Starlette sanitize)
+3. ⚠️ Multipart edge cases → 3 findings (sem MIME validation, tier enum, size limit)
+4. ⚠️ SSE robustness → 1 finding (sem session binding — out-of-scope mock)
+5. 🔴 LGPD CDN leakage → 1 HIGH finding (Google Fonts puxa fonts.googleapis.com + fonts.gstatic.com)
+6. ⚠️ Ruff lint → 1 LOW finding (UP037 quoted type hint)
+
+### Findings registrados em TECH-DEBT.md
+
+| ID | Sev | Description |
+|----|-----|-------------|
+| TD-WEB-LGPD-CDN-01 | HIGH | Google Fonts CDN viola LGPD on-premise |
+| TD-WEB-VAL-MIME-01 | MEDIUM | Sem validação magic bytes em /revisar |
+| TD-WEB-LISTENER-LEAK-01 | MEDIUM | Event listener leak em processing.html |
+| TD-WEB-NOMAXSIZE-01 | MEDIUM | UploadFile sem max_size (DoS vector) |
+| TD-WEB-SSE-NOSESSION-01 | LOW | /pipeline-stream sem session binding |
+| TD-WEB-TIER-ENUM-01 | LOW | Tier sem Pydantic Enum |
+| TD-WEB-RUFF-UP037 | LOW | Type hint quoted desnecessariamente |
+| TD-WEB-CSP-INLINE-01 | LOW | Inline script em processing.html |
+
+### Decisões Oracle
+
+- **D-ORA-INT01-A:** CONCERNS verdict — story funcionalmente completa, mas LGPD CDN é HIGH e merece remediation antes de release v0.2.0
+- **D-ORA-INT01-B:** Findings F-VAL-01 / F-LEAK-01 / F-NFR-01 / F-SSE-01 / F-VAL-02 são out-of-scope desta story (spec section 11) mas obrigatórios em STORY UI-1 (pipeline real)
+- **D-ORA-INT01-C:** Smoke browser test pendente Eric — Oracle só pôde validar via curl/code-review; UX visual final precisa olho humano
+
+### Files
+
+- ADD governance/qa/qa-gate-story-rev-int-01-fastapi-htmx-ui.md (este gate)
+- MOD governance/TECH-DEBT.md (8 novos debts)
+
+### Próximo handoff
+
+**H-S02-INT01-qa2ops** → @devops (Operator) executar:
+1. Smoke browser test (instruir Eric)
+2. git status + diff review
+3. Conventional commit message
+4. Push branch + atualizar PR #1 ou criar novo PR
+
+**Decisão release:** CONCERNS permite merge, mas TD-WEB-LGPD-CDN-01 deve ser endereçada antes de qualquer release público v0.2.0.
+
+— Oracle, guardião da qualidade 🛡️

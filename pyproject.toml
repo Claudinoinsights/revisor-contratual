@@ -13,9 +13,10 @@ authors = [{ name = "Eric Claudino", email = "eric@claudinoinsights.com" }]
 keywords = ["legaltech", "revisional", "bancario", "lgpd", "decimal", "ollama"]
 
 dependencies = [
-  # UI
-  "streamlit>=1.40",
-  "streamlit-authenticator>=0.3.3",
+  # UI Web (FastAPI + HTMX + Jinja2 — substituiu Streamlit em REV-INT-01)
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.32",
+  "python-multipart>=0.0.20",
   # Orquestração + LLM (PATCH F-MIN-02: pinning ainvoke async nativo)
   "langchain>=0.3",
   "langgraph>=0.2",
@@ -63,6 +64,7 @@ dev = [
 [project.scripts]
 # CLIs documentados em ADRs
 revisor = "bloco_interface.cli:main"
+revisor-web = "bloco_interface.web.app:run"
 
 [tool.setuptools.packages.find]
 where = ["."]

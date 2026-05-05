@@ -145,3 +145,37 @@ tags:
 ---
 
 *Sprint 01 closure registry — Neo (sessão 81, 2026-05-05) · 13 active debts + 1 finding ativo + 5 RESOLVED. MVP v0.1.0 oficial em main `b5c57be3`.*
+
+---
+
+## 📦 Sprint 02 — REV-INT-01 (FastAPI+HTMX UI) — sessão 85
+
+> **Origem:** Oracle QA Gate `qa-gate-story-rev-int-01-fastapi-htmx-ui.md` (CONCERNS).
+> **Story:** REV-INT-01 — substituição de Streamlit por FastAPI + HTMX + Jinja2.
+
+### HIGH (1)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
+|----|--------|-----|-------------|-------------|-------|-------|----------------|
+| **TD-WEB-LGPD-CDN-01** | Oracle Probe 5 (F-LGPD-01) | HIGH | base.html puxa Google Fonts via `fonts.googleapis.com` + `fonts.gstatic.com` — vaza IP do operador para Google a cada page load. Viola princípio "100% on-premise LGPD" do PRD. | 30min (self-host fontes) ou 5min (system fallback) | @dev | 2026-05-05 | Antes de release v0.2.0 |
+
+### MEDIUM (3)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
+|----|--------|-----|-------------|-------------|-------|-------|----------------|
+| **TD-WEB-VAL-MIME-01** | Oracle Probe 3 (F-VAL-01) | MEDIUM | POST /revisar aceita qualquer arquivo (HTML, vazio) como pdf. Sem validação magic bytes (`%PDF-`) ou content-type real. | 1h | @dev | 2026-05-05 | STORY UI-1 (Sprint 02) |
+| **TD-WEB-LISTENER-LEAK-01** | Oracle code review (F-LEAK-01) | MEDIUM | processing.html anexa `addEventListener('htmx:sseMessage', ...)` em document.body a cada swap. Após N reset cycles, N listeners disparam paralelamente. | 30min (mover para `htmx:load` once ou usar HTMX native sse-swap) | @dev | 2026-05-05 | STORY UI-1 |
+| **TD-WEB-NOMAXSIZE-01** | Oracle code review (F-NFR-01) | MEDIUM | UploadFile sem max_size — operador pode (acidentalmente ou maliciosamente) enviar 10GB consumindo RAM/disco. | 15min (Starlette `MAX_BODY_SIZE` ou middleware) | @dev | 2026-05-05 | STORY UI-1 |
+
+### LOW (4)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
+|----|--------|-----|-------------|-------------|-------|-------|----------------|
+| **TD-WEB-SSE-NOSESSION-01** | Oracle Probe 4 (F-SSE-01) | LOW | /pipeline-stream acessível diretamente sem prévio /revisar. Quando pipeline real for conectado, precisa de session/job_id binding. | 1h | @dev | 2026-05-05 | STORY UI-1 |
+| **TD-WEB-TIER-ENUM-01** | Oracle Probe 3 (F-VAL-02) | LOW | tier aceita string livre ("DROP_TABLES" passa). Substituir por Pydantic Enum. | 10min | @dev | 2026-05-05 | STORY UI-1 |
+| **TD-WEB-RUFF-UP037** | Oracle Probe 6 (F-RUF-01) | LOW | bloco_interface/web/app.py:119 — type hint quoted desnecessariamente. `ruff --fix` resolve. | 1min | @dev | 2026-05-05 | Imediato (ou batch posterior) |
+| **TD-WEB-CSP-INLINE-01** | Oracle code review (F-CSP-01) | LOW | processing.html tem `<script>` inline (~30 linhas). Strict CSP (`script-src 'self'`) bloquearia. Mover para arquivo externo se CSP for adotado. | 20min | @dev | 2026-05-05 | Opcional (informacional) |
+
+---
+
+*Sprint 02 REV-INT-01 debts — Oracle (sessão 85, 2026-05-05) · 1 HIGH + 3 MEDIUM + 4 LOW = 8 findings. Gate: CONCERNS.*

@@ -87,15 +87,20 @@ revisor revisar contrato.pdf --uf BA --data-assinatura 2024-03-15
 
 > **Casos de uso completos:** ver [`docs/sop-revisar-pdf.md`](docs/sop-revisar-pdf.md) para PDFs criptografados, OCR, metadata ausente, BACEN offline, etc.
 
-### 6. (Opcional) UI Streamlit local
+### 6. (Opcional) UI Web local — FastAPI + HTMX
 
 ```bash
-streamlit run bloco_interface/streamlit_app.py
-# Abre: http://localhost:8501
-# Design system orsheva-brandbook aplicado via tokens CSS
+revisor-web
+# OU diretamente:
+uvicorn bloco_interface.web.app:app --port 8501 --reload
+# Abre: http://127.0.0.1:8501
+# Design system orsheva (laranja accent + Manrope/Fraunces) aplicado via tokens CSS
 ```
 
-> 🚧 **Streamlit UI v0.1.0 é skeleton** — invocação real do pipeline será implementada na STORY UI-1 do Sprint 02. Por agora roda em modo demo (mock veredito). CLI é canônica para uso real.
+> 🚧 **UI Web v0.1.0 é workspace minimal** — só ações do operador (upload, configurar, revisar, ver veredito). Invocação real do pipeline será implementada na STORY UI-1 do Sprint 02. Por agora roda em modo demo (mock SSE 7 steps + mock veredito HITL 78%). CLI é canônica para uso real.
+>
+> **Stack:** FastAPI + HTMX 2.0 + Jinja2 + uvicorn. HTMX local em `bloco_interface/web/static/htmx.min.js` (sem CDN runtime).
+> **Migração de Streamlit:** REV-INT-01 (2026-05-05) — Streamlit removido por limitar controle CSS profundo. Filosofia LEAN preservada.
 
 ## Landing institucional
 
