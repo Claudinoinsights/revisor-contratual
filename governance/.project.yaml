@@ -18,7 +18,7 @@ llm_strategy:
       role: "análise macro contextual (Selic, atipicidade, peer modalities)"
   total_footprint: "~7GB (Premium tier) — cabe NFR-PERF-02 ≤8GB"
 
-code_path: "../../packages/revisor-contratual"
+code_path: ".."  # repositório dedicado — código está na raiz
 
 stack:
   frontend: "Streamlit (single-process, asyncio interno)"
