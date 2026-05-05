@@ -1524,3 +1524,142 @@ tags:
 **Decisão release:** CONCERNS permite merge, mas TD-WEB-LGPD-CDN-01 deve ser endereçada antes de qualquer release público v0.2.0.
 
 — Oracle, guardião da qualidade 🛡️
+
+---
+
+## Sessão 85 — Operator: REV-INT-01 PUSHED to main
+
+**Commit:** `f6b935c` (main, 21 files changed, +2168/-539)
+
+### Pre-push gates executados
+
+| Check | Status |
+|---|---|
+| Suite testes (232/1) | ✅ PASS |
+| Ruff `bloco_interface/web/` | ✅ PASS (TD-WEB-RUFF-UP037 resolvido) |
+| Acceptance criteria (22/22) | ✅ PASS |
+| Smoke browser test (Eric) | ✅ PASS — cores Orsheva, fluxo end-to-end aprovado |
+| Oracle gate | ⚠️ CONCERNS (zero CRITICAL, 8 tech debts) |
+| `.gitignore .lmas/` | ✅ Aplicado per agent-handoff.md |
+
+### Push details
+
+- **Range:** `c9bf118..f6b935c`
+- **Branch:** main → origin/main (trunk-based per git-workflow.md, solo dev)
+- **CI:** GitHub Actions queued (run 25372289901, t+3s)
+
+### Decisões Operator
+
+- **D-OPS-INT01-A:** Trunk-based commit direto em main — Why: repo solo dev (Eric), zero PRs existentes, git-workflow.md default
+- **D-OPS-INT01-B:** Eric autorizou push após smoke browser test (cores/fontes/fluxo confirmados)
+- **D-OPS-INT01-C:** Push autorizado mesmo com gate CONCERNS — Why: zero CRITICAL, 8 debts são tech debt rastreável (não bloqueio); HIGH (TD-WEB-LGPD-CDN-01) endereçável antes de v0.2.0 release
+
+### Files in commit f6b935c (21)
+
+- ADD bloco_interface/web/ (12 files)
+- DEL bloco_interface/streamlit_app.py + streamlit_tokens.css
+- ADD governance/design-spec-fastapi-htmx-ui.md + qa/qa-gate-story-rev-int-01-fastapi-htmx-ui.md
+- MOD .gitignore + README.md + pyproject.toml + governance/CHECKPOINT-active.md + governance/TECH-DEBT.md
+
+### Estado do repositório pós-push
+
+- `origin/main: f6b935c` (synced)
+- 0 PRs abertos (trunk-based)
+- CI run 25372289901 em execução (link: gh run view 25372289901)
+
+### Próximos passos sugeridos para Eric
+
+1. **Monitorar CI run 25372289901** — `gh run watch 25372289901`
+2. **Decisões pendentes Sprint 02:**
+   - TD-WEB-LGPD-CDN-01 (HIGH) — fix antes de release v0.2.0 (self-host fontes ou system fallback)
+   - STORY UI-1 — conectar pipeline real ao mock UI atual (resolve 4 dos 8 debts)
+3. **Cleanup opcional:** branch `feature/revisor-contratual-v0.1.0` do monorepo antigo é obsoleta (não existe neste repo)
+
+— Operator, deployando com confiança 🚀
+
+---
+
+## Sessão 85 — Morgan (PM): Sprint 02 Planning Formal
+
+**Eric escolheu opção #5 (planning formal antes de qualquer execução).** Reclassificou TD-PIPELINE-SMOKE-REAL: Ollama install agora é tarefa @devops Operator autônomo, NÃO mais pré-requisito Eric manual.
+
+### Documentos entregues
+
+- ADD `governance/sprint-02-plan.md` (12KB) — plan formal Sprint 02 com 5 stories + dependency graph + gate conditions v0.2.0
+- ADD `governance/prd/prd-v1.0.3-DELTA.md` (8KB) — PATCH DELTA endereçando REV-INT-01 stack + 3 R-NEW (2 Sati + 1 incidental F-HIGH-07) + reclassificação ownership
+
+### Backlog Sprint 02 consolidado
+
+**Total:** 29 itens herdados (13 Sprint 01 debts + 7 REV-INT-01 + 6 R-NEW + 1 ops cleanup + 2 lições aprendidas)
+
+**Filtragem para v0.2.0:**
+- 🔴 MUST (release blocker): 3 stories (REV-INT-02 LGPD + DEVOPS-01 Ollama + UI-1 conectar pipeline)
+- 🟡 SHOULD: 1 story (DOCS-02) absorve 2 R-NEW Sati endereçadas
+- 🟢 COULD (Sprint 03+): TD-VAULT-LOAD-TEST, R-NEW Sati 2 + Smith 6/8/9, 11 LOWs
+
+### 5 Stories Sprint 02 propostas
+
+| # | Story ID | Owner | Effort | Resolve |
+|---|---|---|---|---|
+| 1 | REV-INT-02 | @dev | 30min | TD-WEB-LGPD-CDN-01 (HIGH) |
+| 2 | DEVOPS-01 | @devops | 1-2h + 30min setup + 7GB download | TD-PIPELINE-SMOKE-REAL (MED) |
+| 3 | UI-1 | @architect → @dev → @qa | 3-5h | 5 web debts (4 MED + 1 LOW) |
+| 4 | DOCS-02 | @dev | 1-2h | R-NEW-SATI-01 + R-NEW-SATI-03 |
+| 5 | OPS-CLEANUP-01 | @devops | 15min | Pendência operacional Sprint 01 |
+
+### Dependency graph
+
+- DEVOPS-01 → UI-1 (UI-1 depende de Ollama instalado para smoke real)
+- REV-INT-02, DOCS-02, OPS-CLEANUP-01 paralelizáveis sem deps
+
+### Decisões Morgan
+
+- **D-MOR-PM-S02-A:** PATCH bump (v1.0.3) escolhido sobre MINOR — convenção projeto + ACs comportamentais inalterados
+- **D-MOR-PM-S02-B:** R-NEW endereçadas SOMENTE quando microcopy/UX claras (Sati R-NEW-01 + R-NEW-03); R-NEW que precisam estudo NLP ou refatoração UX complexa (R-NEW-02, R-NEW-Smith-06/08/09) → defer Sprint 03+
+- **D-MOR-PM-S02-C:** TD-PIPELINE-SMOKE-REAL reclassificado oficialmente — owner Eric → @devops Operator (DEVOPS-01)
+- **D-MOR-PM-S02-D:** UI-1 cluster (5 web debts MEDIUM+LOW endereçados juntos) > stories separadas — coesão técnica + dev efficiency
+
+### Risco identificado
+
+- Sabia-7B pode não estar no Ollama registry oficial (Maritaca distribui via HF). DEVOPS-01 deve preparar Modelfile customizado OU fallback Qwen 2.5 7B. Decisão final fica para Operator durante story.
+
+### Próximo passo
+
+**H-S02-PLAN-pm2mor1** → Morpheus consolidar planning + dispatchar próxima story. Ordem sugerida (dependency graph):
+1. **DEVOPS-01** PRIMEIRO (download longo, pode rodar paralelo a outros stories) — @devops
+2. **REV-INT-02** SEGUNDO (rápido, paralelizável) — @sm cria story → @dev
+3. **DOCS-02** TERCEIRO (paralelo) — @sm cria story → @dev
+4. **UI-1** QUARTO (depende DEVOPS-01 verde) — @architect → @sm → @dev → @qa
+5. **OPS-CLEANUP-01** em qualquer momento conveniente — @devops
+
+— Morgan, planejando o futuro 📊
+
+---
+
+## Sessão 85 — Morpheus consolidação Sprint 02 + dispatch DEVOPS-01
+
+**Handoff Morgan→Morpheus consumido.** Sprint 02 plan absorvido (5 stories priorizadas, dependency graph mapped, gate conditions v0.2.0 definidas).
+
+### Decisões consolidadas
+
+- **D-MOR-S02-A:** Dispatch order respeitado da Morgan: DEVOPS-01 (priority 1) primeiro porque download Ollama + 7GB modelos é longo — paraleliza naturalmente com REV-INT-02 (priority 2) e DOCS-02 (priority 3) depois
+- **D-MOR-S02-B:** Operator autônomo para decision point Sabia-7B Modelfile vs Qwen-only — Why: dúvida técnica reversível; Eric autorizou autonomia; escalar SOMENTE se >1h adicional inesperada OU incompatibilidade total
+- **D-MOR-S02-C:** Commit governance docs + DEVOPS-01 closure pode ser combinado em 1 commit ou separado — Operator decide conforme conveniência
+
+### Próximo handoff dispatchado
+
+**H-S02-MOR2OPS-01** → @devops (Operator)
+- File: `.lmas/handoffs/handoff-morpheus-to-devops-2026-05-05-devops01-ollama.yaml`
+- Story: DEVOPS-01 (Ollama install + smoke E2E real)
+- Esforço: 1-2h dev + 30min setup + ~7GB download
+- Decision point dentro do escopo: Operator decide A/B/C strategy
+
+### Fila Sprint 02 (após DEVOPS-01)
+
+1. ⏳ **DEVOPS-01** — em execução (priority 1)
+2. 📦 **REV-INT-02** — pendente (priority 2, paralelizável)
+3. 📦 **DOCS-02** — pendente (priority 3, paralelizável)
+4. 🔒 **UI-1** — bloqueada por DEVOPS-01 (priority 4)
+5. 📦 **OPS-CLEANUP-01** — pendente (priority 5, qualquer momento)
+
+— Morpheus 🎯
