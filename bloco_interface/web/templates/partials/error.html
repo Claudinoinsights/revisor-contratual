@@ -1,0 +1,39 @@
+<div class="error-state error-{{ error_type }}">
+  {% if error_type == "invalid_pdf" %}
+    <span class="error-icon">📄</span>
+    <h3>Arquivo não é um PDF válido</h3>
+    <p>{{ error_message or "O arquivo enviado não começa com a assinatura PDF (%PDF-)." }}</p>
+    <p class="recovery-hint">
+      Verifique se o arquivo é realmente um PDF — extensão <code>.pdf</code> não basta;
+      conteúdo deve começar com <code>%PDF-</code>.
+    </p>
+  {% elif error_type == "file_too_large" %}
+    <span class="error-icon">⚖️</span>
+    <h3>Arquivo excede limite</h3>
+    <p>{{ error_message or "O arquivo enviado excede 10MB." }}</p>
+    <p class="recovery-hint">
+      O Revisor Contratual aceita PDFs até 10MB para preservar memória local (LGPD on-premise).
+      Comprima o PDF (<code>pdftk in.pdf output out.pdf compress</code>) ou divida em partes.
+    </p>
+  {% elif error_type == "invalid_tier" %}
+    <span class="error-icon">🎚️</span>
+    <h3>Tier do Advogado inválido</h3>
+    <p>{{ error_message or "O tier informado não é válido." }}</p>
+    <p class="recovery-hint">
+      Tier deve ser <code>lean</code> (Qwen 3B), <code>balanced</code> (Qwen 7B — default per ADR-010)
+      ou <code>premium</code> (Sabia opt-in).
+    </p>
+  {% else %}
+    <span class="error-icon">⚠️</span>
+    <h3>Pipeline encontrou um erro</h3>
+    <p>{{ error_message or "Erro desconhecido durante revisão." }}</p>
+    <p class="recovery-hint">
+      Verifique o log de auditoria em <code>~/.local/share/revisor-contratual/audit.jsonl</code>
+      ou consulte SOP-003 (Casos de FAILED).
+    </p>
+  {% endif %}
+
+  <button hx-post="/reset" hx-target="#workspace" hx-swap="innerHTML" class="btn-secondary">
+    ← Voltar
+  </button>
+</div>

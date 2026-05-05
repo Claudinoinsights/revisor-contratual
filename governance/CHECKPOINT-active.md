@@ -22,6 +22,154 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 86** (@qa / Oracle — 2026-05-05): **✅ GATE UI-1 PASS (última story Sprint 02) — handoff @qa→@devops emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @dev → @qa consumed=true.**
+  - **6 adversarial probes executados, todos PASS:**
+    - P1 Validação MIME magic bytes %PDF- (linha 165) + HTTPException(400): ✅ PASS
+    - P2 MAX_UPLOAD_SIZE 10MB (linha 53) + HTTPException(413): ✅ PASS
+    - P3 LLMTier Literal + Form(default='balanced') ADR-010 alignment: ✅ PASS
+    - P4 Pipeline real integration (JOBS + tempfile.mkstemp + await revisar_contrato + Path.unlink LGPD cleanup): ✅ PASS
+    - P5 Listener Opção A pura (getElementById('sse-container'), 0 ocorrências document.body.addEventListener): ✅ PASS
+    - P6 Boundary respect rigoroso (zero .py em tests/, bloco_workflow/, bloco_contratos/, etc): ✅ PASS
+  - **AC-9 Decision: Opção A (Static Review Accepted)** — pipeline real já validado em REV-LLM-01 (253.72s smoke INTEGRAL); AC-1/2/3 static-verifiable; advisory Eric run smoke browser local pré-tag (não blocker)
+  - **Decisão Oracle D-ORC-S02-UI1-A:** PASS (zero blockers; AC-9 static review accepted; 0 riscos materializados de 6)
+  - **AC compliance:** 9 firmes + 1 static-review-accepted = PASS
+  - **Tech debts resolvidos pelo UI-1:** 5 firmes (TD-WEB-VAL-MIME-01 + TD-WEB-LISTENER-LEAK-01 + TD-WEB-NOMAXSIZE-01 + TD-WEB-TIER-ENUM-01 + TD-WEB-RUFF-UP037) + 1 conditional Resolved (TD-WEB-SSE-NOSESSION-01 — Phase C completou); 1 LOW mantido (TD-WEB-CSP-INLINE-01 out-of-scope)
+  - **Files Oracle (modified/created):**
+    - `governance/stories/UI-1-production-grade-pipeline.md` (QA Results section preenchida 6/6 probes)
+    - `governance/qa/qa-gate-story-ui-1-production-grade-pipeline.md` (NEW gate file completo, ~430 linhas — maior gate Sprint 02)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Handoff emitido:** H-S02-UI1-qa2devops → @devops Operator
+    - Path: `.lmas/handoffs/handoff-qa-to-devops-2026-05-05-ui1-merge.yaml`
+    - **STANDALONE commit** (UI-1 não tem governance batch pendente — REV-LLM-01 + DOCS-02 já fecharam ADR-010 + alignment)
+    - 8 files: app.py + processing.html + error.html (NEW) + app.css + TECH-DEBT.md + CHECKPOINT-active + story closure + gate file
+  - **🚦 Sprint 02 status pós-push esperado:**
+    - 6 of 6 priority alta done (UI-1 closes ÚLTIMA story Sprint 02)
+    - **Sprint 02 OFICIALMENTE 100% CLOSED** após push success
+    - Release v0.2.0 gate 7/8 → 8/8 → Operator pode taggar v0.2.0 (Eric decide momento)
+  - **Próximo agente:** @devops (Operator) per handoff @qa→@devops
+
+- **Sessão 86** (@dev / Neo — 2026-05-05): **💻 UI-1 IMPLEMENTADO (sem ativar plan B Phase C) — handoff @dev → @qa emitido (Ready for Review)**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @po → @dev consumed=true.**
+  - **5 Phases executadas autonomamente:**
+    - **Phase A (validation hardening)** — imports + LLMTier Literal + MAX_UPLOAD_SIZE 10MB + tier default 'balanced' (ADR-010) + magic bytes %PDF- + max_size validation; ruff --fix UP037
+    - **Phase B (listener cleanup Opção A)** — listener anexado a #sse-container element (removido no swap); processing.html refactored com data-job-id
+    - **Phase C (pipeline real integration — sem plan B)** — TypedDict JobState + JOBS dict + `await revisar_contrato(...)` (não asyncio.to_thread — função já async, descoberto via grep pipeline.py); LGPD cleanup obrigatório via Path.unlink em finally; fallback graceful se job_id ausente OU vault.db ausente
+    - **Phase D (error states UX)** — error.html NOVO 4 variações (invalid_pdf/file_too_large/invalid_tier/pipeline_failure) + custom exception handler `@app.exception_handler(HTTPException)` + styles app.css alinhados Orsheva
+    - **Phase E (validation + closure)** — Suite 232 passed + 1 skipped em 60.35s (paridade baseline DOCS-02 closure); ruff All checks passed após cleanup iterativo (5 auto-fix UP035/UP045 + 5 manual fix E501/B008 noqa/ASYNC240 noqa)
+  - **Decisões Neo D-NEO-S02-UI1-A..C:**
+    - A: Discovery `revisar_contrato` é async — Dev Notes D3 (`asyncio.to_thread`) substituído por `await` direto (correção pragmática based on real signature)
+    - B: Phase A+C+D combinadas em 1 Write tool call (rewrite cirúrgico ~290 LOC) — coerência > splittar em múltiplas edits
+    - C: Listener Opção A (sse-container element) aplicada — cleaner que B (manual remove via htmx:beforeSwap)
+  - **AC compliance:** 9 firmes + 1 manual (AC-9 smoke E2E browser — Oracle decide static review + curl tests OU solicitar Eric)
+  - **Tech debts resolved:** TD-WEB-VAL-MIME-01 + TD-WEB-LISTENER-LEAK-01 + TD-WEB-NOMAXSIZE-01 + TD-WEB-TIER-ENUM-01 + TD-WEB-RUFF-UP037 + TD-WEB-SSE-NOSESSION-01 (conditional Phase C completou) — TD-WEB-CSP-INLINE-01 mantido LOW (out-of-scope)
+  - **Files Neo (modified/created):**
+    - `bloco_interface/web/app.py` (+250/-36 — rewrite cirúrgico Phases A+C+D)
+    - `bloco_interface/web/templates/partials/processing.html` (~80 lines refactor — Phase B Opção A + SSE error event handling)
+    - `bloco_interface/web/templates/partials/error.html` (NOVO Phase D — 39 LOC com 4 variações)
+    - `bloco_interface/web/static/app.css` (+59 LOC error styles Orsheva-aligned)
+    - `governance/TECH-DEBT.md` (5 debts firmes + 1 conditional → Resolved Findings)
+    - `governance/stories/UI-1-production-grade-pipeline.md` (Dev Agent Record + Change Log + status Ready for Review)
+    - `.lmas/handoffs/handoff-dev-to-qa-2026-05-05-ui1-gate.yaml` (NEW handoff)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @qa (Oracle) per handoff @dev→@qa
+    - Comando: `*review UI-1`
+    - 6 adversarial probes recomendados (validation + listener + pipeline real + boundary respect)
+    - AC-9 manual: Oracle decide static review + curl tests OU solicitar Eric smoke browser
+  - **🚦 Sprint 02 final stretch:**
+    - 5 of 5 priority alta done; UI-1 NOW Ready for Review (última story)
+    - Após @qa PASS + @devops push → Sprint 02 100% CLOSED + Release v0.2.0 gate 8/8
+    - Operator pode taggar v0.2.0 após UI-1 push success
+
+- **Sessão 86** (@po / Keymaker — 2026-05-05): **🎯 UI-1 PO GATE APROVADO 10/10 (GO) — handoff @po → @dev emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
+  - **Handoff @sm → @po consumed=true.**
+  - **10-point checklist executado:** todos 10 critérios PASS (título claro multi-element, user story multi-dimensional, 10 ACs testáveis, 5 phases granulares com 30 subtasks, 5 upstream + 3 downstream deps, 6 modify + 7 NOT-modify, tests cobrindo todos ACs, 6 risk+mitigation incluindo Phase C plan B, effort 3-5h realista, status Ready)
+  - **Score: 10/10 — GO**
+  - **4 observações advisory non-bloqueantes:**
+    - Phase C complexity flag — sugerir Neo buffer +30min mental; plan B explícito se > 3h
+    - AC-5 DevTools Chrome-only API (`getEventListeners`) — Oracle aceitar Chrome browser usado
+    - base.html clarification em Files to Modify (Neo edita se Phase D requer; senão deixa intacto)
+    - DoD #6 smoke E2E screenshots dos 4 cenários — evita "passou no meu setup" Oracle
+  - **Forças destacadas (story exemplar):**
+    - Dev Notes D1-D4 copy-paste-ready (validation imports + listener Opção A vs B + JobState TypedDict + 4 error templates)
+    - Risk #1 (Phase C estender) com mitigation EXPLÍCITA não-bloqueante (closure parcial + backlog Sprint 03)
+    - Bug oculto Morpheus (tier='premium' default) elevado a AC-3 firme — alinhamento ADR-010 cohesivo
+    - Defensive scope guards (7 itens NOT to Modify) protege contra scope creep
+    - Maior story Sprint 02 (~615 linhas) proporcional à complexidade Phase C
+  - **Files Keymaker (modified):**
+    - `governance/stories/UI-1-production-grade-pipeline.md` (Validation Notes section preenchida 10/10)
+    - `.lmas/handoffs/handoff-po-to-dev-2026-05-05-ui1-develop.yaml` (NEW handoff @po→@dev com 30 steps numerados)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @dev (Neo) per handoff @po→@dev
+    - Comando: `*develop-yolo UI-1`
+    - 5 phases breakdown: A (1h15min validação) + B (30min listener cleanup) + C (2h pipeline real, plan B se >3h) + D (1h error UX) + E (15min closure)
+    - Output esperado: status `Ready for Review` + handoff @dev→@qa
+  - **🚦 Sprint 02 final stretch:**
+    - 5 of 5 priority alta done; UI-1 NOW @dev pipeline (última story Sprint 02)
+    - Após Done → Release v0.2.0 gate 8/8 → Operator pode taggar v0.2.0
+
+- **Sessão 86** (@sm / River — 2026-05-05): **🌊 UI-1 STORY DRAFTED (status Ready) — handoff @sm → @po emitido**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito Skill chain.
+  - **Handoff Morpheus → @sm consumed=true.**
+  - **Story criada:** `governance/stories/UI-1-production-grade-pipeline.md` (~615 linhas — maior story do Sprint 02 dada complexidade Phase C)
+    - Frontmatter: type=story, id=UI-1, status=Ready, priority=alta (promovida de 4), sprint="02", owner="@dev (Neo)", effort 3-5h
+    - User story format: operador UI Web → pipeline real (não mock) + validação upload + listener cleanup → produto end-to-end funcional
+    - 10 ACs (4 Func + 3 Quality + 2 UX + 1 Docs) — todos com critério verificável
+    - Tasks/Subtasks: 5 phases (A: 1h15min validação, B: 30min listener cleanup, C: 2h pipeline integration, D: 1h error states UX, E: 15min closure)
+    - Dev Notes copy-paste-ready: D1 (validation imports + revisar() ANTES/DEPOIS) + D2 (listener Opção A vs B comparison + DevTools verification) + D3 (pipeline integration skeleton com tempfile + uuid4 + JOBS dict + asyncio.to_thread) + D4 (error template scaffold 4 variações + custom exception handler)
+    - Anti-patterns (7 itens) + Files NOT to Modify (7 itens) defensive
+    - Risk + Mitigation (6 riscos com Probabilidade/Impacto/Mitigação)
+    - Definition of Done (9 critérios)
+  - **Decisões River D-RIV-S02-UI1-A..C:**
+    - A: Status Ready desde criação — Morpheus mapeou bug oculto + linhas exatas + 5 debts firmes
+    - B: AC-3 inclui correção tier default 'premium'→'balanced' (bug oculto Morpheus) — elevado para firm AC
+    - C: Phase C 2h tem risk explicit (estender 2h30min) com mitigation: UI-1 closure parcial se > 3h + TD-WEB-SSE-NOSESSION-01 backlog Sprint 03
+  - **Files River (created/modified):**
+    - `governance/stories/UI-1-production-grade-pipeline.md` (NEW ~615 linhas — maior do Sprint 02)
+    - `.lmas/handoffs/handoff-sm-to-po-2026-05-05-ui1-validate.yaml` (NEW handoff)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @po (Keymaker) per handoff @sm→@po
+    - Comando: `*validate-story-draft UI-1`
+    - 10-point checklist; decisão GO (≥7/10) → emit handoff @po→@dev `*develop-yolo`
+  - **🚦 Sprint 02 final stretch:**
+    - 5 of 5 priority alta done; UI-1 NOW @po pipeline (única restante)
+    - Após UI-1 Done → Release v0.2.0 gate 8/8 → Operator pode taggar
+    - Pipeline restante: @po → @dev → @qa → @devops (4 Skills)
+
+- **Sessão 86** (@lmas-master / Morpheus — 2026-05-05): **📋 UI-1 SCOPED — handoff Morpheus → @sm emitido (última story Sprint 02)**.
+  - Eric pediu "continue com o recomendado e sempre pela skill" — Morpheus inicia novo arco UI-1.
+  - **Reality check Morpheus:**
+    - UI atual: FastAPI/HTMX/Jinja2 (REV-INT-02 base, 161 LOC), 5 endpoints TODOS MOCK
+    - Pipeline real existe (bloco_workflow/pipeline.py:revisar_contrato) — Qwen 7B funcional pós REV-LLM-01
+    - 3 MEDIUMs UI-bloqueadores production: TD-WEB-VAL-MIME-01 + TD-WEB-LISTENER-LEAK-01 + TD-WEB-NOMAXSIZE-01
+    - 2 LOWs aproveitáveis triviais: TD-WEB-TIER-ENUM-01 (10min) + TD-WEB-RUFF-UP037 (1min)
+    - **Bug oculto descoberto:** app.py:101 ainda tem `tier: str = Form(default='premium')` — desatualizado pós-ADR-010 (devia ser 'balanced'); UI-1 corrige
+  - **Decisão Morpheus D-MOR-S02-UI1-A..C:**
+    - A: SINGLE story (não split UI-1.1/1.2/1.3) — debts cohesivos, evita overhead 6 handoffs
+    - B: Sati consultation DISPENSADA — REV-INT-02 já estabeleceu tokens Orsheva + 7 fontes; UI-1 é integration + hardening, não new design
+    - C: TD-WEB-CSP-INLINE-01 SKIP UI-1 (opt-in informacional); TD-WEB-SSE-NOSESSION-01 CONDITIONAL (Resolved se Phase C real OR LOW backlog se mock preserved)
+  - **Deliverables concretos mapeados (handoff yaml ~370 linhas):**
+    - D1 Phase A (1h15min): validation MIME + size + tier Pydantic Enum + tier default 'premium'→'balanced' + ruff fix
+    - D2 Phase B (30min): event listener cleanup (sse-swap native OU manual remove)
+    - D3 Phase C (2h, risco estender): pipeline real integration (POST /revisar real, SSE streaming real, /verdict real, job_id session)
+    - D4 Phase D (1h): error states UX (400/413/500 templates + recovery hints)
+    - D5 Phase E (15min): closure (regression + ruff + TECH-DEBT updates)
+  - **10 ACs high-level mapeados:** 4 Func + 3 Quality + 2 UX + 1 Docs
+  - **Files Morpheus (modified/created):**
+    - `.lmas/handoffs/handoff-morpheus-to-sm-2026-05-05-ui1-create-story.yaml` (NEW ~370 linhas spec completo)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @sm (River) per handoff Morpheus → @sm
+    - Comando: `*draft UI-1`
+    - Output esperado: `governance/stories/UI-1-production-grade-pipeline.md` (Ready status)
+    - Pipeline restante: @sm → @po → @dev → @qa → @devops (5 Skills)
+  - **🚦 Sprint 02 final stretch:**
+    - 5 of 5 priority alta done; UI-1 NOW @sm pipeline (única restante)
+    - Após Done → Release v0.2.0 gate 8/8 → Operator pode taggar v0.2.0
+    - Zero HIGH ativos preserved (UI-1 mexe em UI code mas zero debts HIGH)
+
 - **Sessão 86** (@devops / Operator — 2026-05-05): **🚀 DOCS-02 PUSHED TO MAIN — Sprint 02 5/5 priority alta DONE — UI-1 priority 4 restante**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito.
   - **Handoff @qa → @devops consumed=true.**

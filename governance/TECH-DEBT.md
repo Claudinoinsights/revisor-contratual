@@ -160,22 +160,20 @@ tags:
 
 ✅ TD-WEB-LGPD-CDN-01 RESOLVED em sessão 86 (Story REV-INT-02). Ver Resolved Findings abaixo.
 
-### MEDIUM (3)
+### MEDIUM (3) — ✅ ALL RESOLVED em sessão 86 via Story UI-1
 
-| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
-|----|--------|-----|-------------|-------------|-------|-------|----------------|
-| **TD-WEB-VAL-MIME-01** | Oracle Probe 3 (F-VAL-01) | MEDIUM | POST /revisar aceita qualquer arquivo (HTML, vazio) como pdf. Sem validação magic bytes (`%PDF-`) ou content-type real. | 1h | @dev | 2026-05-05 | STORY UI-1 (Sprint 02) |
-| **TD-WEB-LISTENER-LEAK-01** | Oracle code review (F-LEAK-01) | MEDIUM | processing.html anexa `addEventListener('htmx:sseMessage', ...)` em document.body a cada swap. Após N reset cycles, N listeners disparam paralelamente. | 30min (mover para `htmx:load` once ou usar HTMX native sse-swap) | @dev | 2026-05-05 | STORY UI-1 |
-| **TD-WEB-NOMAXSIZE-01** | Oracle code review (F-NFR-01) | MEDIUM | UploadFile sem max_size — operador pode (acidentalmente ou maliciosamente) enviar 10GB consumindo RAM/disco. | 15min (Starlette `MAX_BODY_SIZE` ou middleware) | @dev | 2026-05-05 | STORY UI-1 |
+✅ **TD-WEB-VAL-MIME-01 RESOLVED** | Story UI-1 (Phase A) | 2026-05-05 | Validação magic bytes `b'%PDF-'` em revisar() raise HTTPException(400)
+✅ **TD-WEB-LISTENER-LEAK-01 RESOLVED** | Story UI-1 (Phase B) | 2026-05-05 | Listener anexado a `#sse-container` (removido no swap, garbage collected)
+✅ **TD-WEB-NOMAXSIZE-01 RESOLVED** | Story UI-1 (Phase A) | 2026-05-05 | `MAX_UPLOAD_SIZE = 10MB` + `pdf.size > MAX_UPLOAD_SIZE` raise HTTPException(413)
 
 ### LOW (4)
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
 |----|--------|-----|-------------|-------------|-------|-------|----------------|
-| **TD-WEB-SSE-NOSESSION-01** | Oracle Probe 4 (F-SSE-01) | LOW | /pipeline-stream acessível diretamente sem prévio /revisar. Quando pipeline real for conectado, precisa de session/job_id binding. | 1h | @dev | 2026-05-05 | STORY UI-1 |
-| **TD-WEB-TIER-ENUM-01** | Oracle Probe 3 (F-VAL-02) | LOW | tier aceita string livre ("DROP_TABLES" passa). Substituir por Pydantic Enum. | 10min | @dev | 2026-05-05 | STORY UI-1 |
-| **TD-WEB-RUFF-UP037** | Oracle Probe 6 (F-RUF-01) | LOW | bloco_interface/web/app.py:119 — type hint quoted desnecessariamente. `ruff --fix` resolve. | 1min | @dev | 2026-05-05 | Imediato (ou batch posterior) |
-| **TD-WEB-CSP-INLINE-01** | Oracle code review (F-CSP-01) | LOW | processing.html tem `<script>` inline (~30 linhas). Strict CSP (`script-src 'self'`) bloquearia. Mover para arquivo externo se CSP for adotado. | 20min | @dev | 2026-05-05 | Opcional (informacional) |
+| ~~**TD-WEB-SSE-NOSESSION-01**~~ | ~~Oracle Probe 4 (F-SSE-01)~~ | ~~LOW~~ | ✅ **RESOLVED** Story UI-1 Phase C — `JOBS: dict[str, JobState]` + `/pipeline-stream?job_id=` binding implementado | ~~1h~~ | ~~@dev~~ | ~~2026-05-05~~ | ✅ Resolved 2026-05-05 |
+| ~~**TD-WEB-TIER-ENUM-01**~~ | ~~Oracle Probe 3 (F-VAL-02)~~ | ~~LOW~~ | ✅ **RESOLVED** Story UI-1 Phase A — `LLMTier = Literal["lean","balanced","premium"]` substitui `str`; default `"balanced"` (ADR-010 alignment) | ~~10min~~ | ~~@dev~~ | ~~2026-05-05~~ | ✅ Resolved 2026-05-05 |
+| ~~**TD-WEB-RUFF-UP037**~~ | ~~Oracle Probe 6 (F-RUF-01)~~ | ~~LOW~~ | ✅ **RESOLVED** Story UI-1 Phase A — `ruff --fix` aplicado; ruff All checks passed | ~~1min~~ | ~~@dev~~ | ~~2026-05-05~~ | ✅ Resolved 2026-05-05 |
+| **TD-WEB-CSP-INLINE-01** | Oracle code review (F-CSP-01) | LOW | processing.html tem `<script>` inline (~30 linhas). Strict CSP (`script-src 'self'`) bloquearia. Mover para arquivo externo se CSP for adotado. | 20min | @dev | 2026-05-05 | Opcional (informacional) — out-of-scope UI-1 |
 
 ---
 
