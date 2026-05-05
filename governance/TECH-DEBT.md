@@ -73,6 +73,7 @@ tags:
 | **F-LLM-MED-01** | STORY 13 (sessão 73) | STORY 13 | `model_config = ConfigDict(extra='forbid')` aplicado aos 5 schemas LLM-facing (`FundamentoInvocado`, `TeseAdvogado`, `AnaliseMacroEconomica`, `VeredictoJuiz`, `ValidacaoSemantica`) |
 | **F-VAULT-LOW-01** | STORY 13 (sessão 73) | STORY 13 | Guard `math.isnan/isinf` fail-fast antes de `struct.pack` em `serialize_embedding` |
 | **F-PIPELINE-LOW-01** | STORY 13 (sessão 73) | STORY 13 | Mensagem `ParserOCRRequired` reescrita PT-BR estruturada (diagnóstico → causa → solução → alternativa); reproduzida exatamente em SOP-003 caso 2 |
+| **TD-WEB-LGPD-CDN-01** | Sessão 86 (2026-05-05) | Story REV-INT-02 | Self-hosted 7 woff2 (Manrope 4w + Fraunces 1w + JetBrains 2w) em /static/fonts/ via @fontsource/jsdelivr (~117KB total); base.html removidos 3 link tags Google Fonts; tokens.css adicionados 7 @font-face declarations (font-display: swap). Validações: AC-1 zero fonts.googleapis ✅, AC-2 zero fonts.gstatic ✅, AC-4 7/7 HTTP 200 ✅, AC-8 232 passed + 1 skipped ✅, AC-9 117536 bytes ≤ 204800 ✅. |
 
 ---
 
@@ -153,11 +154,9 @@ tags:
 > **Origem:** Oracle QA Gate `qa-gate-story-rev-int-01-fastapi-htmx-ui.md` (CONCERNS).
 > **Story:** REV-INT-01 — substituição de Streamlit por FastAPI + HTMX + Jinja2.
 
-### HIGH (1)
+### HIGH (0)
 
-| ID | Source | Sev | Description | Est. Effort | Owner | Added | Remediation by |
-|----|--------|-----|-------------|-------------|-------|-------|----------------|
-| **TD-WEB-LGPD-CDN-01** | Oracle Probe 5 (F-LGPD-01) | HIGH | base.html puxa Google Fonts via `fonts.googleapis.com` + `fonts.gstatic.com` — vaza IP do operador para Google a cada page load. Viola princípio "100% on-premise LGPD" do PRD. | 30min (self-host fontes) ou 5min (system fallback) | @dev | 2026-05-05 | Antes de release v0.2.0 |
+✅ TD-WEB-LGPD-CDN-01 RESOLVED em sessão 86 (Story REV-INT-02). Ver Resolved Findings abaixo.
 
 ### MEDIUM (3)
 

@@ -1712,3 +1712,210 @@ tags:
 6. Emit handoff Operator→Morpheus para próxima story (REV-INT-02 priority 2)
 
 — Neo, sempre construindo 🔨
+
+---
+
+## Sessão 86 — Operator: DEVOPS-01 PARTIAL pushed
+
+**Commits pushed em main:**
+- `04a576b` — Sprint 02 plan + PRD v1.0.3 DELTA (Morgan, sessão 85)
+- `f146be4` — DEVOPS-01 partial closure (Operator+Neo, sessão 86)
+
+**Range:** `f6b935c..f146be4`
+**CI run:** `25379320906` em execução
+
+### Phase E executada
+
+- E1: 2ª instância Ollama (:11435) parada — :11434 mantida
+- E2: Suite testes 232 passed + 1 skipped (zero regressão) — smoke voltou para skip sem 2 hosts
+- E3: 4 arquivos staged, models/ confirmado gitignored
+- E4: Conventional commit `feat(infra)... [Story DEVOPS-01]` + push verde
+- E5: Checkpoint atualizado (esta entry); handoffs serão consumed pelo próximo Skill
+
+### Observação processo
+
+Eric corrigiu durante sessão 86: workflow Skill estrito mesmo dentro de Operator. Quando Operator termina push, controle DEVE retornar via Skill Morpheus (não continuar Operator emitindo handoffs/decidindo próxima story).
+
+— Operator, deployando com confiança 🚀
+
+---
+
+## Sessão 86 — Morpheus consolidação pós DEVOPS-01
+
+**Estado pós-push:**
+- Commit `f146be4` em main + CI run `25379320906` ✅ **success**
+- Sprint 02 progress: **1.5/5 stories** (REV-INT-01 + plan + DEVOPS-01 partial)
+- Suite testes: 232 passed + 1 skipped (zero regressão acumulada)
+
+**Handoffs consumidos sessão 86:**
+- Morpheus→devops (DEVOPS-01 dispatch)
+- dev→devops (Neo→Operator closure)
+- devops→Morpheus (DEVOPS-01 done)
+
+**PROJECT-CHECKPOINT.md (índice executivo) atualizado** — refletindo Sprint 02 in_progress e opções pendentes para Eric escolher.
+
+### Próxima ação (PENDE Eric)
+
+Eric corrigiu workflow 2x na sessão 86 — auto-dispatch entre stories não é mais comportamento desejado. Apresentando opções para decisão humana:
+
+| # | Story | Effort | Valor | Bloqueado por |
+|---|---|---|---|---|
+| 1 | **REV-INT-02** ⭐ | 30min | HIGH (LGPD CDN release-blocker) | nada |
+| 2 | DOCS-02 | 1-2h | MEDIUM (R-NEW Sati endossadas) | nada |
+| 3 | UI-1 | 3-5h | HIGH mas com caveat | TD-LLM-SABIA-Q4-OUTPUT decisão Aria |
+| 4 | OPS-CLEANUP-01 | 15min | LOW operacional | nada |
+
+— Morpheus 🎯
+
+---
+
+## Sessão 86 — River (@sm): Story REV-INT-02 criada
+
+**Inauguração `governance/stories/`** — Sprint 02 alinha com retrospective Sprint 01 (TECH-DEBT atualizado por story em vez de acumular ao final).
+
+### Files added
+- ADD `governance/stories/REV-INT-02-self-host-fonts.md` (story Ready)
+
+### Story REV-INT-02 highlights
+
+- **Status:** Ready (não Draft) — spec é trivial 30min sem ambiguidade
+- **12 ACs** divididos em Funcionalidade (4) + Visual (3) + Quality (3) + Documentação (2)
+- **Tasks/Subtasks** quebrados em 6 phases (A research, B estrutura, C edição, D validação, E docs, F handoff)
+- **Dev Notes** com tabela de fontes + recomendação google-webfonts-helper + anti-patterns
+- **Files to modify:** base.html + tokens.css + TECH-DEBT.md
+- **Files to add:** 7 woff2 (4 Manrope + 1-2 Fraunces + 2 JetBrains Mono)
+- **Risk + Mitigation** documentado (4 riscos)
+- **Definition of Done** explícito (7 critérios)
+
+### Decisão
+
+- **D-RIV-S02-A:** Status `Ready` direto (não Draft) — Why: simplicidade do escopo (30min, 1 HIGH bem definido) não justifica ciclo @po validate; River propõe a Eric/Morpheus pular @po dado que toda governance está coberta pelo handoff Morpheus→@sm + Sprint 02 plan + PRD DELTA
+
+### Próximo handoff
+
+**H-S02-INT02-sm2po** → @po (Keymaker) `*validate-story-draft REV-INT-02`
+- Workflow estrito: AC-cobertura, ambiguidade, dependency check
+- OU se Eric autoriza skip: handoff direto @sm→@dev `*develop REV-INT-02`
+
+— River, removendo obstáculos 🌊
+
+---
+
+## Sessão 86 — Keymaker (@po): Story REV-INT-02 GATE APROVADA
+
+**10-Point Checklist:** ✅ **10/10 PASS** — story REV-INT-02 aprovada para development
+
+### Decisão
+
+- **D-KEY-S02-INT02-A:** GO 10/10 — story atende todos critérios SMART, tasks granulares, deps explícitos, risk+mitigation completo, effort realista 30min — Why: spec @sm (River) é exemplar; serve como template para próximas stories Sprint 02
+
+### Observações advisory (não-bloqueantes)
+
+- AC-9 strictness sugerida: assertion explícita `total_bytes ≤ 204800` em vez de awk genérico
+- Phase F.1 vs DoD #6: semântica intermediária `Ready for Review` aceitável (handoff Neo→Oracle)
+- Forças destacadas: anti-patterns explícitos, rollback path, files NOT to modify (defensivo)
+
+### Files modified
+
+- MOD `governance/stories/REV-INT-02-self-host-fonts.md` (Validation Notes section + Change Log entry Keymaker)
+
+### Próximo handoff
+
+**H-S02-INT02-po2dev** → @dev (Neo) `*develop REV-INT-02` modo yolo
+
+— Keymaker, equilibrando prioridades 🎯
+
+---
+
+## Sessão 86 — Neo (@dev): Story REV-INT-02 IMPLEMENTADA (Ready for Review)
+
+**Phases A→F executadas em yolo mode** (Eric autorizou autônomo).
+
+### Phase A — Download fontes (10min real)
+- 7 woff2 baixadas via @fontsource/jsdelivr CDN
+- 4 Manrope (400/500/600/700) + 1 Fraunces 500 + 2 JetBrains Mono (400/500)
+- **Total: 117536 bytes (~115KB)** — 57% do limite 204800 (AC-9 strict assertion Keymaker passa)
+
+### Phase B+C — Edição (5min real)
+- `base.html`: removidas 3 link tags (preconnect googleapis, preconnect gstatic, stylesheet googleapis); adicionado comentário REV-INT-02
+- `tokens.css`: bloco @font-face com 7 declarations no topo (font-display: swap)
+- Variáveis `--f-ui`, `--f-display`, `--f-mono` em `:root` mantidas inalteradas
+
+### Phase D — Validação (smoke + pytest)
+- AC-1: zero fonts.googleapis ✅
+- AC-2: zero fonts.gstatic ✅
+- AC-4: 7/7 fontes HTTP 200 ✅
+- AC-8: 232 passed + 1 skipped (zero regressão) ✅
+- AC-9: 117536 ≤ 204800 ✅
+
+### Phase E — Documentação
+- `governance/TECH-DEBT.md`: TD-WEB-LGPD-CDN-01 HIGH (1) → HIGH (0); entry adicionada em Resolved Findings
+- Story Dev Agent Record completo (Agent Model, Debug Log, Completion Notes, File List)
+- Story Change Log entry @dev
+
+### Files added (8)
+7 woff2 em `bloco_interface/web/static/fonts/` + Dev Agent Record na story
+
+### Files modified (3)
+- `bloco_interface/web/templates/base.html`
+- `bloco_interface/web/static/tokens.css`
+- `governance/TECH-DEBT.md`
+
+### Decisão técnica
+
+- **D-NEO-S02-INT02-A:** @fontsource/jsdelivr para download (não google-webfonts-helper) — Why: URLs previsíveis em padrão CDN, automação batch via curl, weights/subset/format pré-aplicados
+- **D-NEO-S02-INT02-B:** Fraunces 500 estático (não variable opsz axis) — Why: tokens.css só usa weight 500; estático é ~30KB menor
+- **D-NEO-S02-INT02-C:** @font-face inline em tokens.css — Why: ~50 linhas, abaixo do threshold de "criar fonts.css separado"
+
+### Status
+- Story status: **Ready for Review** ⏳
+- 11/12 ACs PASS (AC-3 visual pendente Oracle/Eric browser test)
+
+### Próximo handoff
+
+**H-S02-INT02-dev2qa** → @qa (Oracle) gate review
+
+— Neo, sempre construindo 🔨
+
+---
+
+## Sessão 86 — Oracle (@qa): Story REV-INT-02 GATE PASS ✅
+
+**Verdict:** PASS (11/12 ACs PASS firmes + AC-3 condicional smoke browser Eric)
+
+### 5 probes adversariais executados
+
+1. ✅ **Probe 1** — Grep recursivo `bloco_interface/web/`: única match é comentário documentando ausência (não ref ativa)
+2. ✅ **Probe 2** — 7 @font-face URLs em tokens.css todos `/static/fonts/` woff2
+3. ✅ **Probe 3** — File size strict: 117536 ≤ 204800 (57% limite)
+4. ✅ **Probe 4** — Uvicorn smoke: AC-1/AC-2/AC-4 OK + endpoints adicionais (/reset, /verdict) também limpos (defense-in-depth)
+5. ⏳ **Probe 5** — Smoke visual Eric: condicional pré-push
+
+### Self-critique adversarial
+
+- Grep amplo `https?://[a-z]` em todo `web/` → 0 matches
+- htmx.min.js sem URLs externos
+- font-display: swap mitiga FOIT
+- @fontsource latin subset cobre PT-BR
+
+### Findings
+
+**Zero CRITICAL/HIGH/MEDIUM/LOW novos.** Nenhum tech debt criado.
+
+### Forças destacadas
+
+- **Defense-in-depth:** comentário em tokens.css cria rastreabilidade textual
+- **AC-9 strict assertion** aplicada exatamente conforme advisory Keymaker
+- **Endpoints adicionais auditados** — Neo foi além do mínimo
+- **Substituição cirúrgica** — zero churn
+
+### Files
+
+- ADD `governance/qa/qa-gate-story-rev-int-02-self-host-fonts.md` (gate completo)
+- MOD `governance/stories/REV-INT-02-self-host-fonts.md` (QA Results section)
+
+### Próximo handoff
+
+**H-S02-INT02-qa2ops** → @devops (Operator) executar Phase E closure (smoke browser Eric → commit → push → handoff Morpheus)
+
+— Oracle, guardião da qualidade 🛡️

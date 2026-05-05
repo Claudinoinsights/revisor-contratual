@@ -3,25 +3,32 @@ type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
 last_updated: "2026-05-05"
-active_story: "🎉 Sprint 01 OFICIALMENTE 100% ENCERRADO — Sprint 02 BACKLOG"
-status: sprint-01-CLOSED-100-percent-Sprint-02-BACKLOG
+active_story: "🚀 Sprint 02 EM EXECUÇÃO — 1.5/5 stories done, próxima a definir"
+status: sprint-02-IN-PROGRESS-1.5-of-5-stories
 
-# Status executivo atualizado sessão 71 (Oracle QA Gate STORY 12):
-#  • 12 stories Done com 12/12 PASS Oracle (Phase 2.A + 2.B + 3 #1-#4)
-#  • 224 testes verdes (223 passed + 1 skipped intencional smoke F-MIN-02) — local + CI
-#  • CLI `revisor` funcional (3 subcomandos)
-#  • Release v0.1.0 PUBLICADA: https://github.com/Claudinoinsights/the-matrix/releases/tag/v0.1.0-revisor-contratual
-#  • Branch feature/revisor-contratual-v0.1.0 + PR #1 OPEN (mergeable + CI verde)
-#  • main intocada (último commit fac19d35 pré-revisor)
-#  • CI GitHub Actions VERDE Python 3.11+3.12 (workflow .github/workflows/revisor-contratual-ci.yml)
-#  • 6 commits no branch: feat MVP / test / docs / ci workflow / fix python-bcb / fix test_audit chmod
-#  • Oracle QA Gate STORY 12: PASS (D1-D8 + 5/5 probes adversariais; 0 CRITICAL/HIGH/MEDIUM novos; 1 LOW novo F-CI-LOW-01 DEFERRED)
+# Status executivo atualizado sessão 86 (Morpheus consolidação pós DEVOPS-01):
+#  • Sprint 01: 100% closed (15 stories Done, MVP v0.1.0 release publicada)
+#  • Sprint 02: 1.5/5 stories done — REV-INT-01 ✅ + Sprint 02 plan ✅ + DEVOPS-01 partial ✅
+#  • main HEAD: f146be4 (DEVOPS-01 closure pushed)
+#  • CI run 25379320906: ✅ success
+#  • Suite testes: 232 passed + 1 skipped (smoke continua skip sem 2 instâncias Ollama em CI)
+#  • Stack runtime ATIVA: Ollama 0.23.0 + qwen2.5:3b (1.9GB) + sabia-7b-instruct (4.1GB Modelfile TheBloke GGUF)
+#  • UI Web: FastAPI + HTMX + Jinja2 (REV-INT-01 substituiu Streamlit)
 #
-# Decisões sessão 71 (Oracle):
-#  D-ORA-12.0-A: STORY 12 PASS — workflow CI minimal SAFE aprovado; defesa em profundidade audit preservada
-#  D-ORA-12.0-B: STORY 13 ranking Oracle = #1 Hardening (3 LOWs) + #3 Docs paralelo; #2 Smoke real depois
+# Decisões críticas sessão 86:
+#  D-NEO-DEVOPS01-A: TD-PIPELINE-SMOKE-REAL → PARTIAL RESOLVED (5/6 aspectos validados; gap = qualidade output Sabia Q4 CPU)
+#  D-MOR-PM-S02-C: TD-PIPELINE-SMOKE-REAL reclassificado oficialmente owner Eric → @devops Operator (PRD v1.0.3)
+#  D-MOR-S02-A: Próxima story Sprint 02 PENDE confirmação Eric (workflow corrigido — sem auto-dispatch entre stories)
 #
-# Próxima ação: Eric decide STORY 13 entre 3 opções Morpheus consolidará (handoff H-S01-E6.0-qa2mor9 emitido)
+# Tech debts ativos novos (sessão 86):
+#  • TD-LLM-SABIA-Q4-OUTPUT (HIGH) — decisão arquitetural Aria pré v0.2.0 (GPU+Q5/Q8 OR fine-tune OR fallback Qwen 7B)
+#  • TD-LLM-FORMAT-JSON-ECONOMISTA (LOW) — defensive consistency
+#
+# Sprint 02 — próximas opções (Eric escolhe):
+#  • REV-INT-02 (priority 2) — Self-host Google Fonts, 30min, resolve TD-WEB-LGPD-CDN-01 HIGH
+#  • DOCS-02 (priority 3) — README/SOPs FastAPI + 2 R-NEW Sati, 1-2h, paralelo
+#  • UI-1 (priority 4) — Conectar UI ao pipeline real, 3-5h (caveat: TD-LLM-SABIA-Q4-OUTPUT pode forçar fallback Qwen)
+#  • OPS-CLEANUP-01 (priority 5) — Branch remoto + tag v0.1.0 alinhada, 15min
 sharded: true
 shard_files:
   - "CHECKPOINT-active.md (Phase 1+ — sessões 24+)"
