@@ -87,6 +87,28 @@ revisor revisar contrato.pdf --uf BA --data-assinatura 2024-03-15
 
 > **Casos de uso completos:** ver [`docs/sop-revisar-pdf.md`](docs/sop-revisar-pdf.md) para PDFs criptografados, OCR, metadata ausente, BACEN offline, etc.
 
+### 6. (Opcional) UI Streamlit local
+
+```bash
+streamlit run bloco_interface/streamlit_app.py
+# Abre: http://localhost:8501
+# Design system orsheva-brandbook aplicado via tokens CSS
+```
+
+> 🚧 **Streamlit UI v0.1.0 é skeleton** — invocação real do pipeline será implementada na STORY UI-1 do Sprint 02. Por agora roda em modo demo (mock veredito). CLI é canônica para uso real.
+
+## Landing institucional
+
+`landing/` contém página estática para deploy em `claudinoinsights.com/revisor-contratual`. NÃO processa dados — apenas marketing + download. Preserva NFR-LGPD-01.
+
+```bash
+# Preview local
+cd landing && python -m http.server 8080
+# Abrir: http://localhost:8080
+```
+
+Deploy via Cloudflare Pages — ver [`landing/README.md`](landing/README.md).
+
 ## Arquitetura D-LEAN
 
 ```

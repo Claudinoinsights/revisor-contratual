@@ -1,0 +1,236 @@
+/* ============================================================
+   Orsheva 7 — Design Tokens para Revisor Contratual (Streamlit)
+   Extraído de governance/orsheva-brandbook.html (2026-05-05)
+   ============================================================ */
+
+:root {
+  /* Paleta Or (laranja — accent) */
+  --or-50:  #FFF4EC;
+  --or-100: #FFE3CF;
+  --or-200: #FFC79E;
+  --or-300: #FFA66B;
+  --or-400: #FF8A4C;
+  --or-500: #EE6B20;  /* primary accent */
+  --or-600: #D45710;
+  --or-700: #AC4408;
+  --or-800: #7E3206;
+  --or-900: #4F1F03;
+
+  /* Paleta Sh (azul profundo — secondary) */
+  --sh-50:  #EEF2F8;
+  --sh-100: #D6DEEC;
+  --sh-200: #A8B7D0;
+  --sh-300: #7990B4;
+  --sh-400: #4D6A93;
+  --sh-500: #2C5380;  /* secondary accent */
+  --sh-600: #1A3A5C;
+  --sh-700: #142E49;
+  --sh-800: #0E2138;
+  --sh-900: #07142A;
+
+  /* Neutros */
+  --pearl: #F8F4ED;
+  --bone:  #E9E0D0;
+  --stone: #B6AC9B;
+  --ink:   #0F0E0C;
+
+  /* Semânticos light */
+  --bg:        var(--pearl);
+  --bg-elev:   #FFFFFF;
+  --fg:        var(--ink);
+  --fg-muted:  #5C5246;
+  --line:      #E0D7C5;
+  --line-strong: var(--ink);
+  --accent:    var(--or-500);
+  --accent-deep: var(--sh-500);
+
+  /* Veredito-specific (semantic colors) */
+  --verdict-aprovado:  #2C7A4D;  /* verde */
+  --verdict-hitl:      var(--or-500);  /* laranja accent */
+  --verdict-rejeitado: #B43D3D;  /* vermelho */
+
+  /* Tipografia */
+  --f-display: "Fraunces", Georgia, serif;
+  --f-body:    "Manrope", system-ui, sans-serif;
+  --f-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Animação */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur:  640ms;
+
+  /* Espaçamento */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 32px;
+  --space-6: 48px;
+  --space-7: 64px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 14, 12, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 14, 12, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 14, 12, 0.12);
+}
+
+/* ============================================================
+   Streamlit overrides — aplicar tokens aos componentes nativos
+   ============================================================ */
+
+/* Body + main app */
+.stApp {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] {
+  background: var(--bg-elev);
+  border-right: 1px solid var(--line);
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+}
+
+h1 { font-size: 2.5rem; line-height: 1.1; }
+h2 { font-size: 1.875rem; line-height: 1.2; }
+h3 { font-size: 1.375rem; }
+
+/* Buttons */
+.stButton > button {
+  background: var(--accent);
+  color: white;
+  font-family: var(--f-body);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  border: none;
+  border-radius: var(--radius-pill);
+  padding: 12px 28px;
+  transition: all var(--dur) var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+.stButton > button:hover {
+  background: var(--or-600);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Secondary buttons */
+.stButton > button[kind="secondary"] {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line-strong);
+}
+.stButton > button[kind="secondary"]:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+/* Input fields */
+.stTextInput > div > div > input,
+.stSelectbox > div > div,
+.stDateInput > div > div > input {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--fg);
+  font-family: var(--f-body);
+}
+.stTextInput > div > div > input:focus,
+.stSelectbox > div > div:focus-within {
+  border-color: var(--accent);
+  outline: 2px solid var(--or-100);
+}
+
+/* File uploader */
+[data-testid="stFileUploader"] {
+  background: var(--bg-elev);
+  border: 2px dashed var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+[data-testid="stFileUploader"]:hover {
+  border-color: var(--accent);
+  background: var(--or-50);
+}
+
+/* Metric cards */
+[data-testid="stMetric"] {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Expander */
+.streamlit-expanderHeader {
+  font-family: var(--f-body);
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--bg-elev);
+  border-radius: var(--radius-sm);
+}
+
+/* Code blocks */
+code, pre {
+  font-family: var(--f-mono);
+  background: var(--sh-50);
+  color: var(--sh-700);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  font-size: 0.875rem;
+}
+
+/* Brand classes (uso direto via st.markdown unsafe_allow_html) */
+.brand-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: var(--space-2);
+}
+
+.brand-display {
+  font-family: var(--f-display);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+}
+
+.brand-divider {
+  height: 1px;
+  background: var(--line-strong);
+  margin: var(--space-5) 0;
+  opacity: 0.2;
+}
+
+/* Veredito badges */
+.verdict-badge {
+  display: inline-block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-family: var(--f-body);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.verdict-aprovado-100   { background: var(--verdict-aprovado); color: white; }
+.verdict-aprovado-hitl  { background: var(--verdict-hitl); color: white; }
+.verdict-rejeitado      { background: var(--verdict-rejeitado); color: white; }

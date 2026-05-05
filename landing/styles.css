@@ -1,0 +1,489 @@
+/* ============================================================
+   Revisor Contratual — Landing institucional
+   Design system: Orsheva 7 (tokens.css)
+   ============================================================ */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.container {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+}
+
+/* ============================================================
+   Nav
+   ============================================================ */
+.nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(248, 244, 237, 0.85);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+  transition: all var(--dur) var(--ease);
+}
+
+.nav-inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 16px var(--container-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo {
+  font-family: var(--f-display);
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+}
+.nav-logo b { color: var(--accent); margin-left: 4px; font-weight: 600; }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+}
+.nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.nav-links a:hover { opacity: 1; color: var(--accent); }
+
+@media (max-width: 720px) {
+  .nav-links { display: none; }
+}
+
+/* ============================================================
+   Hero
+   ============================================================ */
+.hero {
+  padding: 96px 0 80px;
+  background: linear-gradient(180deg, var(--pearl) 0%, var(--bone) 100%);
+}
+
+.hero-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 32px;
+}
+
+.hero-title {
+  font-family: var(--f-display);
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+  color: var(--fg);
+  margin-bottom: 32px;
+}
+
+.hero-title sup {
+  font-size: 0.4em;
+  font-weight: 600;
+  vertical-align: super;
+  opacity: 0.7;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+.hero-lead {
+  font-family: var(--f-body);
+  font-size: clamp(16px, 1.5vw, 20px);
+  line-height: 1.5;
+  color: var(--fg-muted);
+  max-width: 640px;
+  margin-bottom: 40px;
+}
+
+.hero-cta {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 32px;
+  font-family: var(--f-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all var(--dur) var(--ease);
+  border: none;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 1px 2px rgba(15, 14, 12, 0.04);
+}
+.btn-primary:hover {
+  background: var(--or-600);
+  box-shadow: 0 4px 12px rgba(238, 107, 32, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--line-strong);
+}
+.btn-secondary:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.hero-foot {
+  font-size: 13px;
+  color: var(--fg-muted);
+  font-style: italic;
+  max-width: 580px;
+}
+
+/* ============================================================
+   Stats
+   ============================================================ */
+.stats {
+  padding: 64px 0;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 48px;
+  text-align: center;
+}
+
+.stat-value {
+  font-family: var(--f-display);
+  font-size: 64px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--or-400);
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone);
+  opacity: 0.8;
+}
+
+/* ============================================================
+   Sections (shared)
+   ============================================================ */
+
+section { padding: 96px 0; }
+
+.brand-eyebrow {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: var(--f-display);
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--fg);
+  margin-bottom: 48px;
+  max-width: 720px;
+}
+
+.section-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+/* ============================================================
+   Features
+   ============================================================ */
+.features { background: var(--bg); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+.feature {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 32px;
+  transition: all var(--dur) var(--ease);
+}
+.feature:hover {
+  border-color: var(--accent);
+  box-shadow: 0 12px 32px rgba(15, 14, 12, 0.08);
+  transform: translateY(-2px);
+}
+
+.feature-num {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.feature h3 {
+  font-family: var(--f-display);
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.feature p {
+  font-size: 15px;
+  color: var(--fg-muted);
+  line-height: 1.6;
+}
+
+.feature code {
+  font-family: var(--f-mono);
+  background: var(--sh-50);
+  color: var(--sh-700);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+/* ============================================================
+   Princípios
+   ============================================================ */
+.principios {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bone) 100%);
+}
+
+.principios-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 40px;
+}
+
+.principio {
+  padding: 24px 0;
+  border-top: 1px solid var(--line);
+}
+
+.principio h3 {
+  font-family: var(--f-display);
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.principio p {
+  font-size: 15px;
+  color: var(--fg-muted);
+  line-height: 1.6;
+}
+
+.principio strong { color: var(--fg); }
+.principio code {
+  font-family: var(--f-mono);
+  background: var(--sh-50);
+  color: var(--sh-700);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+/* ============================================================
+   Stack
+   ============================================================ */
+.stack { background: var(--bg); }
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.stack-item {
+  padding: 24px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: all var(--dur) var(--ease);
+}
+.stack-item:hover {
+  border-color: var(--accent-deep);
+  background: var(--sh-50);
+}
+
+.stack-label {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 8px;
+}
+
+.stack-value {
+  font-family: var(--f-display);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--fg);
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   Download
+   ============================================================ */
+.download {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.download .brand-eyebrow,
+.download .section-title {
+  color: var(--bone);
+}
+.download .section-title em { color: var(--or-400); }
+
+.install-card {
+  background: var(--sh-900);
+  border: 1px solid var(--sh-700);
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 800px;
+}
+
+.install-code {
+  font-family: var(--f-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--bone);
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.install-code code {
+  font-family: inherit;
+  background: transparent;
+  padding: 0;
+}
+
+.install-foot {
+  font-size: 13px;
+  color: var(--bone);
+  opacity: 0.7;
+  margin-top: 24px;
+}
+
+.install-foot a {
+  color: var(--or-400);
+  border-bottom: 1px solid var(--or-700);
+  transition: color 0.2s;
+}
+.install-foot a:hover { color: var(--or-300); }
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+  background: var(--ink);
+  color: var(--stone);
+  padding: 64px 0 32px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(3, 1fr);
+  gap: 48px;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 720px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.footer-logo {
+  font-family: var(--f-display);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--bone);
+  margin-bottom: 12px;
+}
+.footer-logo b { color: var(--or-400); margin-left: 4px; }
+
+.footer-tag {
+  font-size: 13px;
+  color: var(--stone);
+  opacity: 0.7;
+  font-family: var(--f-mono);
+  letter-spacing: 0.05em;
+}
+
+.footer-links h4 {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--bone);
+  margin-bottom: 16px;
+}
+
+.footer-links a {
+  display: block;
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--stone);
+  opacity: 0.8;
+  transition: all 0.2s;
+}
+.footer-links a:hover {
+  color: var(--or-400);
+  opacity: 1;
+}
+
+.footer-bottom {
+  padding-top: 32px;
+  border-top: 1px solid var(--sh-800);
+  text-align: center;
+  font-size: 13px;
+  color: var(--stone);
+  opacity: 0.6;
+}
+.footer-bottom em { color: var(--or-400); font-style: italic; }

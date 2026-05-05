@@ -1,0 +1,42 @@
+/* ============================================================
+   Orsheva 7 — Design Tokens (extraídos de orsheva-brandbook.html)
+   Subset focado para landing institucional
+   ============================================================ */
+
+:root {
+  /* Paleta Or */
+  --or-50:#FFF4EC; --or-100:#FFE3CF; --or-200:#FFC79E; --or-300:#FFA66B;
+  --or-400:#FF8A4C; --or-500:#EE6B20; --or-600:#D45710; --or-700:#AC4408;
+  --or-800:#7E3206; --or-900:#4F1F03;
+
+  /* Paleta Sh */
+  --sh-50:#EEF2F8; --sh-100:#D6DEEC; --sh-200:#A8B7D0; --sh-300:#7990B4;
+  --sh-400:#4D6A93; --sh-500:#2C5380; --sh-600:#1A3A5C; --sh-700:#142E49;
+  --sh-800:#0E2138; --sh-900:#07142A;
+
+  /* Neutros */
+  --pearl:#F8F4ED; --bone:#E9E0D0; --stone:#B6AC9B; --ink:#0F0E0C;
+
+  /* Semânticos */
+  --bg:var(--pearl);
+  --bg-elev:#FFFFFF;
+  --fg:var(--ink);
+  --fg-muted:#5C5246;
+  --line:#E0D7C5;
+  --line-strong:var(--ink);
+  --accent:var(--or-500);
+  --accent-deep:var(--sh-500);
+
+  /* Tipografia */
+  --f-display:"Fraunces", Georgia, serif;
+  --f-body:"Manrope", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, monospace;
+
+  /* Animação */
+  --ease:cubic-bezier(0.16, 1, 0.3, 1);
+  --dur:640ms;
+
+  /* Layout */
+  --container-max:1200px;
+  --container-pad:32px;
+}
