@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-05"
-active_story: "🎉 v0.2.0 RELEASED — Sprint 02 100% CLOSED · ZERO HIGH ATIVOS · 11 debts resolved · Sprint 03 BACKLOG"
-status: v0.2.0-RELEASED-sprint-02-CLOSED-sprint-03-BACKLOG
+last_updated: "2026-05-06"
+active_story: "✅ Sprint 03 course-correction CC.1A FECHADO — PRD v1.1.2.1 ACTIVE (caminho híbrido enxuto + roadmap 5 modalidades + defense-in-depth LGPD + cross-platform backup + SOP-005). Próximo: CC.1B Oracle VAULT-FIX-01 + CC.2 Aria ADR-013"
+status: sprint-03-course-correction-CC1A-FECHADO-prd-v1.1.2.1-active-cc1b-cc2-em-curso
 
 # Status executivo atualizado sessão 86 (Operator consolidação pós v0.2.0 release):
 #  • Sprint 01: 100% closed (v0.1.0 published)

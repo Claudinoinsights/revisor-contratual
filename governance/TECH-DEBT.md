@@ -22,26 +22,28 @@ tags:
 
 | Categoria | Quantidade |
 |---|---|
-| Active tech debts | **13** (2 MEDIUM + 11 LOW) |
+| Active tech debts | **30** (3 MEDIUM + 12 LOW + 15 BL-* — 14 migrados v1.1.1 + 1 NOVO v1.1.2) |
 | Active findings | **1** (F-CI-LOW-01 LOW) |
-| Resolved findings | **5** (Phase 3-4) |
-| Sprint origem | 01 (Phase 2.B até Phase 5) |
+| Resolved findings | **9** (5 Phase 3-4 + 3 sessão 86 + 1 VAULT-FIX-01 sessão 87) |
+| Sprint origem | 01 (Phase 2.B até Phase 5) + 02 (REV-INT-01..02 + REV-LLM-01) + 03 Phase 0 (VAULT-FIX-01) + 03 course-correction (PRD v1.1.0 → v1.1.1 BL-* migration) |
 
 ---
 
 ## 🔧 Active Tech Debts (13)
 
-### MEDIUM (2)
+### MEDIUM (3)
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added |
 |----|--------|-----|-------------|-------------|-------|-------|
 | **TD-PIPELINE-SMOKE-REAL** | STORY 9 + STORY 13 | MEDIUM | Smoke E2E real (Ollama + Sabia-7B + Qwen 3B + httpx STJ/STF + PDF físico) nunca executado — todos os testes usam mocks injetados. Validação INTEGRAL pipeline ainda não comprovada empiricamente. | 4h + 30min setup + ~7GB download | @dev | 2026-05-02 |
 | **TD-VAULT-LOAD-TEST** | STORY 8 | MEDIUM | DP-08 — performance vault sqlite-vec não testada com 10k+ rows. RRF k=60 + busca híbrida pode degradar; SLA <500ms desconhecido em escala. | 2h | @dev | 2026-05-02 |
+| **TD-VAULT-SCRAPER-OUTPUT-TO-BUNDLED-ADAPTER** | VAULT-FIX-01 (Phase D) | MEDIUM | `refresh-vault` valida disponibilidade upstream mas NÃO sobrescreve bundled JSON — scrapers retornam `JurisprudenciaItem` (rich schema) enquanto bundled segue `SumulaSTJ`/`SumulaVinculanteSTF` (lean schema). Adapter scraper→bundled permitiria refresh-vault auto-update. | 3h | @dev | 2026-05-05 |
 
-### LOW (11)
+### LOW (12)
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added |
 |----|--------|-----|-------------|-------------|-------|-------|
+| **TD-VAULT-DATASET-STALENESS-MITIGATION** | VAULT-FIX-01 (Phase B+E) | LOW | Bundled dataset PROVISIONAL: 5 STJ + 5 STF SV (~1.6% STJ + ~8.6% STF SV oficial). Maintainer DEVE rodar one-shot bulk import pre-produção via `import-dataset` (Path A SOP-004). Refresh trimestral documentado em `docs/sop-refresh-vault-dataset.md`. Reminder em PROJECT-CHECKPOINT por trimestre. | n/a (process) | maintainer | 2026-05-05 |
 | **TD-CI-COVERAGE-REPORTER** | STORY 12 | LOW | NFR-MAINT-02 cobertura é local-only (`pytest-cov` sem reporter externo). Adicionar Codecov ou Coveralls quando integração disponível. | 2h | @devops | 2026-05-02 |
 | **TD-CI-PYTHON-3.13** | STORY 12 | LOW | Matrix CI fixa em Python 3.11 + 3.12. Adicionar 3.13 quando wheels `langchain-ollama` + `sentence-transformers` estabilizarem. | 30min | @devops | 2026-05-02 |
 | **TD-CI-CACHE-PIP** | STORY 12 | LOW | `cache: 'pip'` configurado em `setup-python@v5`; verificar hit rate empírico após N runs. | 1h | @devops | 2026-05-02 |
@@ -53,6 +55,33 @@ tags:
 | **TD-CLI-RICH-OPTIONAL** | STORY 10 | LOW | `rich` é opcional + fallback ASCII (defensivo intencional). Documentado em SOP-002/003. Pode permanecer indefinidamente se nunca quebrar. | n/a | — | 2026-05-02 |
 | **TD-CLI-EMBEDDINGS-DEFAULT-ZERO** | STORY 10 | LOW | `populate-vault` default `--zero-embeddings=True` (MVP). Busca semântica precisa de embeddings reais para funcionar; usuário precisa explicit opt-in. | 1h | @dev | 2026-05-02 |
 | **TD-CLI-PROGRESS-BAR** | STORY 10 | LOW | Sem progress bar no pipeline real (`revisar` subcomando). Adicionar `rich.progress` quando smoke E2E real for executado. | 1h | @dev | 2026-05-02 |
+
+---
+
+## 📦 Backlog Deferred — Migrated from PRD v1.1.0 §11 (14 entries — F-CHK-02 mitigation)
+
+> **Fonte canônica:** este registro substitui PRD §11 como source of truth (mitigação F-CHK-02 do tribunal CC.1A).
+> **Adicionado:** 2026-05-05 (Morgan, sessão 87 PATCH v1.1.1).
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Trigger Re-avaliação | Added |
+|----|--------|-----|-------------|-------------|-------|---------------------|-------|
+| **BL-AUTH-01** | PRD v1.1.0 §11 | LOW | FR-AUTH-01/02/03 Auth elaborada (bcrypt + cookies + audit log tentativas; substitui FR-LGPD-MVP-01 mínima) | 6-8h | @dev (Neo) | Após 5 advogados validarem MVP em produção | 2026-05-05 |
+| **BL-AUTH-02** | PRD v1.1.0 §11 | LOW | FR-AUTH-04 Sessão IP fingerprint + inatividade | 2-3h | @dev (Neo) | Depende BL-AUTH-01 completo | 2026-05-05 |
+| **BL-DELIV-03** | PRD v1.1.0 §11 | LOW | FR-DELIV-02 Comparativo de Taxas (D4 — renumerado pós D3 Apelação MVP) | 2-3h | @dev (Neo) | Após v1.0 MVP em produção (3 meses) | 2026-05-05 |
+| **BL-DELIV-04** | PRD v1.1.0 §11 | LOW | FR-DELIV-03 Parcelas Reais Incontroversas (D5) | 3-4h | @dev (Neo) | Idem BL-DELIV-03 | 2026-05-05 |
+| **BL-DELIV-05a** | PRD v1.1.0 §11 splitado v1.1.1 | LOW | Embargos Declaração + Agravo Instrumento + Recurso Especial (Apelação Cível movida para MVP D3) | 3-4h | @dev (Neo) | Após advogado solicitar (feedback usuário) | 2026-05-05 |
+| **BL-MULTI-UF** | PRD v1.1.0 §11 | LOW | FR-RAG-05 Multi-UF first-class CLI roadmap Brasil-wide | 4-8h por UF | @dev (Neo) | Sob demanda — advogado solicita expansão para nova UF | 2026-05-05 |
+| **BL-ML-LOOP** | PRD v1.1.0 §11 | LOW | FR-ML-01..04 ML feedback loop estágio 1 (coleta WON/LOST) | 4-6h | @dev (Neo) | Volume ≥50 outcomes registrados (estimado mês 6) | 2026-05-05 |
+| **BL-BACKUP** | PRD v1.1.0 §11 | LOW | FR-BACKUP-01/02 + FR-RECOVERY-01 elaborado (vs FR-BACKUP-MVP-01 mínimo MVP) | 3-5h | @dev (Neo) | Após relato de perda de dados em produção OU 6 meses pós-MVP | 2026-05-05 |
+| **BL-CONFIG-UI** | PRD v1.1.0 §11 | LOW | FR-CONFIG-01/02 Página Configurações UI + modal aviso | 3-4h | @dev (Neo) | Após advogado solicitar troca frequente de Tier | 2026-05-05 |
+| **BL-HITL-ELAB** | PRD v1.1.0 §11 | LOW | FR-JUIZ-02 painel HITL elaborado (bigram diversity + counter visual + microcopy) | 2-3h | @dev (Neo) + @ux-design-expert (Sati) | Após observar bypasses repetitivos em audit log MVP | 2026-05-05 |
+| **BL-FIES** | PRD v1.1.0 §6.3 | LOW | Projeto-irmão "Revisor FIES" (avaliação separada — federal vs estadual + 4 razões técnicas) | a definir | @pm (Morgan) | Pós-v1.0 MVP em produção + Eric autorização | 2026-05-05 |
+| **BL-VAULT-BULK-IMPORT** | PRD v1.1.1 §2.2 (NOVO) | **HIGH (PRE-RELEASE BLOCKER)** | One-shot bulk import oficial vault (≥600 entries STJ + ≥58 entries STF SV) via SOP-004 Path A | 2-4h maintainer | maintainer (Eric ou delegado) | **Bloqueia release MVP** — gate condition AC-3 e AC-10 | 2026-05-05 |
+| **BL-GOLDEN-SET** | PRD v1.1.1 §2.5 (NOVO) | **HIGH (PRE-RELEASE BLOCKER)** | Curadoria 50 contratos sintéticos CDC PF Veículos + 50 queries golden RAG | 8-12h | @qa Oracle | **Bloqueia release MVP** — gate condition AC-1, AC-2, AC-3, AC-10 | 2026-05-05 |
+| **BL-OAB-CHECKSUM** | PRD v1.1.2 §2.5 (NOVO — F-NEW-05 Smith re-review) | LOW | Validação OAB regex `^\d{1,6}/[A-Z]{2}$` aceita formato canônico mas SEM checksum CFOAB (bot pode rotar OABs falsas formato-válidas). Mitigação MVP: rate limit 1/min + 100/dia por OAB + audit log forensic tracking | 2-3h | @dev (Neo) | "API CFOAB pública disponível OU dataset OAB+UF público validado" | 2026-05-05 |
+
+> **Total backlog deferred:** 12 LOW (preservados v1.1.0) + 2 HIGH (PRE-RELEASE BLOCKERS v1.1.1) + 1 LOW (NOVO v1.1.2) = **15 entries**
+> **Migração executada:** PRD v1.1.1 §2.7 / Morgan sessão 87 / F-CHK-02 OPÇÃO 2 + BL-OAB-CHECKSUM v1.1.2 (F-NEW-05)
 
 ---
 
@@ -76,6 +105,7 @@ tags:
 | **TD-WEB-LGPD-CDN-01** | Sessão 86 (2026-05-05) | Story REV-INT-02 | Self-hosted 7 woff2 (Manrope 4w + Fraunces 1w + JetBrains 2w) em /static/fonts/ via @fontsource/jsdelivr (~117KB total); base.html removidos 3 link tags Google Fonts; tokens.css adicionados 7 @font-face declarations (font-display: swap). Validações: AC-1 zero fonts.googleapis ✅, AC-2 zero fonts.gstatic ✅, AC-4 7/7 HTTP 200 ✅, AC-8 232 passed + 1 skipped ✅, AC-9 117536 bytes ≤ 204800 ✅. |
 | **TD-LLM-SABIA-Q4-OUTPUT** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (ADR-010 Path C) | LLM_TIER default mudado de 'premium' (Sabia-7B Q4) para 'balanced' (Qwen 2.5 7B). 3 mudanças cirúrgicas em llm_factory.py: TIER_TO_MODEL_ADVOGADO mapping (lean/balanced=Qwen, premium=Sabia preserved); get_advogado_llm default tier='balanced'; get_economista_llm format='json'. Smoke E2E re-run com Qwen 7B+3B PASS em 253.72s (citacao_textual ≥10 chars, ratio<0.7 paralelismo). Suite 232/1 zero regressão. Sabia preservado opt-in para futuro upgrade GPU. |
 | **TD-LLM-FORMAT-JSON-ECONOMISTA** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (junto com TD-LLM-SABIA-Q4-OUTPUT) | `format='json'` adicionado em `get_economista_llm` (defensive consistency com get_advogado_llm). |
+| **TD-VAULT-SCRAPERS-FRAGILITY** | Sessão 87 (2026-05-05) | Story VAULT-FIX-01 (ADR-012 Path C) | Problema empírico descoberto sessão 86 v0.2.0 testing: `populate-vault --source all` falhava com STJ HTTP 200/404 intermitente (WAF + parser broken — HTML mudou) + STF anti-bot AWS ELB HTTP 403 (mesmo com verify=False). Pipeline real caía em fallback `MOCK_VERDICT`. **Resolução:** ADR-012 Vault Data Bundling Strategy + bundled JSON committed (`bloco_vault/data/sumulas-{stj,stf-vinculantes}.json`) + Pydantic schemas (`bloco_vault/data_schema.py`) + idempotent `populate_vault_if_needed()` em FastAPI lifespan + 3 CLI subcommands (refresh-vault opt-in best-effort, import-dataset PDF compendium oficial, validate-dataset hash verification). Suite 232/1 → 246/1 (14 novos tests AC-8 unit + integration). Scrapers preservados como ferramenta opt-in (zero modificação). |
 
 ---
 

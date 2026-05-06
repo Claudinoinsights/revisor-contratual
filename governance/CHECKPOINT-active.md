@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-05"
-active_story: "🎉 Sprint 01 OFICIALMENTE 100% ENCERRADO — Sprint 02 BACKLOG"
-status: sprint-01-CLOSED-100-percent-Sprint-02-BACKLOG
+active_story: "VAULT-FIX-01 Done — Oracle PASS 12/12 ACs + 7/7 checks. CC.1B fechado. Próximo: Operator push + CC.2 Aria ADR-013 (paralelo)"
+status: sprint-03-course-correction-CC1A-FECHADO-cc1b-Oracle-PASS-vault-fix-01-Done-awaiting-operator
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,363 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, CC.1B Operator push despacho): **Operator despachado para push VAULT-FIX-01**.
+  - Oracle PASS confirmou Story Done — Operator agora é único caminho per Authority Matrix exclusiva
+  - ~14 arquivos a commitar: 9 NEW (data_schema + 2 JSONs + DATASET-CHANGELOG + populate + cli + 2 tests + SOP-004) + 4 MODIFIED (app.py lifespan + TECH-DEBT + story Done + checkpoint)
+  - Conventional commit + cross-ref [Story VAULT-FIX-01] + Co-Authored-By
+  - Push para origin/feature/revisor-contratual-v0.1.0 (NÃO --force, NÃO main, NÃO PR ainda)
+  - Pós Operator return: Morpheus consolida CC.1B + despacha CC.2 Aria ADR-013
+
+- **Sessão 87** (@qa · Oracle — 2026-05-06, CC.1B Oracle gate VAULT-FIX-01): **VEREDICTO PASS** ✅
+  - 12/12 ACs PASS com evidências citadas (linhas código + nº teste + hash + log)
+  - 7/7 quality checks padrão PASS (Code Correctness + Test Coverage + Regression + Lint + Documentation + Security + Cross-cutting)
+  - Suite 246 passed + 1 skipped em 64.11s (baseline 232+1 preservado)
+  - ruff All checks passed em 6 arquivos modificados
+  - validate-dataset CLI confirmou 5/5 hash verified em ambos JSONs
+  - 14 tests novos pass individualmente em 0.83s
+  - 4 observations advisory (não-bloqueadoras): BL-VAULT-BULK-IMPORT (PRE-RELEASE blocker fora-de-escopo desta story), BL-GOLDEN-SET (idem), auto-pull embedder (documentado), bonus side-fix Phase E (excelente)
+  - **Story VAULT-FIX-01 status → Done** ⭐
+  - QA Results section preenchido com 12 ACs evidence map + 7 quality checks
+  - Próximo: handoff Oracle → @devops Operator para push (CC.1B closure)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, CC.1A'' consolidação final): **CC.1A FECHADO ⭐** + CC.1B Oracle despachado paralelo
+  - Tribunal CC.1A consolidado em 3 ciclos:
+    - CC.1A original: FAIL (5 HIGH + 5 MEDIUM + 3 LOW)
+    - CC.1A' PATCH v1.1.1: PASS-COM-RESSALVA (4 MEDIUM + 2 LOW novos)
+    - CC.1A'' PATCH v1.1.2: PASS-COM-RESSALVA (1 MEDIUM + 2 LOW novos)
+    - CC.1A'' micro-PATCH α v1.1.2.1: APROVADO Morpheus (sem Smith re-review #3 per Eric opção α)
+  - Trajetória qualidade ascendente: 13 → 6 → 3 → 0
+  - **PRD v1.1.2.1 ACTIVE** (frontmatter + §17 histórico + 3 micro-fixes inline) — escopo definitivo MVP enxuto
+  - **PROJECT-CHECKPOINT.md status executivo** atualizado: CC.1A FECHADO, last_updated 2026-05-06
+  - **CC.1B Oracle gate VAULT-FIX-01** despachado AGORA via Skill (handoff existing `.lmas/handoffs/handoff-dev-to-qa-2026-05-05-vault-fix-01-oracle-gate.yaml` reutilizado — escopo independente do PRD reescopo)
+  - **CC.2 Aria ADR-013** será despachado pós-Oracle return (Skill LMAS:agents:architect)
+  - ORDEM 11 fechamento sessão parcial será emitido após CC.1B + CC.2 ambos retornarem
+
+- **Sessão 87** (@pm · Morgan — 2026-05-06, micro-PATCH α inline): **3 micro-fixes endereçados** ✅
+  - F-NEW2-01 LOW: AC-FR-MONITOR-01c expandido para 6 flags completos (--manual-trigger + --status + --tese-text + --data-julgamento + --data-arquivamento + --acknowledge)
+  - F-NEW2-02 MEDIUM: SESSION_SECRET documentado em FR-LGPD-MVP-01 Camada 2 (secrets.token_urlsafe(32) em .env, nunca hardcoded) + AC-FR-LGPD-MVP-01e novo (verificável grep)
+  - F-NEW2-03 LOW: apscheduler dependency footprint ~150KB documentado
+  - Edits inline em prd-v1.1.2-PATCH.md (frontmatter version → "1.1.2.1"; histórico §17 entry v1.1.2.1 adicionada)
+  - Sem criar v1.1.2.1 separado per Eric opção α
+  - Sem 4º ciclo Smith re-review (mudanças documentais triviais)
+  - Próximo: Morpheus aprova diretamente + consolida CC.1A'' final + dispara CC.2 Aria + CC.1B Oracle paralelo
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, decisão Eric opção α): **Micro-PATCH inline despachado**.
+  - Eric escolheu opção α (recomendada Smith): Morgan executa Edit em 3 pontos do prd-v1.1.2-PATCH.md endereçando F-NEW2-01/02/03 (~20min total). Sem 4º ciclo Smith re-review (mudanças triviais documentais).
+  - 3 micro-fixes obrigatórios: F-NEW2-02 MEDIUM SESSION_SECRET (10min) + F-NEW2-01 LOW AC scope (5min) + F-NEW2-03 LOW size note (5min)
+  - Após Morgan return: Morpheus aprova diretamente, consolida CC.1A'' final + dispara CC.2 Aria + CC.1B Oracle paralelo
+  - Trajetória qualidade: 13 v1.1.0 → 6 v1.1.1 → 3 v1.1.2 → 0 micro-PATCH α (convergência saudável)
+
+- **Sessão 87** (@smith · Smith — 2026-05-05, tribunal CC.1A'' RE-REVIEW #2): **VEREDICTO PASS-COM-RESSALVA** ✅⚠️
+  - 6/6 findings v1.1.1 endereçados REAL por Morgan (defense-in-depth LGPD + APScheduler + SOP-005 + D3 reestimado + math 41-55h)
+  - **0 CRITICAL/HIGH** ativos — CC.2 Aria PODE prosseguir
+  - **3 NOVOS findings descobertos (1 MEDIUM + 2 LOW):**
+    - F-NEW2-01 LOW: AC-FR-MONITOR-01c incompleto vs SOP-005 (4 subcommands extras não cobertos)
+    - F-NEW2-02 MEDIUM: SessionMiddleware secret_key não documentado (risco implementação hardcoded por Neo)
+    - F-NEW2-03 LOW: apscheduler dependency size impact não documentado
+  - Eric escolheu perfeição — 3 ressalvas escaladas para Eric decidir
+  - Smith recomenda OPÇÃO α: micro-PATCH inline 20min (sem novo ciclo tribunal) + CC.2 avança
+  - Próximo: Morpheus consolida + apresenta 3 opções (α / β / γ) a Eric
+
+- **Sessão 87** (@pm · Morgan — 2026-05-05, course-correction CC.1A'' PATCH v1.1.2): **PRD v1.1.2-PATCH.md publicado** ⭐⭐
+  - PATCH endereça **6/6 findings** Smith re-review CC.1A' (4 MEDIUM + 2 LOW)
+  - **Defense-in-depth LGPD (5 camadas):** auth + sessão CSRF/samesite + headers CSP/X-Frame/X-Content + encryption-at-rest Fernet + permissões filesystem (~3h45min dev expandido vs ~2h v1.1.1)
+  - **Cross-platform backup:** APScheduler embedded (dependency `apscheduler>=3.10`) substitui cron OS-específico (~1.5-2h dev vs ~1h v1.1.1)
+  - **SOP-005 criado:** `docs/sop-monitoramento-tema-1378.md` (fallback maintainer manual + CLI subcommand `monitor-tema --manual-trigger`)
+  - **D3 Apelação Cível reestimado:** 2h underestimate → 6-8h realista (correção F-NEW-03)
+  - **R-NEW-OAB-CHECKSUM** documentado em §13 como MVP debt aceito
+  - **MVP estimate atualizado:** 33-44h v1.1.1 → **41-55h v1.1.2** (+8-11h refletindo perfeição)
+  - **6 ACs novos:** AC-FR-LGPD-MVP-01b expandido + AC-FR-LGPD-MVP-01c (CSP) + AC-FR-LGPD-MVP-01d (CSRF) + AC-FR-MONITOR-01b (SOP-005) + AC-FR-MONITOR-01c (CLI) + AC-FR-BACKUP-MVP-01b expandido (cross-platform)
+  - Files: `governance/prd/prd-v1.1.2-PATCH.md` (NEW) + `governance/prd/INDEX.md` (v1.1.2 ACTIVE) + `governance/TECH-DEBT.md` (15 BL-* entries) + `docs/sop-monitoramento-tema-1378.md` (NEW SOP-005)
+  - Próximo: Smith re-review #2 focado em CSRF/CSP/encryption + APScheduler + SOP-005
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-05, decisão Eric opção B): **PATCH v1.1.2 despachado para PERFEIÇÃO**.
+  - Eric escolheu opção (b): PATCH v1.1.2 endereçando 4 MEDIUM novos ANTES de CC.2 Aria
+  - Trade-off aceito: +3-5h Morgan + 1h Smith re-review = CC.2 atrasa ~4-6h vs zero debt residual
+  - 4 MEDIUM a endereçar: F-NEW-01 LGPD CSRF/CSP/encryption + F-NEW-02 MONITOR fallback + F-NEW-03 D3 Apelação reestimativa 6-8h + F-NEW-04 BACKUP cross-platform
+  - 2 LOW (F-NEW-05 OAB checksum + F-NEW-06 math) — Morgan decide se incluir
+  - CC.1B Oracle gate VAULT-FIX-01 NÃO despachado em paralelo (Eric opção B = pipeline serial limpo)
+  - Próximo: Morgan PATCH v1.1.2 → Smith re-review #2 → CC.2 Aria
+
+- **Sessão 87** (@smith · Smith — 2026-05-05, tribunal CC.1A' RE-REVIEW): **VEREDICTO PASS-COM-RESSALVA** ✅⚠️
+  - 14 endereçamentos Morgan verificados: 8 REAL + 4 PARCIAL + 1 COSMÉTICO + 1 com HOLE
+  - **0 CRITICAL/HIGH bloqueadores** (5 HIGH originais endereçados REAL/PARCIAL — residuais escalaram para MEDIUM)
+  - **4 NOVOS findings MEDIUM** (não bloqueadores): F-NEW-01 LGPD sem CSRF/CSP, F-NEW-02 MONITOR sem fallback, F-NEW-03 D3 Apelação 2h underestimate 3x, F-NEW-04 backup não cross-platform
+  - **2 NOVOS findings LOW:** F-NEW-05 OAB sem checksum, F-NEW-06 math estimate subestima ~5-7h
+  - **Recomendação Smith opção (c) híbrida:** v1.1.1 PASS-COM-RESSALVA + BL-PATCH-V1.1.2 com trigger pré-Operator push
+  - **CC.2 Aria DESBLOQUEADO** (com ressalvas registradas como riscos conhecidos)
+  - **CC.1B Oracle gate VAULT-FIX-01** pode prosseguir paralelo
+  - Próximo: Morpheus consolida CC.1A' (Smith PASS-COM-RESSALVA + checkpoint parte 2 anterior PASS-COM-RESSALVA) → despacha CC.2 + CC.1B paralelo
+
+- **Sessão 87** (@pm · Morgan — 2026-05-05, course-correction CC.1A' PATCH): **PRD v1.1.1-PATCH.md publicado** ⭐
+  - PATCH endereça **14/14 findings** tribunal CC.1A: 5 HIGH bloqueadores + 2 MEDIUM checkpoint + 7 MEDIUM/LOW Smith opcionais
+  - Decisões Morgan: F-HIGH-01 Opção A (≤210s mantém Economista); F-HIGH-03 Opção A (auth mínima basic-auth ~2h); F-HIGH-04 BL-MONITOR-1378 → MVP; F-MED-02 D3 Apelação Cível incorporada MVP; F-MED-03 backup mínimo cron daily; F-LOW-03 validação OAB server-side; F-CHK-02 OPÇÃO 2 (BL-* migrados para TECH-DEBT.md AGORA)
+  - **NOVOS FRs MVP:** FR-LGPD-MVP-01 (auth mínima + chmod), FR-MONITOR-01 ATIVO (Tema 1378 semanal), FR-BACKUP-MVP-01 (cron daily), FR-ECONOMISTA-01 (P-INT-04 explícito)
+  - **NOVO deliverable MVP:** D3 Apelação Cível (D1+D2+D3 = 3 deliverables MVP, vs 2 v1.1.0)
+  - **NOVO ACs:** AC-PRECONDITION para AC-1/2/3/10 (depende BL-VAULT-BULK-IMPORT + BL-GOLDEN-SET)
+  - **NOVOS pre-release blockers:** BL-VAULT-BULK-IMPORT (2-4h maintainer) + BL-GOLDEN-SET (8-12h @qa)
+  - **NFR-PERF-01 corrigido:** ≤180s → ≤210s (mantém Economista coerente com decisão histórica Eric v1.0.2)
+  - **MVP estimate atualizado:** 25-35h v1.1.0 → **33-44h v1.1.1** (+8-9h endereçando findings)
+  - Files: `governance/prd/prd-v1.1.1-PATCH.md` (NEW) + `governance/prd/INDEX.md` (updated v1.1.1 ACTIVE) + `governance/TECH-DEBT.md` (updated 14 BL-* migrated, 15→29 active)
+  - Próximo: Smith re-review focado nos 5 HIGH (handoff emitido)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-05, tribunal CC.1A consolidado): **VEREDICTO FINAL: FAIL** ❌
+  - Smith parte 1 (technical): FAIL (5 HIGH bloqueadores)
+  - checkpoint parte 2 (governance, autoridade dupla Morpheus): PASS-COM-RESSALVA (2 MEDIUM + 1 LOW)
+  - Smith FAIL é veto absoluto per ORDEM 8 → tribunal consolidado FAIL
+  - **Total findings para PATCH v1.1.1:** 5 HIGH Smith + 2 MEDIUM checkpoint = 7 findings bloqueadores
+  - F-HIGH-01 latência ≤180s incoerente; F-HIGH-02 vault provisional não bate FR-RAG-06; F-HIGH-03 compliance LGPD teatro; F-HIGH-04 BL-MONITOR-1378 negligente; F-HIGH-05 golden set inexistente
+  - F-CHK-01 ADR-009 sem FR implementação concreta; F-CHK-02 BL-* não estão em TECH-DEBT.md
+  - Morpheus devolve a Morgan para PATCH v1.1.1 (estimado 2-4h)
+  - **CC.2 Aria HOLD** até Smith re-review PASS pós-PATCH
+  - **CC.1B Oracle gate VAULT-FIX-01:** pode prosseguir paralelo (escopo independente do PRD reescopo)
+
+- **Sessão 87** (@smith · Smith — 2026-05-05, tribunal CC.1A parte 1): **VEREDICTO INFECTED → FAIL** ❌
+  - 5 HIGH findings + 5 MEDIUM + 3 LOW = 13 findings total (mínimo 10 cobertos)
+  - 5 HIGH bloqueadores per ORDEM 8: F-HIGH-01 (latência ≤180s incoerente com Economista), F-HIGH-02 (vault provisional não bate FR-RAG-06), F-HIGH-03 (compliance LGPD teatro — sem auth + sem chmod), F-HIGH-04 (BL-MONITOR-1378 corte negligente — Tema 1378 ativo), F-HIGH-05 (4 ACs dependem golden set inexistente)
+  - Recomendação: RETORNAR a Morgan via Morpheus para PRD v1.1.1 PATCH (estimado 2-4h)
+  - CC.2 Aria NÃO inicia até v1.1.1 PATCH + Smith re-review PASS
+  - Próximo: checkpoint governance review (parte 2 tribunal CC.1A) — handoff emitido
+
+- **Sessão 87** (@pm / Morgan — 2026-05-05, course-correction CC.1A): **PRD v1.1.0-MAJOR.md publicado** ⭐
+  - MAJOR bump per `prd-governance.md` art. MAJOR Bump Impact Protocol
+  - Predecessor: v1.0.2 + v1.0.3-DELTA preservados como histórico
+  - Visão reescrita: MVP modalidade-única (CDC PF Veículos) + roadmap 5 modalidades pós-MVP
+  - **Cortes formais (12 backlog items):** BL-AUTH-01/02, BL-DELIV-03/04/05, BL-MULTI-UF, BL-ML-LOOP, BL-BACKUP, BL-CONFIG-UI, BL-HITL-ELAB, BL-MONITOR-1378, BL-FIES
+  - **Preservados (não-negociáveis):** ADR-009 LGPD on-premise, 4 personas LLM, FR-TESE-04 validação semântica, ADR-005 HMAC GENESIS, FR-DELIV-06 Tela Adoção CFOAB
+  - **Roadmap 5 modalidades (sequenciamento ROI-otimizado Morgan):** v1.0 Veicular MVP → v1.1 Bancário Genérico → v1.2 Imobiliária → v1.3 Crédito → FIES projeto-irmão (Fase 2+)
+  - **Decisão FIES:** projeto-irmão "Revisor FIES" (federal vs estadual + procedimento administrativo + regramento FNDE + ICP diferente — 5 razões técnicas documentadas)
+  - **NFR-PERF-01:** latência ≤180s (vs 210s v1.0.2)
+  - Stories impactadas: VAULT-FIX-01 + OLLAMA-MGR-01 preservadas sem alterações (Keymaker delta-revalidation pós-publish)
+  - Files: `governance/prd/prd-v1.1.0-MAJOR.md` (NEW) + `governance/prd/INDEX.md` (NEW)
+  - Próximo: tribunal severo CC.1A (Smith + checkpoint), depois CC.1B paralelo (Oracle gate VAULT-FIX-01)
+
+- **Sessão 87** (@lmas-master / Morpheus — 2026-05-05, course-correction): **CC.0 fechada → CC.1A despachado**.
+  - Eric ativou ORDEM 0-11 do framework Matrix LMAS para reescopo estratégico.
+  - Diagnóstico Neo→Eric (3 trocas): caminho híbrido enxuto escolhido.
+  - Cortes MVP: auth elaborada + 3 dos 5 deliverables + multi-UF first-class + ML loop + backup + config UI + painel HITL elaborado (~28-41h economizados).
+  - Manter: pipeline 4 personas LLM + Decimal-only + validação semântica citações + audit HMAC + 100% local LGPD + auto-Ollama.
+  - Roadmap: 5 modalidades (Veicular MVP + Imobiliária + Bancário + Crédito + FIES) — cada uma +20-40h pós-MVP, NÃO rewrite. FIES não no MVP.
+  - Docker opcional pós-v1.0; VPS descartado.
+  - Estimativa shipping MVP enxuto: ~25-35h.
+  - **CC.1A em curso:** @pm Morgan criando PRD v1.1.0 MAJOR bump (handoff H-S03-CC1A-MOR2MOR-001).
+  - **CC.1B enfileirado:** @qa Oracle gate VAULT-FIX-01 (despacho automático pós-Morgan).
+  - Tribunal severo a cada etapa: Sati (UX) + Oracle (testes) + Smith (sempre) + checkpoint (sempre).
+
+- **Sessão 87** (@dev / Neo — 2026-05-05, closure): **VAULT-FIX-01 Phase E DONE — story Ready for Review** ⭐
+  - 14 tests novos (10 unit data_schema + 4 integration populate_idempotent) — suite **246 passed + 1 skipped** (zero regressão)
+  - ruff All checks passed em 6 arquivos modificados
+  - **Bonus side-fix:** `data_schema.py` `total_must_match_entries` migrado de `field_validator` no-op (silencioso por ordem de declaração) para `model_validator(mode="after")` — bug Phase A capturado pelo test
+  - SOP-004 criado: `docs/sop-refresh-vault-dataset.md` (3 paths refresh + validation + audit + commit + tag + trimester reminder)
+  - TECH-DEBT.md: TD-VAULT-SCRAPERS-FRAGILITY RESOLVED + TD-VAULT-DATASET-STALENESS-MITIGATION LOW + TD-VAULT-SCRAPER-OUTPUT-TO-BUNDLED-ADAPTER MEDIUM (resumo 13→15 active, 5→9 resolved)
+  - Story status frontmatter: **Ready for Review** | 12/12 ACs PASS evidenciados em Dev Agent Record
+  - Próximo na cadeia: Skill @qa Oracle (`*qa-gate VAULT-FIX-01`) — handoff emitido em `.lmas/handoffs/handoff-dev-to-qa-2026-05-05-vault-fix-01-oracle-gate.yaml`
+
+- **Sessão 87** (@dev / Neo — 2026-05-05, continuação): **VAULT-FIX-01 Phase D DONE — 3 CLI subcommands**.
+  - `refresh-vault` (best-effort opt-in, graceful HTTP 404), `import-dataset` (pdfplumber + regex `_SUMULA_HEADER_RE` + Pydantic build), `validate-dataset` (schema + hash_sha256 recompute)
+  - Smoke: `--help` lista 3 subcommands + validate-dataset PASS 5/5 hash verified em ambos JSONs + refresh-vault graceful exit 0
+  - ruff: 16 autofixes (UP045 Optional→|None + UP017 timezone.utc→UTC + F401 unused) + 1 manual E501 → All checks passed
+  - Cross-platform: `→` substituído por `->` em docstrings (Windows cp1252 compat)
+  - Files: `bloco_interface/cli.py` (3 commands + helpers + autofix); legacy `populate-vault` PRESERVED (DEPRECATED runtime, Sprint 04+ removal)
+  - Próximo: Phase E (tests test_data_schema + test_populate_vault_idempotent + ruff full + SOP-refresh-vault + TECH-DEBT + closure → handoff @dev → @qa)
+
+- **Sessão 87** (@dev / Neo — 2026-05-05): **VAULT-FIX-01 Phase A+B+C DONE — populate idempotente + lifespan integrado**.
+  - Phase A (sessão 86): `bloco_vault/data_schema.py` (SumulaSTJ + SumulaVinculanteSTF + VaultDataset)
+  - Phase B (sessão 86): seed STJ 5 + STF SV 5 + DATASET-CHANGELOG.md PROVISIONAL (~1.6% STJ + ~8.6% STF SV oficial — maintainer one-shot bulk import path documentado)
+  - **Phase C (esta sessão):** `bloco_vault/populate.py` NEW + lifespan FastAPI em `bloco_interface/web/app.py`
+  - Mapping helpers `_stj_to_jurisprudencia` (peso 3, binding False, SUMULA) + `_stf_to_jurisprudencia` (peso 5, binding True, SUMULA_VINCULANTE)
+  - Idempotency via `open_vault()` (CREATE TABLE IF NOT EXISTS) + COUNT(*) check
+  - Smoke validations PASS:
+    - populate.py direct: Run 1 populated=True (5+5), Run 2 populated=False ("vault already has 10 entries")
+    - TestClient lifespan: log "Vault populated from bundled" emitido + GET / HTTP 200
+  - ruff All checks passed (populate.py + app.py)
+  - Próximo: Phase D — 3 CLI subcommands (refresh-vault, import-dataset, validate-dataset) em `bloco_interface/cli.py`
+
+- **Sessão 86** (@po / Keymaker — 2026-05-05): **🎯 AMBAS STORIES APROVADAS 10/10 (24/24 total) — handoff @po → @dev emitido (UMA invocação)**.
+  - Eric pediu via @sm handoff "continue com o recomendado sempre pela skill" — Keymaker validou AMBAS em UMA invocação (eficiência paralela).
+  - **Handoff @sm → @po consumed=true.**
+  - **24-point checklist (10 × 2) executado:** AMBAS GO 10/10.
+  - **VAULT-FIX-01 score: 10/10 — GO**
+    - 12 ACs + 5 phases + 12 modify/7 NOT-modify + 6 risks + 4-6h effort
+    - Forças: Dev Notes citam ADR-012 (efficient pattern), risk B.1 STJ HTTP 200 captura agora, 3 opções STF anti-bot (A/B/C), schema versioning forward compat, audit trail completo
+    - Advisory: Phase B AC-2 STF Opção A (PDF) recomendada; AC-3 file size verification flexível; tests existentes verificar dependency vault populated
+  - **OLLAMA-MGR-01 score: 10/10 — GO**
+    - 14 ACs + 5 phases + 12 edge cases + 8 modify/5 NOT-modify + 8 risks + 8-10h effort
+    - Forças: Dev Notes citam ADR-011 sections D1-D4, 12 edge cases mapeados estruturalmente (EC-11/EC-12 Aria additions), pre_check_disk_space, on-demand health check (rejeita polling), cross-platform priority chain
+    - Advisory: Phase E auto-pull demora primeira vez (mock em tests), psutil dep verificar pyproject.toml, cross-platform Windows-only testing (CI matrix Sprint 04+), AC-12 README+SOP grep zero "ollama serve" pós-update
+  - **Decisões Keymaker D-KEY-S03-PHASE0-A..C:**
+    - A: AMBAS stories GO 10/10 simultaneamente (eficiência paralela validada)
+    - B: Eric decide order paralelo OR sequential (Keymaker neutral; Aria recomenda paralelo, Sequential VAULT-FIX-01 first como alternativa quick win)
+    - C: Closure batch unified v0.3.0 (Operator push AMBAS stories no mesmo release)
+  - **Files Keymaker (modified):**
+    - `governance/stories/VAULT-FIX-01-vault-data-bundling.md` (Validation Notes 10/10 + 3 advisory observations)
+    - `governance/stories/OLLAMA-MGR-01-auto-ollama-lifecycle.md` (Validation Notes 10/10 + 4 advisory observations)
+    - `.lmas/handoffs/handoff-po-to-dev-2026-05-05-sprint-03-stories-develop.yaml` (NEW handoff @po→@dev UMA invocação ambas com decision question paralelo/sequential + critical path warnings)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @dev (Neo) per handoff @po→@dev
+    - Comando: `*develop-yolo` para AMBAS stories
+    - Decisão Eric necessária: paralelo (Aria recomenda, 8-10h) OR sequential (VAULT-FIX-01 first 4-6h quick win, depois OLLAMA-MGR-01 8-10h, total 12-16h)
+    - Critical paths warnings: VAULT-FIX-01 Phase B.1 capturar STJ AGORA + OLLAMA-MGR-01 Phase A psutil dep verify
+  - **🚦 Sprint 03 Phase 0 progress:**
+    - ✅ Morpheus scope (DONE)
+    - ✅ Aria ADR-011 + ADR-012 (DONE accepted)
+    - ✅ River 2 stories paralelas (DONE Ready)
+    - ✅ Keymaker validate AMBAS (DONE 10/10 GO) ← AGORA
+    - ⏳ @dev develop AMBAS (NEXT — Eric decide order)
+    - ⏳ @qa gate ambas em UMA invocação
+    - ⏳ @devops push v0.3.0 unified
+    - ⏳ @smith adversarial ultrathink review final
+
+- **Sessão 86** (@sm / River — 2026-05-05): **🌊 2 STORIES PARALELAS DRAFTED (VAULT-FIX-01 + OLLAMA-MGR-01) — handoff @sm → @po emitido**.
+  - Eric pediu via Aria handoff "continue com o recomendado sempre pela skill" — River executou em UMA invocação (eficiência paralela).
+  - **Handoff Aria → @sm consumed=true.**
+  - **VAULT-FIX-01** (~480 linhas):
+    - 12 ACs (4 Schemas+Dataset + 3 Population+CLI + 3 Quality + 2 Docs)
+    - 5 phases (A: schemas 45min · B: initial seed extraction 1.5-2h · C: populate refactor 1h · D: CLI commands 1h · E: tests+docs 1-1.5h)
+    - Dev Notes citam ADR-012 sections "Pydantic Schema Scaffold" + "Population Strategy"
+    - Files to Modify (12): bloco_vault/data_schema.py NEW + bloco_vault/data/*.json NEW + populate.py refactor + cli.py 3 subcommands + app.py lifespan + SOP-refresh-vault-dataset.md NEW + tests + TECH-DEBT update
+    - Files NOT to Modify (7): scrapers/* preservados + llm_factory + ADRs + ollama_manager (paralela) + tests existentes
+    - 6 risks com mitigation (STJ HTTP 200 quebra, manual STF tedious, schema breaking, repo size, refresh esquecido, tests dependency)
+  - **OLLAMA-MGR-01** (~600 linhas):
+    - 14 ACs (5 Module+Detection + 3 Auto-pull+Health + 2 Edge cases + 2 Quality adicionais + 2 Docs)
+    - 5 phases (A: binary detection+lockfile 1.5h · B: spawn+PID management 2h · C: lifespan integration 1.5h · D: auto-pull SSE 2h · E: on-demand health+12 edge cases+tests+docs+closure 2-3h)
+    - Dev Notes citam ADR-011 sections cross-platform binary, atomic PID, lifespan, 12 edge cases
+    - Files to Modify (8): ollama_manager.py NEW ~400-500 LOC + app.py lifespan + index.html banner + README + SOP-revisar-pdf + tests
+    - Files NOT to Modify (5): bloco_workflow/* + ADRs + bloco_vault/* (VAULT-FIX-01 escopo) + tests existentes
+    - 8 risks com mitigation (12 edge cases tediosos, cross-platform, lockfile diff, signal handlers, binary PATH, auto-pull demora, subprocess OS diff, ACs > effort)
+  - **Decisões River D-RIV-S03-PHASE0-A..C:**
+    - A: AMBAS stories drafted em UMA invocação (eficiência paralela per Aria recommendation)
+    - B: Dev Notes citam ADRs em vez de duplicar specs (Pydantic schemas + algoritmos detect-then-spawn já no ADR; story foca no QUE não COMO)
+    - C: Status inicial AMBAS Ready (zero ambiguidade pós ADRs accepted Eric)
+  - **Files River (created):**
+    - `governance/stories/VAULT-FIX-01-vault-data-bundling.md` (NEW ~480 linhas)
+    - `governance/stories/OLLAMA-MGR-01-auto-ollama-lifecycle.md` (NEW ~600 linhas)
+    - `.lmas/handoffs/handoff-sm-to-po-2026-05-05-sprint-03-stories-validate.yaml` (NEW handoff @sm→@po validate AMBAS em UMA invocação)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @po (Keymaker) per handoff @sm→@po
+    - Comando: `*validate-story-draft` em UMA invocação para AMBAS stories
+    - 24-point checklist (10 points × 2 stories)
+    - GO ambas (≥7/10 cada) → emit handoff @po→@dev paralelo OR sequential (Eric decide)
+  - **🚦 Sprint 03 Phase 0 progress:**
+    - ✅ Morpheus scope (DONE)
+    - ✅ Aria ADR-011 + ADR-012 (DONE accepted)
+    - ✅ River 2 stories paralelas (DONE Ready) ← AGORA
+    - ⏳ @po validate (NEXT)
+    - ⏳ @dev develop (Eric decide order paralelo/sequential)
+    - ⏳ @qa gate ambas
+    - ⏳ @devops push v0.3.0 unified
+    - ⏳ @smith adversarial ultrathink review
+
+- **Sessão 86** (@architect / Aria — 2026-05-05): **🏛️ ADR-011 + ADR-012 ACCEPTED Eric — handoff Aria → @sm emitido (2 stories paralelas)**.
+  - Eric "aceito sempre pela skill" — accept implícito Aria recomendações default em ambos ADRs (sessão 86).
+  - **Handoff Morpheus → Aria consumed=true.**
+  - **2 ADRs criados + accepted (~1000 linhas combinados):**
+    - **ADR-012 Vault Data Bundling Strategy** (~430 linhas) — Path C bundled dataset + optional refresh scrapers; Pydantic schemas SumulaSTJ/SumulaVinculanteSTF/VaultDataset; idempotent population (count==0 OR vault missing); dual-path refresh (scraper opt-in + manual import autoritativo); audit trail hash_sha256 + DATASET-CHANGELOG.md
+    - **ADR-011 Auto-Ollama Lifecycle Management** (~600 linhas) — Option A subprocess Python + detect-then-spawn (preserva Ollama existente); cross-platform binary detection (Windows/Linux/Mac); atomic PID file + lockfile; on-demand health check (rejeita polling 30s); auto-pull SSE progress; 12 edge cases mapeados (Aria adicionou EC-11 lockfile concurrent + EC-12 PID reuse além dos 10 Morpheus)
+  - **Decisões Aria ultrathink D-ARI-S03-PHASE0-A..D:**
+    - A: Schema versioning ADR-012 (`schema_version: "1.0"`) para forward compatibility
+    - B: ADR-012 audit trail mais profundo (hash_sha256 + commit-signed opcional + DATASET-CHANGELOG)
+    - C: ADR-011 lockfile (EC-11) + PID reuse verification (EC-12) adicionados além Morpheus 10 edge cases
+    - D: ADR-011 on-demand health check (rejeita Morpheus suggestion polling 30s — overkill single-user)
+  - **ADR-INDEX.md atualizado:**
+    - Sprint 03 sections adicionadas (Infra & Runtime + Data & Vault)
+    - ADRs ativas: 10 → 12 (ADR-001..012)
+    - Pendências re-numeradas (ADR-011/012 alocados → DP-05 LGPD vira ADR-013+, outcomes vira ADR-014+)
+  - **Files Aria (created/modified):**
+    - `governance/architecture/adr/adr-012-vault-data-bundling.md` (NEW ~430 linhas, status accepted)
+    - `governance/architecture/adr/adr-011-auto-ollama-lifecycle.md` (NEW ~600 linhas, status accepted)
+    - `governance/architecture/ADR-INDEX.md` (sprint 03 sections + estatísticas atualizadas)
+    - `.lmas/handoffs/handoff-architect-to-sm-2026-05-05-sprint-03-stories.yaml` (NEW ~250 linhas — high-level ACs + files modify/NOT-modify per story + parallel execution recommendation)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @sm (River) per handoff Aria → @sm
+    - Comando: `*draft VAULT-FIX-01 + OLLAMA-MGR-01` (em UMA invocação para eficiência)
+    - VAULT-FIX-01: 12 ACs, 4-6h, 5 phases (schemas + initial seed + populate refactor + CLI + tests/docs)
+    - OLLAMA-MGR-01: 14 ACs, 8-10h, 5 phases (binary detect + lockfile + spawn + lifespan + auto-pull SSE + tests/docs)
+    - Aria recomenda PARALLEL execution (code paths independentes, reduz wall-clock 12-16h sequential → 8-10h paralelo)
+  - **🚦 Sprint 03 Phase 0 progress:**
+    - ✅ Morpheus scope (DONE)
+    - ✅ Aria ADR-011 + ADR-012 (DONE — accepted Eric)
+    - ⏳ @sm 2 stories paralelas (NEXT)
+    - ⏳ @po validate (next)
+    - ⏳ @dev develop (Eric decide order)
+    - ⏳ @qa gate
+    - ⏳ @devops push v0.3.0
+    - ⏳ @smith adversarial ultrathink review final
+
+- **Sessão 86** (@lmas-master / Morpheus — 2026-05-05): **📋 Sprint 03 Phase 0 SCOPED ULTRATHINK — handoff Morpheus → Aria emitido (2 ADRs)**.
+  - Eric inclou keyword "ultrathink" + "Faça TUDO pela Skill correta!" — Morpheus aplicou reasoning profundo.
+  - **2 gaps críticos identificados Eric pós-v0.2.0 testing local:**
+    1. Ollama precisa ser gerenciado pela aplicação (não pelo usuário)
+    2. Vault tem que funcionar (STJ + STF scrapers broken)
+    3. Smith adversarial review final (após items 1+2)
+  - **Investigation read-only Morpheus:**
+    - STJ /sumulas: HTTP 200 OK MAS HTML mudou (parser quebrado, find_all class='sumula' empty)
+    - STF: ConnectError SSL + HTTP 403 anti-bot AWS ELB (DOIS issues, fix verify=False não basta)
+    - Ollama binary: não no PATH, em %LOCALAPPDATA%\Programs\Ollama (precisa cross-platform detection)
+    - base.py httpx: sem User-Agent customizado (pode estar blocked também)
+  - **Decisão arquitetural ultrathink Morpheus D-MOR-S03-PHASE0-A..C:**
+    - **A**: Vault — REJEITAR fix scrapers iterativo (frágil, sites externos mudam) → ESCOLHER bundled dataset híbrido (commit-controlled + scraper opcional refresh)
+    - **B**: Ollama — Option A subprocess Python + detect-then-spawn (rejeitar B Docker, C systemd) com 10 edge cases mapeados
+    - **C**: Sequential ADRs (não paralelo) — ADR-012 vault primeiro (quick win), ADR-011 Ollama segundo (maior effort)
+  - **Effort honest estimates ultrathink (não otimismo):**
+    - ADR-011 Aria: 1.5-2h
+    - ADR-012 Aria: 1.5-2h
+    - VAULT-FIX-01 Neo: 4-6h (bundled JSON dataset + populate-vault refactor + tests)
+    - OLLAMA-MGR-01 Neo: 8-10h (ollama_manager.py + lifespan + 10 edge cases + tests + docs)
+    - Smith review: 2-3h
+    - **Total Sprint 03 Phase 0: 17-23h** (não otimista)
+  - **Files Morpheus (created):**
+    - `.lmas/handoffs/handoff-morpheus-to-architect-2026-05-05-sprint-03-phase-0-adrs.yaml` (NEW ~280 linhas spec completo)
+    - `governance/PROJECT-CHECKPOINT.md` (active_story → Sprint 03 Phase 0 INICIADO)
+    - `governance/CHECKPOINT-active.md` (esta entry)
+  - **Próximo agente:** @architect Aria per handoff Morpheus → Aria
+    - Step 1: Aria escreve ADR-012 (Vault Data Bundling) primeiro — quick win
+    - Step 2: Eric accept ADR-012
+    - Step 3: Aria escreve ADR-011 (Auto-Ollama Lifecycle)
+    - Step 4: Eric accept ADR-011
+    - Step 5: Aria emit handoff Aria → @sm para 2 stories paralelas (VAULT-FIX-01 + OLLAMA-MGR-01)
+  - **Pipeline Sprint 03 Phase 0 completo:**
+    - Morpheus (NOW done) → Aria @architect (2 ADRs) → @sm (2 stories) → @po → @dev → @qa → @devops → @smith review final
+  - **Smith adversarial review plan (post-implementation):**
+    - When: VAULT-FIX-01 + OLLAMA-MGR-01 done + push + v0.3.0 tagged
+    - Skill: smith (adversarial-delivery-verifier)
+    - Output: governance/qa/smith-ultrathink-review-post-v0.3.0.md
+    - Scope: 10 áreas (validation/LGPD/pipeline/error/perf/security/edge/prod/deploy/docs)
+    - Output: findings classificados CRITICAL/HIGH/MEDIUM/LOW + iteration plan
+  - **App local STATE:** ainda rodando :11434 + :11435 + :8501 (backgrounds bfdxdo3nv + bttjny3m4) — Eric pode continuar testando OR matar quando OLLAMA-MGR-01 implementation precisar restart
+
+- **Sessão 86** (@devops / Operator — 2026-05-05): **🚀 LOCAL DEPLOY ACTIVE — Eric testando v0.2.0 em http://127.0.0.1:8501**.
+  - Eric corrigiu workflow estrito ("sempre pela skill" se estende a deploy operacional, não só LMAS workflow stories) — memory: `feedback_skill_for_local_deploy.md`
+  - Operator Skill agora tem ownership de **TODA execução operacional** (subir app, init data, infra setup) — não só git push/PR/release
+  - **Estado pré-deploy verificado:**
+    - 3 modelos Ollama disponíveis (qwen2.5:7b + qwen2.5:3b + sabia-7b-instruct preserved opt-in)
+    - Ollama :11434 desktop app UP
+    - .env presente com AUTH_COOKIE_KEY
+    - .audit-genesis.lock presente
+    - vault.db presente (53KB esquema, vazio — STJ 404 + STF SSL bloqueiam scrape, fora de escopo)
+  - **Backgrounds iniciados:**
+    - 2ª Ollama :11435 (background ID `bfdxdo3nv`) — HTTP 200 ✅
+    - FastAPI :8501 (background ID `bttjny3m4`) — HTTP 200 ✅, title `<Revisor Contratual>` confirmado
+  - **Env vars configuradas no FastAPI:**
+    - `PYTHONIOENCODING=utf-8` (evita UnicodeEncodeError Windows console)
+    - `AUTH_COOKIE_KEY=<from .env>` (HMAC GENESIS)
+    - `OLLAMA_HOST_ADVOGADO=http://127.0.0.1:11434`
+    - `OLLAMA_HOST_ECONOMISTA=http://127.0.0.1:11435`
+  - **Limitações teste end-to-end (vault vazio):**
+    - ✅ Phase A validation (MIME + max_size + tier) — funciona normal
+    - ✅ Phase B listener cleanup — funciona
+    - ✅ Phase D error states UX — funciona
+    - ⚠️ Phase C pipeline real → fallback graceful (vault.db vazio → JOBS error → UI mostra error.html ou MOCK_VERDICT com aviso)
+    - Para teste pipeline real completo: fix STJ 404 / STF SSL = Sprint 03 work (@dev via Skill)
+  - **Cenários sugeridos para Eric testar:**
+    1. Validation MIME — drag .txt → HTTP 400 + error.html invalid_pdf
+    2. Max_size — PDF >10MB → HTTP 413 + error.html file_too_large
+    3. Tier dropdown — verificar form com 3 opções (lean/balanced default/premium)
+    4. UI flow — upload PDF válido → processing → vault vazio = fallback mock
+    5. Listener cleanup — DevTools console: 3+ ciclos /revisar → /reset → `getEventListeners(document.body)['htmx:sseMessage']?.length` = 0
+  - **Para matar a app:** `taskkill //F //PID <python>` ou kill background tasks IDs `bfdxdo3nv` + `bttjny3m4`
+  - **Próximo step:** aguardar feedback Eric pós-teste manual browser (NÃO auto-emit handoff)
 
 - **Sessão 86** (@devops / Operator — 2026-05-05): **🎉🎉 RELEASE v0.2.0 PUBLISHED — https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.2.0**.
   - Eric pediu "continue com o recomendado e sempre pela skill" — workflow estrito; Sprint 02 gate 8/8 met → Operator executou release management workflow autônomo.
