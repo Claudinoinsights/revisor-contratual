@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.21 Neo MVP-LEAN-01 Task 8 PARTIAL ✅ DONE — LGPD L3 (CSP+headers) + L4 (Fernet + safe_delete) + L5 (chmod cross-platform) + APScheduler (backup_daily + rotation 7d) em ~3h real. Suite 359→374+3 (+15 passed, +2 skipped Windows). 7.5/9 = 83%. Task 8b DEFERRED."
-status: sprint-03-cc21-Neo-Task8-PARTIAL-DONE-aguarda-Morpheus
+active_story: "CC.22 Operator push T8 PARTIAL ✅ — fast-forward bf15376..d6baff2 publicado, PR #2 atualizado para 7.5/9 = 83% via comment. Sessão 91 entregou MVP foundation completa. Tasks 8b+9 em sessão dedicada fresca."
+status: sprint-03-cc22-Operator-push-T8-PARTIAL-DONE-PR2-83-percent-pause-final
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,30 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@devops · Operator — 2026-05-06, **CC.22 push T8 PARTIAL ✅ DONE — sessão final**):
+  - **Push fast-forward:** `bf15376..d6baff2` → `origin/feat/mvp-lean-01-task1-layout-base` ✅
+  - **1 commit publicado** (T8 PARTIAL amended com fix ruff E501):
+    - `d6baff2` feat(lgpd+backup): T8 PARTIAL (LGPD L3+L4+L5 + APScheduler) — 9 files, +500 LOC
+  - **PR #2 atualizado:** [comment incremental T8 PARTIAL](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4392682237) — agora **7.5/9 = 83%** visível Eric
+  - **Pre-push quality gate empírico Operator:**
+    - ruff `All checks passed` ✅ (pós fix E501 line length em test_task8_lgpd_backup.py)
+    - pytest **374 passed, 3 skipped** em 63.28s ✅
+  - **Sessão 91 SUMÁRIO FINAL:**
+    - **17 etapas CC sequenciais** (CC.6 → CC.22)
+    - **2 PRs publicados:** PR #1 OLLAMA OPEN + PR #2 MVP-LEAN 7.5/9 OPEN MERGEABLE
+    - **OLLAMA-MGR-01 Done** (Oracle CC.7 PASS) + **7.5/9 MVP-LEAN-01 Tasks**
+    - **374 passed + 3 skipped** (281 OLLAMA + 78 MVP-LEAN T1-T7 + 15 T8 PARTIAL = +93 novos)
+    - **Zero regressão** acumulada
+  - **Próximos steps em sessão fresca:**
+    - **Task 8b** dedicada (~3-5h): FR-MONITOR Camada 1 scraper + auto-trigger + adversarial Smith
+    - **Task 9** standalone (~4-5h após T8b): smoke E2E + audit chain HMAC
+    - Eric: smoke v0.3.0 PR #1 (independente, 30-60min)
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.22 dispatch Operator push T8 PARTIAL**):
+  - **Decisão CC.22:** Opção D aceita (recomendação Neo CC.21) — push incremental T8 PARTIAL ao PR #2
+  - **Justificativa:** Task 8 PARTIAL é entregável testável (15 tests passed); push reflete 83% no PR #2 visível Eric; Tasks 8b/9 em sessão dedicada fresca
+  - **1 commit a publicar:** `9279a33` (T8 PARTIAL — 9 files +500 LOC)
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc22-push-t8-partial.yaml` (token H-S03-CC22-MOR2OPERATOR-001)
+  - **Próximo:** Operator push + comment PR #2 → handoff back → pause estratégico final
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.21 MVP-LEAN-01 Task 8 PARTIAL ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-7 done + T8 PARTIAL = 9 commits local)
   - **Implementação Task 8 PARTIAL (~3h real vs ~14-16h estimado total — 5 sub-componentes em ~25%):**
