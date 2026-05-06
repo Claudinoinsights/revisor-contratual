@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.14 Neo MVP-LEAN-01 Task 5 ✅ DONE — S6 Resultado + C5 + D3 condicional + helpers + POST /revisar/d3 stub em ~2h real. Suite 318+1 → 329+1 (+11 tests). 5/9 Tasks done (55%)."
-status: sprint-03-cc14-Neo-Task5-DONE-aguarda-Morpheus
+active_story: "CC.15 Morpheus dispatch Operator push branch Tasks 1-5 + create PR #2 para main (Opção C recomendação Neo). 5/9 Tasks done. PR #1 OLLAMA-MGR-01 ainda OPEN aguardando Eric smoke."
+status: sprint-03-cc15-morpheus-dispatch-Operator-push-Tasks-1-5-PR2
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,13 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.15 dispatch Operator push Tasks 1-5**):
+  - **Decisão CC.15:** Opção C aceita (recomendação Neo CC.14) — Push estratégico AGORA, marco 5/9 = 55%
+  - **Justificativa:** Tasks 1-5 levaram ~11h vs ~20h estimado; marco 55% é ponto natural review; Task 8 (FR-LGPD 5 camadas + APScheduler + FR-MONITOR ~14-16h) é a mais densa e merece sessão fresca; reduz risco de perda de trabalho
+  - **Branch a publicar:** `feat/mvp-lean-01-task1-layout-base` (5 commits Tasks 1-5)
+  - **Operator deve criar PR #2** paralelo a PR #1 OLLAMA-MGR-01 ainda OPEN
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc15-push-tasks-1-5.yaml` (token H-S03-CC15-MOR2OPERATOR-001)
+  - **Próximo:** Operator executa push + PR #2 → handoff back → Morpheus consolida; Tasks 6-9 em sessão fresca pós-merge
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.14 MVP-LEAN-01 Task 5 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4+5 acumulam — 5 commits)
   - **Implementação Task 5 (~2h real vs ~5h estimado — entrega rápida via reuso JOBS dict + helpers limpos):**
