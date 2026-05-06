@@ -1,0 +1,85 @@
+{# MVP-LEAN-01 Task 5 — C5 Resultado pane (componente macro).
+
+Macro renderiza:
+  - Heading "Análise concluída"
+  - Filename + tempo total
+  - Hash truncado + audit chain entry
+  - Veredicto Juiz (Fraunces 500)
+  - 3 cards deliverables (D1/D2/D3) com lógica condicional D3
+  - Botão "Analisar outro contrato" + link "Ver entrada audit"
+
+Microcopy exata per ux-spec §4 C5 linhas 725-737.
+#}
+
+{% macro resultado_pane(filename, tempo_total, hash_full, hash_truncado, audit_entry_id, veredicto_tese, confianca, citacoes_validadas, deliverables, job_id) %}
+<section class="s6-container" aria-labelledby="s6-heading" data-testid="s6-container">
+  <h2 id="s6-heading" class="s6-heading">✓ <strong>Análise concluída</strong></h2>
+
+  <div class="s6-meta">
+    <span class="s6-filename">{{ filename|e }}</span>
+    <span aria-hidden="true">·</span>
+    <span class="s6-tempo">{{ tempo_total|e }}</span>
+  </div>
+
+  <div class="s6-audit-line">
+    hash <code class="s6-hash"
+                data-testid="s6-hash"
+                data-hash-full="{{ hash_full|e }}"
+                title="Clique para copiar hash completo"
+                tabindex="0"
+                role="button"
+                aria-label="Hash truncado {{ hash_truncado|e }} — clique para copiar hash completo">{{ hash_truncado|e }}</code>
+    <span aria-hidden="true">·</span>
+    audit chain entry <code class="s6-audit-id">#{{ audit_entry_id }}</code>
+  </div>
+
+  <h3 class="s6-veredicto-heading"><strong>Veredicto Juiz</strong></h3>
+  <article class="s6-veredicto-card" data-testid="s6-veredicto">
+    <p class="s6-veredicto-tese">{{ veredicto_tese|e }}</p>
+    <p class="s6-veredicto-meta">
+      Confiança: <span data-testid="s6-confianca">{{ '%.2f'|format(confianca) if confianca is not none else '—' }}</span>
+      <span aria-hidden="true">·</span>
+      Citações validadas: <span data-testid="s6-citacoes">{{ citacoes_validadas|e }}</span>
+    </p>
+  </article>
+
+  <h3 class="s6-deliverables-heading">Deliverables disponíveis</h3>
+  <div class="s6-deliverables-grid" role="list">
+    {% for d in deliverables %}
+    <article class="c5-card{% if not d.disponivel %} c5-card--indisponivel{% endif %}"
+             role="article"
+             data-testid="c5-card-{{ d.tipo|lower }}"
+             data-disponivel="{{ 'true' if d.disponivel else 'false' }}">
+      <h4 class="c5-card__title">
+        <strong>{{ d.label|e }}</strong>{% if not d.disponivel %} <span class="c5-card__badge">(indisponível)</span>{% endif %}
+      </h4>
+      <p class="c5-card__descricao">{{ d.descricao|e }}</p>
+      <p class="c5-card__formato">
+        {% if d.disponivel %}{{ d.formato|e }} · {{ d.paginas }} pp{% else %}—{% endif %}
+      </p>
+      {% if d.disponivel %}
+      <a class="c5-card__cta c5-card__cta--baixar"
+         href="{{ d.download_url|e }}"
+         data-testid="c5-cta-baixar-{{ d.tipo|lower }}"
+         aria-label="Baixar {{ d.label|e }} {{ d.formato|e }} ({{ d.paginas }} páginas)">
+        Baixar
+      </a>
+      {% else %}
+      <button type="button"
+              class="c5-card__cta c5-card__cta--enviar"
+              data-testid="c5-cta-enviar-decisao"
+              data-job-id="{{ job_id|e }}"
+              aria-label="Enviar decisão adversa para gerar {{ d.label|e }}">
+        Enviar decisão
+      </button>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+
+  <div class="s6-footer-actions">
+    <a class="s6-cta-novo" href="/" data-testid="s6-cta-novo">Analisar outro contrato</a>
+    <a class="s6-link-audit" href="/audit.jsonl" data-testid="s6-link-audit">Ver entrada audit</a>
+  </div>
+</section>
+{% endmacro %}

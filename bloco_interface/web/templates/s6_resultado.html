@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% from "partials/c5_resultado_pane.html" import resultado_pane %}
+
+{# MVP-LEAN-01 Task 5 — S6 Resultado consolidado (per ux-spec §3 S6 linhas 442-522).
+   2 variantes:
+     - S6.a (D3 disponível): 3 cards ativos com botão "Baixar"
+     - S6.b (D3 indisponível): D1+D2 ativos; D3 inativo com CTA "Enviar decisão"
+   Lógica controlada via deliverables[2].disponivel passado pelo backend. #}
+
+{% block workspace %}
+{{ resultado_pane(
+  filename=filename,
+  tempo_total=tempo_total,
+  hash_full=hash_full,
+  hash_truncado=hash_truncado,
+  audit_entry_id=audit_entry_id,
+  veredicto_tese=veredicto_tese,
+  confianca=confianca,
+  citacoes_validadas=citacoes_validadas,
+  deliverables=deliverables,
+  job_id=job_id
+) }}
+
+{# CTA "Enviar decisão" envia volta a S2 mantendo job_id (MVP-LEAN-01 Task 5 D3 condicional) #}
+<form id="s6-d3-form" method="post" action="/revisar/d3" enctype="multipart/form-data" hidden>
+  <input type="hidden" name="job_id" value="{{ job_id|e }}">
+  <input type="file" name="pdf_decisao_adversa" accept=".pdf" data-testid="s6-d3-input">
+</form>
+
+<script>
+/* MVP-LEAN-01 Task 5 — clipboard tooltip + S6.b CTA "Enviar decisão" handler */
+(function () {
+  'use strict';
+
+  // Hash clipboard copy
+  var hashEl = document.querySelector('.s6-hash');
+  if (hashEl) {
+    var copyHash = function () {
+      var full = hashEl.getAttribute('data-hash-full');
+      if (!full || !navigator.clipboard) { return; }
+      navigator.clipboard.writeText(full).then(function () {
+        var orig = hashEl.textContent;
+        hashEl.textContent = '✓ copiado';
+        setTimeout(function () { hashEl.textContent = orig; }, 1500);
+      });
+    };
+    hashEl.addEventListener('click', copyHash);
+    hashEl.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); copyHash(); }
+    });
+  }
+
+  // S6.b CTA "Enviar decisão" → trigger file picker do form hidden
+  var enviarBtn = document.querySelector('[data-testid="c5-cta-enviar-decisao"]');
+  var d3Form = document.getElementById('s6-d3-form');
+  if (enviarBtn && d3Form) {
+    var d3Input = d3Form.querySelector('input[type="file"]');
+    enviarBtn.addEventListener('click', function () { d3Input.click(); });
+    d3Input.addEventListener('change', function () {
+      if (d3Input.files && d3Input.files.length > 0) {
+        d3Form.submit();
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

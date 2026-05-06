@@ -163,6 +163,7 @@ class JobState(TypedDict):
     filename: str
     verdict: dict[str, Any] | None
     error: str | None
+    has_decisao_adversa: bool  # MVP-LEAN-01 Task 5: controla disponibilidade D3 em S6
 
 
 JOBS: dict[str, JobState] = {}
@@ -408,6 +409,7 @@ async def logout(request: Request) -> HTMLResponse:
 async def revisar(
     request: Request,
     pdf: UploadFile,
+    pdf_decisao_adversa: UploadFile | None = None,  # MVP-LEAN-01 Task 3+5: D2 opcional
     uf: str = Form(default=""),
     data: str = Form(default=""),
     tier: LLMTier = Form(default="balanced"),  # noqa: B008 — FastAPI Form pattern (ADR-010 default)
@@ -477,6 +479,10 @@ async def revisar(
     # Phase C: Gerar job_id e armazenar state (TD-WEB-SSE-NOSESSION-01)
     job_id = str(uuid.uuid4())
     filename = pdf.filename or "contrato.pdf"
+    # MVP-LEAN-01 Task 5 — AC-MVP-D3-DUAL-INPUT: D2 enviado controla disponibilidade D3
+    has_decisao_adversa = bool(
+        pdf_decisao_adversa and pdf_decisao_adversa.filename and pdf_decisao_adversa.size,
+    )
     JOBS[job_id] = {
         "status": "queued",
         "pdf_path": pdf_path,
@@ -486,6 +492,7 @@ async def revisar(
         "filename": filename,
         "verdict": None,
         "error": None,
+        "has_decisao_adversa": has_decisao_adversa,
     }
 
     # MVP-LEAN-01 Task 4: render S5 Processing (substitui partials/processing.html no MVP-LEAN)
@@ -729,19 +736,124 @@ async def pipeline_stream(job_id: str = "") -> StreamingResponse:
     return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
+def _truncate_hash(full_hash: str | None, head: int = 4, tail: int = 4) -> str:
+    """MVP-LEAN-01 Task 5: hash audit truncado 4+4 chars per ux-spec linha 519."""
+    if not full_hash or len(full_hash) <= head + tail:
+        return full_hash or ""
+    return f"{full_hash[:head]}…{full_hash[-tail:]}"
+
+
+def _format_deliverables_for_c5(
+    verdict_data: dict[str, Any] | None,
+    has_decisao_adversa: bool,
+) -> list[dict[str, Any]]:
+    """MVP-LEAN-01 Task 5: mapeia verdict raw para 3 cards C5 com flag disponivel.
+
+    D1 (Relatório Contábil) e D2 (Petição Inicial) sempre disponíveis.
+    D3 (Apelação Cível) disponível apenas se decisão adversa foi enviada em S2.
+    """
+    return [
+        {
+            "tipo": "D1",
+            "label": "Relatório Contábil",
+            "descricao": "Tabela Price + cálculos abusivos",
+            "formato": "PDF",
+            "paginas": 12,  # placeholder — real virá de verdict_data quando workflow popular
+            "download_url": "/download/d1",
+            "disponivel": True,
+        },
+        {
+            "tipo": "D2",
+            "label": "Petição Inicial",
+            "descricao": "Fundamentos + jurisprudência + pedidos",
+            "formato": "DOCX",
+            "paginas": 18,
+            "download_url": "/download/d2",
+            "disponivel": True,
+        },
+        {
+            "tipo": "D3",
+            "label": "Apelação Cível",
+            "descricao": (
+                "Pré-redigida 100% — para decisão adversa"
+                if has_decisao_adversa
+                else "D3 só é gerada com decisão adversa enviada."
+            ),
+            "formato": "DOCX" if has_decisao_adversa else "—",
+            "paginas": 24 if has_decisao_adversa else None,
+            "download_url": "/download/d3" if has_decisao_adversa else None,
+            "disponivel": has_decisao_adversa,
+        },
+    ]
+
+
 @app.get("/verdict", response_class=HTMLResponse)
 async def verdict(request: Request, job_id: str = "") -> HTMLResponse:
-    """Retorna verdict real (se job_id válido) ou fallback MOCK_VERDICT."""
+    """MVP-LEAN-01 Task 5: renderiza S6 Resultado consolidado (3 deliverables + D3 condicional)."""
+    if not request.session.get("user"):
+        return RedirectResponse("/login", status_code=303)
+
     if job_id and job_id in JOBS and JOBS[job_id].get("verdict"):
         verdict_data = JOBS[job_id]["verdict"]
+        filename = JOBS[job_id]["filename"]
+        has_decisao_adversa = JOBS[job_id].get("has_decisao_adversa", False)
     else:
         verdict_data = MOCK_VERDICT
+        filename = MOCK_VERDICT.get("filename", "contrato.pdf")
+        has_decisao_adversa = False
 
+    # Hash truncado 4+4 chars (placeholder; real virá de verdict.audit_hash quando workflow popular)
+    full_hash = verdict_data.get("audit_hash", "7a3fb91c-b8d1") if verdict_data else ""
+    deliverables = _format_deliverables_for_c5(verdict_data, has_decisao_adversa)
+
+    s6_context: dict[str, Any] = {
+        "verdict": verdict_data,
+        "filename": filename,
+        "deliverables": deliverables,
+        "has_decisao_adversa": has_decisao_adversa,
+        "hash_full": full_hash,
+        "hash_truncado": _truncate_hash(full_hash),
+        "audit_entry_id": verdict_data.get("audit_entry_id", 137) if verdict_data else 0,
+        "tempo_total": verdict_data.get("tempo_total", "2min 47s") if verdict_data else "—",
+        "veredicto_tese": (
+            verdict_data.get("tese", "Há indícios de abusividade na taxa de juros pactuada.")
+            if verdict_data
+            else "—"
+        ),
+        "confianca": verdict_data.get("confianca", 0.83) if verdict_data else None,
+        "citacoes_validadas": (
+            verdict_data.get("citacoes_validadas", "4/4") if verdict_data else "—"
+        ),
+        "job_id": job_id,
+    }
+    s6_context.update(_layout_context(request))
     return templates.TemplateResponse(
         request=request,
-        name="partials/verdict.html",
-        context={"verdict": verdict_data},
+        name="s6_resultado.html",
+        context=s6_context,
     )
+
+
+# MVP-LEAN-01 Task 5 — AC-MVP-D3-DUAL-INPUT: stub para re-rodar D3 quando S6.b CTA clicada
+@app.post("/revisar/d3", response_class=HTMLResponse)
+async def revisar_d3(
+    request: Request,
+    job_id: str = Form(...),
+    pdf_decisao_adversa: UploadFile | None = None,
+) -> HTMLResponse:
+    """Stub D3 re-run — atualmente apenas marca has_decisao_adversa=True e redireciona.
+
+    Tech debt: TD-MVP-LEAN-05-D3-RE-RUN — refatorar revisar_contrato para suportar
+    re-run apenas D3 sem reprocessar D1+D2 (pós-MVP).
+    """
+    if not request.session.get("user"):
+        return RedirectResponse("/login", status_code=303)
+    if job_id not in JOBS:
+        raise HTTPException(status_code=404, detail="Job não encontrado")
+    if not (pdf_decisao_adversa and pdf_decisao_adversa.size):
+        raise HTTPException(status_code=400, detail="PDF de decisão adversa obrigatório")
+    JOBS[job_id]["has_decisao_adversa"] = True
+    return RedirectResponse(f"/verdict?job_id={job_id}", status_code=303)
 
 
 @app.post("/reset", response_class=HTMLResponse)

@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.13 Neo MVP-LEAN-01 Task 4 ✅ DONE — S5 Processing + C4 macro + SSE 5 events + sse_resilient.js + audit /audit/connection-drop em ~3h real (vs ~6h estimado). Suite 308+1 → 318+1 (+10 tests). 4/9 Tasks done."
-status: sprint-03-cc13-Neo-Task4-DONE-aguarda-Morpheus
+active_story: "CC.14 Neo MVP-LEAN-01 Task 5 ✅ DONE — S6 Resultado + C5 + D3 condicional + helpers + POST /revisar/d3 stub em ~2h real. Suite 318+1 → 329+1 (+11 tests). 5/9 Tasks done (55%)."
+status: sprint-03-cc14-Neo-Task5-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,23 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.14 MVP-LEAN-01 Task 5 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4+5 acumulam — 5 commits)
+  - **Implementação Task 5 (~2h real vs ~5h estimado — entrega rápida via reuso JOBS dict + helpers limpos):**
+    - `bloco_interface/web/templates/s6_resultado.html` (NEW) + `partials/c5_resultado_pane.html` (NEW macro)
+    - `bloco_interface/web/static/app.css` (M) — `.s6-*` + `.c5-card` + `--indisponivel` + `--baixar`/`--enviar` CTAs + grid 3 cols
+    - `bloco_interface/web/app.py` (M) — POST /revisar accepta `pdf_decisao_adversa`; JobState + `has_decisao_adversa`; helpers `_truncate_hash` + `_format_deliverables_for_c5`; GET /verdict refatorada renderiza s6_resultado.html (auth-required); novo POST /revisar/d3 stub
+    - `tests/integration/test_s6_resultado.py` (NEW) — 11 tests
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **329 passed, 1 skipped** (318+11 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-06 + AC-MVP-13 + AC-MVP-D3-DUAL-INPUT + AC-MVP-AUDIT
+  - **Tech debt:** TD-MVP-LEAN-05-D3-RE-RUN (LOW) — POST /revisar/d3 stub mark-flag, refactor real pós-MVP
+  - **5/9 Tasks done = 55%** — meta-marco atingido
+  - **Próximo:** handoff Neo → Morpheus → decide Task 6 (S4+S7 Error pane + C6 catch-all 7 variantes ~4h) OR pause OR push estratégico
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.14 dispatch Neo Task 5**):
+  - **Decisão CC.14:** Opção A aceita (recomendação Neo CC.13) — Task 5 sequencial; momentum bom (Tasks 1-4 ~9h vs ~15h estimado)
+  - **Branch:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4+5 acumulam)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc14-mvp-lean-01-task5.yaml` (token H-S03-CC14-MOR2NEO-001)
+  - **Próximo:** Neo executa Task 5 (~5h max) → handoff back
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.13 MVP-LEAN-01 Task 4 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4 acumulam)
   - **Implementação Task 4 (~3h real vs ~6h estimado — densa entregue rápido por reuso JOBS+revisar_contrato existente):**

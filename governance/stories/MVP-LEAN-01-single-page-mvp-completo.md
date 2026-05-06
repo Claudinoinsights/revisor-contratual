@@ -164,7 +164,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test integration: SSE happy path + timeout + onerror
   - **Mapeia a:** AC-MVP-05 + AC-MVP-12 + AC-MVP-SSE-RESILIENT + AC-MVP-AUDIT
 
-- [ ] **Task 5 — S6 Resultado + C5 Resultado pane + D3 condicional** (~5h)
+- [x] **Task 5 — S6 Resultado + C5 Resultado pane + D3 condicional** (~5h) — DONE sessão 91 CC.14 (Neo, ~2h real)
   - Template S6 com 2 variantes (S6.a D3 disponível / S6.b D3 indisponível)
   - C5 props `deliverables[i].disponivel: bool` controla rendering D3
   - Card D3 indisponível: `--surface-2` opacity 0.85 + CTA secundário "Enviar decisão" → volta a S2 mantendo `pdf_hash` do contrato
@@ -269,6 +269,20 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
 
+### Task 5 (CC.14 / sessão 91 — Neo) — S6 Resultado + C5 + D3 condicional ✅
+
+- [x] `bloco_interface/web/templates/s6_resultado.html` (NEW) — extends base.html + macro C5 + form hidden D3 + JS clipboard tooltip + JS S6.b CTA handler
+- [x] `bloco_interface/web/templates/partials/c5_resultado_pane.html` (NEW) — Jinja2 macro `resultado_pane(filename, tempo_total, hash_full, hash_truncado, audit_entry_id, veredicto_tese, confianca, citacoes_validadas, deliverables, job_id)` com lógica condicional D3 via `{% if d.disponivel %}`
+- [x] `bloco_interface/web/static/app.css` (M) — `.s6-*` (heading success, meta, audit-line, hash mono, veredicto-card Fraunces 500, deliverables-grid 3 cols), `.c5-card` + `--indisponivel` (surface-2 + opacity 0.85), `.c5-card__cta--baixar` (accent), `.c5-card__cta--enviar` (accent-soft secondary), `.s6-cta-novo`, `.s6-link-audit` (sh-500)
+- [x] `bloco_interface/web/app.py` (M):
+  - POST `/revisar`: novo param `pdf_decisao_adversa: UploadFile | None = None`; `JOBS[job_id]["has_decisao_adversa"]` populado
+  - JobState TypedDict: campo novo `has_decisao_adversa: bool`
+  - Helper `_truncate_hash(hash, head=4, tail=4)` — formato `XXXX…YYYY`
+  - Helper `_format_deliverables_for_c5(verdict_data, has_decisao_adversa)` — mapeia para 3 cards (D1/D2 sempre disponíveis; D3 condicional)
+  - GET `/verdict` modificada: renderiza `s6_resultado.html` (substitui `partials/verdict.html` no fluxo MVP-LEAN), auth-required (303 /login se sem session), context completo com hash truncado + deliverables formatados
+  - POST `/revisar/d3` stub: aceita job_id + nova decisão adversa → marca `has_decisao_adversa=True` → redirect `/verdict?job_id=...` (tech debt: TD-MVP-LEAN-05-D3-RE-RUN refatorar revisar_contrato pós-MVP)
+- [x] `tests/integration/test_s6_resultado.py` (NEW) — 11 tests cobrindo render S6 + 3 cards + variantes D3 disponível/indisponível + hash truncado + microcopy + a11y + audit link + endpoint stub D3 + auth required
+
 ### Task 4 (CC.13 / sessão 91 — Neo) — S5 Processing + C4 + SSE resilient ✅
 
 - [x] `bloco_interface/web/templates/s5_processing.html` (NEW) — extends base.html, macro C4 + script sse_resilient.js
@@ -344,6 +358,92 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 5 done 2026-05-06 (Neo sessão 91 CC.14)
+
+**Status:** InProgress (Tasks 1+2+3+4+5 done = 5/9; Tasks 6-9 pending)
+
+**Implementação Task 5 — S6 Resultado + C5 + D3 condicional (~5h estimado, ~2h real — entrega rápida via reuso JOBS dict + helpers limpos):**
+
+- **Backend (`app.py`):**
+  - POST `/revisar` aceita novo param `pdf_decisao_adversa: UploadFile | None` (D2 input opcional do S2 Task 3)
+  - `JOBS[job_id]["has_decisao_adversa"]` populado boolean
+  - JobState TypedDict expandido com campo `has_decisao_adversa: bool`
+  - Helper `_truncate_hash(full_hash, head=4, tail=4)` retorna `XXXX…YYYY` formato per ux-spec linha 519
+  - Helper `_format_deliverables_for_c5(verdict_data, has_decisao_adversa)` mapeia verdict raw para lista 3 cards [{tipo, label, descricao, formato, paginas, download_url, disponivel}] — D1/D2 sempre `disponivel:true`; D3 condicional
+  - GET `/verdict` refatorada: auth-required (303 /login se sem session); renderiza `s6_resultado.html` com context completo (filename + tempo + hash truncado + audit_entry_id + veredicto_tese + confianca + citações + deliverables); fallback para MOCK_VERDICT se job_id ausente/inválido
+  - POST `/revisar/d3` stub auth-required: aceita job_id existente + nova decisão adversa PDF → marca `has_decisao_adversa=True` → 303 redirect `/verdict?job_id=...`. Tech debt declarado para refactor real pós-MVP
+
+- **Template `s6_resultado.html`:** extends base.html; usa macro `resultado_pane()` do partial; form hidden `s6-d3-form` para upload D3 via S6.b CTA; JS pequeno (clipboard copy + S6.b CTA file picker trigger)
+
+- **Macro `partials/c5_resultado_pane.html`:**
+  - Heading "✓ Análise concluída" (Manrope 600, --success)
+  - Meta filename + tempo total
+  - Audit line com hash truncado (clickable + Enter/Space copy) + chain entry id
+  - Veredicto Juiz heading h3 (Fraunces via `.s6-veredicto-heading`) + tese (Fraunces via `.s6-veredicto-tese`)
+  - 3 articles deliverables com role="article" via grid 3 cols
+  - Lógica condicional D3: `{% if d.disponivel %}` → botão Baixar (--accent); `{% else %}` → CTA Enviar decisão (--accent-soft secondary) + indicador "(indisponível)"
+  - Botão final "Analisar outro contrato" (--accent-soft) + link "Ver entrada audit" (--sh-500)
+  - aria-label descritivo em cada botão Baixar: "Baixar Relatório Contábil PDF (12 páginas)"
+
+- **CSS `.s6-*` + `.c5-*`:**
+  - `.s6-heading` color `var(--success)` 24px Manrope 600
+  - `.s6-veredicto-card` border + padding; tese em Fraunces 500 17px line-height 1.5
+  - `.s6-hash` font-family `var(--f-mono)` + `font-feature-settings: "tnum"` para alinhamento + cursor pointer + focus-ring
+  - `.s6-deliverables-grid` 3 cols com responsive breakpoint @720px → 1 col
+  - `.c5-card--indisponivel` `bg var(--surface-2)` + `opacity 0.85` (per ux-spec)
+  - `.c5-card__cta--baixar` accent / `--enviar` accent-soft secondary com hover invertido
+  - `.s6-cta-novo` accent-soft pill / `.s6-link-audit` sh-500 underline mono
+
+- **JS pequeno (~30 LOC inline em s6_resultado.html):**
+  - Clipboard tooltip: navigator.clipboard.writeText(hash_full) on click + Enter/Space (a11y); feedback "✓ copiado" 1.5s
+  - S6.b CTA handler: clique no botão Enviar decisão → trigger file picker do input hidden no form; on change → form.submit() para POST /revisar/d3
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em arquivos modificados ✅
+- pytest baseline: 318 → **329 passed, 1 skipped** em 62.10s ✅ (+11 tests novos, zero regressão)
+
+**Tests novos (11 em `tests/integration/test_s6_resultado.py`):**
+1. `test_get_verdict_renders_s6_with_3_cards` — body com s6-container + 3× data-testid c5-card-d
+2. `test_s6_default_d3_indisponivel_no_job_id` — sem job_id → MOCK + D3 indisponível default + CTA Enviar
+3. `test_s6a_d3_disponivel_renders_baixar_button` — has_decisao_adversa=True → 3 botões Baixar; CTA Enviar NÃO renderizado
+4. `test_s6b_d3_indisponivel_renders_enviar_decisao_cta` — has_decisao_adversa=False → "(indisponível)" + tooltip + CTA Enviar
+5. `test_s6_hash_truncado_4_plus_4_chars` — hash longo `7a3fb91c...4b5c` exibido como `7a3f…4b5c`
+6. `test_s6_sumario_juiz_uses_fraunces_class` — `.s6-veredicto-heading` + texto "Veredicto Juiz"
+7. `test_s6_audit_link_present` — link "Ver entrada audit"
+8. `test_s6_a11y_articles_aria_labels` — role="article" + aria-label="Baixar Relatório Contábil PDF (12 páginas)"
+9. `test_s6_microcopy_exact_per_uxspec` — D1/D2/D3 labels + descrições + "Analisar outro contrato"
+10. `test_post_revisar_d3_stub_redirects_to_verdict` — POST /revisar/d3 com PDF → 303 + has_decisao_adversa=True
+11. `test_post_revisar_d3_requires_auth` — sem session → 303 /login
+
+**ACs cobertos:**
+- ✅ **AC-MVP-06 (S6 Resultado consolidado):** heading + meta + veredicto Juiz + 3 cards + footer
+- ✅ **AC-MVP-13 (C5 component parametrizado):** macro Jinja2 com flag `disponivel` controlando rendering D3
+- ✅ **AC-MVP-D3-DUAL-INPUT:** D3 disponibilidade ligada a `has_decisao_adversa` populado em POST /revisar; CTA "Enviar decisão" no S6.b dispara POST /revisar/d3 stub
+- ✅ **AC-MVP-AUDIT:** hash truncado 4+4 chars + audit chain entry id renderizado + clipboard copy
+
+**Anti-patterns evitados (per restrições handoff CC.14):**
+- ❌ NÃO mexeu OLLAMA-MGR-01 / lifespan / auth (Done preservados)
+- ❌ NÃO criou C6 (Task 6 ownership)
+- ❌ NÃO inventou microcopy — exata da ux-spec §4 C5 linhas 725-737 (verificado em test)
+- ❌ NÃO push (Operator EXCLUSIVE)
+- ❌ NÃO inventou features fora ACs declarados
+
+**Tech debt declarado:**
+- **TD-MVP-LEAN-05-D3-RE-RUN (LOW):** POST /revisar/d3 atualmente apenas marca flag — não re-roda pipeline real para gerar D3. Refactor profundo de `revisar_contrato` para suportar re-run apenas D3 sem reprocessar D1+D2 é tech debt pós-MVP. Para MVP, advogado deve clicar "Enviar decisão" + nova POST /revisar full (uploads ambos PDFs novamente).
+
+**Decisões técnicas autônomas Neo:**
+- **GET /verdict strategy:** Opção A — substitui partials/verdict.html no fluxo MVP-LEAN; legacy intacto (não rendered no MVP path)
+- **Re-run D3:** stub mark-flag (tech debt declarado)
+- **Clipboard JS:** inline em s6_resultado.html (KISS — 1 só lugar)
+- **Format paginas placeholder:** 12/18/24 hardcoded (real virá quando workflow popular `verdict.deliverables[i].paginas`)
+
+**Observações para Tasks futuras:**
+- Task 6 (S4+S7 Error pane + C6 catch-all + 7 variantes) substituirá tratamento de erro inline (alert no upload.js + processing-error append no sse_resilient.js) por C6 component renderizado em S7
+- Task 7 (S8 Banner CRITICAL Tema 1378) usará tema_1378 já populado em `_layout_context()`
+- Task 8 (FR-LGPD 5 camadas + APScheduler + FR-MONITOR) é a mais densa — implementação backend pesada
+- Task 9 smoke E2E real validará D3 dual-input flow completo (S2 → S5 → S6.a/b → S2 D3 only → S6.a)
+- index.html legacy + partials/verdict.html legacy permanecem — Task 9 decide remoção
 
 ### Task 4 done 2026-05-06 (Neo sessão 91 CC.13)
 
