@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.8 Operator push + PR ✅ — branch feature/sprint-03-vault-fix-01 publicada (commits 4c8f3e4 + 5c0a1b1) + PR #1 aberto para main. Aguardando Eric smoke E2E (TD-OLLAMA-SMOKE-E2E-REAL) antes de merge + tag v0.3.0"
-status: sprint-03-cc8-operator-push-PR-DONE-aguarda-Eric-smoke
+active_story: "CC.10 Neo MVP-LEAN-01 Task 1 ✅ DONE — Layout-base + estrutura HTMX swap implementado em ~1.5h. Suite 281+1 → 289+1 (+8 tests). Branch feat/mvp-lean-01-task1-layout-base committed local. Aguarda decisão Morpheus pós-Eric-smoke (push branch ou continuar Task 2)"
+status: sprint-03-cc10-Neo-Task1-DONE-aguarda-Morpheus-pos-smoke
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,41 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.10 MVP-LEAN-01 Task 1 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (criada a partir de `feature/sprint-03-vault-fix-01`)
+  - **Implementação Task 1 (~1.5h real vs ~2h estimado):**
+    - `bloco_interface/web/templates/base.html` (M) — topbar+user+CTA-Sair, banner Tema 1378 C2 (3 níveis), `<main id="app-main" aria-live="polite">`, footer C7
+    - `bloco_interface/web/static/app.css` (M) — `.topbar-user`, `.topbar-logout`, `.banner-tema-1378` (3 níveis), `.footer-c7` + focus-ring tokens
+    - `bloco_interface/web/app.py` (M) — `_read_app_version()` (lê pyproject.toml via tomllib), `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
+    - `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **289 passed, 1 skipped** (281+8 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-09 (estrutura layout) + AC-MVP-15 (footer C7) + AC-MVP-LGPD-L1 (banner persistente Tema 1378)
+  - **Anti-patterns evitados:** não mexeu OLLAMA-MGR-01, não alterou lifespan, não criou C1/C3-C6 (Tasks 2-7 ownership), No Invention rastreável
+  - **Story status:** Ready → InProgress (continua; demais Tasks 2-9 pending — mas Task 1 isolada Ready for Review)
+  - **Commit local:** pendente (próximo passo Neo)
+  - **Próximo:** handoff Neo → Morpheus → Morpheus decide entre (a) push branch + PR Task 1 isolada, (b) aguardar Eric smoke + dispatch Operator merge v0.3.0 primeiro, (c) Neo continuar Task 2 (S1 Login + C1 ~3h) sequencial
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.10 dispatch Neo MVP-LEAN-01 Task 1 paralelo**):
+  - **Decisão CC.10:** Eric "executar o recomendado sempre pelas Skill" — interpretação estrita: smoke E2E é humano (não-Skill), próxima Skill possível = Opção 2 (Neo paralelo)
+  - **Task alvo:** **MVP-LEAN-01 Task 1 — Layout-base + estrutura HTMX swap** (~2h)
+    - Topbar persistente (`--topbar-h` 56px) com nome de usuário + CTA "Sair"
+    - Banner Tema 1378 persistente (componente C2)
+    - `<main id="app-main" aria-live="polite">` como target HTMX swap
+    - Footer C7 (versão + link audit.jsonl + LGPD disclaimer)
+    - Mapeia: AC-MVP-09/15 + ADR-013 §2.3 + ux-spec layout-base
+  - **Branch sugerida Neo:** `feat/mvp-lean-01-task1-layout-base` (criada localmente; @devops fará push após Task 1 done)
+  - **Status MVP-LEAN-01:** Ready → InProgress (Neo atualiza inline ao iniciar)
+  - **Justificativa risco-baixo paralelo:** baseline 281+1 + Oracle PASS torna improvável que smoke E2E revele problema arquitetural; Task 1 é layout-only (não toca Ollama nem pipeline) — divergência potencial com smoke FAIL é mínima
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc10-mvp-lean-01-task1.yaml` (token H-S03-CC10-MOR2NEO-001)
+  - **Próximo:** Neo executa Task 1 → atualiza story Dev Agent Record → handoff Neo → Morpheus → Morpheus consolida + decide próxima Task OR aguarda Eric smoke completar
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.9 instruções Eric smoke E2E**):
+  - **Decisão CC.9:** Opção A (Operator-recomendada) — sinalizar Eric com instruções smoke E2E
+  - **Justificativa:** v0.3.0 é o marco real desta sprint; MVP-LEAN-01 paralelo seria útil mas dispersaria foco do close-out
+  - **Artefato criado:** [governance/SMOKE-E2E-V0.3.0-INSTRUCTIONS.md](./SMOKE-E2E-V0.3.0-INSTRUCTIONS.md) — 5 cenários numerados executáveis por Eric solo (Cenário 1 cold start auto-spawn, Cenário 2 UI banner SSE auto-pull, Cenário 3 POST /revisar real PDF físico, Cenário 4 lazy respawn AC-7, Cenário 5 lockfile EC-11)
+  - **Handoff Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc9-smoke-e2e-instructions.yaml` (token H-S03-CC9-MOR2ERIC-INSTRUCTIONS-001)
+  - **Próximos passos condicionais:**
+    - **Eric reporta PASS** → dispatch Skill `LMAS:agents:devops` para `gh pr merge #1` + `git tag v0.3.0` + GitHub release (changelog auto-gerado dos commits)
+    - **Eric reporta FAIL** → dispatch Skill `LMAS:agents:dev` (Neo) para fix iterativo + re-Oracle CC.7-loop max 5 iterations + re-Operator push amend/new commit + Eric re-smoke
+    - **Eric reporta NEEDS-CLARIFICATION** → Morpheus responde dúvida específica + Eric retoma cenário onde parou
 - **Sessão 91** (@devops · Operator — 2026-05-06, **CC.8 push + PR aberto ✅**):
   - **2 commits** publicados em branch `feature/sprint-03-vault-fix-01`:
     - **`4c8f3e4`** `feat(ollama): auto-Ollama Lifecycle Management per ADR-011 [Story OLLAMA-MGR-01]` (11 files, +2106/-15 — código + 35 tests + pyproject + README + SOP)

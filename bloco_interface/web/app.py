@@ -48,12 +48,50 @@ logger = logging.getLogger(__name__)
 WEB_DIR = Path(__file__).parent
 TEMPLATES_DIR = WEB_DIR / "templates"
 STATIC_DIR = WEB_DIR / "static"
+PROJECT_ROOT = WEB_DIR.parent.parent
+PYPROJECT_PATH = PROJECT_ROOT / "pyproject.toml"
 
 # Default paths para pipeline real (alinhado com cli.py)
 DEFAULT_DATA_DIR = Path.home() / ".local" / "share" / "revisor-contratual"
 DEFAULT_VAULT_DB = DEFAULT_DATA_DIR / "vault.db"
 DEFAULT_AUDIT_PATH = DEFAULT_DATA_DIR / "audit.jsonl"
 DEFAULT_BACEN_CACHE = DEFAULT_DATA_DIR / "bacen-cache"
+
+
+def _read_app_version() -> str:
+    """MVP-LEAN-01 Task 1: lê version de pyproject.toml para footer C7."""
+    try:
+        import tomllib
+
+        with PYPROJECT_PATH.open("rb") as f:
+            data = tomllib.load(f)
+        return f"v{data['project']['version']}"
+    except (FileNotFoundError, KeyError, OSError):
+        return "v0.0.0+unknown"
+
+
+APP_VERSION = _read_app_version()
+
+
+# MVP-LEAN-01 Task 1: layout-base context defaults.
+# tema_1378 mock por enquanto (Task 7 implementa lógica FR-MONITOR real).
+DEFAULT_TEMA_1378 = {
+    "nivel": "verde",
+    "mensagem": "✓ Tema 1378 STJ — sem alterações na última verificação automática.",
+    "acoes": [],
+}
+
+
+def _layout_context(request: Request) -> dict[str, Any]:
+    """MVP-LEAN-01 Task 1: contexto compartilhado para base.html (topbar + banner + footer C7)."""
+    # SessionMiddleware nem sempre instalado (v0.3.0 — Task 2 instala). Checa scope direto.
+    session_user = request.scope.get("session", {}).get("user") if "session" in request.scope else None
+    return {
+        "session_user": session_user,
+        "tema_1378": DEFAULT_TEMA_1378,
+        "app_version": APP_VERSION,
+        "audit_url": "/audit.jsonl",
+    }
 
 # ── Validation constants (Phase A — UI-1) ──────────────────────────────────
 # AC-2: max upload size (TD-WEB-NOMAXSIZE-01)
@@ -264,11 +302,23 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLRe
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
+    context: dict[str, Any] = {"history": MOCK_HISTORY}
+    context.update(_layout_context(request))  # MVP-LEAN-01 Task 1: topbar + banner + footer
     return templates.TemplateResponse(
         request=request,
         name="index.html",
-        context={"history": MOCK_HISTORY},
+        context=context,
     )
+
+
+# MVP-LEAN-01 Task 1 — AC-MVP-LGPD-L1: logout clears session, retorna HX-Redirect.
+@app.post("/logout", response_class=HTMLResponse)
+async def logout(request: Request) -> HTMLResponse:
+    if "session" in request.scope:
+        request.scope["session"].clear()
+    response = HTMLResponse(content="", status_code=200)
+    response.headers["HX-Redirect"] = "/login"
+    return response
 
 
 @app.post("/revisar", response_class=HTMLResponse)

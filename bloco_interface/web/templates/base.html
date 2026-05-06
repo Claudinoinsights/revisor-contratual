@@ -11,9 +11,15 @@
   <script src="/static/htmx-sse.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <span class="mark">⚖</span>
-    <span class="brand">Revisor</span>
+  {# MVP-LEAN-01 Task 1 — Topbar persistente (C-topbar): mark + brand + usuário + CTA Sair #}
+  <header class="topbar" aria-label="Barra de navegação principal">
+    <span class="mark" aria-hidden="true">⚖</span>
+    <span class="brand">Revisor Contratual</span>
+    {% if session_user %}
+    <span class="topbar-user" data-testid="topbar-user">{{ session_user|e }}</span>
+    <button type="button" class="topbar-logout" data-testid="topbar-logout"
+            hx-post="/logout" hx-trigger="click">Sair</button>
+    {% endif %}
   </header>
 
   {# Phase D / OLLAMA-MGR-01 AC-6: banner SSE auto-pull progress (oculto se state=ready) #}
@@ -31,16 +37,43 @@
     </p>
   </div>
 
+  {# MVP-LEAN-01 Task 1 — Banner Tema 1378 STJ persistente (C2): visível S1-S8, 3 níveis #}
+  {% if tema_1378 and tema_1378.nivel != 'oculto' %}
+  <aside class="banner-tema-1378 banner-tema-1378--{{ tema_1378.nivel }}"
+         data-testid="banner-tema-1378"
+         {% if tema_1378.nivel == 'vermelho' %}role="alert"{% else %}role="status"{% endif %}
+         aria-live="{% if tema_1378.nivel == 'vermelho' %}assertive{% else %}polite{% endif %}">
+    <p class="banner-tema-1378__msg">{{ tema_1378.mensagem|e }}</p>
+    {% if tema_1378.acoes %}
+    <ul class="banner-tema-1378__acoes" aria-label="Ações disponíveis">
+      {% for acao in tema_1378.acoes %}
+      <li><a href="{{ acao.href|e }}">{{ acao.label|e }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </aside>
+  {% endif %}
+
   <aside class="sidebar">
     <h3>Histórico</h3>
     {% block sidebar %}{% endblock %}
   </aside>
 
-  <main class="container">
+  {# MVP-LEAN-01 Task 1 — Main com id="app-main" + aria-live para HTMX swap #}
+  <main id="app-main" class="container" aria-live="polite" aria-label="Área principal de conteúdo">
     <div id="workspace">
       {% block workspace %}{% endblock %}
     </div>
   </main>
+
+  {# MVP-LEAN-01 Task 1 — Footer C7: versão + audit.jsonl + LGPD micro-disclaimer #}
+  <footer class="footer-c7" data-testid="footer-c7" aria-label="Rodapé com versão e disclaimers">
+    <span>Revisor Contratual {{ app_version|e }}</span>
+    <span aria-hidden="true">·</span>
+    <a href="{{ audit_url|e }}" data-testid="footer-audit-link">audit.jsonl</a>
+    <span aria-hidden="true">·</span>
+    <span>100% local · LGPD §46</span>
+  </footer>
 
   {# Phase D / OLLAMA-MGR-01: handler SSE para banner ollama-status (parse + show/hide) #}
   <script>

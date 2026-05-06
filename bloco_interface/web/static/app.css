@@ -467,3 +467,113 @@ select:focus {
   background: var(--c-border, #e5e7eb);
 }
 
+/* ── MVP-LEAN-01 Task 1: Topbar user + logout (C-topbar) ────── */
+.topbar-user {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-family: var(--f-ui);
+}
+
+.topbar-logout {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 6px 14px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--f-ui);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.topbar-logout:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+}
+
+.topbar-logout:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ── MVP-LEAN-01 Task 1: Banner Tema 1378 STJ (C2 — 3 níveis) ── */
+.banner-tema-1378 {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 0;
+  right: 0;
+  z-index: 9;
+  padding: 12px 32px;
+  font-family: var(--f-ui);
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.banner-tema-1378__msg {
+  margin: 0;
+  font-weight: 500;
+}
+
+.banner-tema-1378__acoes {
+  margin: 6px 0 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+
+.banner-tema-1378__acoes a {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+.banner-tema-1378--verde {
+  background: var(--success-soft);
+  border-left: 4px solid var(--success);
+  color: var(--text);
+}
+
+.banner-tema-1378--amarelo {
+  background: var(--warning-soft);
+  border-left: 4px solid var(--warning);
+  color: var(--warning);
+}
+
+.banner-tema-1378--vermelho {
+  background: var(--danger-soft);
+  border-left: 4px solid var(--danger);
+  color: var(--danger);
+  font-weight: 600;
+}
+
+/* ── MVP-LEAN-01 Task 1: Footer C7 (versão + audit + LGPD) ──── */
+.footer-c7 {
+  text-align: center;
+  padding: 16px 32px;
+  font-family: var(--f-ui);
+  font-size: 13px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  margin-top: 32px;
+}
+
+.footer-c7 a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+.footer-c7 a:hover {
+  color: var(--accent);
+}
+
+.footer-c7 a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.footer-c7 > * + * {
+  margin-left: 8px;
+}
+

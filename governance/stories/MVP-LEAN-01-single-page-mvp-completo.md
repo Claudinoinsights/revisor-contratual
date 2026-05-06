@@ -2,7 +2,7 @@
 type: story
 id: "MVP-LEAN-01"
 title: "MVP-LEAN-01 — Single-page MVP completo (5 camadas LGPD + APScheduler + Tema 1378 + 3 deliverables D1+D2+D3)"
-status: Ready
+status: InProgress
 priority: alta
 sprint: "03"
 epic: "Sprint-03-Phase-1-MVP-LEAN"
@@ -131,7 +131,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
 
 > **Total estimado: 41-55h** consistente com PRD v1.1.2.1 §2.6. Tasks ordenadas por dependência arquitetural (Layout-base primeiro permite empilhamento dos demais estados).
 
-- [ ] **Task 1 — Layout-base + estrutura HTMX swap** (~2h)
+- [x] **Task 1 — Layout-base + estrutura HTMX swap** (~2h) — DONE sessão 91 CC.10 (Neo)
   - Topbar persistente (`--topbar-h` 56px) com nome de usuário + CTA "Sair"
   - Banner Tema 1378 persistente (componente C2 — visível S1-S8)
   - `<main id="app-main" aria-live="polite">` como target de HTMX swap
@@ -262,6 +262,13 @@ Neo (durante implementação) DEVE consultar:
 
 ## File List (a popular durante implementação)
 
+### Task 1 (CC.10 / sessão 91 — Neo) — Layout-base ✅
+
+- [x] `bloco_interface/web/templates/base.html` (M) — topbar+user+logout, banner Tema 1378 C2 (3 níveis), `<main id="app-main" aria-live="polite">`, footer C7
+- [x] `bloco_interface/web/static/app.css` (M) — `.topbar-user`, `.topbar-logout`, `.banner-tema-1378` (3 níveis), `.footer-c7` + focus-ring
+- [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
+- [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
+
 ### Backend Python
 
 - [ ] `bloco_interface/web/app.py` — FastAPI lifespan (4 etapas determinísticas) + middleware (Session + CSRF + Headers HTTP)
@@ -304,6 +311,51 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 1 done 2026-05-06 (Neo sessão 91 CC.10)
+
+**Status:** Ready → InProgress (no início CC.10) → **Ready for Review** (Task 1 done; demais Tasks 2-9 pending — story permanece InProgress mas Task 1 isolada Ready para review)
+
+**Implementação Task 1 — Layout-base + estrutura HTMX swap (~2h estimado, ~1.5h real):**
+
+- **Topbar persistente (C-topbar):** mark + brand + nome usuário (condicional `session_user`) + CTA "Sair" HTMX (`hx-post="/logout"`); altura `var(--topbar-h)` (já existente em tokens.css desde Sprint 02 UI-1); `aria-label="Barra de navegação principal"`
+- **Banner Tema 1378 (C2 — 3 níveis):** condicional `tema_1378.nivel != 'oculto'`; `role="status"` (verde/amarelo) ou `role="alert"` (vermelho); `aria-live="polite"|"assertive"`; classes BEM `.banner-tema-1378--{verde|amarelo|vermelho}` mapeando para `var(--success|warning|danger)` + `var(--*-soft)` backgrounds; tokens semânticos `--warning #8B5A0B` (CC.3 bridge) usados; lógica real fica para Task 7 (FR-MONITOR dual-layer)
+- **Main com id="app-main":** preserva `<div id="workspace">` interno como swap target dos partials Sprint 02 UI-1 (zero breakage); novo id `app-main` no `<main>` + `aria-live="polite"` + `aria-label="Área principal de conteúdo"` cobre AC-MVP-09 sem renomear hx-target existente
+- **Footer C7:** versão dinâmica (lida de `pyproject.toml` via `tomllib` stdlib, fallback `v0.0.0+unknown`); link `audit.jsonl`; LGPD micro-disclaimer "100% local · LGPD §46"; tipografia Manrope 400 13px; centralizado; `aria-label="Rodapé com versão e disclaimers"`
+- **POST /logout:** retorna 200 + header `HX-Redirect: /login`; clears `request.scope["session"]` se SessionMiddleware presente (Task 2 instala middleware — checagem defensiva via `"session" in request.scope`)
+- **Helper `_layout_context(request)`:** centraliza context dict (session_user + tema_1378 + app_version + audit_url) reutilizável por outras rotas em Tasks futuras
+
+**Quality gate empírico Neo (não Oracle):**
+- ruff `All checks passed` em `bloco_interface/web/app.py` + `tests/integration/test_layout_base.py` ✅
+- pytest baseline: 281 → **289 passed, 1 skipped** em 61.60s ✅ (+8 tests novos, zero regressão)
+
+**Tests novos (8 em `tests/integration/test_layout_base.py`):**
+1. `test_get_root_renders_topbar` — topbar + brand + aria-label
+2. `test_get_root_renders_main_with_app_main_id` — `id="app-main"` + `aria-live="polite"`
+3. `test_get_root_renders_banner_tema_1378_default_verde` — banner verde default + role="status"
+4. `test_get_root_renders_footer_c7` — footer com audit.jsonl link + 100% local + LGPD
+5. `test_get_root_footer_has_app_version` — versão dinâmica `v...`
+6. `test_post_logout_returns_hx_redirect` — POST /logout 200 + header HX-Redirect=/login
+7. `test_main_aria_label_present` — WCAG AA aria-label semântico
+8. `test_footer_aria_label_present` — WCAG AA aria-label semântico
+
+**ACs cobertos:**
+- ✅ **AC-MVP-09 (estrutura layout):** topbar + main + footer renderizam; `id="app-main"` swap target
+- ✅ **AC-MVP-15 (footer C7):** versão dinâmica + audit link + LGPD disclaimer
+- ✅ **AC-MVP-LGPD-L1 (banner Tema 1378 persistente):** 3 níveis + role/aria-live corretos
+
+**Anti-patterns evitados (per restrições handoff CC.10):**
+- ❌ NÃO mexeu em `bloco_interface/ollama_manager.py` (Done preservado)
+- ❌ NÃO alterou FastAPI lifespan (ADR-013 §2.4 ordem preservada)
+- ❌ NÃO criou C1/C3/C4/C5/C6 (Tasks 2-7 ownership)
+- ❌ NÃO inventou features fora ACs declarados (No Invention per quality-gate-enforcement.md)
+- ❌ NÃO push direto (Operator EXCLUSIVE)
+
+**Observações para Tasks futuras:**
+- Task 2 (S1 Login + C1) instalará SessionMiddleware → `session_user` populado real
+- Task 7 (S8 Banner CRITICAL + auto-trigger SOP-005) substituirá `DEFAULT_TEMA_1378` mock por lógica FR-MONITOR-01 real
+- Sidebar histórico (`<aside class="sidebar">`) preservada de Sprint 02 UI-1; Tasks futuras decidem se mantêm (Task 5 Resultado pode reusar) ou removem em favor de single-page puro
+- Helper `_read_app_version()` poderá virar utility compartilhada se outras rotas precisarem da versão
 
 ### Created 2026-05-06 (River sessão 87 CC.4)
 
