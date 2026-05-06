@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "source": "stj",
+  "last_updated": "2026-05-05T22:00:00Z",
+  "last_refresh_method": "seed",
+  "last_refresh_audit_log": "bloco_vault/data/DATASET-CHANGELOG.md",
+  "total_entries": 5,
+  "entries": [
+    {
+      "numero": "382",
+      "texto": "A estipulação de juros remuneratórios superiores a 12% ao ano, por si só, não indica abusividade.",
+      "data_aprovacao": "2009-04-08",
+      "revogada": false,
+      "area": "civil",
+      "fonte_url": "https://www.stj.jus.br/sumulas/sumula-382",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "de776db0563a04848d03a03680704178f87e3f068dbfe42f00483f18bbfe6432"
+    },
+    {
+      "numero": "381",
+      "texto": "Nos contratos bancários, é vedado ao julgador conhecer, de ofício, da abusividade das cláusulas.",
+      "data_aprovacao": "2009-04-08",
+      "revogada": false,
+      "area": "civil",
+      "fonte_url": "https://www.stj.jus.br/sumulas/sumula-381",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "79eaa8bff883b2ba2a6973da9fc97f50b99b0d18c04cebe5eec2708762474f44"
+    },
+    {
+      "numero": "380",
+      "texto": "A simples propositura da ação de revisão de contrato não inibe a caracterização da mora do autor.",
+      "data_aprovacao": "2009-04-08",
+      "revogada": false,
+      "area": "civil",
+      "fonte_url": "https://www.stj.jus.br/sumulas/sumula-380",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "a71c1deed663276c340ccee94e93f022bc1476f971766d97c1896cb61e1b4996"
+    },
+    {
+      "numero": "297",
+      "texto": "O Código de Defesa do Consumidor é aplicável às instituições financeiras.",
+      "data_aprovacao": "2004-09-12",
+      "revogada": false,
+      "area": "civil",
+      "fonte_url": "https://www.stj.jus.br/sumulas/sumula-297",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "d726ef427b26536d196e05d4efa6011188758f54c79b40c194cb983f8dce8045"
+    },
+    {
+      "numero": "541",
+      "texto": "A previsão no contrato bancário de taxa de juros anual superior ao duodécuplo da mensal é suficiente para permitir a cobrança da taxa efetiva anual contratada.",
+      "data_aprovacao": "2015-06-10",
+      "revogada": false,
+      "area": "civil",
+      "fonte_url": "https://www.stj.jus.br/sumulas/sumula-541",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "d4717f29a145604c38bb488dafe0d06fce1db3c747b38314112ac1c0929654b8"
+    }
+  ]
+}

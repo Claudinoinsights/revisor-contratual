@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "source": "stf",
+  "last_updated": "2026-05-05T22:00:00Z",
+  "last_refresh_method": "seed",
+  "last_refresh_audit_log": "bloco_vault/data/DATASET-CHANGELOG.md",
+  "total_entries": 5,
+  "entries": [
+    {
+      "numero": 7,
+      "texto": "A norma do §3º do artigo 192 da Constituição, revogada pela Emenda Constitucional nº 40/2003, que limitava a taxa de juros reais a 12% ao ano, tinha sua aplicação condicionada à edição de lei complementar.",
+      "data_aprovacao": "2008-06-12",
+      "revogada": false,
+      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1217",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "bc640fd5ee67d81acde8d32cd09bafb4b94c3b641aaea8111cd326f84a2c90b3"
+    },
+    {
+      "numero": 25,
+      "texto": "É ilícita a prisão civil de depositário infiel, qualquer que seja a modalidade do depósito.",
+      "data_aprovacao": "2009-12-16",
+      "revogada": false,
+      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1264",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "4cca238c5cc2983bfd9506cd6d197cb31b0de7a1629900ed177a696064f5be32"
+    },
+    {
+      "numero": 27,
+      "texto": "Compete à Justiça estadual julgar causas entre consumidor e concessionária de serviço público de telefonia, quando a ANATEL não seja litisconsorte passiva necessária, assistente, nem opoente.",
+      "data_aprovacao": "2010-02-16",
+      "revogada": false,
+      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1266",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "3eafa3bb145190074e2260400c83c4359f80d00893c2cab2d47345200751247c"
+    },
+    {
+      "numero": 28,
+      "texto": "É inconstitucional a exigência de depósito prévio como requisito de admissibilidade de ação judicial na qual se pretenda discutir a exigibilidade de crédito tributário.",
+      "data_aprovacao": "2010-02-17",
+      "revogada": false,
+      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1267",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "e5117b2f3fab1f553c42c17a0b6b7f3aa9738e7cb8c3524c1bebb66ea869b66f"
+    },
+    {
+      "numero": 32,
+      "texto": "É inconstitucional o cobranca de inscrição em concurso público de candidatos, antes da aprovação da lei orçamentária correspondente.",
+      "data_aprovacao": "2011-02-16",
+      "revogada": false,
+      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1271",
+      "fetched_at": "2026-05-05T22:00:00Z",
+      "hash_sha256": "5ec70ef820804b0d5a215f6639f72abcb94454a8bc83b33ff4d0a7db1359b1c9"
+    }
+  ]
+}

@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import tempfile
 import uuid
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -35,7 +37,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from bloco_vault import open_vault
+from bloco_vault.populate import BUNDLED_DATA_DIR, populate_vault_if_needed
 from bloco_workflow import revisar_contrato
+
+logger = logging.getLogger(__name__)
 
 # ── Paths ─────────────────────────────────────────────────────────────────
 WEB_DIR = Path(__file__).parent
@@ -110,8 +115,28 @@ class JobState(TypedDict):
 JOBS: dict[str, JobState] = {}
 
 
+# ── Lifespan (Phase C — VAULT-FIX-01) ─────────────────────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Startup/shutdown hooks. Idempotent vault population per ADR-012."""
+    try:
+        result = populate_vault_if_needed(DEFAULT_VAULT_DB, BUNDLED_DATA_DIR)
+        if result["populated"]:
+            logger.info(
+                "Vault populated from bundled: %d STJ + %d STF SV",
+                result["stj_count"],
+                result["stf_count"],
+            )
+        else:
+            logger.info("Vault populate skipped: %s", result["skipped_reason"])
+    except Exception as exc:  # noqa: BLE001
+        # Não bloquear startup — pipeline_stream já tem fallback se vault ausente
+        logger.exception("Vault populate failed at startup: %s", exc)
+    yield
+
+
 # ── App ───────────────────────────────────────────────────────────────────
-app = FastAPI(title="Revisor Contratual", version="0.2.0")
+app = FastAPI(title="Revisor Contratual", version="0.2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
