@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.15 Morpheus dispatch Operator push branch Tasks 1-5 + create PR #2 para main (Opção C recomendação Neo). 5/9 Tasks done. PR #1 OLLAMA-MGR-01 ainda OPEN aguardando Eric smoke."
-status: sprint-03-cc15-morpheus-dispatch-Operator-push-Tasks-1-5-PR2
+active_story: "CC.15 Operator push + PR #2 ✅ — branch feat/mvp-lean-01-task1-layout-base publicada (6 commits), PR #2 OPEN+MERGEABLE marco 5/9. PR #1 OLLAMA-MGR-01 ainda OPEN aguardando Eric smoke. Tasks 6-9 sessão fresca."
+status: sprint-03-cc15-Operator-push-PR2-DONE-aguarda-Eric-smoke-OR-Tasks-6-9
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,21 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@devops · Operator — 2026-05-06, **CC.15 push + PR #2 ✅ DONE**):
+  - **6 commits publicados** em `feat/mvp-lean-01-task1-layout-base` (Tasks 1-5 + governance):
+    - `2e16fdb` Task 1 layout-base
+    - `f81537b` Task 2 auth
+    - `feb1b26` Task 3 S2 pre-upload
+    - `2b91e44` Task 4 S5 Processing + SSE resilient
+    - `cd4a2d7` Task 5 S6 Resultado + D3 condicional
+    - `41b2d8b` docs(governance) SMOKE-E2E-V0.3.0-INSTRUCTIONS.md + CC.9-15 checkpoint trail
+  - **PR #2 aberto:** [#2 — feat(ui): MVP-LEAN-01 Tasks 1-5 + 48 tests](https://github.com/Claudinoinsights/revisor-contratual/pull/2) (base: main, head: feat/mvp-lean-01-task1-layout-base, **OPEN + MERGEABLE**)
+  - **Pre-push quality gate empírico Operator:**
+    - ruff `All checks passed` em 7 arquivos MVP-LEAN modificados ✅ (25 erros em arquivos pré-existentes não-MVP-LEAN documentados como tech debt fora deste PR)
+    - pytest **329 passed, 1 skipped** em 62.96s ✅ (zero regressão)
+  - **Estado PRs:** PR #1 OLLAMA-MGR-01 OPEN (aguardando Eric smoke) + PR #2 MVP-LEAN-01 Tasks 1-5 OPEN (aguardando review)
+  - **Bloqueio explícito:** merge PR #1 + tag v0.3.0 ainda aguardam Eric smoke; PR #2 aguarda review independente
+  - **Próximo:** Morpheus consolida CC.15 + sinaliza Eric (review PR #1 + PR #2 paralelos OR smoke E2E primeiro); Tasks 6-9 em sessão fresca pós-merge
 - **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.15 dispatch Operator push Tasks 1-5**):
   - **Decisão CC.15:** Opção C aceita (recomendação Neo CC.14) — Push estratégico AGORA, marco 5/9 = 55%
   - **Justificativa:** Tasks 1-5 levaram ~11h vs ~20h estimado; marco 55% é ponto natural review; Task 8 (FR-LGPD 5 camadas + APScheduler + FR-MONITOR ~14-16h) é a mais densa e merece sessão fresca; reduz risco de perda de trabalho
