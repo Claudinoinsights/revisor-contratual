@@ -191,7 +191,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test integration: trigger fail 2× consecutivas → renderiza S8 + main disabled
   - **Mapeia a:** AC-MVP-08 + AC-MVP-10 + AC-MVP-MONITOR
 
-- [~] **Task 8 — FR-LGPD 5 camadas + FR-BACKUP APScheduler + FR-MONITOR dual-layer** (~14-16h — task mais densa) — **PARTIAL DONE** sessão 91 CC.21 (Neo, ~3h real). Sub-componentes deferred: FR-MONITOR Camada 1 scraper + auto-trigger (Task 8b futuro)
+- [x] **Task 8 — FR-LGPD 5 camadas + FR-BACKUP APScheduler + FR-MONITOR dual-layer** (~14-16h — task mais densa) — **DONE** sessão 91 (CC.21 Task 8 PARTIAL ~3h + CC.24 Task 8b ~2h = ~5h real). FR-MONITOR Camada 1 scraper + auto-trigger fechados via Task 8b.
   - **L1 Auth (preservada/integrada):** bcrypt + AUTH_USERNAME + AUTH_PASSWORD_HASH em `.env`
   - **L2 Sessão segura:** Starlette `SessionMiddleware(https_only=True, samesite="strict")` + CSRF middleware + `SESSION_SECRET` ≥32 bytes em `.env` (gerado via `secrets.token_urlsafe(32)`)
   - **L3 Headers HTTP:** middleware adicionando CSP `default-src 'self'; ... ; frame-ancestors 'none'` + X-Frame-Options DENY + X-Content-Type-Options nosniff + HSTS opcional
@@ -389,6 +389,60 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 8b done 2026-05-06 (Neo sessão 91 CC.24)
+
+**Status:** InProgress (Tasks 1-7 done + Task 8 done [T8 PARTIAL CC.21 + T8b CC.24] = 8/9; Task 9 pending)
+
+**Implementação Task 8b — FR-MONITOR Camada 1 scraper Tema 1378 + auto-trigger lifespan (~3-5h estimado, ~2h real):**
+
+- **`bloco_dataset/scraper_tema_1378.py` (NEW ~190 LOC):** `scrape_tema_1378(url=DEFAULT_STJ_URL)` com httpx.Client sync (decisão autônoma Neo: APScheduler é sync, async não traz benefício para 1 GET daily). Retry exponencial 2s/4s/8s (3 tentativas) em 5xx + connection/timeout errors; 4xx → ScraperError fail-loud imediato (não-retentável). Parser resilient com 3 estratégias fallback chain: (1) CSS class regex (`tema-status|tema-1378|tema-repetitivo`), (2) semantic tag com `data-tema="1378"`, (3) text-pattern fallback no HTML body. `_classify_snippet` extrai julgamento_data (regex DD/MM/YYYY) + tese_fixada → classifica nivel verde/amarelo/vermelho. **Fail-loud em zero matches** (anti-pattern silencioso proibido — drift no site STJ deve ser visível).
+
+- **`bloco_dataset/auto_trigger.py` (NEW ~100 LOC):** `run_camada_1_check(audit_path, url)` é a cola APScheduler ↔ tema_1378_state Task 7. Try `scrape_tema_1378()`: sucesso → `reset_to_verde()` (nivel verde) OU `set_state(nivel detectado)` com fail_count=0; ScraperError → `increment_fail()` Task 7 (auto-CRITICAL em ≥2 fails); qualquer Exception inesperada também → `increment_fail()`. **NUNCA propaga exception** (job background; falha silenciosa do job seria perda total de visibilidade — capturamos tudo + audit + log). Audit entry `tema_1378_auto_check` em audit.jsonl (status: success/fail_scraper/fail_unexpected).
+
+- **`bloco_backup/scheduler.py` (MOD):** adicionado 3º job `tema_1378_check` com CronTrigger hour=2 minute=30 UTC daily (após backup_daily 02:00). Import de `auto_trigger.run_camada_1_check`.
+
+- **`tests/integration/test_task8_lgpd_backup.py` (MOD):** `test_create_scheduler_has_2_jobs` → renomeado para `test_create_scheduler_has_3_jobs` + assertion atualizada para incluir `tema_1378_check`.
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em arquivos novos/modificados Task 8b ✅
+- pytest: baseline **374 passed + 3 skipped** → **387 passed + 3 skipped** em 63.49s ✅ (+13 tests Task 8b; zero regressão)
+
+**Tests novos (13 em `tests/integration/test_task8b_camada1_scraper.py`):**
+- 3 HTTP layer (success returns dict + 5xx retry exhausted + 4xx fail-loud sem retry)
+- 4 parser strategies (1 CSS class + 2 semantic tag + 3 text-pattern verde/tese + zero match raise)
+- 4 auto_trigger integration (success reset_to_verde + ScraperError increment_fail + 2 fails → vermelho + Exception genérica caught)
+- 1 unit `_classify_snippet` (julgamento sem tese → amarelo)
+- 1 fixture autouse: `monkeypatch.setattr(scraper.time, "sleep", lambda _: None)` para zerar 2s/4s/8s waits em testes 5xx
+
+**ACs cobertos:**
+- ✅ **AC-MVP-MONITOR Camada 1:** scraper httpx retry + parser resilient + fail-loud done; integrado scheduler 02:30 UTC; integrado state machine Task 7 (verde/amarelo/vermelho transitions automáticas)
+- ✅ **AC-MVP-LIFESPAN-ORDER §2.4:** scheduler.start() em lifespan startup (já feito CC.21) agora carrega 3 jobs incluindo tema_1378_check
+
+**Tech debt fechado:**
+- ✅ TD-MVP-LEAN-08-CAMADA-1-SCRAPER (HIGH) — implementação done
+- ✅ TD-MVP-LEAN-08-AUTOTRIGGER (HIGH) — implementação done
+
+**Tech debt remanescente:**
+- ⚠️ **TD-MVP-LEAN-08B-URL-VERIFY (MED):** `DEFAULT_STJ_URL = "https://www.stj.jus.br/repetitivos/temas_repetitivos/"` é placeholder. Maintainer (Eric) confirma URL real do STJ pré-deploy. Patterns de parser (CSS class names específicas, regex de julgamento/tese) também precisam tuning empírico contra HTML real do STJ — pode requerer ajuste fino quando URL real for testada.
+- ⚠️ **TD-MVP-LEAN-08-FERNET-WIRE (LOW):** `encrypt_pdf` ainda não está wired em POST /revisar (refactor minor Task 9).
+
+**Decisões autônomas Neo (CC.24):**
+1. **httpx.Client sync (não AsyncClient)** — APScheduler executa jobs em thread pool sync; asyncio.run() dentro do job adicionaria overhead sem benefício real (1 GET daily). Documentado em scraper_tema_1378.py docstring.
+2. **`auto_trigger.py` módulo separado** (não inline em scheduler.py) — separa concerns: scheduler.py orquestra timing, auto_trigger.py orquestra logic scrape↔state. Recomendado pelo handoff Opção B.
+3. **`URL placeholder` + tech debt TD-MVP-LEAN-08B-URL-VERIFY** vs. HALT pedindo URL exata — recomendado pelo handoff Opção A; preserva fluxo de implementação e testes mockam tudo.
+
+**File List Task 8b:**
+- NEW: `bloco_dataset/scraper_tema_1378.py` (190 LOC)
+- NEW: `bloco_dataset/auto_trigger.py` (100 LOC)
+- NEW: `tests/integration/test_task8b_camada1_scraper.py` (13 tests)
+- MOD: `bloco_backup/scheduler.py` (+1 import + 1 job tema_1378_check)
+- MOD: `tests/integration/test_task8_lgpd_backup.py` (rename test 2_jobs → 3_jobs + assertion atualizada)
+
+**Próximos passos:**
+- Task 9 (Neo, ~4-5h): smoke E2E real + audit chain HMAC verification → MVP-LEAN-01 Done 9/9 = 100%
+
+---
 
 ### Task 8 PARTIAL done 2026-05-06 (Neo sessão 91 CC.21)
 

@@ -223,12 +223,13 @@ def test_is_posix_returns_correct_value() -> None:
 
 # ── APScheduler backup ────────────────────────────────────────────────────
 @pytest.mark.integration
-def test_create_scheduler_has_2_jobs() -> None:
-    """APScheduler: scheduler tem 2 jobs registrados (backup_daily + backup_rotation)."""
+def test_create_scheduler_has_3_jobs() -> None:
+    """APScheduler: scheduler tem 3 jobs (backup_daily + backup_rotation + tema_1378_check Task 8b)."""
     sched = scheduler_mod.create_scheduler()
     job_ids = {job.id for job in sched.get_jobs()}
     assert "backup_daily" in job_ids
     assert "backup_rotation" in job_ids
+    assert "tema_1378_check" in job_ids
 
 
 @pytest.mark.integration

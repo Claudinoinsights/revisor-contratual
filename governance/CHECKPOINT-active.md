@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.22 Operator push T8 PARTIAL ✅ — fast-forward bf15376..d6baff2 publicado, PR #2 atualizado para 7.5/9 = 83% via comment. Sessão 91 entregou MVP foundation completa. Tasks 8b+9 em sessão dedicada fresca."
-status: sprint-03-cc22-Operator-push-T8-PARTIAL-DONE-PR2-83-percent-pause-final
+active_story: "CC.24 Neo Task 8b DONE (FR-MONITOR Camada 1 scraper + auto-trigger lifespan, ~2h real vs ~3-5h estimado, 13 testes novos, 387 passed + 3 skipped). Task 8 = 8/9 DONE. Aguarda handoff Morpheus consolidar."
+status: sprint-03-cc24-neo-task8b-done-aguarda-morpheus-consolidacao
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,46 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.24 Neo Task 8b DONE** (@dev · Neo — 2026-05-06, **Camada 1 scraper + auto-trigger ~2h real**):
+  - **Implementação:** `bloco_dataset/scraper_tema_1378.py` (NEW 190 LOC) + `bloco_dataset/auto_trigger.py` (NEW 100 LOC) + `bloco_backup/scheduler.py` (MOD: 3º job tema_1378_check 02:30 UTC) + 13 testes novos em `test_task8b_camada1_scraper.py`
+  - **Decisões autônomas Neo:**
+    - httpx.Client sync (não AsyncClient) — APScheduler é sync, async sem benefício real para 1 GET daily
+    - `auto_trigger.py` módulo separado — separa concerns scheduler/logic (Opção B handoff)
+    - URL placeholder + tech debt TD-MVP-LEAN-08B-URL-VERIFY (Opção A handoff)
+  - **Suite:** baseline 374+3 → **387 passed + 3 skipped** (+13 tests, zero regressão)
+  - **Ruff:** All checks passed em arquivos novos/modificados
+  - **Tech debts fechados:** TD-MVP-LEAN-08-CAMADA-1-SCRAPER (HIGH) + TD-MVP-LEAN-08-AUTOTRIGGER (HIGH) ambos done
+  - **Tech debt declarado:** TD-MVP-LEAN-08B-URL-VERIFY (MED) — confirmar URL STJ real pré-deploy + tuning empírico patterns parser
+  - **Story update:** Task 8 marcada [x] (T8 PARTIAL CC.21 + T8b CC.24 = 8/9 done; só Task 9 pending)
+  - **Handoff Neo → Morpheus:** a ser emitido (token H-S03-CC24-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.24 + decide T9 / pause / push T8b incremental
+- **Sessão 91 reaberta CC.24** (@lmas-master · Morpheus — 2026-05-06, **dispatch Neo Task 8b Trilha 3**):
+  - **Decisão CC.24:** Eric persistiu "executar via Skill" pós-pause oferecido — interpretação: Trilha 3 (Task 8b) é única próxima ação Skill-dispachável da ordem natural sugerida CC.23
+  - **Estratégia Task 8b:** implementação focada — Camada 1 scraper Tema 1378 (httpx retry + parser resilient 3 fallbacks) + lifespan scheduler.add_job para scrape periódico; adversarial review Smith DEFERRED (separado)
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Tasks 1-8b acumulam)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc24-mvp-lean-01-task8b.yaml` (token H-S03-CC24-MOR2NEO-001)
+  - **HALT obrigatório 5h** se ultrapassar (regra dev-story blocking)
+  - **Próximo:** Neo executa Task 8b (~3-5h) → handoff back → Morpheus consolida + decide T9 OR pause
+- **Sessão 91 OFICIALMENTE FECHADA** (@lmas-master · Morpheus — 2026-05-06, **CC.23 consolidação final definitiva**):
+  - **17 etapas CC sequenciais** completadas (CC.6 → CC.22)
+  - **2 PRs publicados:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE **7.5/9 = 83%** — bloqueio review independente
+  - **Métricas finais:**
+    - OLLAMA-MGR-01 Done (Oracle CC.7 PASS) + 7.5/9 MVP-LEAN-01 Tasks
+    - Suite remote: **374 passed + 3 skipped** (281 OLLAMA baseline + 93 novos MVP-LEAN T1-T8 PARTIAL)
+    - Zero regressão acumulada em 17 etapas
+    - Tempo real Tasks 1-8 PARTIAL: ~15.5h vs ~38h estimado (~40% eficiência)
+  - **Pause estratégico DEFINITIVO aceito** (recomendação convergente Neo + Operator + Morpheus)
+  - **Handoff Morpheus → Eric (FINAL):** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc23-final-definitive.yaml` (token H-S03-CC23-MOR2ERIC-FINAL-DEFINITIVE-001)
+  - **5 trilhas de retomada quando Eric voltar:**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1 merge + tag v0.3.0 release (~30-60min)
+    - 📋 Trilha 2: Review PR #2 (7.5/9) → merge → continuar (~30-60min)
+    - ⚡ Trilha 3: Task 8b sessão dedicada (Camada 1 scraper + auto-trigger Smith ~3-5h)
+    - 🎯 Trilha 4: Task 9 standalone (smoke E2E real + audit chain ~4-5h, após T8b)
+    - ⏸️ Trilha 5: Pause indefinido (marcos preservados em remote)
+  - **Tasks 8-9 pending:** sessão dedicada fresca pós-pause
+  - **Tech debts T8b declarados:** TD-MVP-LEAN-08-CAMADA-1-SCRAPER HIGH + TD-MVP-LEAN-08-AUTOTRIGGER HIGH + TD-MVP-LEAN-08-CSRF-LIB LOW
 - **Sessão 91** (@devops · Operator — 2026-05-06, **CC.22 push T8 PARTIAL ✅ DONE — sessão final**):
   - **Push fast-forward:** `bf15376..d6baff2` → `origin/feat/mvp-lean-01-task1-layout-base` ✅
   - **1 commit publicado** (T8 PARTIAL amended com fix ruff E501):
