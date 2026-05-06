@@ -1272,3 +1272,26 @@ select:focus {
   color: white;
 }
 
+/* ── MVP-LEAN-01 Task 7: main desabilitado quando banner CRITICAL ─────── */
+.main-disabled {
+  opacity: var(--opacity-disabled);
+  cursor: var(--cursor-disabled);
+  pointer-events: none;
+  user-select: none;
+}
+
+.main-disabled::before {
+  content: "Análises pausadas — Tema 1378 em revisão";
+  display: block;
+  position: sticky;
+  top: 0;
+  background: var(--danger-soft);
+  color: var(--danger);
+  text-align: center;
+  padding: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--danger);
+  margin-bottom: 16px;
+}
+

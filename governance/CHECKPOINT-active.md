@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.17 Neo MVP-LEAN-01 Task 6 ✅ DONE — S7 Error pane + C6 catch-all + 9 variantes (1 infra_unknown + 8 específicas) + handler central + global Exception handler em ~1.5h real. Suite 329+1 → 346+1 (+17 tests). 6/9 Tasks done (67%)."
-status: sprint-03-cc17-Neo-Task6-DONE-aguarda-Morpheus
+active_story: "CC.18 Neo MVP-LEAN-01 Task 7 ✅ DONE — S8 Banner CRITICAL + tema_1378_state module (atomic write) + POST /monitor-tema/acknowledge + main-disabled em ~1.5h real. Suite 346+1 → 359+1 (+13 tests). 7/9 Tasks done (78%)."
+status: sprint-03-cc18-Neo-Task7-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,23 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.18 MVP-LEAN-01 Task 7 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-7 acumulam local; 5 no remote PR #2)
+  - **Implementação Task 7 (~1.5h real vs ~3h estimado):**
+    - `bloco_dataset/__init__.py` (NEW) + `bloco_dataset/tema_1378_state.py` (NEW ~150 LOC) — STATE_FILE atomic write API + 5 funcs (get_current/set_state/increment_fail/acknowledge/reset_to_verde) + MICROCOPY 5 entries
+    - `bloco_interface/web/app.py` (M) — _layout_context usa state file dinâmico + main_disabled flag + novo POST /monitor-tema/acknowledge
+    - `bloco_interface/web/templates/base.html` (M) — main com class condicional main-disabled + aria-disabled
+    - `bloco_interface/web/static/app.css` (M) — `.main-disabled` (opacity + cursor + pointer-events none + sticky pseudo-element banner)
+    - `tests/integration/test_s8_banner_critical.py` (NEW ~280 LOC, 13 tests)
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **359 passed, 1 skipped** (346+13 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-08 + AC-MVP-10 + AC-MVP-MONITOR
+  - **7/9 Tasks done = 78%** — penúltimo marco; falta Task 8 (FR-LGPD + APScheduler + Camada 1 ~14-16h DENSA) + Task 9 (smoke E2E + audit ~4-5h)
+  - **Próximo:** handoff Neo → Morpheus → decide T8 sessão dedicada OU pause estratégico (T8 é mais densa de toda story)
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.18 dispatch Neo Task 7**):
+  - **Decisão CC.18:** Opção A aceita (recomendação Neo CC.17) — Task 7 sequencial; Task 8 dedicada depois
+  - **Branch:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-7 acumulam local; 5 no remote PR #2)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc18-mvp-lean-01-task7.yaml` (token H-S03-CC18-MOR2NEO-001)
+  - **Próximo:** Neo executa Task 7 (~3h) → handoff back
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.17 MVP-LEAN-01 Task 6 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-6 acumulam — PR #2 OPEN no remote)
   - **Implementação Task 6 (~1.5h real vs ~4h estimado — entrega rápida via padrão SOP-003 estruturado):**

@@ -182,7 +182,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test integration: cada variante reproduz exception → renderiza C6 correto
   - **Mapeia a:** AC-MVP-04 + AC-MVP-07 + AC-MVP-14 + AC-MVP-ERRORS
 
-- [ ] **Task 7 — S8 Banner CRITICAL + C2 Banner 3 níveis + auto-trigger SOP-005** (~3h)
+- [x] **Task 7 — S8 Banner CRITICAL + C2 Banner 3 níveis + auto-trigger SOP-005** (~3h) — DONE sessão 91 CC.18 (Neo, ~1.5h real)
   - C2 Banner componente renderiza 3 níveis (verde/amarelo/vermelho) com hierarquia de bloqueio
   - State file `~/.local/share/revisor-contratual/tema_1378_status.json` persiste estado
   - Auto-trigger: 2 execuções consecutivas Camada 1 fail-loud → CRITICAL alert + state file flag VERMELHO
@@ -268,6 +268,14 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/static/app.css` (M) — `.topbar-user`, `.topbar-logout`, `.banner-tema-1378` (3 níveis), `.footer-c7` + focus-ring
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
+
+### Task 7 (CC.18 / sessão 91 — Neo) — S8 Banner CRITICAL + state file + ack ✅
+
+- [x] `bloco_dataset/__init__.py` (NEW) + `bloco_dataset/tema_1378_state.py` (NEW ~150 LOC) — STATE_FILE path com env override REVISOR_DATA_DIR; `get_current()` (fallback robusto); `set_state()` atomic write (tempfile + os.replace); `increment_fail()` (auto-trigger CRITICAL em 2 fails); `acknowledge()` (VERMELHO → AMARELO + audit entry); `reset_to_verde()`; MICROCOPY dict 5 entries exato per ux-spec
+- [x] `bloco_interface/web/app.py` (M) — `_layout_context()` agora usa `tema_1378_state.get_current()` (substitui DEFAULT_TEMA_1378 mock); novo `main_disabled` flag context = (nivel == "vermelho"); novo POST `/monitor-tema/acknowledge` auth-required com HX-Redirect=/ + header X-Tema-1378-Nivel
+- [x] `bloco_interface/web/templates/base.html` (M) — `<main>` com class condicional `main-disabled` + `aria-disabled="true"` + `data-testid="main-disabled"` quando context.main_disabled é True
+- [x] `bloco_interface/web/static/app.css` (M) — `.main-disabled` (opacity + cursor + pointer-events: none + user-select: none) + pseudo-element `::before` com mensagem "Análises pausadas — Tema 1378 em revisão" sticky no topo
+- [x] `tests/integration/test_s8_banner_critical.py` (NEW ~280 LOC, 13 tests) — state file API (default verde, increment fail 1×/2×, atomic write, invalid nivel, idempotent ack, downgrade vermelho→amarelo + audit) + render integration (verde/amarelo funcional, vermelho desabilita main) + endpoint POST /monitor-tema/acknowledge (200 + HX-Redirect + audit + 401 sem auth) + reset_to_verde
 
 ### Task 6 (CC.17 / sessão 91 — Neo) — S7 Error pane + C6 catch-all infra ✅
 
@@ -371,6 +379,70 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 7 done 2026-05-06 (Neo sessão 91 CC.18)
+
+**Status:** InProgress (Tasks 1-7 done = 7/9; Tasks 8-9 pending)
+
+**Implementação Task 7 — S8 Banner CRITICAL + state file + ack endpoint (~3h estimado, ~1.5h real):**
+
+- **Módulo `bloco_dataset/tema_1378_state.py` (NEW ~150 LOC):**
+  - `STATE_FILE = ~/.local/share/revisor-contratual/tema_1378_status.json` (override via env REVISOR_DATA_DIR para testes)
+  - `DEFAULT_STATE` — verde + fail_count=0
+  - `MICROCOPY` dict 5 entries exato per ux-spec linhas 642-646: verde + amarelo_1_fail + vermelho_2_fails + amarelo_julgamento + vermelho_julgamento
+  - `get_current()` — fallback robusto se file ausente OR JSON inválido → DEFAULT_STATE
+  - `set_state(nivel, mensagem, **kwargs)` — atomic write (tempfile + os.replace) garante ACID em filesystem POSIX/NTFS; valida nivel ∈ {verde, amarelo, vermelho}
+  - `increment_fail()` — incrementa fail_count; se ≥2 → auto-trigger nivel=vermelho com microcopy CRITICAL; retorna novo count (Camada 1 scraper Task 8 chama esta função)
+  - `acknowledge(audit_path)` — VERMELHO → AMARELO + grava entry `{type: tema_1378_acknowledge, previous_nivel, new_nivel, fail_count_at_ack, timestamp}` em audit.jsonl; idempotente em estado não-vermelho
+  - `reset_to_verde()` — Camada 1 OK → reset state (Task 8)
+
+- **`app.py` integração:**
+  - `_layout_context()` substitui DEFAULT_TEMA_1378 mock por `tema_1378_state.get_current()` (Tasks 1-6 retroativamente recebem state dinâmico)
+  - Novo flag `main_disabled = (nivel == "vermelho")` no context — template condicional
+  - **NEW** POST `/monitor-tema/acknowledge` auth-required → chama `state.acknowledge(audit_path=DEFAULT_AUDIT_PATH)` → 200 + `HX-Redirect: /` (reload reflete novo amarelo) + custom header `X-Tema-1378-Nivel`
+
+- **Template `base.html`:**
+  - `<main id="app-main" class="container{% if main_disabled %} main-disabled{% endif %}" aria-disabled="true" data-testid="main-disabled">`
+  - Banner C2 já tinha role="alert" condicional vermelho (Task 1) — preserva
+
+- **CSS `.main-disabled`:**
+  - opacity + cursor + pointer-events: none + user-select: none (impede interação completa)
+  - Pseudo-element `::before` sticky no topo: "Análises pausadas — Tema 1378 em revisão" (var(--danger-soft) bg + border-bottom var(--danger))
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em arquivos modificados ✅
+- pytest baseline: 346 → **359 passed, 1 skipped** em 62.98s ✅ (+13 tests novos, zero regressão)
+
+**Tests novos (13 em `tests/integration/test_s8_banner_critical.py`):**
+- 7 tests state file API: default verde, increment fail 1× → amarelo, increment fail 2× → vermelho, atomic write, invalid nivel raises, idempotent ack, downgrade vermelho → amarelo + audit
+- 3 tests render integration: verde/amarelo main funcional, vermelho main com class .main-disabled + aria-disabled
+- 2 tests POST /monitor-tema/acknowledge: 200 + HX-Redirect + state downgrade + audit entry / 401 sem auth
+- 1 test reset_to_verde: zera fail_count
+
+**ACs cobertos:**
+- ✅ **AC-MVP-08 (S8 Banner CRITICAL):** banner vermelho não-fechável + main desabilitado + role=alert
+- ✅ **AC-MVP-10 (state file):** JSON persistido com atomic write; campos nivel + mensagem + last_check + fail_count + julgamento_data + tese_fixada
+- ✅ **AC-MVP-MONITOR:** auto-trigger 2 fails consecutivas → CRITICAL + ack endpoint downgrade + audit chain entry
+
+**Anti-patterns evitados (per restrições handoff CC.18):**
+- ❌ NÃO mexeu `ollama_manager.py` / lifespan / `auth.py` (preservados)
+- ❌ NÃO criou C7 ou modificou C1/C3-C6 (Tasks ownership)
+- ❌ NÃO implementou Camada 1 scraper (Task 8 ownership) — apenas API state file `increment_fail()` para uso futuro
+- ❌ NÃO push (Operator EXCLUSIVE)
+- ❌ Microcopy EXATO per ux-spec §4 C2 linhas 642-646 (não inventei variações)
+
+**Decisões técnicas autônomas Neo:**
+- **Atomic write:** tempfile + os.replace (mais seguro que truncate-write; sobrevive a crashes mid-write)
+- **REVISOR_DATA_DIR env override:** permite testes isolados em tmp_path sem tocar state file real do user
+- **bloco_dataset module:** criado novo (story menciona explicitamente este path); inclui `__init__.py` placeholder para Task 8 scraper futuro
+- **Idempotent ack:** ack em estado não-vermelho é no-op (não muda state nem grava audit) — segurança contra clicks duplos
+- **Pseudo-element ::before disabled:** comunicação visual + textual da razão da desabilitação direto no main (não precisa banner adicional)
+
+**Observações para Tasks futuras:**
+- Task 8 (FR-MONITOR Camada 1) chama `tema_1378_state.increment_fail()` quando scrape falha + `reset_to_verde()` quando OK
+- Task 9 smoke E2E real validará flow completo (banner verde → scrape fail → amarelo → fail → vermelho + main disabled → POST ack → amarelo → reset verde)
+- Tasks 1-6 retroativamente recebem state dinâmico via `_layout_context()` — não precisam mudança
+- CLI `revisor monitor-tema --acknowledge` (story menciona) é separado deste endpoint web; ambos chamam mesma `state.acknowledge()`
 
 ### Task 6 done 2026-05-06 (Neo sessão 91 CC.17)
 

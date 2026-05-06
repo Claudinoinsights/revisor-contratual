@@ -59,8 +59,13 @@
     {% block sidebar %}{% endblock %}
   </aside>
 
-  {# MVP-LEAN-01 Task 1 — Main com id="app-main" + aria-live para HTMX swap #}
-  <main id="app-main" class="container" aria-live="polite" aria-label="Área principal de conteúdo">
+  {# MVP-LEAN-01 Task 1+7 — Main com id="app-main" + aria-live para HTMX swap.
+     Task 7: class main-disabled quando banner Tema 1378 CRITICAL (nivel=vermelho). #}
+  <main id="app-main"
+        class="container{% if main_disabled %} main-disabled{% endif %}"
+        aria-live="polite"
+        aria-label="Área principal de conteúdo"
+        {% if main_disabled %}aria-disabled="true" data-testid="main-disabled"{% endif %}>
     <div id="workspace">
       {% block workspace %}{% endblock %}
     </div>

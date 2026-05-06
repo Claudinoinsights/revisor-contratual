@@ -131,7 +131,7 @@ def test_session_secret_missing_classify_correct() -> None:
 @pytest.mark.integration
 def test_ollama_subprocess_crash_classify_correct() -> None:
     """OllamaProcessNotResponding (class name) → ollama_subprocess_crash."""
-    class OllamaProcessNotResponding(Exception):
+    class OllamaProcessNotResponding(Exception):  # noqa: N818
         pass
 
     exc = OllamaProcessNotResponding("subprocess died")

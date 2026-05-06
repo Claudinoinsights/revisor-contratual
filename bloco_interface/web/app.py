@@ -38,6 +38,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
+from bloco_dataset import tema_1378_state
 from bloco_interface import ollama_manager
 from bloco_interface.ollama_manager import OllamaBinaryNotFound, OllamaSpawnFailed
 from bloco_interface.web import auth, error_handler
@@ -86,13 +87,17 @@ DEFAULT_TEMA_1378 = {
 
 
 def _layout_context(request: Request) -> dict[str, Any]:
-    """MVP-LEAN-01 Task 1: contexto compartilhado para base.html (topbar + banner + footer C7).
+    """MVP-LEAN-01 Task 1+7: contexto compartilhado para base.html.
 
     Task 2 instala SessionMiddleware → request.session sempre disponível.
+    Task 7 substitui DEFAULT_TEMA_1378 mock por tema_1378_state.get_current() dinâmico
+    e adiciona main_disabled flag quando nivel == 'vermelho' (CRITICAL).
     """
+    tema_1378 = tema_1378_state.get_current()
     return {
         "session_user": request.session.get("user"),
-        "tema_1378": DEFAULT_TEMA_1378,
+        "tema_1378": tema_1378,
+        "main_disabled": tema_1378.get("nivel") == "vermelho",
         "app_version": APP_VERSION,
         "audit_url": "/audit.jsonl",
     }
@@ -455,6 +460,23 @@ async def logout(request: Request) -> HTMLResponse:
     request.session.clear()
     response = HTMLResponse(content="", status_code=200)
     response.headers["HX-Redirect"] = "/login"
+    return response
+
+
+# MVP-LEAN-01 Task 7 — AC-MVP-08 + AC-MVP-MONITOR: ack endpoint para banner CRITICAL
+@app.post("/monitor-tema/acknowledge", response_class=HTMLResponse)
+async def monitor_tema_acknowledge(request: Request) -> HTMLResponse:
+    """Maintainer ack via web → state desce VERMELHO → AMARELO + audit entry.
+
+    Per ux-spec linha 603: banner não-fechável até maintainer ack
+    (via CLI revisor monitor-tema --acknowledge OR esta rota).
+    """
+    if not request.session.get("user"):
+        raise HTTPException(status_code=401, detail="auth required")
+    new_state = tema_1378_state.acknowledge(audit_path=DEFAULT_AUDIT_PATH)
+    response = HTMLResponse(content="", status_code=200)
+    response.headers["HX-Redirect"] = "/"  # reload reflete novo state (amarelo)
+    response.headers["X-Tema-1378-Nivel"] = new_state.get("nivel", "unknown")
     return response
 
 
