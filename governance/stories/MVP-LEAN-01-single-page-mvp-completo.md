@@ -138,7 +138,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Footer C7 (versão + link audit.jsonl + LGPD disclaimer)
   - **Mapeia a:** AC-MVP-09/15 (estrutura) + ADR-013 §2.3 + ux-spec layout-base
 
-- [ ] **Task 2 — S1 Login + C1 Login form** (~3h)
+- [x] **Task 2 — S1 Login + C1 Login form** (~3h) — DONE sessão 91 CC.11 (Neo)
   - Template Jinja2 S1 Login com Fraunces 500 H1 + form HTMX
   - C1 Login form com CSRF token hidden + bcrypt verify + Starlette SessionMiddleware
   - Erro auth genérico (mitiga enumeration); aria-live="polite"
@@ -269,6 +269,16 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
 
+### Task 2 (CC.11 / sessão 91 — Neo) — S1 Login + C1 form ✅
+
+- [x] `bloco_interface/web/auth.py` (NEW) — `get_secret_key()`, `get_admin_credentials()`, `verify_password()` bcrypt, `authenticate()` anti-enumeration constant-time, `generate_csrf_token()`, `verify_csrf_token()` hmac.compare_digest
+- [x] `bloco_interface/web/app.py` (M) — SessionMiddleware (24h max_age, samesite=lax, https_only=env-toggle), GET `/login` (gera CSRF + renderiza S1), POST `/login` (CSRF verify + bcrypt + session fixation mitigation), GET `/` protegida (303 redirect /login se sem session), helper `_render_login_error()`
+- [x] `bloco_interface/web/templates/s1_login.html` (NEW) — `{% extends "base.html" %}` com h1 Fraunces 500, form HTMX hx-post=/login + hx-swap=outerHTML, CSRF hidden, autofocus username, aria-live="polite" no erro; tema_1378="oculto" + session_user=None pré-auth (per ux-spec §3 S1)
+- [x] `bloco_interface/web/static/app.css` (M) — `.login-container`, `.login-title` (Fraunces), `.login-subtitle`, `.login-form` + inputs + focus-ring, `.login-submit` + hover, `.login-error` (danger soft + border-left)
+- [x] `pyproject.toml` (M) — `bcrypt>=4.0` + `itsdangerous>=2.0` adicionadas
+- [x] `tests/integration/test_login_flow.py` (NEW) — 9 tests: GET /login form + CSRF, banner/topbar omissões pré-auth, login success HX-Redirect=/, anti-enumeration (wrong password vs wrong username retornam mesma 401 + msg), CSRF inválido 403, GET / redirect 303, integração logout
+- [x] `tests/integration/test_layout_base.py` (M) — fixture refatorado: env vars test + login automático antes de yield (Task 2 protege GET /)
+
 ### Backend Python
 
 - [ ] `bloco_interface/web/app.py` — FastAPI lifespan (4 etapas determinísticas) + middleware (Session + CSRF + Headers HTTP)
@@ -311,6 +321,89 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 2 done 2026-05-06 (Neo sessão 91 CC.11)
+
+**Status:** InProgress (Tasks 1+2 done; Tasks 3-9 pending)
+
+**Implementação Task 2 — S1 Login + C1 Login form (~3h estimado, ~2h real):**
+
+- **Módulo `bloco_interface/web/auth.py` (NEW):**
+  - `get_secret_key()` — env `REVISOR_SECRET_KEY` OR efêmera-on-startup com warning (sessões expiram a cada restart em dev)
+  - `get_admin_credentials()` — env `ADMIN_USERNAME` + `ADMIN_PASSWORD_HASH` (default `admin`/bcrypt de `admin` em dev)
+  - `verify_password()` — bcrypt.checkpw com tratamento defensivo de hash malformado (não levanta para evitar info leak)
+  - `authenticate()` — anti-enumeration: `hmac.compare_digest` em username + bcrypt check sempre executado (mesmo se user errado), retorna boolean único
+  - `generate_csrf_token()` — `secrets.token_hex(32)` (256-bit entropy)
+  - `verify_csrf_token()` — `hmac.compare_digest` constant-time
+
+- **`bloco_interface/web/app.py`:**
+  - `SessionMiddleware` instalado (max_age=24h conforme ux-spec §3 S1 linha 199; samesite=lax; https_only via env `REVISOR_HTTPS_ONLY=1`)
+  - GET `/login` — gera CSRF + grava em session + renderiza s1_login.html com `tema_1378.nivel="oculto"` + `session_user=None` (ux-spec §3 S1: sem banner/usuário pré-auth)
+  - POST `/login` — verifica CSRF (constant-time) → 403 "Sessão expirada" se falha; auth → 401 "Usuário ou senha inválidos" se falha; success → `request.session.clear()` (mitiga session fixation) + grava `user` + retorna 200 + `HX-Redirect=/`
+  - GET `/` — agora protegida: sem `session.get("user")` → 303 redirect `/login`
+  - Helper `_render_login_error()` — re-renderiza S1 com erro + refresh CSRF para próxima tentativa
+
+- **Template `s1_login.html`:**
+  - Herda base.html
+  - h1 "Revisor Contratual" em `var(--f-display)` Fraunces 500
+  - Subtitle "Análise de contratos CDC PF Veículos" Manrope 400 muted
+  - Form HTMX (`hx-post="/login"` + `hx-swap="outerHTML"` + `hx-target="this"`) com:
+    - CSRF hidden
+    - Label/input Usuário (autofocus, autocomplete=username, aria-required)
+    - Label/input Senha (type=password, autocomplete=current-password)
+    - Botão "Entrar" (PT-BR per ux-spec linha 625; não "Login")
+    - Erro condicional `role="alert"` + `aria-live="polite"` + `data-testid="login-error"`
+
+- **CSS (.login-* classes):** `.login-container` (max-w 360px, margin 96px auto), `.login-title` (Fraunces 32px), `.login-form` (flex column gap 6px), inputs (focus-ring tokens), `.login-submit` (accent bg + hover), `.login-error` (danger-soft + border-left)
+
+- **`pyproject.toml`:** `bcrypt>=4.0` + `itsdangerous>=2.0` adicionadas
+
+**Quality gate empírico Neo (não Oracle):**
+- ruff `All checks passed` em 4 arquivos modificados (`app.py` + `auth.py` + `test_login_flow.py` + `test_layout_base.py`) ✅
+- pytest baseline: 289 → **298 passed, 1 skipped** em 61.53s ✅ (+9 tests novos, zero regressão)
+
+**Tests novos (9 em `tests/integration/test_login_flow.py`):**
+1. `test_get_login_renders_s1_form` — form + CSRF + autofocus + heading + "Entrar"
+2. `test_get_login_omits_banner_tema_1378_pre_auth` — banner suprimido pré-auth
+3. `test_get_login_omits_topbar_user_pre_auth` — topbar sem nome usuário pré-auth
+4. `test_post_login_success_returns_hx_redirect` — credenciais OK → 200 + HX-Redirect=/
+5. `test_post_login_wrong_password_generic_error` — senha errada → 401 + msg genérica
+6. `test_post_login_wrong_username_same_generic_error` — username errado → MESMA 401 + msg (anti-enumeration)
+7. `test_post_login_invalid_csrf_returns_403` — CSRF mismatch → 403 "Sessão expirada"
+8. `test_get_root_redirects_to_login_if_unauthenticated` — GET / sem session → 303 /login
+9. `test_post_logout_clears_session_then_root_redirects` — integração Task 1 logout + Task 2 redirect
+
+**Tests Task 1 retrofitted (8 em `test_layout_base.py`):** fixture refatorado com env vars test + login automático antes de yield (necessário pois GET / agora protegida)
+
+**ACs cobertos:**
+- ✅ **AC-MVP-01 (S1 Login):** GET /login + POST /login + protect GET /
+- ✅ **AC-MVP-09 (C1 component):** form fields + autofocus + aria-live error
+- ✅ **AC-MVP-LGPD-L1 (auth defense-in-depth):** bcrypt 12 rounds + anti-enumeration timing-constant + CSRF hmac.compare_digest
+
+**Anti-patterns evitados (per restrições handoff CC.11):**
+- ❌ NÃO mexeu `bloco_interface/ollama_manager.py` (Done preservado)
+- ❌ NÃO alterou FastAPI lifespan (ADR-013 §2.4 ordem preservada)
+- ❌ NÃO criou C2/C3/C4/C5/C6 (Tasks 1+3-7 ownership; C7 já feito Task 1)
+- ❌ NÃO inventou features fora ACs declarados (No Invention)
+- ❌ NÃO push (Operator EXCLUSIVE)
+- ❌ Password sempre bcrypt hashed (nunca plaintext)
+- ❌ Anti-enumeration: mesma resposta wrong-user vs wrong-pwd
+
+**Decisões técnicas autônomas Neo (per handoff):**
+- **User store:** Opção A — env vars `ADMIN_USERNAME` + `ADMIN_PASSWORD_HASH` (single-user MVP)
+- **CSRF:** Opção A — custom `secrets.token_hex` + `hmac.compare_digest` (KISS, sem dep externa)
+- **C1 partial vs inline:** Opção A — inline em `s1_login.html` (extrair só se Task 6 reusar)
+
+**Detalhes de segurança:**
+- Session cookie: `httpOnly=True` (default Starlette), `samesite='lax'`, `https_only` configurável via env (default False dev)
+- Session fixation mitigation: `request.session.clear()` antes de gravar `user` no login success
+- CSRF refresh: novo token gerado a cada GET /login + a cada erro auth (mitiga replay)
+- bcrypt rounds=12 padrão (env hash com rounds=4 em testes para velocidade)
+
+**Observações para Tasks futuras:**
+- Task 3 (S2 Pré-upload) já pode assumir `request.session.get("user")` populado em todas as rotas autenticadas
+- Task 6 (Error pane C6) pode reusar `_render_login_error` pattern para outros erros user-friendly
+- Backend pode chamar `auth.authenticate()` em rota `POST /change-password` futura (escopo pós-MVP)
 
 ### Task 1 done 2026-05-06 (Neo sessão 91 CC.10)
 

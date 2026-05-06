@@ -12,15 +12,30 @@ Sessão 91 (CC.10 Task 1) — Neo paralelo a Eric smoke E2E.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import bcrypt
 import pytest
 from fastapi.testclient import TestClient
 
+# Task 2 instalou auth — tests de layout_base agora precisam autenticar antes de GET /
+TEST_USERNAME = "tester"
+TEST_PASSWORD = "test-pwd-123"  # noqa: S105
+TEST_SECRET = "test-secret-key-for-integration-tests-only"  # noqa: S105
+
+
+@pytest.fixture(autouse=True)
+def _set_test_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    test_hash = bcrypt.hashpw(TEST_PASSWORD.encode(), bcrypt.gensalt(rounds=4)).decode()
+    monkeypatch.setenv("ADMIN_USERNAME", TEST_USERNAME)
+    monkeypatch.setenv("ADMIN_PASSWORD_HASH", test_hash)
+    monkeypatch.setenv("REVISOR_SECRET_KEY", TEST_SECRET)
+
 
 @pytest.fixture
-def client() -> TestClient:
-    """TestClient com lifespan mockado (não spawna Ollama real durante testes)."""
+def client() -> Iterator[TestClient]:
+    """TestClient com lifespan mockado + login automático (Task 2 protege GET /)."""
     with patch(
         "bloco_interface.web.app.ollama_manager.acquire_app_lock", return_value=42
     ), patch(
@@ -49,6 +64,20 @@ def client() -> TestClient:
         from bloco_interface.web.app import app
 
         with TestClient(app) as tc:
+            # Login automático (Task 2 protege GET /)
+            login_page = tc.get("/login")
+            csrf_marker = 'name="csrf_token" value="'
+            start = login_page.text.find(csrf_marker) + len(csrf_marker)
+            end = login_page.text.find('"', start)
+            csrf_token = login_page.text[start:end]
+            tc.post(
+                "/login",
+                data={
+                    "username": TEST_USERNAME,
+                    "password": TEST_PASSWORD,
+                    "csrf_token": csrf_token,
+                },
+            )
             yield tc
 
 

@@ -32,12 +32,14 @@ from pathlib import Path
 from typing import Any, Literal, TypedDict
 
 from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_interface import ollama_manager
 from bloco_interface.ollama_manager import OllamaBinaryNotFound, OllamaSpawnFailed
+from bloco_interface.web import auth
 from bloco_vault import open_vault
 from bloco_vault.populate import BUNDLED_DATA_DIR, populate_vault_if_needed
 from bloco_workflow import revisar_contrato
@@ -83,11 +85,12 @@ DEFAULT_TEMA_1378 = {
 
 
 def _layout_context(request: Request) -> dict[str, Any]:
-    """MVP-LEAN-01 Task 1: contexto compartilhado para base.html (topbar + banner + footer C7)."""
-    # SessionMiddleware nem sempre instalado (v0.3.0 — Task 2 instala). Checa scope direto.
-    session_user = request.scope.get("session", {}).get("user") if "session" in request.scope else None
+    """MVP-LEAN-01 Task 1: contexto compartilhado para base.html (topbar + banner + footer C7).
+
+    Task 2 instala SessionMiddleware → request.session sempre disponível.
+    """
     return {
-        "session_user": session_user,
+        "session_user": request.session.get("user"),
         "tema_1378": DEFAULT_TEMA_1378,
         "app_version": APP_VERSION,
         "audit_url": "/audit.jsonl",
@@ -274,6 +277,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 # ── App ───────────────────────────────────────────────────────────────────
 app = FastAPI(title="Revisor Contratual", version="0.2.0", lifespan=lifespan)
+# MVP-LEAN-01 Task 2: SessionMiddleware (FR-LGPD-MVP-01a defense-in-depth camada 1).
+# https_only=False em dev; toggle via env REVISOR_HTTPS_ONLY=1 em prod.
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=auth.get_secret_key(),
+    https_only=os.environ.get("REVISOR_HTTPS_ONLY", "0") == "1",
+    same_site="lax",
+    max_age=24 * 60 * 60,  # 24h conforme ux-spec §3 S1 linha 199
+)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -302,6 +314,9 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLRe
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
+    # MVP-LEAN-01 Task 2 — AC-MVP-01: route protection (sem session válida → /login)
+    if not request.session.get("user"):
+        return RedirectResponse("/login", status_code=303)
     context: dict[str, Any] = {"history": MOCK_HISTORY}
     context.update(_layout_context(request))  # MVP-LEAN-01 Task 1: topbar + banner + footer
     return templates.TemplateResponse(
@@ -311,11 +326,68 @@ async def index(request: Request) -> HTMLResponse:
     )
 
 
+# MVP-LEAN-01 Task 2 — AC-MVP-01: S1 Login + C1 Login form
+@app.get("/login", response_class=HTMLResponse)
+async def login_get(request: Request) -> HTMLResponse:
+    if request.session.get("user"):
+        return RedirectResponse("/", status_code=303)
+    csrf = auth.generate_csrf_token()
+    request.session["csrf_token"] = csrf
+    context = _layout_context(request)
+    context["tema_1378"] = {"nivel": "oculto"}  # ux-spec §3 S1: sem banner pré-auth
+    context["session_user"] = None  # ux-spec §3 S1: sem nome usuário pré-auth
+    context["csrf_token"] = csrf
+    context["error"] = None
+    return templates.TemplateResponse(
+        request=request,
+        name="s1_login.html",
+        context=context,
+    )
+
+
+@app.post("/login", response_class=HTMLResponse)
+async def login_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    csrf_token: str = Form(...),
+) -> HTMLResponse:
+    # CSRF verify (constant-time compare)
+    session_csrf = request.session.get("csrf_token")
+    if not auth.verify_csrf_token(session_csrf, csrf_token):
+        return _render_login_error(request, "Sessão expirada. Recarregue a página.", status=403)
+    # Auth (anti-enumeration: mesma resposta para user errado vs senha errada)
+    if not auth.authenticate(username, password):
+        return _render_login_error(request, "Usuário ou senha inválidos.", status=401)
+    # Success: regenera session (mitiga session fixation), grava user, redirect
+    request.session.clear()
+    request.session["user"] = username
+    response = HTMLResponse(content="", status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
+
+
+def _render_login_error(request: Request, message: str, status: int) -> HTMLResponse:
+    """Re-renderiza S1 com erro auth — refresh CSRF para próxima tentativa."""
+    csrf = auth.generate_csrf_token()
+    request.session["csrf_token"] = csrf
+    context = _layout_context(request)
+    context["tema_1378"] = {"nivel": "oculto"}
+    context["session_user"] = None
+    context["csrf_token"] = csrf
+    context["error"] = message
+    return templates.TemplateResponse(
+        request=request,
+        name="s1_login.html",
+        context=context,
+        status_code=status,
+    )
+
+
 # MVP-LEAN-01 Task 1 — AC-MVP-LGPD-L1: logout clears session, retorna HX-Redirect.
 @app.post("/logout", response_class=HTMLResponse)
 async def logout(request: Request) -> HTMLResponse:
-    if "session" in request.scope:
-        request.scope["session"].clear()
+    request.session.clear()
     response = HTMLResponse(content="", status_code=200)
     response.headers["HX-Redirect"] = "/login"
     return response

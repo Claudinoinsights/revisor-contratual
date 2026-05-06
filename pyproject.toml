@@ -51,6 +51,9 @@ dependencies = [
   "rich>=13.0",
   # Auto-Ollama lifecycle (OLLAMA-MGR-01 / ADR-011) — process management cross-platform
   "psutil>=5.9",
+  # Auth básica (MVP-LEAN-01 Task 2 / FR-LGPD-MVP-01a) — bcrypt password hashing + itsdangerous SessionMiddleware
+  "bcrypt>=4.0",
+  "itsdangerous>=2.0",
 ]
 
 [project.optional-dependencies]

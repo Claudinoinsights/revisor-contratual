@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.10 Neo MVP-LEAN-01 Task 1 ✅ DONE — Layout-base + estrutura HTMX swap implementado em ~1.5h. Suite 281+1 → 289+1 (+8 tests). Branch feat/mvp-lean-01-task1-layout-base committed local. Aguarda decisão Morpheus pós-Eric-smoke (push branch ou continuar Task 2)"
-status: sprint-03-cc10-Neo-Task1-DONE-aguarda-Morpheus-pos-smoke
+active_story: "CC.11 Neo MVP-LEAN-01 Task 2 ✅ DONE — S1 Login + C1 form + SessionMiddleware + bcrypt + CSRF custom em ~2h real. Suite 289+1 → 298+1 (+9 tests). Auth defense-in-depth camada 1 implementada. Aguarda decisão Morpheus pós-Eric-smoke (Task 3 ou push)"
+status: sprint-03-cc11-Neo-Task2-DONE-aguarda-Morpheus-pos-smoke
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,31 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.11 MVP-LEAN-01 Task 2 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2 acumulam — Operator decide rename ao push)
+  - **Implementação Task 2 (~2h real vs ~3h estimado):**
+    - `bloco_interface/web/auth.py` (NEW) — bcrypt + CSRF custom + anti-enumeration constant-time
+    - `bloco_interface/web/app.py` (M) — SessionMiddleware (24h max_age) + GET/POST `/login` + GET `/` protegida + helper `_render_login_error()`
+    - `bloco_interface/web/templates/s1_login.html` (NEW) — extends base.html, h1 Fraunces, form HTMX+CSRF, autofocus, aria-live error
+    - `bloco_interface/web/static/app.css` (M) — `.login-container`, `.login-title`, `.login-form`, `.login-error` + focus-ring tokens
+    - `pyproject.toml` (M) — bcrypt>=4.0 + itsdangerous>=2.0
+    - `tests/integration/test_login_flow.py` (NEW) — 9 tests
+    - `tests/integration/test_layout_base.py` (M) — fixture com env vars + login automático (Task 2 protege GET /)
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **298 passed, 1 skipped** (289+9 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-01 (S1 Login + protect /) + AC-MVP-09 (C1 component) + AC-MVP-LGPD-L1 (auth defense-in-depth)
+  - **Decisões técnicas autônomas:** user store env vars (single-user MVP) + CSRF custom KISS + C1 inline
+  - **Anti-patterns evitados:** não mexeu OLLAMA-MGR-01, não alterou lifespan, não criou C2-C6, No Invention, sem push, sempre bcrypt hashed, anti-enumeration verificado
+  - **Story status:** continua `InProgress` (Tasks 1+2 done; Tasks 3-9 pending)
+  - **Próximo:** handoff Neo → Morpheus → Morpheus consolida + decide entre (a) Task 3 sequencial, (b) aguardar Eric smoke, (c) push branch agora
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.11 dispatch Neo Task 2 sequencial**):
+  - **Decisão CC.11:** Opção B (recomendação Neo aceita) — Task 2 sequencial enquanto Eric smoke roda paralelo
+  - **Justificativa:** Task 2 precisa do layout-base (Task 1 completou); contexto Neo fresco; Tasks 2-9 não tocam Ollama (escopo seguro mesmo se smoke FAIL)
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Task 2 commits acumulam — branch renomeada conceitualmente para `feat/mvp-lean-01-tasks` no escopo Operator decide ao push)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc11-mvp-lean-01-task2.yaml` (token H-S03-CC11-MOR2NEO-001)
+  - **Tasks paralelas em curso:**
+    - Eric: smoke E2E v0.3.0 (5 cenários OLLAMA-MGR-01)
+    - Neo: MVP-LEAN-01 Task 2 (S1 Login + C1 form ~3h)
+  - **Próximo:** Neo executa Task 2 → handoff Neo → Morpheus → Morpheus consolida + decide próxima ação
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.10 MVP-LEAN-01 Task 1 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (criada a partir de `feature/sprint-03-vault-fix-01`)
   - **Implementação Task 1 (~1.5h real vs ~2h estimado):**
