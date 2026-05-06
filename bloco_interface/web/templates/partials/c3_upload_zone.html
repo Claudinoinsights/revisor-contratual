@@ -1,0 +1,69 @@
+{# MVP-LEAN-01 Task 3 — C3 Upload zone (componente parametrizado).
+
+Macro tipo: "contrato" | "decisao_adversa"
+Microcopy + aria-label diferenciados conforme ux-spec §4 C3 (linhas 648-679).
+
+Uso:
+  {% from "partials/c3_upload_zone.html" import upload_zone %}
+  {{ upload_zone('contrato') }}
+  {{ upload_zone('decisao_adversa') }}
+#}
+
+{% macro upload_zone(tipo) %}
+{% if tipo == 'contrato' %}
+<section class="upload-zone-section">
+  <h3 class="upload-zone-section__heading">1. Contrato (obrigatório)</h3>
+  <label class="upload-zone upload-zone--contrato"
+         data-testid="upload-zone-contrato"
+         data-tipo="contrato"
+         aria-label="Upload obrigatório — contrato CDC em PDF">
+    <input type="file"
+           name="pdf"
+           accept=".pdf"
+           class="upload-zone__input"
+           data-testid="input-contrato"
+           aria-required="true"
+           required
+           hidden>
+    <div class="upload-zone__content">
+      <span class="upload-zone__icon" aria-hidden="true">⬆</span>
+      <span class="upload-zone__cta-drop">Arraste o PDF do contrato</span>
+      <span class="upload-zone__cta-select">ou <strong>clique para selecionar</strong></span>
+      <span class="upload-zone__hint">PDF apenas · até 10MB</span>
+      <span class="upload-zone__lgpd">Os dados não saem da sua máquina (LGPD)</span>
+    </div>
+    <div class="upload-zone__loaded" hidden>
+      <span class="upload-zone__filename"></span>
+      <span class="upload-zone__filesize"></span>
+    </div>
+  </label>
+</section>
+{% elif tipo == 'decisao_adversa' %}
+<section class="upload-zone-section">
+  <h3 class="upload-zone-section__heading">2. Decisão adversa (opcional)</h3>
+  <label class="upload-zone upload-zone--decisao_adversa"
+         data-testid="upload-zone-decisao-adversa"
+         data-tipo="decisao_adversa"
+         aria-label="Upload opcional — decisão adversa em PDF para gerar Apelação Cível">
+    <input type="file"
+           name="pdf_decisao_adversa"
+           accept=".pdf"
+           class="upload-zone__input"
+           data-testid="input-decisao-adversa"
+           aria-required="false"
+           hidden>
+    <div class="upload-zone__content">
+      <span class="upload-zone__icon" aria-hidden="true">⬆</span>
+      <span class="upload-zone__cta-drop">Arraste a decisão adversa</span>
+      <span class="upload-zone__cta-select">ou <strong>clique para selecionar</strong></span>
+      <span class="upload-zone__tooltip">Opcional — só envie se já houver sentença desfavorável que precise apelar. Habilita D3.</span>
+      <span class="upload-zone__hint">PDF apenas · até 10MB</span>
+    </div>
+    <div class="upload-zone__loaded" hidden>
+      <span class="upload-zone__filename"></span>
+      <span class="upload-zone__filesize"></span>
+    </div>
+  </label>
+</section>
+{% endif %}
+{% endmacro %}

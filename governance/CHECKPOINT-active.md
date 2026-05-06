@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.11 Neo MVP-LEAN-01 Task 2 ✅ DONE — S1 Login + C1 form + SessionMiddleware + bcrypt + CSRF custom em ~2h real. Suite 289+1 → 298+1 (+9 tests). Auth defense-in-depth camada 1 implementada. Aguarda decisão Morpheus pós-Eric-smoke (Task 3 ou push)"
-status: sprint-03-cc11-Neo-Task2-DONE-aguarda-Morpheus-pos-smoke
+active_story: "CC.12 Neo MVP-LEAN-01 Task 3 ✅ DONE — S2 Pré-upload + C3 dual-input + vanilla upload.js em ~2.5h real. Suite 298+1 → 308+1 (+10 tests). 3/9 Tasks done. Aguarda decisão Morpheus pós-Eric-smoke (Task 4 ou pause/push)"
+status: sprint-03-cc12-Neo-Task3-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,30 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.12 MVP-LEAN-01 Task 3 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3 acumulam)
+  - **Implementação Task 3 (~2.5h real vs ~4h estimado):**
+    - `bloco_interface/web/templates/s2_pre_upload.html` (NEW) — extends base.html, heading "Bem-vindo, {user}", form HTMX, 2 macros C3, CTA disabled inicial
+    - `bloco_interface/web/templates/partials/c3_upload_zone.html` (NEW) — Jinja2 macro `upload_zone(tipo)` reutilizável (contrato/decisao_adversa) com microcopy + aria-label diferenciados
+    - `bloco_interface/web/static/app.css` (M) — `.s2-*` + `.upload-zone-*` + `.upload-cta` + states disabled/loaded/dragover usando tokens semânticos
+    - `bloco_interface/web/static/upload.js` (NEW ~115 LOC) — vanilla JS validação .pdf+10MB + drag-drop DataTransfer + toggle CTA conforme D1
+    - `bloco_interface/web/app.py` (M) — GET / autenticada renderiza `s2_pre_upload.html` (substitui index.html no fluxo MVP-LEAN per Opção A)
+    - `tests/integration/test_s2_pre_upload.py` (NEW) — 10 tests cobrindo S2+C3+microcopy+a11y+script
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **308 passed, 1 skipped** (298+10 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-02 (S2) + AC-MVP-11 (C3) + AC-MVP-D3-DUAL-INPUT + AC-MVP-TOKENS
+  - **3/9 Tasks done:** Task 1 (layout-base) + Task 2 (auth) + Task 3 (pre-upload) — base sólida para Tasks 4-9
+  - **Story status:** continua `InProgress` (Tasks 4-9 pending)
+  - **Commit local:** pendente (próximo passo)
+  - **Próximo:** handoff Neo → Morpheus → Morpheus consolida + decide entre (a) Task 4 sequencial (S5 Processing + C4 + SSE ~6h), (b) aguardar Eric smoke, (c) push branch
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.12 dispatch Neo Task 3**):
+  - **Decisão CC.12:** Opção A aceita (recomendação Neo CC.11) — Task 3 sequencial enquanto Eric smoke paralelo
+  - **Justificativa:** Task 3 (S2+C3) precisa do auth (Task 2 done); contexto fresco; risco mínimo
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3 acumulam)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc12-mvp-lean-01-task3.yaml` (token H-S03-CC12-MOR2NEO-001)
+  - **Tasks paralelas em curso:**
+    - Eric: smoke E2E v0.3.0 (5 cenários OLLAMA-MGR-01)
+    - Neo: MVP-LEAN-01 Task 3 (S2 Pré-upload + C3 dual-input ~4h)
+  - **Próximo:** Neo executa Task 3 → handoff back → Morpheus consolida + decide Task 4 ou pause
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.11 MVP-LEAN-01 Task 2 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2 acumulam — Operator decide rename ao push)
   - **Implementação Task 2 (~2h real vs ~3h estimado):**

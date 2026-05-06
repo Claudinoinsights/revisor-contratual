@@ -145,7 +145,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test E2E login flow + auth fail
   - **Mapeia a:** AC-MVP-01 + AC-MVP-09 + AC-MVP-LGPD (L1)
 
-- [ ] **Task 3 — S2 Pré-upload + C3 Upload zone dual-input** (~4h)
+- [x] **Task 3 — S2 Pré-upload + C3 Upload zone dual-input** (~4h) — DONE sessão 91 CC.12 (Neo)
   - Template S2 com 2 drop-zones (D1 contrato obrigatório + D2 decisão adversa opcional)
   - C3 Upload zone parametrizado (`tipo: "contrato" | "decisao_adversa"`) com microcopy + aria-label diferenciados
   - Client-side validation (extensão .pdf + size ≤10MB) antes de POST
@@ -269,6 +269,15 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
 
+### Task 3 (CC.12 / sessão 91 — Neo) — S2 Pré-upload + C3 dual-input ✅
+
+- [x] `bloco_interface/web/templates/s2_pre_upload.html` (NEW) — extends base.html, heading "Bem-vindo, {user}" + instructions + form HTMX + 2 macros C3 + CTA disabled
+- [x] `bloco_interface/web/templates/partials/c3_upload_zone.html` (NEW) — Jinja2 macro `upload_zone(tipo)` reutilizável; tipo="contrato" (D1, obrigatório) ou "decisao_adversa" (D2, opcional); microcopy + aria-label diferenciados
+- [x] `bloco_interface/web/static/app.css` (M) — `.s2-container`, `.s2-welcome` (Manrope 600), `.s2-instructions` (muted), `.upload-zone` (border dashed; --contrato strong + --decisao_adversa light), `.upload-zone__content/icon/cta-drop/cta-select/hint/lgpd/tooltip`, `.upload-zone--loaded`, `.upload-zone--dragover`, `.upload-cta` + states (`[disabled]` + `[aria-disabled="true"]` usando var(--opacity-disabled) + var(--cursor-disabled))
+- [x] `bloco_interface/web/static/upload.js` (NEW ~115 LOC) — vanilla JS sem dep; validação client-side .pdf + ≤10MB; estado loaded com filename/filesize; toggle CTA enabled/disabled conforme D1; drag-drop com DataTransfer
+- [x] `bloco_interface/web/app.py` (M) — GET / autenticada agora renderiza `s2_pre_upload.html` (substitui index.html legacy no fluxo MVP-LEAN per Opção A)
+- [x] `tests/integration/test_s2_pre_upload.py` (NEW) — 10 tests integration cobrindo S2 + C3 + microcopy exata + a11y + script include
+
 ### Task 2 (CC.11 / sessão 91 — Neo) — S1 Login + C1 form ✅
 
 - [x] `bloco_interface/web/auth.py` (NEW) — `get_secret_key()`, `get_admin_credentials()`, `verify_password()` bcrypt, `authenticate()` anti-enumeration constant-time, `generate_csrf_token()`, `verify_csrf_token()` hmac.compare_digest
@@ -321,6 +330,66 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 3 done 2026-05-06 (Neo sessão 91 CC.12)
+
+**Status:** InProgress (Tasks 1+2+3 done; Tasks 4-9 pending)
+
+**Implementação Task 3 — S2 Pré-upload + C3 Upload zone dual-input (~4h estimado, ~2.5h real):**
+
+- **Template `s2_pre_upload.html`:** extends base.html, heading "Bem-vindo, {{ session_user|e }}" Manrope 600 + instructions Manrope 400 muted (microcopy exata ux-spec linha 261); form HTMX `id="upload-form"` action=/revisar enctype=multipart/form-data; 2× chamadas macro `upload_zone()` (contrato + decisao_adversa); CTA "Iniciar análise" inicia `aria-disabled="true"` + `disabled`
+- **Macro `partials/c3_upload_zone.html`:** Jinja2 macro `upload_zone(tipo)` parametrizado; renderiza `<label>` envolvendo `<input type="file" hidden>` (accessible-first: Enter/Space disparam file picker nativamente); class modifier `.upload-zone--{contrato|decisao_adversa}`; aria-label + aria-required + microcopy exata por tipo
+- **CSS `.upload-zone-*`:** padding 32px 24px, border 2px dashed, transition; D1 contrato com `var(--border-strong)` (mais forte) + LGPD reassurance "Os dados não saem da sua máquina (LGPD)"; D2 decisao_adversa com `var(--border)` (mais leve) + tooltip "Opcional — só envie se já houver sentença desfavorável que precise apelar. Habilita D3."; hover/focus-within usa `var(--surface-hover)` + focus-ring; estado `--loaded` esconde content e mostra filename/filesize; CTA disabled usa `var(--opacity-disabled)` + `var(--cursor-disabled)` per AC-MVP-TOKENS
+- **`upload.js` (vanilla, sem dep):** validateFile (.pdf + ≤10MB); setLoaded/clearLoaded com classe `.upload-zone--loaded` + filename + filesize formatado; toggleCta baseado em `contratoInput.files.length`; drag-drop com `DataTransfer` para atribuir arquivo; error simples via `alert()` (UX refinement futuro pode usar inline error)
+- **`app.py`:** GET `/` autenticada agora renderiza `s2_pre_upload.html` (substitui index.html — Opção A per handoff CC.12); session_user populado via `_layout_context()` (Task 2)
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em 2 arquivos modificados (`app.py` + `test_s2_pre_upload.py`) ✅
+- pytest baseline: 298 → **308 passed, 1 skipped** em 62.08s ✅ (+10 tests novos, zero regressão)
+
+**Tests novos (10 em `tests/integration/test_s2_pre_upload.py`):**
+1. `test_get_root_authenticated_renders_s2` — s2-container + heading "Bem-vindo"
+2. `test_s2_welcome_heading_includes_username` — heading inclui session_user
+3. `test_s2_has_2_drop_zones_d1_d2` — 2 elementos com class upload-zone (contrato + decisao_adversa)
+4. `test_c3_contrato_zone_aria_label_obrigatorio` — D1 aria-required="true" + aria-label "Upload obrigatório..."
+5. `test_c3_decisao_adversa_zone_aria_label_opcional` — D2 aria-required="false" + aria-label "Upload opcional..."
+6. `test_s2_cta_initially_disabled` — CTA aria-disabled="true" + disabled
+7. `test_s2_lgpd_reassurance_text_present` — "Os dados não saem da sua máquina (LGPD)"
+8. `test_s2_microcopy_exact_per_uxspec` — texto exato CTAs + tooltip + instructions globais
+9. `test_s2_form_post_to_revisar` — form action=/revisar + enctype multipart
+10. `test_s2_includes_upload_js_script` — script /static/upload.js incluído
+
+**ACs cobertos:**
+- ✅ **AC-MVP-02 (S2 Pré-upload):** GET / renderiza S2 com heading + 2 drop-zones + CTA + form
+- ✅ **AC-MVP-11 (C3 component parametrizado):** macro Jinja2 reutilizável; aria-label + microcopy diferenciados por tipo
+- ✅ **AC-MVP-D3-DUAL-INPUT (per F-CC3-06):** D1 obrigatório + D2 opcional separados; D2 tem name="pdf_decisao_adversa" diferente do D1 name="pdf"
+- ✅ **AC-MVP-TOKENS:** `var(--opacity-disabled)`, `var(--cursor-disabled)`, `var(--surface-hover)`, `var(--focus-ring-*)` usados (não hex hardcoded)
+
+**Anti-patterns evitados (per restrições handoff CC.12):**
+- ❌ NÃO mexeu `bloco_interface/ollama_manager.py` / lifespan / `auth.py` (Done preservados)
+- ❌ NÃO criou C2/C4/C5/C6 (Tasks 4-7 ownership; C7 já feito Task 1)
+- ❌ NÃO inventou features fora ACs declarados (No Invention)
+- ❌ NÃO adicionou dependência JS externa (vanilla JS)
+- ❌ NÃO inventou microcopy — copiada exata da ux-spec §4 C3 (verificado por test_s2_microcopy_exact_per_uxspec)
+- ❌ NÃO push (Operator EXCLUSIVE)
+
+**Decisões técnicas autônomas Neo (per handoff):**
+- **GET / render strategy:** Opção A — `s2_pre_upload.html` substitui index.html (legacy index.html intacto mas não rendered)
+- **JS validation:** Opção A — vanilla JS upload.js (~115 LOC, sem dep)
+- **Upload zone HTML estrutura:** Opção A — `<label>` envolvendo `<input type="file" hidden>` (Enter/Space funcionam nativamente)
+- **Reuso C3:** Jinja2 macro em `partials/c3_upload_zone.html` (mais limpo que `{% include %}` parametrizado)
+
+**Detalhes técnicos:**
+- C3 macro suporta extensibilidade futura: novos tipos podem ser adicionados como branches `{% elif tipo == 'X' %}`
+- DataTransfer API usado em drag-drop para atribuir arquivo programaticamente ao input (browser moderno suporta)
+- accessibility: Enter/Space em label dispara click no input nativo (sem JS necessário); aria-disabled toggle no CTA atualizado por upload.js
+
+**Observações para Tasks futuras:**
+- Task 4 (S5 Processing + C4 + SSE) consumirá POST /revisar que recebe `pdf` (D1) + `pdf_decisao_adversa` (D2 opcional)
+- POST /revisar atual aceita apenas 1 PDF (Sprint 02 UI-1 / Phase A) — Task 4 OR backend update precisa expandir para receber pdf_decisao_adversa também
+- index.html legacy permanece em templates/ mas não é rendered no fluxo MVP-LEAN (Task 9 decide remoção)
+- error handling client-side usa `alert()` simples — Task 6 (S4+S7 Error pane) substitui por C6 inline error pattern
+- `data-testid` attributes adicionados para facilitar tests Selenium/Playwright futuros (Task 9 smoke E2E)
 
 ### Task 2 done 2026-05-06 (Neo sessão 91 CC.11)
 

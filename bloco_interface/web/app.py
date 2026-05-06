@@ -317,11 +317,12 @@ async def index(request: Request) -> HTMLResponse:
     # MVP-LEAN-01 Task 2 — AC-MVP-01: route protection (sem session válida → /login)
     if not request.session.get("user"):
         return RedirectResponse("/login", status_code=303)
-    context: dict[str, Any] = {"history": MOCK_HISTORY}
-    context.update(_layout_context(request))  # MVP-LEAN-01 Task 1: topbar + banner + footer
+    # MVP-LEAN-01 Task 3 — AC-MVP-02: renderiza S2 Pré-upload (substitui index.html legacy)
+    context: dict[str, Any] = {}
+    context.update(_layout_context(request))  # topbar + banner + footer (Task 1)
     return templates.TemplateResponse(
         request=request,
-        name="index.html",
+        name="s2_pre_upload.html",
         context=context,
     )
 

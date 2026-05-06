@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% from "partials/c3_upload_zone.html" import upload_zone %}
+
+{# MVP-LEAN-01 Task 3 — S2 Pré-upload (autenticado).
+   Per ux-spec §3 S2 (linhas 241-301): heading + 2 drop-zones + CTA disabled-até-D1.
+   Per F-CC3-06 micro-PATCH α: D3 só gerado quando decisão adversa enviada (D2 opcional). #}
+
+{% block workspace %}
+<section class="s2-container" aria-labelledby="s2-welcome">
+  <h2 id="s2-welcome" class="s2-welcome">Bem-vindo, {{ session_user|e }}</h2>
+  <p class="s2-instructions">
+    Envie o contrato CDC PF Veículos do seu cliente para análise pelas 4 personas.
+    Se já houver decisão adversa, anexe-a também para gerar a peça de Apelação Cível (D3).
+  </p>
+
+  <form id="upload-form"
+        method="post"
+        action="/revisar"
+        enctype="multipart/form-data"
+        aria-label="Formulário de upload de contrato e decisão adversa">
+
+    {{ upload_zone('contrato') }}
+    {{ upload_zone('decisao_adversa') }}
+
+    <button type="submit"
+            class="upload-cta"
+            id="upload-cta"
+            data-testid="upload-cta"
+            aria-disabled="true"
+            disabled>
+      Iniciar análise
+    </button>
+  </form>
+</section>
+<script src="/static/upload.js" defer></script>
+{% endblock %}
