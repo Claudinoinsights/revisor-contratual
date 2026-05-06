@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.24 Neo Task 8b DONE (FR-MONITOR Camada 1 scraper + auto-trigger lifespan, ~2h real vs ~3-5h estimado, 13 testes novos, 387 passed + 3 skipped). Task 8 = 8/9 DONE. Aguarda handoff Morpheus consolidar."
-status: sprint-03-cc24-neo-task8b-done-aguarda-morpheus-consolidacao
+active_story: "CC.24 Operator push T8b DONE — PR #2 atualizado 7.5/9 → 8/9 = 89%. Commits 0f6b569..48e05ab pushed (d7a37c1 T8b + 48e05ab lint fix). Comment URL #issuecomment-4393000417. Aguarda Morpheus consolidar final."
+status: sprint-03-cc24-operator-push-task8b-done-aguarda-morpheus-final
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,26 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.24 Operator push T8b DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
+  - **Pre-push gate empírico:** ruff All checks passed ✅ (após fix E501 em `test_task8_lgpd_backup.py:226` — Neo não rodou ruff nesse arquivo no commit T8b; Operator detectou + criou commit lint fix `48e05ab`); pytest **387 passed + 3 skipped** ✅
+  - **Push:** fast-forward `0f6b569..48e05ab` em `feat/mvp-lean-01-task1-layout-base` (2 commits: `d7a37c1` T8b + `48e05ab` lint fix)
+  - **PR #2:** progresso atualizado **7.5/9 → 8/9 = 89%** via comment `#issuecomment-4393000417`
+  - **PRs paralelos estado final pós push T8b:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE **8/9 = 89%** — bloqueio review independente
+  - **Suite remote final:** **387 passed + 3 skipped** (281 OLLAMA baseline + 106 MVP-LEAN T1-T8 done)
+  - **Tech debt URL pendente Eric** (TD-MVP-LEAN-08B-URL-VERIFY MED) — não-bloqueante para push, só pre-deploy
+  - **Adversarial Smith T8b:** DEFERRED — pode rodar pós-merge ou T9 prep
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-06-cc24-push-task8b-done.yaml` (token H-S03-CC24-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.24 final + sinaliza Eric com sumário sessão 91 + 5 trilhas atualizadas
+- **Sessão 91 CC.24 Morpheus consolida Trilha A** (@lmas-master · Morpheus — 2026-05-06, **dispatch Operator push fast-forward T8b**):
+  - **Decisão Morpheus:** Trilha A (push incremental T8b) acolhida — convergente com recomendação Neo
+  - **Razões:** (1) Task 9 não é apenas código (exige Eric + Ollama + PDF físico, melhor sessão dedicada); (2) push imediato torna marco 8/9 visível Eric no PR #2; (3) adversarial Smith T8b pode rodar pós-merge no PR sem perda
+  - **Operação:** Operator push fast-forward `d7a37c1` → origin/feat/mvp-lean-01-task1-layout-base
+  - **PR #2:** atualiza progresso 7.5/9 → **8/9 = 89%** com comment explicando T8b done + tech debt URL pendente Eric
+  - **Adversarial Smith T8b:** DEFERRED — recomendado dispatch pós-merge ou em sessão dedicada T9 prep
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc24-push-task8b.yaml` (token H-S03-CC24-MOR2OPERATOR-001)
+  - **Próximo:** Operator pre-push gate (tests 387+3 + ruff clean) → push fast-forward → comment PR #2 → handoff back Morpheus
 - **Sessão 91 CC.24 Neo Task 8b DONE** (@dev · Neo — 2026-05-06, **Camada 1 scraper + auto-trigger ~2h real**):
   - **Implementação:** `bloco_dataset/scraper_tema_1378.py` (NEW 190 LOC) + `bloco_dataset/auto_trigger.py` (NEW 100 LOC) + `bloco_backup/scheduler.py` (MOD: 3º job tema_1378_check 02:30 UTC) + 13 testes novos em `test_task8b_camada1_scraper.py`
   - **Decisões autônomas Neo:**
