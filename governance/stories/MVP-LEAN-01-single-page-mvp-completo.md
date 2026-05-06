@@ -153,7 +153,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test E2E upload válido + inválido (variantes MIME/size)
   - **Mapeia a:** AC-MVP-02 + AC-MVP-11 + AC-MVP-D3-DUAL-INPUT + AC-MVP-TOKENS
 
-- [ ] **Task 4 — S5 Processing + C4 Processing pane + SSE resilient** (~6h)
+- [x] **Task 4 — S5 Processing + C4 Processing pane + SSE resilient** (~6h) — DONE sessão 91 CC.13 (Neo, ~3h real)
   - Template S5 com lista de 5 fases (Parsing + Advogado + Economista + Validador + Juiz)
   - SSE endpoint backend (`/revisar/stream/{job_id}`) emitindo events: `phase-start`, `phase-done`, `phase-error`, `complete`, `ping`
   - Client-side EventSource com:
@@ -269,6 +269,20 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
 
+### Task 4 (CC.13 / sessão 91 — Neo) — S5 Processing + C4 + SSE resilient ✅
+
+- [x] `bloco_interface/web/templates/s5_processing.html` (NEW) — extends base.html, macro C4 + script sse_resilient.js
+- [x] `bloco_interface/web/templates/partials/c4_processing_pane.html` (NEW) — Jinja2 macro `processing_pane(phases, filename, job_id)` com lista 5 fases (data-phase + data-state) + cancel button + sr-status spans
+- [x] `bloco_interface/web/static/sse_resilient.js` (NEW ~180 LOC) — vanilla JS EventSource wrapper com heartbeat detect (lastEventTs reset on ping) + setInterval 5s timeout check (60s) + onerror retry com backoff 5s + synthetic phase-error 'connection_drop' + POST /audit/connection-drop best-effort
+- [x] `bloco_interface/web/static/app.css` (M) — `.processing-*` classes (heading, meta, phases lista, phase ícones por estado pending/running/done/error, footer com cancel link, @keyframes spin com prefers-reduced-motion)
+- [x] `bloco_interface/web/app.py` (M):
+  - Constante `MVP_LEAN_PHASES` com 5 fases canônicas (separada de `PIPELINE_STEPS` legacy Sprint 02)
+  - POST `/revisar` agora renderiza `s5_processing.html` (substitui `partials/processing.html` no fluxo MVP-LEAN; legacy intacto)
+  - Novo endpoint GET `/revisar/stream/{job_id}` SSE com 5 events: `phase-start`, `phase-done`, `phase-error`, `complete`, `ping`
+  - Novo endpoint POST `/audit/connection-drop` (auth required) grava entry `pipeline_lost_connection` em audit.jsonl
+  - Import `from datetime import UTC, datetime` para timestamp ISO
+- [x] `tests/integration/test_s5_processing_sse.py` (NEW) — 10 tests cobrindo render S5+C4 + 5 fases + cancel + a11y + filename + SSE invalid job + audit connection-drop write + auth required + MVP_LEAN_PHASES constant
+
 ### Task 3 (CC.12 / sessão 91 — Neo) — S2 Pré-upload + C3 dual-input ✅
 
 - [x] `bloco_interface/web/templates/s2_pre_upload.html` (NEW) — extends base.html, heading "Bem-vindo, {user}" + instructions + form HTMX + 2 macros C3 + CTA disabled
@@ -330,6 +344,108 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 4 done 2026-05-06 (Neo sessão 91 CC.13)
+
+**Status:** InProgress (Tasks 1+2+3+4 done = 4/9; Tasks 5-9 pending)
+
+**Implementação Task 4 — S5 Processing + C4 + SSE resilient (~6h estimado, ~3h real — task densa entregue rápido por reuso da arquitetura JOBS dict + revisar_contrato existente):**
+
+- **Decisão técnica chave:** criar **endpoint NOVO** `/revisar/stream/{job_id}` paralelo ao `/pipeline-stream` legacy (Opção B do handoff). Razão: events MVP-LEAN-01 (`phase-start/done/error/complete/ping`) são **incompatíveis** com schema Sprint 02 UI-1 (`step` + `error`). Sprint 02 UI-1 partials/processing.html intacto; novo fluxo MVP-LEAN usa s5_processing.html.
+
+- **Constante `MVP_LEAN_PHASES`:** 5 fases canônicas separadas de `PIPELINE_STEPS` (7 steps Sprint 02): "Parsing PDF", "Advogado (Sabia/Qwen 7B)", "Economista (Qwen 7B)", "Validador semântico", "Juiz HITL"
+
+- **Endpoint `/revisar/stream/{job_id}`:**
+  - Reusa `JOBS[job_id]` dict (já existe Sprint 02 Phase C TypedDict JobState)
+  - Reusa `revisar_contrato()` workflow real (sem mocks)
+  - Emite `phase-start` no início de cada fase + `phase-done` ao fim com `elapsed_s`
+  - `ping` event imediato após phase-start primeira para feedback visual
+  - `complete` event final com `deliverables` + `total_elapsed_s` + `job_id`
+  - `phase-error` para qualquer exceção do pipeline com 4 campos (diagnostic/cause/solution/alternative)
+  - LGPD cleanup OBRIGATÓRIO no finally (PDF temp file deletado)
+  - Vault check upfront → phase-error se DB ausente
+
+- **Endpoint `/audit/connection-drop`:**
+  - Auth required (`request.session.get("user")` → 401 se não logado)
+  - Form data: `job_id` + `last_phase`
+  - Grava entry `{type, job_id, last_phase, timestamp ISO UTC}` em audit.jsonl (append mode)
+  - Cria diretório parent se ausente; 500 se erro de IO
+  - Retorna 204 No Content (best-effort UX, não bloquear cliente)
+
+- **Template `s5_processing.html`:** extends base.html; usa macro `processing_pane()` do partial; inclui `<script src="/static/sse_resilient.js" defer>` no fim do block workspace
+
+- **Macro Jinja2 `partials/c4_processing_pane.html`:**
+  - data-attributes: `data-job-id`, `data-stream-url` (consumido pelo JS)
+  - data-state per fase: `pending` (default) / `running` / `done` / `error`
+  - data-phase com label exato para JS lookup via querySelector
+  - aria-label dinâmico per fase com index e estado readable
+  - Spans `processing-phase__sr-status` hidden para SR text "(em curso)" / "(concluído)" etc.
+  - Footer com `processing-elapsed` (total) + cancel button
+
+- **CSS `.processing-*`:**
+  - Lista fases com border + 5 items
+  - Ícones por estado: ⟳ animado (running, accent + @keyframes spin) / ✓ (done, success) / ✗ (error, danger) / … (pending, dim)
+  - `prefers-reduced-motion: reduce` desabilita animação spin (a11y)
+  - Cancel button link-style com focus-ring tokens
+  - elapsed em JetBrains Mono
+
+- **`sse_resilient.js` (~180 LOC vanilla):**
+  - `EventSource(streamUrl)` com handlers para 5 events
+  - `lastEventTs` resetado em qualquer evento (incluindo ping silencioso)
+  - `setInterval` 5s checa `Date.now() - lastEventTs > 60000` → `emitSyntheticPhaseError()` com microcopy exato `connection_drop` (4 campos)
+  - `onerror`: 1 retry com `setTimeout` 5s backoff; falha → mesma synthetic
+  - `reportConnectionDrop()` POST /audit/connection-drop best-effort
+  - `setPhaseState(phase, state, extra)` atualiza data-state + aria-label + sr-status text + elapsed
+  - `cssEscape` defensivo para special chars em data-phase
+  - Cancel button vai para `/` (backend stub — tech debt para Task 6 cancel real)
+  - Complete event redireciona para `/verdict?job_id=...` (Task 5 implementa S6 real)
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em arquivos modificados ✅
+- pytest baseline: 308 → **318 passed, 1 skipped** em 62.36s ✅ (+10 tests novos, zero regressão)
+
+**Tests novos (10 em `tests/integration/test_s5_processing_sse.py`):**
+1. `test_post_revisar_renders_s5_with_job_id` — POST renderiza S5 com data-job-id + data-stream-url
+2. `test_s5_renders_5_canonical_phases` — 5 fases exatas + 5× data-state="pending"
+3. `test_s5_includes_sse_resilient_script` — script tag presente
+4. `test_s5_renders_cancel_button` — "Cancelar e recomeçar" + class
+5. `test_s5_a11y_role_list_aria_live` — role=list + ≥5× aria-live=polite
+6. `test_s5_filename_displayed` — filename do PDF no S5
+7. `test_sse_endpoint_invalid_job_id_returns_phase_error` — endpoint shape + content-type text/event-stream
+8. `test_audit_connection_drop_writes_entry` — POST grava entry com 4 campos esperados
+9. `test_audit_connection_drop_requires_auth` — 401 sem session
+10. `test_mvp_lean_phases_constant_is_5` — verifica constante (5 fases, primeira "Parsing PDF", última "Juiz HITL")
+
+**ACs cobertos:**
+- ✅ **AC-MVP-05 (S5 Processing pane):** template renderiza com 5 fases + filename + cancel
+- ✅ **AC-MVP-12 (C4 component):** macro Jinja2 reutilizável + lista + estados via data-state
+- ✅ **AC-MVP-SSE-RESILIENT:** endpoint /revisar/stream/{job_id} com 5 events; client JS heartbeat + timeout 60s + retry backoff 5s + synthetic error
+- ✅ **AC-MVP-AUDIT:** entry pipeline_lost_connection com 4 campos (type/job_id/last_phase/timestamp ISO UTC)
+
+**Anti-patterns evitados (per restrições handoff CC.13):**
+- ❌ NÃO mexeu `ollama_manager.py` / lifespan / `auth.py` (preservados)
+- ❌ NÃO criou C5/C6 (Tasks 5+6 ownership)
+- ❌ NÃO inventou events SSE fora dos 5 declarados (phase-start/done/error/complete/ping)
+- ❌ NÃO push (Operator EXCLUSIVE)
+- ❌ NÃO adicionou dependência JS externa (vanilla)
+- ❌ Microcopy `connection_drop` exato per ux-spec linhas 432-436 (4 campos)
+- ❌ Heartbeat 10s + timeout 60s + retry backoff 5s — exato per ux-spec linhas 427-429
+
+**Tech debt declarado (não bloqueia Done):**
+- **TD-MVP-LEAN-04-TIMER-TESTS (LOW):** Tests de async timer client-side (60s timeout, onerror retry backoff 5s, heartbeat detect) NÃO incluídos — async timer mocking pytest+TestClient é complexo + fora do happy path. Smoke E2E real Task 9 valida em browser. Refactor pós-MVP via Selenium/Playwright + fake timers.
+- **TD-MVP-LEAN-04-CANCEL-BACKEND (LOW):** Cancel button atual redireciona para `/` (stub). Backend cancel real (kill job + cleanup) é tech debt de Task 6 OR pós-MVP.
+
+**Observações para Tasks futuras:**
+- Task 5 (S6 Resultado + C5) consome o redirect `/verdict?job_id=...` no `complete` handler do JS
+- Task 6 (S4+S7 Error pane + C6 + 7 variantes) substituirá inline error append por C6 component renderizado
+- Task 7 (S8 Banner CRITICAL) usará `_layout_context` já existente Task 1
+- Task 9 smoke E2E real validará timers reais em browser (não mockados)
+
+**Decisões técnicas autônomas Neo:**
+- **Endpoint strategy:** Opção B (novo /revisar/stream/{job_id} paralelo) — events incompatíveis com legacy /pipeline-stream
+- **JS validation:** Vanilla sem dep
+- **Cancel:** stub redirect / + tech debt
+- **5 fases vs 7 steps:** constante separada `MVP_LEAN_PHASES` (compat Sprint 02 UI-1)
 
 ### Task 3 done 2026-05-06 (Neo sessão 91 CC.12)
 

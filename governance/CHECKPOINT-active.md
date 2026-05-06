@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.12 Neo MVP-LEAN-01 Task 3 ✅ DONE — S2 Pré-upload + C3 dual-input + vanilla upload.js em ~2.5h real. Suite 298+1 → 308+1 (+10 tests). 3/9 Tasks done. Aguarda decisão Morpheus pós-Eric-smoke (Task 4 ou pause/push)"
-status: sprint-03-cc12-Neo-Task3-DONE-aguarda-Morpheus
+active_story: "CC.13 Neo MVP-LEAN-01 Task 4 ✅ DONE — S5 Processing + C4 macro + SSE 5 events + sse_resilient.js + audit /audit/connection-drop em ~3h real (vs ~6h estimado). Suite 308+1 → 318+1 (+10 tests). 4/9 Tasks done."
+status: sprint-03-cc13-Neo-Task4-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,29 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.13 MVP-LEAN-01 Task 4 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4 acumulam)
+  - **Implementação Task 4 (~3h real vs ~6h estimado — densa entregue rápido por reuso JOBS+revisar_contrato existente):**
+    - `bloco_interface/web/templates/s5_processing.html` (NEW) — extends base.html + macro C4 + script sse_resilient.js
+    - `bloco_interface/web/templates/partials/c4_processing_pane.html` (NEW) — macro Jinja2 com lista 5 fases data-state + cancel + sr-status spans
+    - `bloco_interface/web/static/sse_resilient.js` (NEW ~180 LOC) — heartbeat + timeout 60s + retry backoff 5s + synthetic error + POST /audit/connection-drop best-effort
+    - `bloco_interface/web/static/app.css` (M) — `.processing-*` classes + @keyframes spin com prefers-reduced-motion
+    - `bloco_interface/web/app.py` (M) — `MVP_LEAN_PHASES` constante (5 fases separadas de PIPELINE_STEPS legacy); POST /revisar renderiza s5_processing.html; novo endpoint GET /revisar/stream/{job_id} SSE 5 events; novo endpoint POST /audit/connection-drop auth-required grava audit.jsonl
+    - `tests/integration/test_s5_processing_sse.py` (NEW) — 10 tests cobrindo render+SSE+audit
+  - **Decisão técnica chave:** Opção B (novo endpoint paralelo) — events MVP-LEAN incompatíveis com /pipeline-stream legacy; Sprint 02 UI-1 intacto
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **318 passed, 1 skipped** (308+10 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-05 + AC-MVP-12 + AC-MVP-SSE-RESILIENT + AC-MVP-AUDIT
+  - **Tech debt declarado:** TD-MVP-LEAN-04-TIMER-TESTS (timer mocking complexo, smoke E2E valida) + TD-MVP-LEAN-04-CANCEL-BACKEND (cancel stub redirect)
+  - **4/9 Tasks done:** layout-base + auth + pre-upload + processing
+  - **Próximo:** handoff Neo → Morpheus → Morpheus consolida + decide Task 5 (S6 Resultado + C5 ~5h) ou pause
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.13 dispatch Neo Task 4 com cautela**):
+  - **Decisão CC.13:** Opção A com cautela aceita (recomendação Neo CC.12) — Task 4 sequencial, HALT em 6h se ultrapassar
+  - **Justificativa:** Task 4 é a mais densa fora Task 8 (~6h estimado); Neo deve respeitar regra blocking dev-story (`HALT for: 3 failures... | Failing regression`)
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4 acumulam)
+  - **Reuso pipeline-stream:** Neo deve avaliar se reusar `/pipeline-stream` existente Sprint 02 UI-1 OR criar `/revisar/stream/{job_id}` novo (decisão técnica autônoma)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc13-mvp-lean-01-task4.yaml` (token H-S03-CC13-MOR2NEO-001)
+  - **Tasks paralelas em curso:** Eric smoke + Neo Task 4 (densa)
+  - **Próximo:** Neo executa Task 4 (~6h max) → handoff back → Morpheus consolida
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.12 MVP-LEAN-01 Task 3 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3 acumulam)
   - **Implementação Task 3 (~2.5h real vs ~4h estimado):**

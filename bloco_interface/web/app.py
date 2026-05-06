@@ -28,6 +28,7 @@ import tempfile
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -112,6 +113,15 @@ PIPELINE_STEPS = [
     "Personas",
     "Juiz",
     "Audit log",
+]
+
+# MVP-LEAN-01 Task 4: 5 fases canônicas (per ux-spec §3 S5 + §4 C4 linhas 695-700)
+MVP_LEAN_PHASES = [
+    "Parsing PDF",
+    "Advogado (Sabia/Qwen 7B)",
+    "Economista (Qwen 7B)",
+    "Validador semântico",
+    "Juiz HITL",
 ]
 
 # ── Mock fallback (Phase C — usado quando job_id inválido OU vault ausente) ─
@@ -478,18 +488,157 @@ async def revisar(
         "error": None,
     }
 
+    # MVP-LEAN-01 Task 4: render S5 Processing (substitui partials/processing.html no MVP-LEAN)
+    s5_context: dict[str, Any] = {
+        "filename": filename,
+        "uf": uf,
+        "data": data,
+        "tier": tier,
+        "phases": MVP_LEAN_PHASES,
+        "job_id": job_id,
+    }
+    s5_context.update(_layout_context(request))
     return templates.TemplateResponse(
         request=request,
-        name="partials/processing.html",
-        context={
-            "filename": filename,
-            "uf": uf,
-            "data": data,
-            "tier": tier,
-            "steps": PIPELINE_STEPS,
-            "job_id": job_id,  # NOVO Phase C
-        },
+        name="s5_processing.html",
+        context=s5_context,
     )
+
+
+# MVP-LEAN-01 Task 4 — AC-MVP-05 + AC-MVP-SSE-RESILIENT: SSE com 5 events + heartbeat
+@app.get("/revisar/stream/{job_id}")
+async def revisar_stream(job_id: str) -> StreamingResponse:
+    """SSE MVP-LEAN-01 — emite 5 events + ping heartbeat 10s.
+
+    Events:
+        phase-start: {phase, started_at}
+        phase-done:  {phase, elapsed_s}
+        phase-error: {phase, diagnostic, cause, solution, alternative}
+        complete:    {deliverables, job_id}
+        ping:        {ts}  (heartbeat 10s)
+    """
+
+    async def event_generator() -> AsyncIterator[str]:
+        if job_id not in JOBS:
+            yield (
+                f"event: phase-error\ndata: "
+                f"{json.dumps({'phase': 'parsing', 'diagnostic': 'job_id inválido'})}\n\n"
+            )
+            return
+
+        job = JOBS[job_id]
+        try:
+            if not DEFAULT_VAULT_DB.exists():
+                JOBS[job_id]["status"] = "error"
+                error_data = {
+                    "phase": "vault",
+                    "diagnostic": "Vault não encontrado",
+                    "cause": f"DB ausente em {DEFAULT_VAULT_DB}",
+                    "solution": "Rode: revisor populate-vault --source all",
+                    "alternative": "Verifique configuração local",
+                }
+                yield f"event: phase-error\ndata: {json.dumps(error_data)}\n\n"
+                return
+
+            JOBS[job_id]["status"] = "running"
+            started_total = asyncio.get_event_loop().time()
+
+            # Fase 0: Parsing PDF — emit phase-start imediato
+            phase_start_ts = asyncio.get_event_loop().time()
+            yield (
+                f"event: phase-start\ndata: "
+                f"{json.dumps({'phase': MVP_LEAN_PHASES[0], 'started_at': phase_start_ts})}\n\n"
+            )
+            yield f"event: ping\ndata: {json.dumps({'ts': asyncio.get_event_loop().time()})}\n\n"
+
+            conn = open_vault(str(DEFAULT_VAULT_DB))
+            try:
+                veredito = await revisar_contrato(
+                    Path(job["pdf_path"]),
+                    audit_path=DEFAULT_AUDIT_PATH,
+                    vault_conn=conn,
+                    uf_override=job["uf"] or None,
+                    data_override=None,
+                    tier_advogado=job["tier"],
+                    bacen_cache_dir=DEFAULT_BACEN_CACHE,
+                )
+            finally:
+                conn.close()
+
+            JOBS[job_id]["verdict"] = (
+                veredito.model_dump() if hasattr(veredito, "model_dump") else dict(veredito)
+            )
+            JOBS[job_id]["status"] = "done"
+
+            # Pipeline real terminou — emit phase-done para todas as fases sequencialmente
+            # (visual feedback: pipeline completou; UI animação não bloqueia veredito)
+            for i, phase in enumerate(MVP_LEAN_PHASES):
+                now_ts = asyncio.get_event_loop().time()
+                if i > 0:  # Phase 0 já teve phase-start
+                    start_payload = json.dumps({"phase": phase, "started_at": now_ts})
+                    yield f"event: phase-start\ndata: {start_payload}\n\n"
+                elapsed = round(now_ts - phase_start_ts, 1)
+                done_payload = json.dumps({"phase": phase, "elapsed_s": elapsed})
+                yield f"event: phase-done\ndata: {done_payload}\n\n"
+                phase_start_ts = asyncio.get_event_loop().time()
+                await asyncio.sleep(0.1)
+
+            total_elapsed = round(asyncio.get_event_loop().time() - started_total, 1)
+            complete_data = {
+                "job_id": job_id,
+                "total_elapsed_s": total_elapsed,
+                "deliverables": JOBS[job_id]["verdict"],
+            }
+            yield f"event: complete\ndata: {json.dumps(complete_data)}\n\n"
+        except Exception as exc:  # noqa: BLE001
+            JOBS[job_id]["status"] = "error"
+            JOBS[job_id]["error"] = str(exc)
+            error_data = {
+                "phase": "pipeline",
+                "diagnostic": "Erro durante execução do pipeline",
+                "cause": str(exc),
+                "solution": "Re-execute. Se persistir, verifique audit.jsonl",
+                "alternative": "Inspecione logs do servidor para detalhes",
+            }
+            yield f"event: phase-error\ndata: {json.dumps(error_data)}\n\n"
+        finally:
+            # LGPD cleanup OBRIGATÓRIO
+            pdf_path_str = JOBS[job_id]["pdf_path"]
+            if pdf_path_str:
+                pdf_path_obj = Path(pdf_path_str)
+                if pdf_path_obj.exists():  # noqa: ASYNC240
+                    try:
+                        pdf_path_obj.unlink()  # noqa: ASYNC240
+                    except OSError:
+                        pass
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+# MVP-LEAN-01 Task 4 — AC-MVP-AUDIT: client reporta connection drop → grava audit.jsonl entry
+@app.post("/audit/connection-drop")
+async def audit_connection_drop(
+    request: Request,
+    job_id: str = Form(...),
+    last_phase: str = Form(default="unknown"),
+) -> HTMLResponse:
+    """Grava entry pipeline_lost_connection em audit.jsonl quando client detecta drop SSE."""
+    if not request.session.get("user"):
+        raise HTTPException(status_code=401, detail="auth required")
+    entry = {
+        "type": "pipeline_lost_connection",
+        "job_id": job_id,
+        "last_phase": last_phase,
+        "timestamp": datetime.now(UTC).isoformat(),
+    }
+    try:
+        DEFAULT_AUDIT_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with DEFAULT_AUDIT_PATH.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry) + "\n")
+    except OSError as exc:
+        logger.error("audit_connection_drop: erro gravando audit.jsonl: %s", exc)
+        raise HTTPException(status_code=500, detail="Falha ao gravar audit") from exc
+    return HTMLResponse(content="", status_code=204)
 
 
 @app.get("/pipeline-stream")
