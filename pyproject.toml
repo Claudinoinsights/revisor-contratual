@@ -54,6 +54,9 @@ dependencies = [
   # Auth básica (MVP-LEAN-01 Task 2 / FR-LGPD-MVP-01a) — bcrypt password hashing + itsdangerous SessionMiddleware
   "bcrypt>=4.0",
   "itsdangerous>=2.0",
+  # MVP-LEAN-01 Task 8 — LGPD L4 encryption-at-rest + APScheduler backup
+  "cryptography>=41",
+  "apscheduler>=3.10",
 ]
 
 [project.optional-dependencies]

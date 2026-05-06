@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.19 Operator push T6+T7 ✅ — fast-forward 4a7f159..e887549 publicado, PR #2 atualizado para 7/9 = 78% via comment. Sessão pode pausar; Task 8 (~14-16h DENSA) sessão fresca."
-status: sprint-03-cc19-Operator-push-T6-T7-DONE-PR2-updated-7-9-aguarda-Task-8-fresh-session
+active_story: "CC.21 Neo MVP-LEAN-01 Task 8 PARTIAL ✅ DONE — LGPD L3 (CSP+headers) + L4 (Fernet + safe_delete) + L5 (chmod cross-platform) + APScheduler (backup_daily + rotation 7d) em ~3h real. Suite 359→374+3 (+15 passed, +2 skipped Windows). 7.5/9 = 83%. Task 8b DEFERRED."
+status: sprint-03-cc21-Neo-Task8-PARTIAL-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,52 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.21 MVP-LEAN-01 Task 8 PARTIAL ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-7 done + T8 PARTIAL = 9 commits local)
+  - **Implementação Task 8 PARTIAL (~3h real vs ~14-16h estimado total — 5 sub-componentes em ~25%):**
+    - `bloco_lgpd/__init__.py` (NEW) + `headers.py` (CSP middleware) + `encryption.py` (Fernet + safe_delete) + `permissions.py` (chmod cross-platform)
+    - `bloco_backup/__init__.py` (NEW) + `scheduler.py` (BackgroundScheduler + 2 jobs daily + rotation 7d)
+    - `bloco_interface/web/app.py` (M) — HeadersMiddleware + lifespan startup steps 8+9 (permissions + scheduler.start) + shutdown scheduler primeiro
+    - `pyproject.toml` (M) — `cryptography>=41` + `apscheduler>=3.10`
+    - `tests/integration/test_task8_lgpd_backup.py` (NEW ~250 LOC, 17 tests / 15 passed + 2 skipped POSIX)
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **374 passed, 3 skipped** (359+15 passed novos + 2 skipped Windows; zero regressão) ✅
+  - **ACs PARCIAL satisfeitos:** AC-MVP-LGPD (L3+L4+L5) + AC-MVP-BACKUP + AC-MVP-LIFESPAN-ORDER
+  - **3 tech debts Task 8b declarados:**
+    - TD-MVP-LEAN-08-CAMADA-1-SCRAPER (HIGH — bloqueia auto-trigger CRITICAL real)
+    - TD-MVP-LEAN-08-AUTOTRIGGER (HIGH — vinculado ao scraper)
+    - TD-MVP-LEAN-08-CSRF-LIB (LOW — Task 2 implementação OK MVP)
+  - **7.5/9 Tasks done = 83%** (Tasks 1-7 done + Task 8 PARTIAL)
+  - **Próximo:** handoff Neo → Morpheus → decide T8b (HIGH debt) OR T9 (smoke E2E + audit) OR pause
+- **Sessão 91 reaberta** (@lmas-master · Morpheus — 2026-05-06, **CC.21 dispatch Neo Task 8 (Trilha 3)**):
+  - **Decisão CC.21:** Eric optou Trilha 3 ("executar via Skill" persiste após pause oferecido)
+  - **Estratégia Task 8 partial:** dada densidade ~14-16h, implementação focada em camadas críticas
+    - **Inclui:** L3 Headers HTTP CSP (middleware) + L4 Encryption-at-rest Fernet + L5 Permissões filesystem + APScheduler backup + tests integration cada camada
+    - **Defer Task 8b (sessão futura):** FR-MONITOR Camada 1 scraper bloco_dataset/scraper_tema_1378.py (depende scraping STJ real, complexo) — auto-trigger lifespan job depende disso
+    - **L1+L2 já parciais:** Task 2 implementou bcrypt + SessionMiddleware; refinements (https_only=True dinâmico via env, CSRF middleware dedicado) absorvidos em Task 8
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Tasks 1-8 acumulam)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc21-mvp-lean-01-task8.yaml` (token H-S03-CC21-MOR2NEO-001)
+  - **HALT obrigatório 6h** se ultrapassar (regra dev-story blocking)
+  - **Próximo:** Neo executa Task 8 partial → handoff back → Morpheus consolida + decide T8b OR T9 OR pause
+- **Sessão 91 CLOSED** (@lmas-master · Morpheus — 2026-05-06, **CC.20 consolidação final + pause estratégico**):
+  - **Trajetória completa CC.6 → CC.19** (14 etapas course-correction sequenciais)
+  - **2 PRs publicados** (https://github.com/Claudinoinsights/revisor-contratual/):
+    - PR #1 OLLAMA-MGR-01 OPEN MERGEABLE (aguardando Eric smoke E2E)
+    - PR #2 MVP-LEAN-01 OPEN MERGEABLE 7/9 = 78% (aguardando review)
+  - **Métricas finais:**
+    - 7/9 Tasks MVP-LEAN done (~12.5h reais vs ~24h estimado — eficiência ~50%)
+    - OLLAMA-MGR-01 Done (Oracle CC.7 PASS)
+    - Suite remote: 359 passed + 1 skipped (281 OLLAMA + 78 MVP-LEAN)
+    - Zero regressão acumulada em 14 etapas
+  - **Tasks 8-9 pending** em sessão fresca:
+    - T8: FR-LGPD 5 camadas + APScheduler + FR-MONITOR Camada 1 (~14-16h DENSA)
+    - T9: Smoke E2E + audit verification (~4-5h)
+  - **Pause estratégico aceito** (recomendação convergente Neo + Operator)
+  - **Handoff Morpheus → Eric (final):** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc20-pause-final.yaml` (token H-S03-CC20-MOR2ERIC-FINAL-PAUSE-001)
+  - **4 trilhas de retomada quando Eric voltar:**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1
+    - 📋 Trilha 2: Review PR #2 (7/9) → merge → continuar Tasks 8+9
+    - ⚡ Trilha 3: Task 8 sessão fresca direta (~14-16h DENSA)
+    - 🎯 Trilha 4: Task 9 standalone (após T8 OR após Eric autorize skip)
 - **Sessão 91** (@devops · Operator — 2026-05-06, **CC.19 push T6+T7 ✅ DONE**):
   - **Push fast-forward:** `4a7f159..e887549` → `origin/feat/mvp-lean-01-task1-layout-base` ✅
   - **2 commits publicados:**

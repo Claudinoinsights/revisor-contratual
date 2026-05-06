@@ -38,10 +38,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
+from bloco_backup.scheduler import create_scheduler
 from bloco_dataset import tema_1378_state
 from bloco_interface import ollama_manager
 from bloco_interface.ollama_manager import OllamaBinaryNotFound, OllamaSpawnFailed
 from bloco_interface.web import auth, error_handler
+from bloco_lgpd.headers import HeadersMiddleware
+from bloco_lgpd.permissions import apply_audit_permissions, apply_uploads_dir_permissions
 from bloco_vault import open_vault
 from bloco_vault.populate import BUNDLED_DATA_DIR, populate_vault_if_needed
 from bloco_workflow import revisar_contrato
@@ -269,6 +272,27 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 "modelos devem estar pre-pulled manualmente"
             )
 
+        # MVP-LEAN-01 Task 8 — LGPD L5: aplicar permissões filesystem (chmod 600/700 cross-platform)
+        try:
+            if DEFAULT_AUDIT_PATH.exists():
+                apply_audit_permissions(DEFAULT_AUDIT_PATH)
+            uploads_dir = DEFAULT_DATA_DIR / "uploads"
+            if uploads_dir.exists():
+                apply_uploads_dir_permissions(uploads_dir)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Lifespan startup: LGPD L5 chmod falhou (não-bloqueante): %s", exc)
+
+        # MVP-LEAN-01 Task 8 — APScheduler embedded backup
+        try:
+            app.state.scheduler = create_scheduler()
+            app.state.scheduler.start()
+            logger.info("Lifespan startup: APScheduler started (backup_daily + rotation)")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Lifespan startup: APScheduler falhou — backup automático desabilitado: %s",
+                exc,
+            )
+
     except (
         ollama_manager.OllamaBinaryNotFound,
         ollama_manager.AppAlreadyRunning,
@@ -282,6 +306,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
     # Shutdown ordem inversa
+    # MVP-LEAN-01 Task 8 — APScheduler shutdown primeiro (graceful, evita threads zombies)
+    scheduler = getattr(app.state, "scheduler", None)
+    if scheduler is not None:
+        try:
+            scheduler.shutdown(wait=True)
+            logger.info("Lifespan shutdown: APScheduler stopped")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Lifespan shutdown: APScheduler shutdown falhou: %s", exc)
+
     try:
         ollama_manager.kill_spawned_ollama()
     except Exception as exc:  # noqa: BLE001
@@ -302,6 +335,8 @@ app.add_middleware(
     same_site="lax",
     max_age=24 * 60 * 60,  # 24h conforme ux-spec §3 S1 linha 199
 )
+# MVP-LEAN-01 Task 8 — LGPD L3: security headers (CSP + X-Frame + X-Content-Type-Options + ...)
+app.add_middleware(HeadersMiddleware)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
