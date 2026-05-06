@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-05"
+last_updated: "2026-05-06"
 status: active
 sprint: "03"
-etapa: "Phase 0 — Architectural Foundation (ADR-011 + ADR-012)"
+etapa: "Course-correction CC.2 — ADR-013 MVP Lean Strategy (consolida 5 decisões PRD v1.1.2.1)"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -84,6 +84,12 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 |-----|--------|--------|------|---------|
 | [ADR-012](adr/adr-012-vault-data-bundling.md) | Vault Data Bundling Strategy — bundled dataset + optional refresh scrapers | ✅ Accepted | 2026-05-05 | STJ scraper fragility (HTML changed) + STF SSL/anti-bot AWS ELB + AC-9 smoke E2E real bloqueado |
 
+### MVP Lean Strategy & Deployment (Sprint 03 course-correction)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-013](adr/adr-013-mvp-lean-strategy-deployment-path.md) | MVP Lean Strategy + Deployment Path — 5 decisões consolidadas (Docker opcional + VPS descartado + Defense-in-depth LGPD + APScheduler + dual-layer Tema 1378) | ✅ Accepted | 2026-05-06 | PRD v1.1.2.1 caminho híbrido + Smith re-review #2 PASS + Eric perfeição opção B |
+
 ---
 
 ## Arquivados
@@ -96,8 +102,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 | Item | Origem | Próxima ADR? |
 |------|--------|--------------|
-| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-013+ (re-numerada — ADR-011 + ADR-012 alocados Sprint 03 Phase 0) |
-| Política outcomes registry | PRD v1.0.2 | ADR-014+ (re-numerada) |
+| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-014+ (re-numerada — ADR-011/012/013 alocados Sprint 03) |
+| Política outcomes registry | PRD v1.0.2 | ADR-015+ (re-numerada) |
 | R-NEW Sati R-NEW-01..03 (UX) | qa/sati-ux-rereview | PATCH PRD v1.0.3 (não-arquitetural) |
 | R-NEW-SMITH-06 (HITL anti-bypass refinement) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
 | R-NEW-SMITH-08 (IP fingerprint UX mobilidade) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |

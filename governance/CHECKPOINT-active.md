@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-05"
-active_story: "VAULT-FIX-01 Done — Oracle PASS 12/12 ACs + 7/7 checks. CC.1B fechado. Próximo: Operator push + CC.2 Aria ADR-013 (paralelo)"
-status: sprint-03-course-correction-CC1A-FECHADO-cc1b-Oracle-PASS-vault-fix-01-Done-awaiting-operator
+last_updated: "2026-05-06"
+active_story: "CC.8 dispatch @devops via Skill — 6 tech debts TD-OLLAMA-* registrados em TECH-DEBT.md (38 active). Próximo: @devops *push branch + *create-pr para release v0.3.0 prep (blocker Eric: TD-OLLAMA-SMOKE-E2E-REAL antes do merge + tag)"
+status: sprint-03-cc8-morpheus-dispatch-devops-push-pr-release-v0.3.0-prep
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,331 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.8 housekeeping inline + dispatch @devops**):
+  - **6 tech debts TD-OLLAMA-* registrados** em `governance/TECH-DEBT.md` (Sprint 03 CC.7 Oracle Follow-up):
+    - TD-OLLAMA-AC7-ASYNC (HIGH performance, ~2-3h, refactor sync→async spawn_ollama)
+    - TD-OLLAMA-PULLSTATUS-IPC (MEDIUM, ~3-4h, multi-worker IPC futuro)
+    - TD-OLLAMA-LIFESPAN-DOC-REFRESH (MEDIUM, ~10min, docstrings outdated)
+    - TD-OLLAMA-RETRY-TIMING-TESTS (LOW, ~30min, real timing)
+    - TD-OLLAMA-LAZY-RESPAWN-PARTIAL (LOW, observação operacional)
+    - TD-OLLAMA-SMOKE-E2E-REAL (PRE-RELEASE BLOCKER v0.3.0, Eric environment)
+  - **Active tech debts:** 32 → **38** (3 MEDIUM + 12 LOW + 23 BL-*/TD-*)
+  - **Justificativa Oracle PASS:** F-OG-01 HIGH é trade-off arquitetural ADR-013 §2.2 (single-user solo) — não defeito. 6 follow-up items são backlog v0.3.x (não waivers).
+  - **Próximo:** dispatch Skill `LMAS:agents:devops` para Operator executar push branch + *create-pr para release v0.3.0 prep
+  - **Pre-release v0.3.0 blocker:** Eric executa TD-OLLAMA-SMOKE-E2E-REAL manual antes de @devops merge PR + tag v0.3.0
+- **Sessão 91** (@qa · Oracle — 2026-05-06, **CC.7 Oracle QA gate VEREDICTO: PASS**): OLLAMA-MGR-01 → Done ✅
+  - **Verdict:** **PASS** (10-phase structured QA review per qa-review-build.md)
+  - **Story status:** Ready for Review → **Done** ✅
+  - **Risk profile:** 0 CRITICAL + 1 HIGH + 2 MEDIUM + 3 LOW (todos tech debt rastreável, não waiver)
+  - **Findings catalogados (6 follow-up items):**
+    - **F-OG-01 HIGH** sync `spawn_ollama` em handler async (event loop blocking ~30s mid-respawn) — trade-off aceito MVP single-user solo per ADR-013 §2.2; refactor para async em v0.3.x via TD-OLLAMA-AC7-ASYNC
+    - F-OG-02 MEDIUM `_pull_status` global per-process (multi-worker gotcha futuro) → TD-OLLAMA-PULLSTATUS-IPC
+    - F-OG-03 MEDIUM lifespan comments outdated re Phase D stub → TD-OLLAMA-LIFESPAN-DOC-REFRESH
+    - F-OG-04 LOW retry timing tests sem delays reais → TD-OLLAMA-RETRY-TIMING-TESTS
+    - F-OG-05 LOW lazy respawn partial PID file (self-healing on next request)
+    - F-OG-06 LOW smoke E2E real (Ollama runtime + UI browser console) deferred → **TD-OLLAMA-SMOKE-E2E-REAL pré-release blocker v0.3.0**
+  - **Evidências empíricas Oracle (não confiando em claims):**
+    - Suite re-rodada nesta sessão: **281 passed + 1 skipped em 61.63s** ✅
+    - ruff re-rodada em 6 arquivos: **All checks passed** ✅
+    - LOC counts confirmados (ollama_manager.py 903 lines real vs ~600 claim — discrepância aceita: docstrings detalhadas)
+  - **Cross-check ADR-011:** 8 design highlights todos verificados em código com refs específicas (priority chain, atomic PID, lockfile, detect-then-spawn, lazy respawn, PID race, auto-pull background, SSE progress)
+  - **Trajetória CC.6 → CC.7 completa:** sessões 87-91 implementação + sessão 91 Oracle PASS
+  - **Próximo:** Morpheus dispatch @devops via Skill `LMAS:agents:devops` para push branch + PR + release v0.3.0 (após Eric resolver TD-OLLAMA-SMOKE-E2E-REAL como pre-release validation)
+
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.6 FECHADA + CC.7 Oracle QA gate dispatch**): trajetória CC.6 completa ✅
+  - **CC.6 FINAL:** 5 sessões (87/88/89/90/91) Phase A+B+C+D+E completas → OLLAMA-MGR-01 Ready for Review com **14/14 ACs satisfeitos** + EC-01..EC-12 todos cobertos + 35 tests (27 unit + 8 integration) + suite 281+1 zero regressão
+  - **CC.7 dispatch:** Oracle (@qa) executa review formal LMAS via Skill `LMAS:agents:qa` — comando `*review OLLAMA-MGR-01` (10-phase structured QA review)
+  - **Verdict alvo Oracle:**
+    - **PASS** → Story Ready for Review → Done; @devops push branch + PR; release v0.3.0 desbloqueado
+    - **CONCERNS** → documentar tech debt + Story Done com waiver formal (per quality-gate-enforcement.md)
+    - **FAIL** → @dev `*apply-qa-fixes` → re-review (max 5 iterations per QA Loop workflow)
+    - **WAIVED** → ressalvas documentadas + escalação Eric
+  - **Pós Oracle PASS:** trajetória → MVP-LEAN-01 sessões (Tasks 1-9 ~41-55h)
+  - **Anti-patterns preservados em 5 sessões:** zero modificação em bloco_workflow + bloco_vault + ADRs + tests existentes
+  - **App real:** `python -m bloco_interface.web.app` invoca auto-detect + auto-spawn + auto-pull + UI banner SSE + lazy respawn (1 comando promise ADR-011 cumprida)
+
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.6 sessão 5 — Phase E FINAL: OLLAMA-MGR-01 Ready for Review**): story 100% done ✅
+  - **AC-7 on-demand health check + lazy respawn** em `/revisar` (loop sobre advogado:11434 + economista:11435 → detect_running → spawn_ollama + write_pid_file_atomic se DOWN; HTTPException 503 + Retry-After se respawn fails)
+  - **7 tests EC-02..EC-10** em `tests/unit/test_ollama_manager_edge_cases.py` NEW ~265 LOC PASS em 0.59s
+  - **README.md** atualizado com seção "Como rodar (1 comando)" + Limitações table referenciando ADR-011 auto-pull
+  - **docs/sop-revisar-pdf.md** linha 14 reescrita: bullet `[ ]` → `[x]` "Ollama auto-gerenciado (ADR-011)"
+  - **Status frontmatter:** `Ready` → `Ready for Review` ✅
+  - **Quality gates ✅:** smoke + ruff All checks passed (3 arquivos) + pytest unit 7 PASS + suite completa **281 passed + 1 skipped em 61.21s** (zero regressão; baseline 274+1 → 281+1 com +7 novos)
+  - **ACs FINAIS:** **14 de 14 satisfeitos** — AC-1✅ AC-2✅ AC-3✅ AC-4✅ AC-5✅ AC-6✅ **AC-7✅ NOVO** AC-8✅ **AC-9✅ COMPLETO** (EC-01..EC-12 todos cobertos) AC-10✅ AC-11✅ (35 tests = 27 unit + 8 integration) **AC-12✅ NOVO** AC-13✅ AC-14✅
+  - **Trajetória CC.6 completa:** sessão 87 setup → 88 Phase A+B → 89 Phase C → 90 Phase D → **91 Phase E FINAL**
+  - **Story OLLAMA-MGR-01 100% done** — pronta para CC.7 Oracle QA gate
+  - **Próximo:** Morpheus despacha CC.7 Oracle QA gate via `LMAS:agents:qa` para review formal PASS/CONCERNS/FAIL/WAIVED
+
+- **Sessão 90** (@dev · Neo — 2026-05-06, **CC.6 sessão 4 — Phase D completa: auto-pull SSE + UI banner + 503 retry-after**): feedback visual real ✅
+  - **`ollama_manager.py` Phase D implementations:** `ensure_models_pulled` real (asyncio.create_subprocess_exec ollama list + missing identification + pre_check_disk_space + retry 3x exponential 1s/2s/4s) + helper async `_pull_one_model` (parse stdout regex percent/eta + `_pull_status` thread-safe via asyncio.Lock) + `_parse_ollama_list_output` helper + `get_pull_status` real + `is_ready` real
+  - **`bloco_interface/web/app.py`:** endpoint SSE `/ollama-status` (StreamingResponse + event_generator yield event "status" a cada 2s; loop break quando ready/error) + 503 retry-after early check em `/revisar` (mensagem PT-BR "Modelos LLM baixando — aguarde alguns minutos" + Retry-After: 60 header)
+  - **`bloco_interface/web/templates/base.html`:** UI banner adicionado após topbar (visível em qualquer página, não só index) usando tokens `var(--warning)`/`var(--warning-soft)` (Aria side-fix sessão 87) + JS handler `htmx:sseMessage` parse JSON + show/hide + update percent/model/eta
+  - **Tests:** `tests/integration/test_auto_pull_sse.py` NEW ~165 LOC com **4 tests PASS** em 0.72s (no-op + disk insufficient + SSE endpoint + 503 retry-after)
+  - **Quality gates ✅:** smoke test (app.routes count=11, +1 vs 89) + ruff All checks passed (3 arquivos) + pytest 4 PASS + suite completa **274 passed + 1 skipped em 61.91s** (zero regressão; baseline 270+1 → 274+1 com +4 novos)
+  - **ACs status:** AC-1✅ + AC-2✅ + AC-3✅ + AC-4✅ + AC-5✅ + **AC-6✅ NOVO** (auto-pull + SSE) + AC-7 ⏳ Phase E + **AC-8✅ NOVO** (503 retry-after) + AC-9 parcial + AC-10✅ + AC-11✅ (28 tests = 20 unit + 8 integration) + AC-12 ⏳ Phase E + AC-13✅ + AC-14✅. **Phases A+B+C+D completas (~80% story)**
+  - **Anti-patterns preservados:** Routes existentes preservadas (apenas /revisar adicionou early 503 check; /ollama-status é novo) + zero modificação em bloco_workflow + bloco_vault + ADRs + tests existentes + tokens reutilizados (zero hardcoded color)
+  - **Decisão técnica:** banner em base.html (não index.html) — visível em qualquer página, htmx-sse.js já incluído
+  - **Estimativa restante OLLAMA-MGR-01:** ~2-3h (Phase E edge cases EC-02/03/05/07/08/09/10 + AC-12 docs README/SOP). Total 8-10h preservado.
+  - **Próximo:** Phase E → OLLAMA-MGR-01 status Ready for Review → CC.7 Oracle QA gate
+
+- **Sessão 89** (@dev · Neo — 2026-05-06, **CC.6 sessão 3 — Phase C lifespan integration completa**): "ponto único de integração" amarrado ✅
+  - **`detect_running_ollama` implementado** (substituiu stub) — httpx.AsyncClient async GET `/api/tags` timeout 2s + status<500 → True + HTTPError → False
+  - **`bloco_interface/web/app.py` lifespan refatorado** com ordem determinística ADR-013 §2.4:
+    - Import `from bloco_interface import ollama_manager`
+    - **Startup 7 etapas:** acquire_lock → cleanup_orphans → detect_binary → detect-then-spawn :11434+:11435 → write_pid_atomic (apenas se spawned) → populate_vault (preservado VAULT-FIX-01) → asyncio.create_task ensure_models_pulled (try/except NotImplementedError tolerância Phase D stub)
+    - **Shutdown 2 etapas ordem inversa:** kill_spawned_ollama → release_app_lock
+    - **Error handling fail-fast:** OllamaBinaryNotFound + AppAlreadyRunning + DiskSpaceInsufficient → log CRITICAL + release_lock cleanup graceful + raise (app fail-to-start, não degradação silenciosa)
+  - **Tests:** `tests/integration/test_lifespan_ollama.py` NEW ~180 LOC com **4 tests PASS** (REUSE existing + SPAWN missing + fail binary + shutdown cleanup ordem)
+  - **Quality gates ✅:** smoke + ruff All checks passed (app.py + ollama_manager.py + test_lifespan_ollama.py) + pytest 4 PASS em 0.52s + suite completa **270 passed + 1 skipped em 61.00s** (zero regressão; baseline 266+1 → 270+1 com +4 novos integration)
+  - **ACs status:** AC-1✅ + AC-2✅ + AC-3✅ + **AC-4✅ NOVO** (detect-then-spawn) + **AC-5✅ NOVO** (lifespan integration) + AC-9 parcial + AC-10✅ + **AC-11✅ NOVO** (24 tests = 20 unit + 4 integration) + AC-13✅ + AC-14✅. **Phases A+B+C completas (60% story); Phase D + E pendentes**.
+  - **Anti-patterns preservados:** Routes FastAPI preservadas + zero modificação em bloco_workflow + bloco_vault + ADRs + tests existentes
+  - **Estimativa restante OLLAMA-MGR-01:** ~3-5h (Phase D ~2h + Phase E ~2-3h). Total 8-10h preservado.
+
+- **Sessão 88** (@dev · Neo — 2026-05-06, **CC.6 sessão 2 — Phase A completa + Phase B.1-B.5 + tests Phase A/B**): código testado ✅
+  - **Funções implementadas (7 conversões stub→real):**
+    - `cleanup_orphans_on_startup()` — psutil.process_iter filter + SIGTERM 5s + SIGKILL fallback (EC-06)
+    - `spawn_ollama()` + helper `_wait_for_ollama_ready()` — subprocess.Popen + env OLLAMA_HOST + creationflags Windows + httpx polling
+    - `write_pid_file_atomic()` — schema v1.0 + JSON + temp + os.replace POSIX atomic
+    - `read_pid_file_safely()` — defensive read com schema_version validation
+    - `process_is_ours()` — psutil.Process verify name+username (EC-12 PID reuse race)
+    - `kill_spawned_ollama()` — SIGTERM/SIGKILL via psutil + cleanup PID file (EC-07)
+  - **Testes:** `tests/unit/test_ollama_manager.py` NEW ~330 LOC com **20 tests PASS** (6 detect_binary + 1 fallthrough + 2 acquire_lock + 2 cleanup_orphans + 4 PID file roundtrip/missing/corrupt/wrong-schema + 3 process_is_ours + 2 pre_check_disk)
+  - **Quality gates ✅:** smoke test + ruff All checks passed (module + tests) + pytest 20 PASS em 0.31s + suite completa **266 passed + 1 skipped em 61.15s** (zero regressão; baseline 246+1 → 266+1 com +20 novos)
+  - **psutil 7.2.2** instalado e funcional
+  - **ACs status:** AC-1✅ + AC-2✅ + AC-3✅ + AC-9 parcial (EC-01/04/06/11/12 cobertos) + AC-10✅ + AC-11 parcial + AC-13✅ + AC-14✅. **Phase A 100% / Phase B 83%**.
+  - **Anti-patterns preservados:** zero modificação em bloco_workflow + bloco_vault + ADRs + tests existentes
+  - **Próximas sessões:** Phase C (FastAPI lifespan integration `bloco_interface/web/app.py`) + Phase D (auto-pull + SSE + UI banner) + Phase E (edge cases EC-02/03/05/07/08/09/10 + docs README/SOP)
+  - **Estimativa restante OLLAMA-MGR-01:** ~5-6h (Phase C ~1.5h + Phase D ~2h + Phase E ~2-3h)
+
+- **Sessão 87** (@dev · Neo — 2026-05-06, **CC.6 sessão 1 — Phase A inicial OLLAMA-MGR-01**): código real começou ✅
+  - **Artefato novo:** `bloco_interface/ollama_manager.py` (395 LOC) — module com 11 funções declaradas + 4 custom exceptions + 8 constants + `__all__` explícito
+  - **Phase A.1** ✅ skeleton 11 funcs (signatures + docstrings) — AC-1 satisfeito (smoke test confirmou imports)
+  - **Phase A.2** ✅ `detect_ollama_binary()` cross-platform priority chain implementado e **validado empiricamente** (encontrou `C:\Users\User\AppData\Local\Programs\Ollama\ollama.exe` no Windows priority 2)
+  - **Phase A.3** ✅ `acquire_app_lock()` com fcntl (Linux/Mac) + msvcrt (Windows) + bonus `release_app_lock()` + `pre_check_disk_space()` (EC-04 mitigation)
+  - **Phase A.4** ⏳ `cleanup_orphans_on_startup()` stub apenas — implementação real próxima sessão (psutil dep adicionada)
+  - **Phase A.5** ⏳ tests unit pendentes (próxima sessão)
+  - **Modificado:** `pyproject.toml` — `psutil>=5.9` adicionada ao deps
+  - **Quality gates:** ✅ smoke test importa 11 funcs OK + ✅ ruff All checks passed + ✅ detect_ollama_binary empirical
+  - **Anti-patterns preservados:** zero modificação em `bloco_workflow/*`, `bloco_vault/*`, ADRs
+  - **Estimativa real:** Phase A ~30% completa pós-sessão 87 (~30min reais consumidos; estimativa total 9-10h preservada)
+  - **Próximas sessões:** A.4 + A.5 + Phases B (spawn+PID) + C (lifespan integration) + D (auto-pull+SSE) + E (edge cases+tests+docs); depois MVP-LEAN-01 Tasks 1-9 (~41-55h)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **CC.5 FECHADO + CC.6 Neo dispatch paralelo**): trajetória CC course-correction completa; implementação iniciando ✅
+  - **CC course-correction Sprint 03 Phase 1 — trajetória final consolidada:**
+    - **CC.1A** PRD v1.1.2.1 ratificado (Smith 13→0)
+    - **CC.2** ADR-013 ratificada (Smith 10→5 LOW debt; 4 HIGH=0)
+    - **CC.3** ux-spec ratificada (Smith 20→16 debt; 4 HIGH endereçados inline; F-CC3-11 contraste corrigido empiricamente)
+    - **Bridge** tokens.css side-fix (4 conceitos / 7 declarações; --warning 5.49:1 verificado 3-vetores)
+    - **CC.4** River rebase 3 stories (VAULT-FIX-01 Done preservada + OLLAMA-MGR-01 Ready preservada + MVP-LEAN-01 criada Draft)
+    - **CC.5** Keymaker GO 9/10 (MVP-LEAN-01 Draft → Ready)
+  - **Eric escolha paralelismo opção 3a (recomendação Morpheus):** Neo implementa OLLAMA-MGR-01 + MVP-LEAN-01 em paralelo conceitualmente (mesmo Sprint, code paths independentes per parallel_story declaration). Implementação real iterativa via múltiplas sessões.
+  - **Sequenciamento Neo recomendado:**
+    1. **Etapa 1 (foundation crítica):** OLLAMA-MGR-01 ~8-10h — lifespan etapa 1 é pré-requisito direto de AC-MVP-LIFESPAN-ORDER
+    2. **Etapa 2 (MVP-LEAN-01 Task 1):** Layout-base ~2h — pode começar após OLLAMA-MGR-01 OR em paralelo (independente)
+    3. **Etapa 3+:** MVP-LEAN-01 Tasks 2-9 sequencial (S1 Login → S2 Dual-input → S5 SSE resilient → S6 D3 condicional → S4+S7 Errors → S8 Banner CRITICAL → LGPD/BACKUP/MONITOR (denso) → AC validation E2E)
+  - **Total estimado:** 49-65h (múltiplas sessões; Eric autoriza continuação via "executar o recomendado" subsequentes)
+  - **Pós CC.6 Done:** dispatch CC.7 Oracle QA gate (review formal PASS/CONCERNS/FAIL/WAIVED) → CC.8 Devops push branches + PR (se aplicável) → fechamento Sprint 03 Phase 1
+  - **PRE-RELEASE BLOCKERS pendentes:** BL-VAULT-BULK-IMPORT (maintainer Eric ~2-4h) + BL-GOLDEN-SET (Oracle 8-12h) — precisam ser resolvidos antes de v0.2.0 release
+
+- **Sessão 87** (@po · Keymaker — 2026-05-06, **CC.5 G1 gate VEREDICTO GO**): MVP-LEAN-01 Status Draft → Ready ✅
+  - **Verdict:** GO (score **9/10** ≥ 7/10 G1 gate threshold)
+  - **10-point checklist resultados:** 9 ✅ + 1 ⚠️ (Task 8 atomicidade — não-bloqueante)
+  - **Pontos verificados ✅:** preamble canônico LMAS + 25 ACs SMART tech-agnostic + Dev Notes 12 cross-refs + frontmatter Obsidian completo (project + tags) + No Invention rastreabilidade verificável + DoD implícito via Task 9 (smoke E2E + audit + encryption + backup + a11y) + dependências (6 ADRs + 4 stories + parallel + lifespan order ADR-013 §2.4) + 7 anti-patterns explícitos + status inicial Draft correto
+  - **Ressalva ⚠️ Task 8 (~14-16h) excede critério atomicidade <8h:** mitigação aceita — subtasks decompostas em 9 unidades visíveis (L1+L2+L3+L4+L5 LGPD + APScheduler + Camada 1 + Camada 2 + auto-trigger + tests). Recomendação operacional a Neo CC.6: quebrar em sub-commits granulares (8a/8b/8c/8d/8e) preservando atomicidade no nível PR/commit
+  - **Validation Section adicionada** ao final de `governance/stories/MVP-LEAN-01-single-page-mvp-completo.md` com tabela 10-point detalhada + decisão registrada
+  - **Frontmatter alterado:** `status: Draft` → `status: Ready`
+  - **Paralelismo CC.6 viável:** OLLAMA-MGR-01 (Ready preservada) + MVP-LEAN-01 (Ready aprovada) podem ser dev-yolo paralelos (code paths independentes per parallel_story declaration)
+  - Próximo: Morpheus dispatch CC.6 Neo
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **CC.4 FECHADO + CC.5 Keymaker dispatch**): MVP-LEAN-01 ratificada estruturalmente; aguarda validação Keymaker ✅
+  - **CC.4 FINAL:** River entregou MVP-LEAN-01 Draft (326 linhas; 20 ACs tech-agnostic No Invention; 9 tasks 41-55h; 12 cross-refs obrigatórias; 7 anti-patterns explícitos; 27+ arquivos preliminares no File List)
+  - **VAULT-FIX-01 (Done) + OLLAMA-MGR-01 (Ready) preservadas** — Authority de @sm sessão 86 respeitada
+  - **CC.5 dispatch:** Keymaker (@po) executa `*validate-story-draft MVP-LEAN-01` — 10-point checklist conforme story-lifecycle.md G1 gate
+  - **Decisão esperada Keymaker:**
+    - **GO** (score ≥7/10) → MVP-LEAN-01 Status Draft → Ready → CC.6 Neo implementação paralela (OLLAMA-MGR-01 + MVP-LEAN-01 InProgress)
+    - **NO-GO** (<7/10) → required fixes listados → River PATCH MVP-LEAN-01 → re-validate
+  - **Pipeline serial limpo preservado** (paralelo OLLAMA-MGR-01 aguarda CC.5 GO)
+
+- **Sessão 87** (@sm · River (Niobe) — 2026-05-06, **CC.4 rebase 3 stories FECHADO**): MVP-LEAN-01 criada como story consolidada ✅
+  - **Artefato novo:** `governance/stories/MVP-LEAN-01-single-page-mvp-completo.md` (~370 linhas)
+  - **VAULT-FIX-01 (Done) e OLLAMA-MGR-01 (Ready) preservadas** sem modificação (Authority preservada — read-only check confirmou status correto)
+  - **MVP-LEAN-01 estrutura:**
+    - Frontmatter Obsidian completo (type, id, title, status=Draft, sprint=03, epic=Sprint-03-Phase-1-MVP-LEAN, priority=alta, estimated_effort=41-55h, refs PRD v1.1.2.1 + ADR-013 + ux-spec + tokens.css, predecessor_decisions ADR-009/011/012/013, predecessor_stories VAULT-FIX-01 + OLLAMA-MGR-01 + REV-INT-01/02, parallel_story OLLAMA-MGR-01, tags project/revisor-contratual + cc-course-correction-complete + p0-mvp)
+    - Story preamble formato canônico LMAS (Como/Quero/Para que)
+    - Contexto e trajetória CC course-correction (recapitulação CC.1A + CC.2 + CC.3 + bridge tokens.css)
+    - **20 Acceptance Criteria** — 8 estados (AC-MVP-01..08) + 7 componentes (AC-MVP-09..15) + 8 transversais (LGPD + MONITOR + BACKUP + D3-DUAL-INPUT + SSE-RESILIENT + ERRORS + A11Y + AUDIT + LIFESPAN-ORDER + TOKENS)
+    - **9 Tasks/Subtasks** com estimativa total 41-55h (consistente PRD §2.6)
+    - Dev Notes com cross-references obrigatórias + dependências preservadas + anti-patterns explícitos
+    - File List backend Python (10 arquivos) + frontend Jinja2/HTMX (10+ templates) + CLI + tests
+    - Change Log inicial documentando trajetória CC completa
+  - **ACs tech-agnostic** (descrevem O QUÊ não COMO; cada um rastreável a FR/AC PRD OU ADR-013 OU ux-spec — No Invention)
+  - **Status inicial Draft** — aguarda CC.5 Keymaker `*validate-story-draft` antes de avançar a Ready
+  - Próximo: Morpheus dispatch CC.5 Keymaker (10-point checklist validation)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **Bridge CC.3→CC.4 fechado + CC.4 River dispatch**): fundação CC course-correction completa ✅
+  - **CC course-correction Sprint 03 Phase 1 — recapitulação trajetória qualidade ascendente:**
+    - **CC.1A** PRD v1.0.3 → v1.1.0 → v1.1.1 → v1.1.2 → v1.1.2.1 (Smith trajetória 13 → 6 → 3 → 0 findings)
+    - **CC.2** ADR-013 ratificada (Smith 10→5 LOW debt; 4 HIGH=0 inline; status accepted)
+    - **CC.3** ux-spec MVP-LEAN-01 ratificada (Smith 20→16 debt; 4 HIGH endereçados inline; F-CC3-11 contraste falso corrigido)
+    - **Bridge CC.3→CC.4** tokens.css side-fix executado (4 conceitos / 7 declarações; contraste 3-vetores verificado 5.49:1)
+  - **CC.4 dispatch:** River rebase 3 stories Sprint 03 Phase 1
+    - **VAULT-FIX-01** Done preservada (committed 3d055c6 em `feature/sprint-03-vault-fix-01`)
+    - **OLLAMA-MGR-01** Ready preservada (revalidação @po opcional pós-CC, não obrigatória)
+    - **MVP-LEAN-01** NOVA — story consolidada referenciando PRD v1.1.2.1 + ADR-013 + ux-spec-v1.1.2-MVP-LEAN + tokens.css; escopo 41-55h; 13 FRs ativos; 8 estados S1-S8; 7 componentes C1-C7; ~58 mensagens PT-BR; WCAG AA verificado
+  - **Sequência pós CC.4 confirmada:** CC.5 Keymaker validate MVP-LEAN-01 (10-point checklist) → CC.6 Neo implementação paralela (OLLAMA-MGR-01 + MVP-LEAN-01)
+
+- **Sessão 87** (@architect · Aria — 2026-05-06, **side-fix tokens.css executado FECHADO**): 4 conceitos / 7 declarações CSS aplicadas ✅
+  - **Artefato:** `bloco_interface/web/static/tokens.css` 107 → 129 linhas (+22)
+  - **4 conceitos / 7 declarações inseridas após `--danger-soft` (linha 91), antes de `Tipografia`:**
+    - **Banner Tema 1378 AMARELO:** `--warning #8B5A0B` + `--warning-soft #FFF6E5` (FR-MONITOR-01 / ADR-013 §2.5)
+    - **Estados disabled:** `--opacity-disabled 0.4` + `--cursor-disabled not-allowed` (S8 main + drop-zone + CTAs)
+    - **Focus indicator a11y:** `--focus-ring-width 2px` + `--focus-ring-offset 2px` + `--focus-ring-color var(--accent)` (WCAG 2.4.7)
+    - **Surface hover:** `--surface-hover rgba(238, 107, 32, 0.05)` (drop-zone transition, button hover, card lift)
+  - **Validação independente WCAG 2.1 — contraste `--warning` sobre `--warning-soft`:**
+    - Cálculo Aria: L_dark ≈ 0.1283; L_light ≈ 0.9284; ratio ≈ 5.49:1
+    - Convergência com Sati: 5.49 vs 5.49 = **0.0 unit divergência (match perfeito)**
+    - **Confirmado:** ✓ AA normal text (≥4.5) com folga; próximo de AAA 7:1
+  - **Comentário in-file documenta origem cirúrgica** (CC.3 micro-PATCH α + Smith F-CC3-03 + F-CC3-11 + cross-ref ux-spec §2.2)
+  - **Estrutura tokens.css preservada** (Paleta → Neutros → Semânticos → [4 NOVOS] → Tipografia → Sizing → Layout)
+  - **Próximo:** Morpheus dispatch CC.4 River — rebase 3 stories (VAULT-FIX-01 Done preservada + OLLAMA-MGR-01 Ready preservada + criar MVP-LEAN-01 nova). Tokens já existentes fisicamente — story pode referenciar sem TODO inicial.
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **CC.3 FECHADO + side-fix tokens.css pré-CC.4 dispatch**): tribunal UX spec ratificado pós micro-PATCH α ✅
+  - **CC.3 FINAL:** Smith CC.3 PASS-COM-RESSALVA tendência INFECTED (20 findings, 4 HIGH) → Eric opção α → Sati micro-PATCH α executado (4 HIGH + 1 MED cirúrgico + bonus LOW endereçados inline; 16 residuais como BL-UX-CC3-DEBT) → Morpheus aprovação direta sem 4º Smith ciclo (cirurgia documental + 1 cor verificada empiricamente WCAG 2.1 + 1 redefinição wireframe estrutural) → ux-spec ratificada (proposed → consolidada CC.6-ready)
+  - **Convergência qualidade Sprint 03 CC course-correction completa:** PRD trajetória Smith 13→6→3→0 (CC.1A) + ADR-013 trajetória 10→5 debt (CC.2) + UX spec trajetória 20→16 debt + 4 HIGH inline + 1 MED cirúrgico (CC.3). Padrão de resolução opção α replicado 3 vezes com sucesso.
+  - **Decisão Morpheus arquitetural (sequencial pré-CC.4):** Aria side-fix tokens.css adiciona 4 tokens novos (`--warning #8B5A0B` + `--warning-soft` + `--opacity-disabled 0.4` + `--cursor-disabled` + `--focus-ring-width/offset/color` + `--surface-hover`) — ~15min, commit pequeno antes de River criar MVP-LEAN-01. Razão: River não deve criar story sobre tokens fantasma; Neo bateria em TODO inicial em CC.6.
+  - **Sequenciamento confirmado pós-Aria:** CC.4 River → CC.5 Keymaker validate → CC.6 Neo implementação paralela (OLLAMA-MGR-01 Ready preservada + MVP-LEAN-01 nova)
+  - **Pipeline serial limpo preservado**
+
+- **Sessão 87** (@ux-design-expert · Sati — 2026-05-06, **CC.3 micro-PATCH α executado FECHADO**): 4 HIGH + 1 MED cirúrgico + bonus LOW endereçados inline ✅
+  - **Artefato:** `governance/ux-spec-v1.1.2-MVP-LEAN.md` atualizada (cresceu de 862 → ~1100 linhas; 6 edits cirúrgicos)
+  - **F-CC3-11 (HIGH compliance)** ✅ §2.2 reformulada + §6.1 tabela atualizada — `--warning` mudado de `#B8770F` (claim falso 4.65:1, real ~3.5:1) para `#8B5A0B` (verificado empiricamente **5.49:1 sobre `--warning-soft` AA normal** via cálculo formal WCAG 2.1 sRGB→linear; reprodutível em WebAIM Contrast Checker). Justificativa atualizada (rotação harmônica de `--or-700` em vez de `--or-500`)
+  - **F-CC3-06 (HIGH estrutural)** ✅ §3 S2 reformulada para 2 drop-zones (D1 contrato obrigatório + D2 decisão adversa opcional com tooltip explicativo) + §3 S6 ganha 2 variantes (S6.a D3 disponível / S6.b D3 indisponível com CTA "Enviar decisão") + §C3 ganha prop `tipo: "contrato" | "decisao_adversa"` com microcopy diferenciada + §C5 ganha lógica condicional `deliverables[2].disponivel` + §8 mapping FR-DELIV-D3 atualizado para condicionalidade
+  - **F-CC3-05 (HIGH operacional)** ✅ §3 S5 ganha subseção "Connection drop handling" com 4 mecanismos (heartbeat ping 10s server-side + client-side timeout 60s + EventSource.onerror retry backoff 5s + audit.jsonl entry forense) + §7.3 ganha 2 cenários explícitos (timeout + onerror) + variante synthetic `phase-error` `connection_drop` com microcopy completo
+  - **F-CC3-08 (HIGH coverage)** ✅ §C6 ganha subseção "Variante catch-all `infra` (anti-fallback)" com handler central Python (`EXCEPTION_TO_C6_VARIANT` mapping) + 7 variantes adicionais catalogadas com tabela Diag/Causa/Solução/Alternativa: `disk_full_audit` + `disk_full_uploads` + `vault_db_locked` + `fernet_key_missing` + `session_secret_missing` + `ollama_subprocess_crash` + `bacen_api_down` + `weasyprint_render_fail`
+  - **F-CC3-03 (MEDIUM cirúrgico)** ✅ §2.2 reformulada — de "1 proposta" para "Propostas de tokens cirúrgicos" com 4 entries consolidados (`--warning` corrigido + `--opacity-disabled` + `--cursor-disabled` + `--focus-ring-width/offset/color` + `--surface-hover`)
+  - **Bonus side-fix F-CC3-14 (LOW)** ✅ §8 mapping ganha linha AC-FR-LGPD-MVP-01b (chmod 600 + 0% PDFs plain text — invisível UI mas verificável via test E2E pós-pipeline) com cross-ref a §C6 variantes infra
+  - **TECH-DEBT.md** ✅ BL-UX-CC3-DEBT adicionado (16 residuais consolidados: 8 MEDIUM + 8 LOW); resumo 31→32; backlog 16→17; last_updated 2026-05-06
+  - **Sem 4º ciclo Smith** (Eric perfeição opção α — cirurgia documental + 1 cor verificada empiricamente + 1 redefinição wireframe estrutural)
+  - Próximo: Morpheus consolida CC.3 FINAL + dispara CC.4 River (rebase 3 stories: VAULT-FIX-01 Done preservada + OLLAMA-MGR-01 Ready preservada + criar MVP-LEAN-01 nova com refs PRD v1.1.2.1 + ADR-013 + ux-spec-v1.1.2-MVP-LEAN)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, decisão Eric opção α CC.3): **Sati micro-PATCH α inline despachado**.
+  - Eric escolheu opção α (recomendada Smith): Sati executa 5 edits cirúrgicos endereçando 4 HIGH + F-CC3-03 tokens cirúrgico (~1.5-2h total)
+  - Sem 4º ciclo Smith re-review (mudanças cirúrgicas + 1 cor + 1 redefinição wireframe)
+  - **5 edits a executar:**
+    - **F-CC3-11** (HIGH compliance) §2.2 + §6.1 → trocar `#B8770F` por `#8B5A0B` (escurecer; ratio target ≥4.5:1 AA normal) + documentar ferramenta de verificação WCAG usada
+    - **F-CC3-06** (HIGH estrutural) §3 S2 + §3 S6 + §C5 → adotar opção A (acréscimo S2): 2 drop-zones (contrato obrigatório + decisão adversa opcional) + S6 D3 card mostra "indisponível" se segundo upload vazio
+    - **F-CC3-05** (HIGH operacional) §3 S5 + §7.3 → adicionar subseção "SSE connection drop handling": heartbeat ping 10s + client timeout 60s + EventSource.onerror retry backoff 5s + flow S5 → S7 connection drop
+    - **F-CC3-08** (HIGH coverage) §C6 → adicionar variante catch-all "infra" parametrizada + listar 7 classes adicionais (disk full audit/uploads, vault.db lock, FERNET missing, SESSION_SECRET missing, Ollama crash, BACEN down, WeasyPrint fail)
+    - **F-CC3-03** (MEDIUM cirúrgico) §2.2 → expandir proposta para 4 tokens novos consolidados (--warning + --warning-soft corrigidos + --opacity-disabled + --cursor-disabled + --focus-ring-width + --focus-ring-offset + --surface-hover)
+  - **8 MEDIUM + 8 LOW restantes** consolidados em **BL-UX-CC3-DEBT** entry novo em TECH-DEBT.md (substituindo BL-UX-WARNING-TOKEN inicial; BL-A11Y-AUDIT mantido separado)
+  - Pós Sati return: Morpheus aprova diretamente + consolida CC.3 final + dispara CC.4 River
+  - Trajetória qualidade Sprint 03 preservada (padrão CC.2 inline replicado)
+
+- **Sessão 87** (@smith · Smith — 2026-05-06, **CC.3 tribunal severo VEREDICTO emitido**): **PASS-COM-RESSALVA tendência INFECTED** ⚠️
+  - **20 findings:** 0 CRITICAL · **4 HIGH** · 8 MEDIUM · 8 LOW
+  - **4 HIGH bloqueadores funcionais:**
+    - **F-CC3-05** (S5 SSE: zero edge case connection drop — UI trava em ⟳ indefinido se EventSource cai)
+    - **F-CC3-06** (D3 Apelação Cível requer 2 uploads: contrato + decisão adversa — spec mostra só 1 drop-zone)
+    - **F-CC3-08** (catálogo erros C6 incompleto — 7+ classes não mapeadas: disk full, vault.db lock, FERNET missing, Ollama crash, etc)
+    - **F-CC3-11** (**ERRO FACTUAL** — contraste `--warning` `#B8770F` sobre `#FFF6E5` declarado 4.65:1, cálculo correto WCAG dá ~3.5:1 → falha AA normal text. Claim WCAG falso é compliance issue não-shippable)
+  - **8 MEDIUM:** multi-tab race + 3+ tokens implícitos + spacing scale + ETA hardcoded + flows anômalos + AC-FR-LGPD-MVP-01b ausente do mapping + UX OAB rate limit ausente + cross-browser não documentado
+  - **8 LOW:** warning fonte weight + count microcopy + glossário inconsistência + reduced-motion completude + audit.jsonl download + BL underestimate + debt residual + banner fechável inconsistência
+  - **Trajetória Sprint 03 quebrada parcialmente:** CC.1A 13→0 (PASS) → CC.2 10 (0 HIGH) → **CC.3 4 HIGH**. Convergência ascendente interrompida.
+  - **Recomendação Smith:** opção α (Sati micro-PATCH inline ~1.5-2h endereçando 4 HIGH + F-CC3-03 tokens cirúrgico; 8 MEDIUM + 8 LOW como BL-UX-CC3-DEBT consolidado). Razão: F-CC3-11 contraste falso é não-shippable; F-CC3-06 D3 dual-input é gap estrutural que Neo bate em CC.6.
+  - **3 opções escaladas Eric:** α (RECOMENDADO ~1.5-2h) / β PATCH formal + Smith re-review #2 (~3-4h) / γ debt aceito (NÃO RECOMENDADO — compliance issue F-CC3-11)
+  - Próximo: Morpheus consolida + apresenta 3 opções Eric (similar CC.2 pattern)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **CC.3 dispatch Smith adversarial review**): Eric escolheu opção recomendada Sati ✅
+  - Padrão Sprint 03 perfeição opção B preservado (Smith fechou findings em CC.1A/CC.2 antes de avançar)
+  - Smith CC.3 task: adversarial review `governance/ux-spec-v1.1.2-MVP-LEAN.md` (862 linhas)
+  - Foco: ironias UX (CSP `default-src 'self'` × HTMX SSE inline?; drag-drop sem JS?; reduced-motion completude real?; banner Tema 1378 hierarquia bloqueio testável?), No Invention real (mapping AC→wireframe verificável), edge-cases não-cobertos (mobile? prefers-color-scheme dark? OAuth fail durante S5?), tokens proposta razoável OR strawman (`--warning` `#B8770F` justificável?)
+  - Próximo pós Smith: Morpheus consolida CC.3 final → conforme verdict (PASS / PASS-COM-RESSALVA / FAIL) decide CC.4 River direto OR PATCH Sati cycle
+
+- **Sessão 87** (@ux-design-expert · Sati — 2026-05-06, **CC.3 UX spec MVP-LEAN-01 entregue FECHADO**): single-page architecture documentada ✅
+  - **Artefato:** `governance/ux-spec-v1.1.2-MVP-LEAN.md` (~480 linhas) — frontmatter Obsidian completo + tags project/revisor-contratual + cross-refs PRD v1.1.2.1 + ADR-013 + ADR-009/011/012 + REV-INT-01/02
+  - **Estrutura:** 9 seções obrigatórias completas — Contexto + Tokens + Wireframes 8 estados + Componentes 7 + Microcopy + Accessibility WCAG AA + Flows HTMX/SSE + Mapping AC→Wireframe + Próximos passos
+  - **8 estados S1-S8:** Login + Pré-upload + Upload em curso + Validação MIME/size erro + Processing 4 personas SSE + Resultado 3 cards + Erro pipeline + Banner Tema 1378 CRITICAL
+  - **7 componentes C1-C7:** Login form + Banner Tema 1378 (3 níveis) + Upload zone + Processing pane + Resultado pane + Error pane + Footer
+  - **Microcopy PT-BR:** ~58 mensagens catalogadas (sem placeholders) com glossário canônico (Persona Advogado, Tema 1378 STJ, OAB, audit chain, etc)
+  - **Accessibility WCAG AA:** 8 contrast ratios verificados (todos ≥4.5 normal OR ≥3 large) + keyboard nav + ARIA-live regions + reduced-motion + skip-link
+  - **Tokens:** reusados existentes (Or laranja + Sh azul + neutros warm + Manrope/Fraunces/JetBrains REV-INT-02). Gap detectado: `--warning` ausente para banner Tema 1378 AMARELO → proposta cirúrgica `#B8770F` + `#FFF6E5` (4.65:1 ratio AA) → flag como **BL-UX-WARNING-TOKEN** (~10min Neo OR side-fix Aria)
+  - **Mapping AC→wireframe:** rastreabilidade completa para 13 FRs ativos PRD v1.1.2.1; FR sem UI explícita justificados (FR-BACKUP, FR-AUDIT exploração rica = invisíveis OR deferred BL-CONFIG-UI)
+  - **2 BL-* candidatos:** BL-UX-WARNING-TOKEN (LOW, 10min) + BL-A11Y-AUDIT (LOW, 4-6h leitor PT-BR pós-MVP)
+  - Próximo: Morpheus consolida CC.3 + decide Smith CC.3 adversarial review OR CC.4 River direto
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, **CC.2 FECHADO + CC.3 Sati despachado**): tribunal ADR-013 ratificado pós-micro-PATCH α ✅
+  - **CC.2 FINAL:** Smith CC.2 PASS-COM-RESSALVA (5 MED + 5 LOW; 0 CRIT/HIGH) → Eric opção α → Aria micro-PATCH α executado (5 MED endereçados; 5 LOW como BL-ADR-013-MICROFIXES debt aceito) → Morpheus aprovação direta sem 4º ciclo Smith (cirurgia documental structural) → ADR-013 ratificado
+  - **Convergência qualidade Sprint 03 etapa 2 (course-correction CC):** PRD trajetória Smith 13→6→3→0 (CC.1A) + ADR-013 trajetória 10 findings → 5 endereçados + 5 debt (CC.2). Padrão de resolução opção α replicado com sucesso.
+  - **CC.3 dispatch:** Eric escolheu CC.3 Sati primeiro (recomendado Aria) — UX spec MVP-LEAN-01 single-page upfront economiza ~3-4h iteração @dev↔Sati pós-implementação. Story MVP-LEAN-01 é UI-heavy (5 camadas LGPD + APScheduler + FR-MONITOR-01 + D3 Apelação + banner Tema 1378 + login + upload + processing + 3 downloads).
+  - **Sequência confirmada:** CC.3 Sati → CC.4 River stories → CC.5 Keymaker validate → CC.6 Neo implementação paralela (OLLAMA-MGR-01 + MVP-LEAN-01)
+  - **Pipeline serial limpo preservado:** OLLAMA-MGR-01 mantém-se Ready (não despacha em paralelo enquanto MVP-LEAN-01 não estiver Ready)
+
+- **Sessão 87** (@architect · Aria — 2026-05-06, micro-PATCH α executado FECHADO): **5 MEDIUM Smith CC.2 endereçados em ADR-013 inline** ✅
+  - **F-NEW3-01** ✅ §2.3 reescrita — tabela 5 camadas reformulada para nível conceitual + coluna "Why (vetor coberto / Art. 46 LGPD)" + nota de escopo redirecionando detalhes a FR-LGPD-MVP-01 (PRD v1.1.2.1)
+  - **F-NEW3-03** ✅ §5.2 ganhou 7ª consequência negativa formal (".env como SPOF crypto") com mitigação MVP + roadmap evolução + cross-ref §2.3
+  - **F-NEW3-05** ✅ §2.3 final tem subseção "Evolução L4 crypto" com tabela v1.0/v1.1+/v2.0+ + DESCARTADO permanente HSM cloud (preserva NFR-LGPD-01 ADR-009)
+  - **F-NEW3-08** ✅ §2.4 ganhou subseção "Ordem do FastAPI lifespan startup (compartilhado com ADR-011 + ADR-012)" — 4 etapas startup sequenciais + shutdown ordem inversa + política fail-fast CRITICAL
+  - **F-NEW3-09** ✅ §2.5 ganhou subseção "Mitigação da fragilidade da Camada 1 (consciência ADR-012)" — httpx retry exponencial + parser regex resilient com fallback + auto-trigger SOP-005 (2 falhas consecutivas) + hierarquia de confiança automation>humano
+  - **TECH-DEBT.md** ✅ BL-ADR-013-MICROFIXES adicionado (5 LOW Smith CC.2 consolidadas; resumo 30→31; backlog 15→16; last_updated 2026-05-06)
+  - **ADR-013** mantém status `accepted`, data `2026-05-06`, sem ADR-013-bis (Eric opção α inline structural)
+  - Sem 4º ciclo Smith re-review (cirurgia documental — preservou Eric perfeição opção α)
+  - Próximo: Morpheus consolida CC.2 FINAL + dispara CC.3 Sati OR CC.4 River
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, decisão Eric opção α): **Aria micro-PATCH inline ADR-013 despachado**.
+  - Eric escolheu opção α (recomendada Smith): Aria executa ~5 Edits cirúrgicos em ADR-013 endereçando 5 MEDIUM (~30min total)
+  - Sem 4º ciclo Smith re-review (mudanças documentais structural, similar CC.1A'' v1.1.2.1 padrão)
+  - 5 MEDIUM a endereçar: F-NEW3-01 (§2.3 simplificar) + F-NEW3-03 (§5.2 .env SPOF) + F-NEW3-05 (§2.3 evolução L4 crypto) + F-NEW3-08 (§2.4 lifespan order) + F-NEW3-09 (§2.5 Camada 1 fortalecimento)
+  - 5 LOW aceitas como debt em TECH-DEBT.md (BL-ADR-013-MICROFIXES único entry consolidado)
+  - Pós Aria return: Morpheus aprova diretamente + consolida CC.2 final + dispara CC.3 Sati OR CC.4 River
+  - Trajetória qualidade preservada (convergência ascendente Smith)
+
+- **Sessão 87** (@smith · Smith — 2026-05-06, tribunal CC.2 review): **VEREDICTO PASS-COM-RESSALVA** ✅⚠️
+  - 10 findings (5 MEDIUM + 5 LOW; 0 CRITICAL/HIGH)
+  - 5 MEDIUM: F-NEW3-01 zona cinza Design/Spec § 2.3; F-NEW3-03 .env attack surface SPOF; F-NEW3-05 HSM/keychain plan ausente; F-NEW3-08 FastAPI lifespan order não documentado (3 ADRs compartilham); F-NEW3-09 Camada 1 Tema 1378 reusa scraper frágil ADR-012
+  - 5 LOW: F-NEW3-02 strawmen alternativas; F-NEW3-04 anti-patterns redundantes; F-NEW3-06 SOP-005 succession; F-NEW3-07 [OTIMISTA] qualifier sem revision; F-NEW3-10 §2.3 catálogo FR
+  - Eric perfeição → ressalvas escaladas (3 opções: α micro-PATCH 30min / β ADR-013-bis ciclo formal / γ debt aceito)
+  - **Recomendação Smith:** opção α (micro-PATCH inline 30min, sem 4º ciclo Smith — convergência qualidade ascendente preservada)
+  - Próximo: Morpheus consolida + apresenta 3 opções a Eric (paralelo CC.1A'' pattern)
+
+- **Sessão 87** (@architect · Aria — 2026-05-06, CC.2 ADR-013 publicado): **ADR-013 MVP Lean Strategy + Deployment Path** ⭐
+  - 5 decisões arquiteturais consolidadas:
+    1. Docker opcional pós-v1.0 (não no MVP)
+    2. VPS multi-tenant DESCARTADO permanentemente (preserva ADR-009)
+    3. Defense-in-depth LGPD 5 camadas (auth + sessão + headers + encryption + permissões)
+    4. Cross-platform backup via APScheduler embedded (não cron OS-específico)
+    5. Dual-layer Tema 1378 STJ (auto FR-MONITOR-01 + manual SOP-005)
+  - Status: accepted
+  - Predecessor decisions referenciadas: ADR-009 + ADR-011 + ADR-012 (todos preservados)
+  - Anti-patterns documentados: VPS multi-tenant, auth hardcoded, cron OS-específico, manual-only Tema 1378
+  - Roadmap modalidades cross-referenciado: v1.0 Veicular → v1.1 Bancário → v1.2 Imobiliária → v1.3 Crédito + FIES projeto-irmão
+  - File: `governance/architecture/adr/adr-013-mvp-lean-strategy-deployment-path.md` (NEW)
+  - ADR-INDEX.md atualizado (ADR-013 status accepted; pendências DP-05 re-numeradas para ADR-014+)
+  - Próximo: tribunal severo CC.2 (Smith — sempre + checkpoint — sempre); Sati condicional (não aplicável — ADR é infra-only sem UX)
+
+- **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, CC.2 Aria despacho): **CC.1B closure consolidado + CC.2 Aria iniciado**.
+  - CC.1B FECHADO: Oracle PASS + Operator push verde (commits 3d055c6 + ef8d087; CI Python 3.11+3.12 PASS)
+  - Trajetória Sprint 03 Phase 0:
+    - ✅ CC.1A FECHADO (PRD v1.1.2.1 ACTIVE em origin)
+    - ✅ CC.1B FECHADO (VAULT-FIX-01 Done committed)
+    - 🟡 CC.2 Aria ADR-013 (em curso AGORA)
+    - 🟡 OLLAMA-MGR-01 paralelo (Ready, próximo dev cycle pós-CC.2)
+    - 🟡 PR creation (aguardando Eric — recomendação Operator: pós-CC.2)
+  - CC.2 Aria task: ADR-013 "MVP Lean Strategy + Deployment Path" baseado em PRD v1.1.2.1
+  - Tribunal severo pós-Aria: Smith (sempre) + checkpoint (sempre); Sati condicional (se ADR toca UX)
+  - Próximo: Aria return + tribunal severo CC.2 + decisão CC.3/4 (Sati UX OR River stories)
+
+- **Sessão 87** (@devops · Operator — 2026-05-06, CC.1B push DONE): **VAULT-FIX-01 + CC.1A PUSHED** ✅
+  - Branch criada: `feature/sprint-03-vault-fix-01` (NEW, from main)
+  - **Commit 1:** `3d055c6` `feat(vault): VAULT-FIX-01 ADR-012 vault data bundling [Story VAULT-FIX-01]` (12 files, +2696/-12)
+  - **Commit 2:** `ef8d087` `docs(governance): PRD v1.1.2.1 course-correction caminho híbrido + 5 modalidades roadmap [Sprint 03 CC.1A]` (11 files, +3394/-15)
+  - Push: `origin feature/sprint-03-vault-fix-01` (NÃO --force, NÃO main)
+  - **CI verde** (workflow_dispatch run 25430265217 — Python 3.11 + 3.12 matrix PASS)
+  - Story VAULT-FIX-01 status: Done (committed)
+  - PRD v1.1.2.1 ACTIVE (committed)
+  - PROJECT-CHECKPOINT.md status executivo atualizado: "Sprint 03 Phase 0 VAULT-FIX-01 PUSHED + CC.1A FECHADO"
+  - **PR NÃO criado** (Eric decide quando — restrição cumprida)
+  - Próximo: Morpheus consolida CC.1B closure + despacha CC.2 Aria ADR-013
 
 - **Sessão 87** (@lmas-master · Morpheus — 2026-05-06, CC.1B Operator push despacho): **Operator despachado para push VAULT-FIX-01**.
   - Oracle PASS confirmou Story Done — Operator agora é único caminho per Authority Matrix exclusiva
