@@ -49,6 +49,8 @@ dependencies = [
   # CLI (STORY 10)
   "click>=8.1",
   "rich>=13.0",
+  # Auto-Ollama lifecycle (OLLAMA-MGR-01 / ADR-011) — process management cross-platform
+  "psutil>=5.9",
 ]
 
 [project.optional-dependencies]

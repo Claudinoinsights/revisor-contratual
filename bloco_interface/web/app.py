@@ -22,10 +22,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import tempfile
 import uuid
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
@@ -34,8 +36,13 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from bloco_interface import ollama_manager
+from bloco_interface.ollama_manager import OllamaBinaryNotFound, OllamaSpawnFailed
 from bloco_vault import open_vault
+from bloco_vault.populate import BUNDLED_DATA_DIR, populate_vault_if_needed
 from bloco_workflow import revisar_contrato
+
+logger = logging.getLogger(__name__)
 
 # ── Paths ─────────────────────────────────────────────────────────────────
 WEB_DIR = Path(__file__).parent
@@ -110,8 +117,125 @@ class JobState(TypedDict):
 JOBS: dict[str, JobState] = {}
 
 
+# ── Lifespan (ordem determinística per ADR-013 §2.4) ──────────────────────
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    """Startup/shutdown hooks integrando OLLAMA-MGR-01 + VAULT-FIX-01.
+
+    Ordem startup determinística (ADR-013 §2.4):
+
+    1. ``ollama_manager.acquire_app_lock()`` — concurrent app prevention (EC-11)
+    2. ``ollama_manager.cleanup_orphans_on_startup()`` — recovery EC-06
+    3. ``ollama_manager.detect_ollama_binary()`` — raise se binary não existe (EC-01)
+    4. detect-then-spawn :11434 + :11435 (preserva Ollama existente)
+    5. ``ollama_manager.write_pid_file_atomic()`` (apenas se spawnamos)
+    6. ``populate_vault_if_needed()`` — VAULT-FIX-01 (ADR-012)
+    7. ``asyncio.create_task(ensure_models_pulled(...))`` — Phase D auto-pull (stub atualmente)
+
+    Shutdown ordem inversa: kill spawned + release lock.
+
+    Falhas em startup levantam exceção → app fail-to-start (não degradação silenciosa).
+    """
+    lock_fd: int | None = None
+    spawned_pids: dict[str, int] = {}
+    try:
+        # Etapa 1 — acquire app lock (EC-11)
+        lock_fd = ollama_manager.acquire_app_lock()
+        logger.info("Lifespan startup: app lock acquired (fd=%d)", lock_fd)
+
+        # Etapa 2 — cleanup orphan ollama processes (EC-06)
+        ollama_manager.cleanup_orphans_on_startup()
+
+        # Etapa 3 — detect ollama binary (EC-01)
+        binary = ollama_manager.detect_ollama_binary()
+        if binary is None:
+            raise ollama_manager.OllamaBinaryNotFound(
+                "Ollama binary não encontrado. "
+                "Instale via https://ollama.ai/download "
+                "ou aponte OLLAMA_BINARY_PATH no .env."
+            )
+        logger.info("Lifespan startup: ollama binary -> %s", binary)
+
+        # Etapa 4 — detect-then-spawn 2 instâncias
+        host = ollama_manager.DEFAULT_HOST
+        for role, port in (
+            ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
+            ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
+        ):
+            if await ollama_manager.detect_running_ollama(host, port):
+                logger.info(
+                    "Lifespan startup: REUSE existing ollama %s:%d (role=%s)",
+                    host,
+                    port,
+                    role,
+                )
+            else:
+                pid = ollama_manager.spawn_ollama(binary, host, port)
+                spawned_pids[role] = pid
+                logger.info(
+                    "Lifespan startup: SPAWNED ollama %s:%d PID=%d (role=%s)",
+                    host,
+                    port,
+                    pid,
+                    role,
+                )
+
+        # Etapa 5 — persist PID file se spawned algo
+        if spawned_pids:
+            ollama_manager.write_pid_file_atomic(spawned_pids)
+
+        # Etapa 6 — populate vault (VAULT-FIX-01 / ADR-012)
+        try:
+            result = populate_vault_if_needed(DEFAULT_VAULT_DB, BUNDLED_DATA_DIR)
+            if result["populated"]:
+                logger.info(
+                    "Lifespan startup: vault populated %d STJ + %d STF SV",
+                    result["stj_count"],
+                    result["stf_count"],
+                )
+            else:
+                logger.info(
+                    "Lifespan startup: vault populate skipped (%s)",
+                    result["skipped_reason"],
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Lifespan startup: vault populate failed: %s", exc)
+
+        # Etapa 7 — auto-pull background (Phase D stub atual; tolerância a NotImplementedError)
+        try:
+            asyncio.create_task(  # noqa: RUF006 — fire-and-forget intencional (background)
+                ollama_manager.ensure_models_pulled(list(ollama_manager.REQUIRED_MODELS))
+            )
+        except NotImplementedError:
+            logger.warning(
+                "Lifespan startup: ensure_models_pulled é stub (Phase D pending) — "
+                "modelos devem estar pre-pulled manualmente"
+            )
+
+    except (
+        ollama_manager.OllamaBinaryNotFound,
+        ollama_manager.AppAlreadyRunning,
+        ollama_manager.DiskSpaceInsufficient,
+    ):
+        logger.critical("Lifespan startup FAIL — abortando app")
+        if lock_fd is not None:
+            ollama_manager.release_app_lock(lock_fd)
+        raise
+
+    yield
+
+    # Shutdown ordem inversa
+    try:
+        ollama_manager.kill_spawned_ollama()
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Lifespan shutdown: kill_spawned_ollama failed: %s", exc)
+    if lock_fd is not None:
+        ollama_manager.release_app_lock(lock_fd)
+        logger.info("Lifespan shutdown: app lock released")
+
+
 # ── App ───────────────────────────────────────────────────────────────────
-app = FastAPI(title="Revisor Contratual", version="0.2.0")
+app = FastAPI(title="Revisor Contratual", version="0.2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -155,6 +279,46 @@ async def revisar(
     data: str = Form(default=""),
     tier: LLMTier = Form(default="balanced"),  # noqa: B008 — FastAPI Form pattern (ADR-010 default)
 ) -> HTMLResponse:
+    # Phase E / AC-7: on-demand health check + lazy respawn (EC-08 Ollama crash mid-revisar)
+    host = ollama_manager.DEFAULT_HOST
+    for role, port in (
+        ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
+        ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
+    ):
+        if not await ollama_manager.detect_running_ollama(host, port):
+            try:
+                binary = ollama_manager.detect_ollama_binary()
+                if binary is None:
+                    raise HTTPException(
+                        status_code=503,
+                        detail="Ollama indisponível (binary não localizado)",
+                        headers={"Retry-After": "60"},
+                    )
+                pid = ollama_manager.spawn_ollama(binary, host, port)
+                logger.warning(
+                    "revisar: lazy respawn ollama %s:%d PID=%d (role=%s)",
+                    host, port, pid, role,
+                )
+                # Atualizar PID file para tracking shutdown lifespan
+                current_pids = ollama_manager.read_pid_file_safely()
+                current_pids[role] = pid
+                ollama_manager.write_pid_file_atomic(current_pids)
+            except (OllamaSpawnFailed, OllamaBinaryNotFound) as exc:
+                logger.error("revisar: lazy respawn falhou: %s", exc)
+                raise HTTPException(
+                    status_code=503,
+                    detail=f"Ollama indisponível e respawn falhou: {exc}",
+                    headers={"Retry-After": "60"},
+                ) from exc
+
+    # Phase D / AC-8: 503 retry-after se modelos LLM ainda baixando (auto-pull background)
+    if not ollama_manager.is_ready():
+        raise HTTPException(
+            status_code=503,
+            detail="Modelos LLM baixando — aguarde alguns minutos",
+            headers={"Retry-After": "60"},
+        )
+
     # AC-2: max_size validation (TD-WEB-NOMAXSIZE-01)
     if pdf.size and pdf.size > MAX_UPLOAD_SIZE:
         raise HTTPException(
@@ -319,6 +483,27 @@ async def reset(request: Request, job_id: str = Form(default="")) -> HTMLRespons
         name="partials/idle.html",
         context={},
     )
+
+
+# ── Phase D: SSE /ollama-status (auto-pull progress) ───────────────────────
+@app.get("/ollama-status")
+async def ollama_status_sse() -> StreamingResponse:
+    """SSE stream do status de auto-pull de modelos para UI banner.
+
+    Phase D / OLLAMA-MGR-01 / AC-6. Cliente HTMX (`hx-ext="sse"`) consome
+    eventos para renderizar progresso visual durante download de modelos
+    (10-30min primeira vez). Loop encerra quando state in (ready, error).
+    """
+
+    async def event_generator() -> AsyncIterator[str]:
+        while True:
+            status = ollama_manager.get_pull_status()
+            yield f"event: status\ndata: {json.dumps(status)}\n\n"
+            if status.get("state") in ("ready", "error"):
+                break
+            await asyncio.sleep(2)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
 # ── Entry point ───────────────────────────────────────────────────────────

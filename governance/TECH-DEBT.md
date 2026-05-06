@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-05"
+last_updated: "2026-05-06"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -22,26 +22,28 @@ tags:
 
 | Categoria | Quantidade |
 |---|---|
-| Active tech debts | **13** (2 MEDIUM + 11 LOW) |
+| Active tech debts | **38** (3 MEDIUM + 12 LOW + 23 BL-* / TD-* — 14 migrados v1.1.1 + 1 NOVO v1.1.2 + 1 NOVO Sprint 03 CC.2 + 1 NOVO Sprint 03 CC.3 + 6 NOVOS Sprint 03 CC.7 Oracle PASS) |
 | Active findings | **1** (F-CI-LOW-01 LOW) |
-| Resolved findings | **5** (Phase 3-4) |
-| Sprint origem | 01 (Phase 2.B até Phase 5) |
+| Resolved findings | **9** (5 Phase 3-4 + 3 sessão 86 + 1 VAULT-FIX-01 sessão 87) |
+| Sprint origem | 01 (Phase 2.B até Phase 5) + 02 (REV-INT-01..02 + REV-LLM-01) + 03 Phase 0 (VAULT-FIX-01) + 03 course-correction (PRD v1.1.0 → v1.1.1 BL-* migration) |
 
 ---
 
 ## 🔧 Active Tech Debts (13)
 
-### MEDIUM (2)
+### MEDIUM (3)
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added |
 |----|--------|-----|-------------|-------------|-------|-------|
 | **TD-PIPELINE-SMOKE-REAL** | STORY 9 + STORY 13 | MEDIUM | Smoke E2E real (Ollama + Sabia-7B + Qwen 3B + httpx STJ/STF + PDF físico) nunca executado — todos os testes usam mocks injetados. Validação INTEGRAL pipeline ainda não comprovada empiricamente. | 4h + 30min setup + ~7GB download | @dev | 2026-05-02 |
 | **TD-VAULT-LOAD-TEST** | STORY 8 | MEDIUM | DP-08 — performance vault sqlite-vec não testada com 10k+ rows. RRF k=60 + busca híbrida pode degradar; SLA <500ms desconhecido em escala. | 2h | @dev | 2026-05-02 |
+| **TD-VAULT-SCRAPER-OUTPUT-TO-BUNDLED-ADAPTER** | VAULT-FIX-01 (Phase D) | MEDIUM | `refresh-vault` valida disponibilidade upstream mas NÃO sobrescreve bundled JSON — scrapers retornam `JurisprudenciaItem` (rich schema) enquanto bundled segue `SumulaSTJ`/`SumulaVinculanteSTF` (lean schema). Adapter scraper→bundled permitiria refresh-vault auto-update. | 3h | @dev | 2026-05-05 |
 
-### LOW (11)
+### LOW (12)
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Added |
 |----|--------|-----|-------------|-------------|-------|-------|
+| **TD-VAULT-DATASET-STALENESS-MITIGATION** | VAULT-FIX-01 (Phase B+E) | LOW | Bundled dataset PROVISIONAL: 5 STJ + 5 STF SV (~1.6% STJ + ~8.6% STF SV oficial). Maintainer DEVE rodar one-shot bulk import pre-produção via `import-dataset` (Path A SOP-004). Refresh trimestral documentado em `docs/sop-refresh-vault-dataset.md`. Reminder em PROJECT-CHECKPOINT por trimestre. | n/a (process) | maintainer | 2026-05-05 |
 | **TD-CI-COVERAGE-REPORTER** | STORY 12 | LOW | NFR-MAINT-02 cobertura é local-only (`pytest-cov` sem reporter externo). Adicionar Codecov ou Coveralls quando integração disponível. | 2h | @devops | 2026-05-02 |
 | **TD-CI-PYTHON-3.13** | STORY 12 | LOW | Matrix CI fixa em Python 3.11 + 3.12. Adicionar 3.13 quando wheels `langchain-ollama` + `sentence-transformers` estabilizarem. | 30min | @devops | 2026-05-02 |
 | **TD-CI-CACHE-PIP** | STORY 12 | LOW | `cache: 'pip'` configurado em `setup-python@v5`; verificar hit rate empírico após N runs. | 1h | @devops | 2026-05-02 |
@@ -53,6 +55,45 @@ tags:
 | **TD-CLI-RICH-OPTIONAL** | STORY 10 | LOW | `rich` é opcional + fallback ASCII (defensivo intencional). Documentado em SOP-002/003. Pode permanecer indefinidamente se nunca quebrar. | n/a | — | 2026-05-02 |
 | **TD-CLI-EMBEDDINGS-DEFAULT-ZERO** | STORY 10 | LOW | `populate-vault` default `--zero-embeddings=True` (MVP). Busca semântica precisa de embeddings reais para funcionar; usuário precisa explicit opt-in. | 1h | @dev | 2026-05-02 |
 | **TD-CLI-PROGRESS-BAR** | STORY 10 | LOW | Sem progress bar no pipeline real (`revisar` subcomando). Adicionar `rich.progress` quando smoke E2E real for executado. | 1h | @dev | 2026-05-02 |
+
+---
+
+## 📦 Backlog Deferred — Migrated from PRD v1.1.0 §11 (14 entries — F-CHK-02 mitigation)
+
+> **Fonte canônica:** este registro substitui PRD §11 como source of truth (mitigação F-CHK-02 do tribunal CC.1A).
+> **Adicionado:** 2026-05-05 (Morgan, sessão 87 PATCH v1.1.1).
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Trigger Re-avaliação | Added |
+|----|--------|-----|-------------|-------------|-------|---------------------|-------|
+| **BL-AUTH-01** | PRD v1.1.0 §11 | LOW | FR-AUTH-01/02/03 Auth elaborada (bcrypt + cookies + audit log tentativas; substitui FR-LGPD-MVP-01 mínima) | 6-8h | @dev (Neo) | Após 5 advogados validarem MVP em produção | 2026-05-05 |
+| **BL-AUTH-02** | PRD v1.1.0 §11 | LOW | FR-AUTH-04 Sessão IP fingerprint + inatividade | 2-3h | @dev (Neo) | Depende BL-AUTH-01 completo | 2026-05-05 |
+| **BL-DELIV-03** | PRD v1.1.0 §11 | LOW | FR-DELIV-02 Comparativo de Taxas (D4 — renumerado pós D3 Apelação MVP) | 2-3h | @dev (Neo) | Após v1.0 MVP em produção (3 meses) | 2026-05-05 |
+| **BL-DELIV-04** | PRD v1.1.0 §11 | LOW | FR-DELIV-03 Parcelas Reais Incontroversas (D5) | 3-4h | @dev (Neo) | Idem BL-DELIV-03 | 2026-05-05 |
+| **BL-DELIV-05a** | PRD v1.1.0 §11 splitado v1.1.1 | LOW | Embargos Declaração + Agravo Instrumento + Recurso Especial (Apelação Cível movida para MVP D3) | 3-4h | @dev (Neo) | Após advogado solicitar (feedback usuário) | 2026-05-05 |
+| **BL-MULTI-UF** | PRD v1.1.0 §11 | LOW | FR-RAG-05 Multi-UF first-class CLI roadmap Brasil-wide | 4-8h por UF | @dev (Neo) | Sob demanda — advogado solicita expansão para nova UF | 2026-05-05 |
+| **BL-ML-LOOP** | PRD v1.1.0 §11 | LOW | FR-ML-01..04 ML feedback loop estágio 1 (coleta WON/LOST) | 4-6h | @dev (Neo) | Volume ≥50 outcomes registrados (estimado mês 6) | 2026-05-05 |
+| **BL-BACKUP** | PRD v1.1.0 §11 | LOW | FR-BACKUP-01/02 + FR-RECOVERY-01 elaborado (vs FR-BACKUP-MVP-01 mínimo MVP) | 3-5h | @dev (Neo) | Após relato de perda de dados em produção OU 6 meses pós-MVP | 2026-05-05 |
+| **BL-CONFIG-UI** | PRD v1.1.0 §11 | LOW | FR-CONFIG-01/02 Página Configurações UI + modal aviso | 3-4h | @dev (Neo) | Após advogado solicitar troca frequente de Tier | 2026-05-05 |
+| **BL-HITL-ELAB** | PRD v1.1.0 §11 | LOW | FR-JUIZ-02 painel HITL elaborado (bigram diversity + counter visual + microcopy) | 2-3h | @dev (Neo) + @ux-design-expert (Sati) | Após observar bypasses repetitivos em audit log MVP | 2026-05-05 |
+| **BL-FIES** | PRD v1.1.0 §6.3 | LOW | Projeto-irmão "Revisor FIES" (avaliação separada — federal vs estadual + 4 razões técnicas) | a definir | @pm (Morgan) | Pós-v1.0 MVP em produção + Eric autorização | 2026-05-05 |
+| **BL-VAULT-BULK-IMPORT** | PRD v1.1.1 §2.2 (NOVO) | **HIGH (PRE-RELEASE BLOCKER)** | One-shot bulk import oficial vault (≥600 entries STJ + ≥58 entries STF SV) via SOP-004 Path A | 2-4h maintainer | maintainer (Eric ou delegado) | **Bloqueia release MVP** — gate condition AC-3 e AC-10 | 2026-05-05 |
+| **BL-GOLDEN-SET** | PRD v1.1.1 §2.5 (NOVO) | **HIGH (PRE-RELEASE BLOCKER)** | Curadoria 50 contratos sintéticos CDC PF Veículos + 50 queries golden RAG | 8-12h | @qa Oracle | **Bloqueia release MVP** — gate condition AC-1, AC-2, AC-3, AC-10 | 2026-05-05 |
+| **BL-OAB-CHECKSUM** | PRD v1.1.2 §2.5 (NOVO — F-NEW-05 Smith re-review) | LOW | Validação OAB regex `^\d{1,6}/[A-Z]{2}$` aceita formato canônico mas SEM checksum CFOAB (bot pode rotar OABs falsas formato-válidas). Mitigação MVP: rate limit 1/min + 100/dia por OAB + audit log forensic tracking | 2-3h | @dev (Neo) | "API CFOAB pública disponível OU dataset OAB+UF público validado" | 2026-05-05 |
+| **BL-ADR-013-MICROFIXES** | Smith CC.2 ADR-013 review (sessão 87 / 2026-05-06) | LOW | Refinamentos documentais não-bloqueadores em ADR-013 (5 LOW consolidadas): F-NEW3-02 alternativas §4 com strawmen ("Pip-only nunca", "subprocess + sleep loop") — refinar para alternativas técnicas plausíveis · F-NEW3-04 anti-patterns §6.6 parcialmente redundantes com §4 — consolidar ou diferenciar escopo · F-NEW3-06 SOP-005 succession plan ausente (Eric vender produto / novo maintainer) — adicionar SOP de transferência · F-NEW3-07 roadmap modalidades §6.5 [OTIMISTA] qualifier sem math revision — revisar estimativas com base em feedback pós-MVP · F-NEW3-10 §2.3 mais catálogo de FR existente do que ADR introducing decisão genuinamente nova — refatorar OR aceitar como pattern documentation explícita | 1-2h consolidados | @architect (Aria) | v1.0.1 OR pós-MVP launch (Eric escolheu opção α — perfeição shipping) | 2026-05-06 |
+| **BL-UX-CC3-DEBT** | Smith CC.3 UX spec MVP-LEAN-01 review (sessão 87 / 2026-05-06) | MEDIUM/LOW (consolidado) | 16 findings residuais UX spec não-bloqueadores. **8 MEDIUM:** F-CC3-01 trade-off "1 processo por vez" não enforced (server-side detect job_id em curso → 409 Conflict + variante C6 nova) · F-CC3-04 spacing scale ausente (adicionar `--space-1..-6` OR documentar Tailwind classes) · F-CC3-07 ETA "~3min" hardcoded ignora variância LLM_TIER (parametrizar microcopy + documentar audit chain entry de cancelamento) · F-CC3-13 5 flows anômalos não documentados (refresh em S5 + perda EventSource sem reattachment, sessão expira durante download S6, S8 vermelho + sessão expira, network drop durante upload S3, 2ª aba durante S5) · F-CC3-14 mapping AC §8 falta AC-FR-LGPD-MVP-01b — *já endereçado inline em micro-PATCH α* · F-CC3-15 FR-DELIV-06 OAB rate limit excedido sem UX (variante C6 'rate_limit_oab' a adicionar) · F-CC3-18 cross-browser/input não documentado (Chrome 120+ / Edge 120+ / Firefox 120+ + touch input em laptop touchscreen). **8 LOW:** F-CC3-02 fonte weight banner Manrope ≥600 · F-CC3-09 count "~58 mensagens" aproximado (recont real ~62) · F-CC3-10 glossário §5.2 violado em wireframe S5 ("Advogado" sem prefixo "Persona") · F-CC3-12 reduced-motion completude (handler genérico universal vez de casos específicos) · F-CC3-16 audit.jsonl download direto sem streaming (Content-Disposition header) · F-CC3-17 estimativa BL-UX-WARNING-TOKEN ~10min subestimada (consolidação F-CC3-03 endereçou) · F-CC3-19 debt residual (este BL consolida) · F-CC3-20 banner verde fechável inconsistência S2 wireframe vs C2 props (decidir + documentar). **4 HIGH foram endereçados inline em micro-PATCH α:** F-CC3-05 (SSE connection drop) + F-CC3-06 (D3 dual-input) + F-CC3-08 (catch-all infra + 7 variantes erro) + F-CC3-11 (contraste `--warning` corrigido `#8B5A0B` ratio 5.49:1 verificado empiricamente). +1 MEDIUM cirúrgico (F-CC3-03 4 tokens consolidados) + bonus F-CC3-14 LOW. | 6-10h fragmentado | @ux-design-expert (Sati) + @dev (Neo) durante CC.6 conforme prioridade | v1.0.1 OR durante implementação Neo CC.6 (UX refinements pós feedback advogados beta) | 2026-05-06 |
+| **TD-OLLAMA-AC7-ASYNC** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-01 | HIGH | `bloco_interface/web/app.py:297` `spawn_ollama` é chamada SÍNCRONA dentro do handler `/revisar` async. Helper `_wait_for_ollama_ready` faz polling síncrono (httpx.Client + time.sleep) que bloqueia o event loop por até 30s durante lazy respawn. Aceitável MVP single-user solo (perfil Eric: 1 advogado por vez per ADR-013 §2.2). **Refactor:** spawn_ollama → async com `asyncio.create_subprocess_exec` + `httpx.AsyncClient.get` no helper | 2-3h | @dev (Neo) | Trigger: produção multi-user OR feedback Eric latência mid-respawn | 2026-05-06 |
+| **TD-OLLAMA-PULLSTATUS-IPC** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-02 | MEDIUM | `bloco_interface/ollama_manager.py:44` `_pull_status` é state global module-level. Em deploy multi-worker (uvicorn `--workers N`), workers diferentes terão `_pull_status` desincronizados — UI banner pode mostrar status de outro worker. ADR-013 §2.2 fixa single-process local; multi-worker é não-objetivo MVP. **Mitigação futura:** IPC (Redis OR file-based shared state) se multi-worker for adotado | 3-4h | @dev (Neo) + @architect (Aria — design IPC) | Trigger: adoção uvicorn `--workers >1` | 2026-05-06 |
+| **TD-OLLAMA-LIFESPAN-DOC-REFRESH** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-03 | MEDIUM | `bloco_interface/web/app.py:133` + `app.py:204-213` lifespan docstrings/comments referenciam `ensure_models_pulled` como "Phase D stub" e mantêm `try/except NotImplementedError`. Phase D foi implementada na sessão 90; comments outdated. Try/except permanece como defensive programming válida (nunca executará o except em produção). **Mitigação:** atualizar docstrings + comentário inline para refletir Phase D done | 10min | @dev (Neo) | Próxima iteração ollama_manager OR housekeeping debt sprint | 2026-05-06 |
+| **TD-OLLAMA-RETRY-TIMING-TESTS** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-04 | LOW | `tests/unit/test_ollama_manager_edge_cases.py` test EC-05 patcha `asyncio.sleep` para acelerar — não valida delays REAIS de retry exponential (1s/2s/4s). Cobertura comportamental OK; cobertura de timing real é debt aceitável | 30min | @dev (Neo) + @qa (Oracle) | Pós-MVP launch (não impacta funcionalidade) | 2026-05-06 |
+| **TD-OLLAMA-LAZY-RESPAWN-PARTIAL** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-05 | LOW | `bloco_interface/web/app.py` AC-7 lazy respawn em `/revisar` chama `write_pid_file_atomic` dentro do loop por role (advogado + economista). Se respawn de "advogado" sucesso + "economista" raise mid-loop, PID file fica com apenas advogado. **Self-healing on next /revisar request** (lazy respawn será re-tentado). Documentar comportamento em runbook operacional | observação operacional | @dev (Neo) | Apenas se Eric reportar comportamento anômalo em produção | 2026-05-06 |
+| **TD-OLLAMA-SMOKE-E2E-REAL** | Oracle CC.7 review OLLAMA-MGR-01 (sessão 91 / 2026-05-06) — F-OG-06 | **HIGH (PRE-RELEASE BLOCKER v0.3.0)** | Smoke E2E real (Ollama runtime + PDF físico + UI banner browser console) NÃO executado por Oracle nesta sessão (Eric environment dependency). **Bloqueia release v0.3.0** — Eric deve executar manual antes de @devops merge PR + tag v0.3.0: `python -m bloco_interface.web.app` → verificar logs (Ollama lifecycle starting + spawn :11434/:11435 + populate vault) + browser http://127.0.0.1:8501 + UI banner SSE durante download + POST /revisar real com PDF | 30min-1h Eric manual | maintainer (Eric) | **Bloqueia release MVP v0.3.0** | 2026-05-06 |
+
+> **Total backlog deferred:** 12 LOW (preservados v1.1.0) + 2 HIGH (PRE-RELEASE BLOCKERS v1.1.1) + 1 LOW (NOVO v1.1.2) + 1 LOW (NOVO v1.1.2.1 / Sprint 03 CC.2) + 1 MEDIUM/LOW consolidado (NOVO Sprint 03 CC.3) + **6 NOVOS Sprint 03 CC.7 Oracle review** (1 HIGH + 2 MEDIUM + 3 LOW + 1 PRE-RELEASE BLOCKER) = **23 entries**
+> **Migração executada:** PRD v1.1.1 §2.7 / Morgan sessão 87 / F-CHK-02 OPÇÃO 2 + BL-OAB-CHECKSUM v1.1.2 (F-NEW-05) + BL-ADR-013-MICROFIXES Sprint 03 CC.2 micro-PATCH α (Smith CC.2 5 LOW) + BL-UX-CC3-DEBT Sprint 03 CC.3 micro-PATCH α (Smith CC.3 16 residuais consolidados) + **6 TD-OLLAMA-* Sprint 03 CC.7 Oracle PASS** (F-OG-01..F-OG-06)
+
+**Justificativa TD-OLLAMA-* (debt aceito Oracle CC.7 PASS):** Oracle review formal LMAS emitiu **PASS** para OLLAMA-MGR-01 com 6 follow-up items catalogados. Razão: (1) F-OG-01 HIGH é trade-off arquitetural compatível com ADR-013 §2.2 (single-user solo MVP) — não defeito; (2) F-OG-02/03 MEDIUM são gotchas futuros não-bloqueadores em deploy single-process; (3) F-OG-04/05 LOW são refinamentos não-críticos; (4) F-OG-06 PRE-RELEASE BLOCKER é Eric environment dependency — bloqueia release v0.3.0 mas não Story Done. Story status `Done` justificado: 14/14 ACs satisfeitos com evidências empíricas + ADR-011 fielmente implementada.
+
+**Justificativa BL-ADR-013-MICROFIXES (debt aceito):** os 5 findings LOW Smith CC.2 são refinamentos documentais não-bloqueadores. Endereçá-los inline no micro-PATCH α retardaria CC.3+ Sprint 03 sem ganho material em qualidade arquitetural ou correção operacional. Eric (opção α recomendada Smith) priorizou shipping com qualidade ascendente. Os 5 MEDIUM Smith CC.2 (F-NEW3-01/03/05/08/09) **foram** endereçados no micro-PATCH α; este BL-* cobre apenas o residual LOW.
 
 ---
 
@@ -76,6 +117,7 @@ tags:
 | **TD-WEB-LGPD-CDN-01** | Sessão 86 (2026-05-05) | Story REV-INT-02 | Self-hosted 7 woff2 (Manrope 4w + Fraunces 1w + JetBrains 2w) em /static/fonts/ via @fontsource/jsdelivr (~117KB total); base.html removidos 3 link tags Google Fonts; tokens.css adicionados 7 @font-face declarations (font-display: swap). Validações: AC-1 zero fonts.googleapis ✅, AC-2 zero fonts.gstatic ✅, AC-4 7/7 HTTP 200 ✅, AC-8 232 passed + 1 skipped ✅, AC-9 117536 bytes ≤ 204800 ✅. |
 | **TD-LLM-SABIA-Q4-OUTPUT** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (ADR-010 Path C) | LLM_TIER default mudado de 'premium' (Sabia-7B Q4) para 'balanced' (Qwen 2.5 7B). 3 mudanças cirúrgicas em llm_factory.py: TIER_TO_MODEL_ADVOGADO mapping (lean/balanced=Qwen, premium=Sabia preserved); get_advogado_llm default tier='balanced'; get_economista_llm format='json'. Smoke E2E re-run com Qwen 7B+3B PASS em 253.72s (citacao_textual ≥10 chars, ratio<0.7 paralelismo). Suite 232/1 zero regressão. Sabia preservado opt-in para futuro upgrade GPU. |
 | **TD-LLM-FORMAT-JSON-ECONOMISTA** | Sessão 86 (2026-05-05) | Story REV-LLM-01 (junto com TD-LLM-SABIA-Q4-OUTPUT) | `format='json'` adicionado em `get_economista_llm` (defensive consistency com get_advogado_llm). |
+| **TD-VAULT-SCRAPERS-FRAGILITY** | Sessão 87 (2026-05-05) | Story VAULT-FIX-01 (ADR-012 Path C) | Problema empírico descoberto sessão 86 v0.2.0 testing: `populate-vault --source all` falhava com STJ HTTP 200/404 intermitente (WAF + parser broken — HTML mudou) + STF anti-bot AWS ELB HTTP 403 (mesmo com verify=False). Pipeline real caía em fallback `MOCK_VERDICT`. **Resolução:** ADR-012 Vault Data Bundling Strategy + bundled JSON committed (`bloco_vault/data/sumulas-{stj,stf-vinculantes}.json`) + Pydantic schemas (`bloco_vault/data_schema.py`) + idempotent `populate_vault_if_needed()` em FastAPI lifespan + 3 CLI subcommands (refresh-vault opt-in best-effort, import-dataset PDF compendium oficial, validate-dataset hash verification). Suite 232/1 → 246/1 (14 novos tests AC-8 unit + integration). Scrapers preservados como ferramenta opt-in (zero modificação). |
 
 ---
 

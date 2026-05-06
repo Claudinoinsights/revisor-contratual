@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-05"
+last_updated: "2026-05-06"
 status: active
-sprint: "02"
-etapa: "ARIA-SABIA-DECISION"
+sprint: "03"
+etapa: "Course-correction CC.2 — ADR-013 MVP Lean Strategy (consolida 5 decisões PRD v1.1.2.1)"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -72,6 +72,24 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 |-----|--------|--------|------|---------|
 | [ADR-009](adr/adr-009-backup-dir-pseudonimizacao-lgpd.md) | BACKUP_DIR external path + pseudonimização HMAC LGPD | ✅ Accepted | 2026-05-01 | R-NEW-SMITH-01 + R-NEW-SMITH-07 |
 
+### Infra & Runtime (Sprint 03)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-011](adr/adr-011-auto-ollama-lifecycle.md) | Auto-Ollama Lifecycle Management — subprocess Python + detect-then-spawn | ✅ Accepted | 2026-05-05 | Setup manual Eric (Ollama desktop + 2ª instância manual) + AC-9 smoke E2E real bloqueado v0.2.0 |
+
+### Data & Vault (Sprint 03)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-012](adr/adr-012-vault-data-bundling.md) | Vault Data Bundling Strategy — bundled dataset + optional refresh scrapers | ✅ Accepted | 2026-05-05 | STJ scraper fragility (HTML changed) + STF SSL/anti-bot AWS ELB + AC-9 smoke E2E real bloqueado |
+
+### MVP Lean Strategy & Deployment (Sprint 03 course-correction)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-013](adr/adr-013-mvp-lean-strategy-deployment-path.md) | MVP Lean Strategy + Deployment Path — 5 decisões consolidadas (Docker opcional + VPS descartado + Defense-in-depth LGPD + APScheduler + dual-layer Tema 1378) | ✅ Accepted | 2026-05-06 | PRD v1.1.2.1 caminho híbrido + Smith re-review #2 PASS + Eric perfeição opção B |
+
 ---
 
 ## Arquivados
@@ -84,8 +102,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 | Item | Origem | Próxima ADR? |
 |------|--------|--------------|
-| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-011 (após decisão Eric) — re-numerada |
-| Política outcomes registry | PRD v1.0.2 | ADR-012 (após decisão Eric) — re-numerada |
+| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-014+ (re-numerada — ADR-011/012/013 alocados Sprint 03) |
+| Política outcomes registry | PRD v1.0.2 | ADR-015+ (re-numerada) |
 | R-NEW Sati R-NEW-01..03 (UX) | qa/sati-ux-rereview | PATCH PRD v1.0.3 (não-arquitetural) |
 | R-NEW-SMITH-06 (HITL anti-bypass refinement) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
 | R-NEW-SMITH-08 (IP fingerprint UX mobilidade) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
@@ -95,8 +113,9 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas (accepted):** 10 (ADR-001..010)
+- **ADRs ativas (accepted):** 12 (ADR-001..012)
 - **ADRs proposed (aguardando Eric):** 0
+- **Sprint 03 Phase 0 ADRs:** 2 (ADR-011 OLLAMA Lifecycle + ADR-012 Vault Data Bundling — ambos accepted Eric 2026-05-05)
 - **ADRs deprecadas/superseded:** 0
 - **R-NEW absorvidas em ADRs:** 7 (Smith-01, -02, -03, -04, -05, -07, -10)
 - **Tech debts absorvidos em ADRs (Sprint 02):** 2 (TD-LLM-SABIA-Q4-OUTPUT + TD-LLM-FORMAT-JSON-ECONOMISTA via ADR-010)

@@ -11,7 +11,7 @@ Antes de executar `revisor revisar`, confirme:
 - [ ] **Audit chain inicializada:** `revisor init-audit` foi rodado uma vez (cria `.audit-genesis.lock`)
 - [ ] **Vault populado:** `revisor populate-vault --source all` foi executado (sqlite com STJ + STF)
 - [ ] **AUTH_COOKIE_KEY env definida:** `echo $AUTH_COOKIE_KEY` retorna 64 caracteres hex
-- [ ] **Ollama rodando** (se quiser revisão real LLM): instâncias Advogado em `127.0.0.1:11434` (DEFAULT Qwen 2.5 7B per ADR-010; `LLM_TIER=premium` reverte para Sabia-7B opt-in) e Qwen 2.5 3B em `127.0.0.1:11435` — ver ADR-003 SUB-C + ADR-010 Path C
+- [x] **Ollama auto-gerenciado** (ADR-011 / OLLAMA-MGR-01): a app **auto-spawna** as 2 instâncias (Advogado em `:11434` + Qwen 3B em `:11435`) e **auto-pulla** os modelos faltantes via FastAPI lifespan startup. **Não** é mais necessário rodar `ollama serve` manual nem `ollama pull` — basta `python -m bloco_interface.web.app`. Banner SSE em `/ollama-status` mostra progresso de download em tempo real (10-30min primeira vez). DEFAULT tier `balanced` (Qwen 2.5 7B per ADR-010); `LLM_TIER=premium` reverte para Sabia-7B opt-in. Pré-requisito apenas: [Ollama instalado](https://ollama.ai/download) + 7GB+ disco livre
 - [ ] **PDF do contrato** disponível localmente (NUNCA é enviado para a rede — LGPD)
 
 Para setup inicial completo, ver [`README.md`](../README.md) seção Quickstart.

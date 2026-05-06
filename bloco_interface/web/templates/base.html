@@ -16,6 +16,21 @@
     <span class="brand">Revisor</span>
   </header>
 
+  {# Phase D / OLLAMA-MGR-01 AC-6: banner SSE auto-pull progress (oculto se state=ready) #}
+  <div id="ollama-status-banner" hx-ext="sse" sse-connect="/ollama-status"
+       style="display: none; padding: 12px 16px;
+              background: var(--warning-soft); border-left: 4px solid var(--warning);
+              margin: 0; font-family: var(--f-ui);">
+    <p style="margin: 0; font-weight: 600; color: var(--text); font-size: 16px;">
+      ⏳ Baixando modelos LLM...
+      <span id="pull-percent">0</span>%
+      <span id="pull-model" style="color: var(--text-muted); font-family: var(--f-mono); font-weight: 400; font-size: 14px;"></span>
+    </p>
+    <p style="margin: 4px 0 0 0; font-size: 14px; color: var(--text-muted);">
+      ETA: <span id="pull-eta">calculando...</span>
+    </p>
+  </div>
+
   <aside class="sidebar">
     <h3>Histórico</h3>
     {% block sidebar %}{% endblock %}
@@ -26,5 +41,39 @@
       {% block workspace %}{% endblock %}
     </div>
   </main>
+
+  {# Phase D / OLLAMA-MGR-01: handler SSE para banner ollama-status (parse + show/hide) #}
+  <script>
+    document.addEventListener('htmx:sseMessage', function (e) {
+      if (e.detail.type !== 'status') return;
+      try {
+        const data = JSON.parse(e.detail.data);
+        const banner = document.getElementById('ollama-status-banner');
+        if (!banner) return;
+        const pctEl = document.getElementById('pull-percent');
+        const modelEl = document.getElementById('pull-model');
+        const etaEl = document.getElementById('pull-eta');
+        if (data.state === 'ready') {
+          banner.style.display = 'none';
+        } else if (data.state === 'error') {
+          banner.style.display = 'block';
+          if (pctEl) pctEl.textContent = '⚠️';
+          if (modelEl) modelEl.textContent = '';
+          if (etaEl) etaEl.textContent = data.error || 'Verifique audit.jsonl';
+        } else {
+          banner.style.display = 'block';
+          if (pctEl) pctEl.textContent = data.percent || 0;
+          if (modelEl) modelEl.textContent = data.model || '';
+          if (etaEl) {
+            etaEl.textContent = data.eta_seconds
+              ? Math.floor(data.eta_seconds / 60) + ' min'
+              : 'calculando...';
+          }
+        }
+      } catch (err) {
+        console.error('SSE ollama-status parse failed:', err);
+      }
+    });
+  </script>
 </body>
 </html>
