@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.8 dispatch @devops via Skill — 6 tech debts TD-OLLAMA-* registrados em TECH-DEBT.md (38 active). Próximo: @devops *push branch + *create-pr para release v0.3.0 prep (blocker Eric: TD-OLLAMA-SMOKE-E2E-REAL antes do merge + tag)"
-status: sprint-03-cc8-morpheus-dispatch-devops-push-pr-release-v0.3.0-prep
+active_story: "CC.8 Operator push + PR ✅ — branch feature/sprint-03-vault-fix-01 publicada (commits 4c8f3e4 + 5c0a1b1) + PR #1 aberto para main. Aguardando Eric smoke E2E (TD-OLLAMA-SMOKE-E2E-REAL) antes de merge + tag v0.3.0"
+status: sprint-03-cc8-operator-push-PR-DONE-aguarda-Eric-smoke
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,19 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@devops · Operator — 2026-05-06, **CC.8 push + PR aberto ✅**):
+  - **2 commits** publicados em branch `feature/sprint-03-vault-fix-01`:
+    - **`4c8f3e4`** `feat(ollama): auto-Ollama Lifecycle Management per ADR-011 [Story OLLAMA-MGR-01]` (11 files, +2106/-15 — código + 35 tests + pyproject + README + SOP)
+    - **`5c0a1b1`** `docs(governance): Sprint 03 CC course-correction completa + 6 TD-OLLAMA-* [Story OLLAMA-MGR-01]` (8 files, +2592/-102 — stories + ADR-013 + ux-spec + checkpoints + TECH-DEBT)
+  - **Push:** `ef8d087..5c0a1b1` → `origin/feature/sprint-03-vault-fix-01` ✅
+  - **PR aberto:** [#1 — feat(ollama): Sprint 03 — OLLAMA-MGR-01 + 6 TD-OLLAMA-*](https://github.com/Claudinoinsights/revisor-contratual/pull/1) (base: main, head: feature/sprint-03-vault-fix-01)
+  - **Pre-push quality gates verificados empiricamente Operator:**
+    - ruff: `All checks passed` em 6 arquivos modificados ✅
+    - pytest: **281 passed, 1 skipped** em 61.40s ✅ (zero regressão)
+  - **Housekeeping prévio:** artefato lixo `=5.9` (vestígio de redirect malformado `pip install psutil>=5.9`) detectado e removido antes do commit
+  - **Branch real:** `feature/sprint-03-vault-fix-01` (handoff sugeriu `feature/revisor-contratual-v0.1.0` mas Operator priorizou estado real do repo)
+  - **Bloqueio explícito:** merge PR + tag v0.3.0 NÃO executados — aguardam **TD-OLLAMA-SMOKE-E2E-REAL** Eric environment (Ollama runtime + PDF físico + UI banner browser console)
+  - **Próximo:** Morpheus consolida CC.8 + sinaliza Eric para smoke E2E real
 - **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.8 housekeeping inline + dispatch @devops**):
   - **6 tech debts TD-OLLAMA-* registrados** em `governance/TECH-DEBT.md` (Sprint 03 CC.7 Oracle Follow-up):
     - TD-OLLAMA-AC7-ASYNC (HIGH performance, ~2-3h, refactor sync→async spawn_ollama)
