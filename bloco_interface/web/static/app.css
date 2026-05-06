@@ -1184,3 +1184,91 @@ select:focus {
   font-family: var(--f-mono);
 }
 
+/* ── MVP-LEAN-01 Task 6: S7 Error pane + C6 catch-all infra ─── */
+.s7-error-container {
+  max-width: var(--container-w);
+  margin: 32px auto;
+  font-family: var(--f-ui);
+}
+
+.c6-error-pane {
+  background: var(--danger-soft);
+  border-left: 4px solid var(--danger);
+  border-radius: var(--r-md);
+  padding: 20px 24px;
+}
+
+.c6-error-pane__title {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--danger);
+  margin: 0 0 16px;
+}
+
+.c6-error-section {
+  margin-bottom: 12px;
+}
+
+.c6-error-section__heading {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.c6-error-section p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0;
+}
+
+.c6-error-section--causa p {
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  background: var(--surface);
+  padding: 6px 10px;
+  border-radius: var(--r-md);
+}
+
+.c6-error-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.c6-error-actions__btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--r-md);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.c6-error-actions__btn:hover {
+  background: var(--accent-hover);
+}
+
+.c6-error-actions__btn:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.c6-error-actions__btn:nth-child(n+2) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.c6-error-actions__btn:nth-child(n+2):hover {
+  background: var(--accent);
+  color: white;
+}
+

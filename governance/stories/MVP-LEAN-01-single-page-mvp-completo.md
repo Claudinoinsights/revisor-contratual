@@ -174,7 +174,7 @@ O Sprint Goal Sprint 03 Phase 1 é entregar o MVP shippable. Esta story é **a**
   - Test E2E S6.a + S6.b + transição S6.b → S2 → S6.a
   - **Mapeia a:** AC-MVP-06 + AC-MVP-13 + AC-MVP-D3-DUAL-INPUT + AC-MVP-AUDIT
 
-- [ ] **Task 6 — S4+S7 Error pane + C6 catch-all `infra` + 7 variantes** (~4h)
+- [x] **Task 6 — S4+S7 Error pane + C6 catch-all `infra` + 7 variantes** (~4h) — DONE sessão 91 CC.17 (Neo, ~1.5h real)
   - Template C6 Error pane com props {titulo, diagnostico, causa, solucao, alternativa, acoes}
   - Handler central Python `EXCEPTION_TO_C6_VARIANT` mapping em `bloco_interface/web/error_handler.py`
   - 7 variantes catalogadas: `disk_full_audit` + `disk_full_uploads` + `vault_db_locked` + `fernet_key_missing` + `session_secret_missing` + `ollama_subprocess_crash` + `bacen_api_down` + `weasyprint_render_fail`
@@ -269,6 +269,19 @@ Neo (durante implementação) DEVE consultar:
 - [x] `bloco_interface/web/app.py` (M) — `_read_app_version()`, `APP_VERSION`, `DEFAULT_TEMA_1378`, `_layout_context()`, GET `/` context merge, POST `/logout` HX-Redirect
 - [x] `tests/integration/test_layout_base.py` (NEW) — 8 tests integration cobrindo AC-MVP-09 + AC-MVP-15 + AC-MVP-LGPD-L1 + WCAG aria-labels
 
+### Task 6 (CC.17 / sessão 91 — Neo) — S7 Error pane + C6 catch-all infra ✅
+
+- [x] `bloco_interface/web/error_handler.py` (NEW ~180 LOC) — VARIANTS dict (9 entries: 1 catch-all + 8 específicas), EXCEPTION_TO_C6_VARIANT mapping, `classify_exception(exc)`, `get_c6_payload(variant_key, exc, job_id)` com enriquecimento `infra_unknown`
+- [x] `bloco_interface/web/templates/partials/c6_error_pane.html` (NEW) — Jinja2 macro `error_pane(titulo, diagnostico, causa, solucao, alternativa, acoes)` com role="alert" + aria-live="assertive" + 4 sections SOP-003 + actions bar
+- [x] `bloco_interface/web/templates/s7_error.html` (NEW) — extends base.html + macro C6 (S4 reusa via parameter)
+- [x] `bloco_interface/web/static/app.css` (M) — `.s7-error-container`, `.c6-error-pane` (border-left danger + bg danger-soft), `.c6-error-section` (4 blocks SOP-003), `.c6-error-actions` (botões accent + accent-soft secondary)
+- [x] `bloco_interface/web/app.py` (M):
+  - Refactor `http_exception_handler`: HTTPException 401/403 mantém `partials/error.html` legacy (auth flow); demais HTTPExceptions renderizam `s7_error.html` via `error_handler.get_c6_payload()`
+  - Novo handler `@app.exception_handler(Exception)` global catch-all → `classify_exception()` → S7 com C6
+  - HTTP_STATUS_TO_C6_VARIANT mapping: 413 → disk_full_uploads (semantic reuso), 400/422 → infra_unknown
+  - Import `from bloco_interface.web import auth, error_handler`
+- [x] `tests/integration/test_s7_error_c6.py` (NEW ~270 LOC, 17 tests) — classify_exception (9 variantes) + get_c6_payload (microcopy + enriquecimento infra_unknown) + render integration (4 sections SOP-003 + role/aria + actions + invalid PDF)
+
 ### Task 5 (CC.14 / sessão 91 — Neo) — S6 Resultado + C5 + D3 condicional ✅
 
 - [x] `bloco_interface/web/templates/s6_resultado.html` (NEW) — extends base.html + macro C5 + form hidden D3 + JS clipboard tooltip + JS S6.b CTA handler
@@ -358,6 +371,73 @@ Neo (durante implementação) DEVE consultar:
 ---
 
 ## Change Log
+
+### Task 6 done 2026-05-06 (Neo sessão 91 CC.17)
+
+**Status:** InProgress (Tasks 1-6 done = 6/9; Tasks 7-9 pending)
+
+**Implementação Task 6 — S7 Error pane + C6 catch-all infra (~4h estimado, ~1.5h real):**
+
+- **Módulo `bloco_interface/web/error_handler.py` (NEW ~180 LOC):**
+  - `VARIANTS: dict[str, dict[str, str]]` — 9 entries (`infra_unknown` catch-all + 8 específicas: disk_full_audit + disk_full_uploads + vault_db_locked + fernet_key_missing + session_secret_missing + ollama_subprocess_crash + bacen_api_down + weasyprint_render_fail) com 5 campos cada (titulo + diagnostico + causa + solucao + alternativa)
+  - `EXCEPTION_TO_C6_VARIANT: dict[str, str]` — string keys descritivas (não classes Python diretas) suportam distinção fina (OSError-28-audit vs OSError-28-uploads via path)
+  - `classify_exception(exc)` — estratégia precedência: OSError errno=28 (audit/uploads via message), sqlite3.OperationalError "locked", InvalidToken class name, RuntimeError SESSION_SECRET, OllamaProcessNotResponding, httpx.TimeoutException + URL bacen, weasyprint.RenderError module match, fallback `infra_unknown`
+  - `get_c6_payload(variant_key, exc, job_id)` — retorna dict 6 campos para template; enriquece `infra_unknown` com `{exception_class}: {first_line}` em diagnostico + module.class em causa + job_id em alternativa (per ux-spec linhas 776-779); ações default `[Tentar novamente, Ver log audit]`
+
+- **Macro `partials/c6_error_pane.html` (NEW):**
+  - Estrutura SOP-003 obrigatória: 4 sections (Diagnóstico/Causa/Solução/Alternativa) + título + actions bar
+  - role="alert" + aria-live="assertive" (interrompe SR imediatamente per ux-spec linha 605)
+  - data-testid em cada section + cada action button (facilita testing E2E futuro Task 9)
+  - `.c6-error-section--causa` com formatting mono (causa técnica destacada)
+
+- **Template `s7_error.html` (NEW):** extends base.html + macro C6 — props vindos do context backend (variant_key resolveu campos)
+
+- **`app.py` refactor exception handlers:**
+  - `http_exception_handler` (HTTPException): 401/403 mantém `partials/error.html` legacy (auth fluxo Sprint 02 UI-1 preservado); demais → s7_error.html via error_handler.get_c6_payload()
+  - `global_exception_handler` (catch-all `Exception`): NEW — qualquer exception não-HTTPException é classificada via `classify_exception()` e renderizada como S7 com C6; logger.error com exc_info=True para diagnóstico forensic
+  - HTTP_STATUS_TO_C6_VARIANT mapping: 413 (file too large) → disk_full_uploads (semantic reuso); 400/422 → infra_unknown (override diagnostico com exc.detail)
+
+- **CSS `.s7-error-container` + `.c6-error-pane`:**
+  - Layout container max-width 720px centrado
+  - Pane com border-left 4px danger + bg danger-soft (visual consistente)
+  - Sections com headings uppercase + body text legível
+  - Causa em mono + bg surface (destaca código técnico)
+  - Actions bar primary (--accent) + secondary buttons (--accent-soft via :nth-child(n+2))
+
+**Quality gate empírico Neo:**
+- ruff `All checks passed` em 3 arquivos modificados ✅
+- pytest baseline: 329 → **346 passed, 1 skipped** em 62.71s ✅ (+17 tests novos, zero regressão)
+
+**Tests novos (17 em `tests/integration/test_s7_error_c6.py`):**
+- 9 tests classify_exception (1 por variante + fallback ValueError)
+- 2 tests get_c6_payload (microcopy disk_full_audit + enriquecimento infra_unknown)
+- 4 tests render integration (4 sections SOP-003 + role/aria + actions + invalid PDF 400)
+- 2 tests structural (VARIANTS 9 entries + 4 fields SOP-003 obrigatórios)
+
+**ACs cobertos:**
+- ✅ **AC-MVP-04 (S4 Validation error):** invalid PDF 400 → S7 com C6 (S4 reusa template via context)
+- ✅ **AC-MVP-07 (S7 Pipeline error):** global_exception_handler renderiza S7 para qualquer Exception
+- ✅ **AC-MVP-14 (C6 component):** macro Jinja2 reutilizável com 6 props + 4 sections SOP-003
+- ✅ **AC-MVP-ERRORS:** 9 variantes catalogadas (1 catch-all + 8 específicas); padrão SOP-003 obrigatório
+
+**Anti-patterns evitados (per restrições handoff CC.17):**
+- ❌ NÃO mexeu `ollama_manager.py` / lifespan / `auth.py` (preservados)
+- ❌ NÃO criou C7 ou modificou C2 (Tasks 7+ ownership)
+- ❌ NÃO inventou variantes além das 9 declaradas
+- ❌ NÃO mensagem genérica "Erro 500" / "Algo deu errado" — todas variantes seguem SOP-003
+- ❌ NÃO push (Operator EXCLUSIVE)
+
+**Decisões técnicas autônomas Neo:**
+- **Discrepância story/ux-spec:** story linha 180 fala "7 variantes catalogadas" mas enumera 8 nomes; ux-spec §4 C6 tabela linhas 787-796 confirma 8 + 1 catch-all = 9 total. Implementei 9 (correto per ux-spec autoritativa).
+- **Auth preserved:** 401/403 mantém partials/error.html legacy — Sprint 02 UI-1 + Tasks 1-2 auth flow não-impactado
+- **HTTP_STATUS mapping:** 413 reusa disk_full_uploads semanticamente (file size/disk space são análogos UX)
+- **classify strategy:** combinação isinstance + class name + module + message (suporta exception classes do projeto + libs externas sem importar todas)
+
+**Observações para Tasks futuras:**
+- Task 7 (S8 Banner CRITICAL) integra C2 banner persistente com lógica FR-MONITOR real (substitui DEFAULT_TEMA_1378 mock de Task 1)
+- Task 8 (FR-LGPD 5 camadas) pode disparar variantes específicas error_handler (FERNET_KEY missing, encryption fail) — handler central já preparado
+- Task 9 smoke E2E real validará C6 inline em browser (data-testid já adicionados)
+- partials/error.html legacy preservado (auth + Sprint 02 UI-1 fallback) — Task 9 decide remoção
 
 ### Task 5 done 2026-05-06 (Neo sessão 91 CC.14)
 

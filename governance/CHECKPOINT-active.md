@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.15 Operator push + PR #2 ✅ — branch feat/mvp-lean-01-task1-layout-base publicada (6 commits), PR #2 OPEN+MERGEABLE marco 5/9. PR #1 OLLAMA-MGR-01 ainda OPEN aguardando Eric smoke. Tasks 6-9 sessão fresca."
-status: sprint-03-cc15-Operator-push-PR2-DONE-aguarda-Eric-smoke-OR-Tasks-6-9
+active_story: "CC.17 Neo MVP-LEAN-01 Task 6 ✅ DONE — S7 Error pane + C6 catch-all + 9 variantes (1 infra_unknown + 8 específicas) + handler central + global Exception handler em ~1.5h real. Suite 329+1 → 346+1 (+17 tests). 6/9 Tasks done (67%)."
+status: sprint-03-cc17-Neo-Task6-DONE-aguarda-Morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,42 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@dev · Neo — 2026-05-06, **CC.17 MVP-LEAN-01 Task 6 ✅ DONE**):
+  - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-6 acumulam — PR #2 OPEN no remote)
+  - **Implementação Task 6 (~1.5h real vs ~4h estimado — entrega rápida via padrão SOP-003 estruturado):**
+    - `bloco_interface/web/error_handler.py` (NEW ~180 LOC) — VARIANTS 9 entries + classify_exception + get_c6_payload com enriquecimento infra_unknown
+    - `bloco_interface/web/templates/partials/c6_error_pane.html` (NEW macro) — role=alert + 4 sections SOP-003 + actions
+    - `bloco_interface/web/templates/s7_error.html` (NEW) — extends base.html + macro C6
+    - `bloco_interface/web/static/app.css` (M) — `.s7-*` + `.c6-*` classes
+    - `bloco_interface/web/app.py` (M) — http_exception_handler refactor (auth 401/403 legacy + demais s7) + global_exception_handler catch-all (NEW)
+    - `tests/integration/test_s7_error_c6.py` (NEW ~270 LOC, 17 tests)
+  - **Quality gate empírico Neo:** ruff `All checks passed` ✅ + pytest **346 passed, 1 skipped** (329+17 novos, zero regressão) ✅
+  - **ACs satisfeitos:** AC-MVP-04 + AC-MVP-07 + AC-MVP-14 + AC-MVP-ERRORS
+  - **9 variantes** catalogadas (catch-all infra_unknown + 8 específicas — story menciona 7 mas enumera 8 nomes; ux-spec autoritativa confirma 9)
+  - **6/9 Tasks done = 67%**
+  - **Próximo:** handoff Neo → Morpheus → decide T7 (S8 Banner CRITICAL ~3h) ou pause aguardando Eric
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.17 dispatch Neo Task 6 (Trilha 3)**):
+  - **Decisão CC.17:** Trilha 3 (Tasks 6-9 paralelo) — interpretação "executar via Skill" prioritiza Skill-dispachável; Trilhas 1+2 dependem de Eric (smoke/review)
+  - **Task escolhida:** **T6 Error pane S4+S7 + C6 catch-all + 7 variantes** (~4h) — continuação natural pós-Task 5 (substitui error inline upload.js + sse_resilient.js append por C6 component)
+  - **Ordem natural:** T6 → T7 → T8 → T9 (T6 pode absorver review feedback futuro PR #2)
+  - **Branch:** mantém `feat/mvp-lean-01-task1-layout-base` (Tasks 1+2+3+4+5+6 acumulam) — ou criar nova branch? Decisão Operator pós-merge PR #2
+  - **Tasks paralelas em curso:** Eric smoke + review PR #2 (humanas) + Neo Task 6 (Skill)
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc17-mvp-lean-01-task6.yaml` (token H-S03-CC17-MOR2NEO-001)
+  - **Próximo:** Neo executa Task 6 (~4h max) → handoff back
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.16 consolidação + sinalização Eric**):
+  - **Decisão CC.16:** Opção A aceita (recomendação Operator CC.15) — sinalizar Eric com 2 PRs paralelos + 3 trilhas
+  - **Estado consolidado das 2 trilhas paralelas:**
+    - **PR #1** OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E (TD-OLLAMA-SMOKE-E2E-REAL)
+    - **PR #2** MVP-LEAN-01 Tasks 1-5: OPEN MERGEABLE — bloqueio review independente (5/9 done = 55%)
+  - **Suite remote:** 329 passed + 1 skipped (281 OLLAMA + 48 MVP-LEAN)
+  - **Handoff Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc16-dual-pr-status.yaml` (token H-S03-CC16-MOR2ERIC-DUAL-PR-001)
+  - **3 trilhas oferecidas a Eric:**
+    - **Trilha 1:** Smoke E2E v0.3.0 → desbloqueia PR #1 (governance/SMOKE-E2E-V0.3.0-INSTRUCTIONS.md, 5 cenários ~30-60min)
+    - **Trilha 2:** Review PR #2 → Tasks 1-5 review + merge antes da release
+    - **Trilha 3:** Tasks 6-9 paralelo → Neo continua (T6 ~4h ou T8 ~14-16h sessão fresca)
+    - **Pause:** Eric pode pausar e retomar quando puder
+  - **Bloqueio explícito:** Morpheus NÃO inicia Tasks 6-9 sem Eric authorize; merge PR #1/#2 + tag v0.3.0 todos aguardam Eric
+  - **Próximo:** Eric escolhe trilha → próxima Skill conforme escolha (Operator merge / Neo fix loop / Neo Task 6 / pause)
 - **Sessão 91** (@devops · Operator — 2026-05-06, **CC.15 push + PR #2 ✅ DONE**):
   - **6 commits publicados** em `feat/mvp-lean-01-task1-layout-base` (Tasks 1-5 + governance):
     - `2e16fdb` Task 1 layout-base

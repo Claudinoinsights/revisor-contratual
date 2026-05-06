@@ -40,7 +40,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_interface import ollama_manager
 from bloco_interface.ollama_manager import OllamaBinaryNotFound, OllamaSpawnFailed
-from bloco_interface.web import auth
+from bloco_interface.web import auth, error_handler
 from bloco_vault import open_vault
 from bloco_vault.populate import BUNDLED_DATA_DIR, populate_vault_if_needed
 from bloco_workflow import revisar_contrato
@@ -301,7 +301,8 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
-# ── Custom exception handler (Phase D — UI-1) ─────────────────────────────
+# ── Custom exception handler (Phase D — UI-1; Task 6 refactor C6 catch-all) ──
+# Sprint 02 UI-1 mapping legacy preservado para partials/error.html (intacto).
 ERROR_TYPE_MAP = {
     400: "invalid_pdf",
     413: "file_too_large",
@@ -309,16 +310,68 @@ ERROR_TYPE_MAP = {
     500: "pipeline_failure",
 }
 
+# MVP-LEAN-01 Task 6: HTTP status → variant_key (S4 upload errors via HTTPException).
+HTTP_STATUS_TO_C6_VARIANT = {
+    400: "infra_unknown",  # invalid_pdf — fallback (raramente cai aqui)
+    413: "disk_full_uploads",  # file too large reuso semântico
+    422: "infra_unknown",  # invalid_tier — fallback
+}
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLResponse:
-    """Retorna error.html user-friendly em vez de JSON default FastAPI."""
-    error_type = ERROR_TYPE_MAP.get(exc.status_code, "pipeline_failure")
+    """MVP-LEAN-01 Task 6: renderiza S7 Error pane com C6 component.
+
+    HTTPException → variant_key via HTTP_STATUS_TO_C6_VARIANT; fallback infra_unknown.
+    Status code 401 (auth) preserva comportamento atual (partials/error.html legacy).
+    """
+    # Auth errors mantêm fluxo legacy (não convertem para S7)
+    if exc.status_code in (401, 403):
+        error_type = ERROR_TYPE_MAP.get(exc.status_code, "pipeline_failure")
+        return templates.TemplateResponse(
+            request=request,
+            name="partials/error.html",
+            context={"error_type": error_type, "error_message": exc.detail},
+            status_code=exc.status_code,
+        )
+
+    # Demais HTTPExceptions → S7 Error pane com C6 (Task 6)
+    variant_key = HTTP_STATUS_TO_C6_VARIANT.get(exc.status_code, "infra_unknown")
+    payload = error_handler.get_c6_payload(variant_key, exc=None)
+    # Override diagnostico para mostrar exc.detail user-friendly
+    if exc.detail and variant_key == "infra_unknown":
+        payload["diagnostico"] = str(exc.detail)
+    s7_context: dict[str, Any] = dict(payload)
+    s7_context.update(_layout_context(request))
     return templates.TemplateResponse(
         request=request,
-        name="partials/error.html",
-        context={"error_type": error_type, "error_message": exc.detail},
+        name="s7_error.html",
+        context=s7_context,
         status_code=exc.status_code,
+    )
+
+
+# MVP-LEAN-01 Task 6 — global Exception handler para catch-all infra_unknown
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> HTMLResponse:
+    """Catch-all para exceptions não-HTTPException (Task 6 catch-all infra_unknown).
+
+    Classifica via error_handler.classify_exception → renderiza S7 com C6 correto.
+    """
+    if isinstance(exc, HTTPException):
+        # Já tratado por http_exception_handler — não chamado aqui em prática
+        return await http_exception_handler(request, exc)
+
+    variant_key = error_handler.classify_exception(exc)
+    logger.error("global_exception_handler: variant=%s exc=%s", variant_key, exc, exc_info=True)
+    payload = error_handler.get_c6_payload(variant_key, exc=exc)
+    s7_context: dict[str, Any] = dict(payload)
+    s7_context.update(_layout_context(request))
+    return templates.TemplateResponse(
+        request=request,
+        name="s7_error.html",
+        context=s7_context,
+        status_code=500,
     )
 
 
