@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.18 Neo MVP-LEAN-01 Task 7 ✅ DONE — S8 Banner CRITICAL + tema_1378_state module (atomic write) + POST /monitor-tema/acknowledge + main-disabled em ~1.5h real. Suite 346+1 → 359+1 (+13 tests). 7/9 Tasks done (78%)."
-status: sprint-03-cc18-Neo-Task7-DONE-aguarda-Morpheus
+active_story: "CC.19 Operator push T6+T7 ✅ — fast-forward 4a7f159..e887549 publicado, PR #2 atualizado para 7/9 = 78% via comment. Sessão pode pausar; Task 8 (~14-16h DENSA) sessão fresca."
+status: sprint-03-cc19-Operator-push-T6-T7-DONE-PR2-updated-7-9-aguarda-Task-8-fresh-session
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,23 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91** (@devops · Operator — 2026-05-06, **CC.19 push T6+T7 ✅ DONE**):
+  - **Push fast-forward:** `4a7f159..e887549` → `origin/feat/mvp-lean-01-task1-layout-base` ✅
+  - **2 commits publicados:**
+    - `8b478dd` Task 6 (S7 Error pane + C6 catch-all + 9 variantes)
+    - `e887549` Task 7 (S8 Banner CRITICAL + state file + ack endpoint) — amended com fix ruff (`# noqa: N818` em test class)
+  - **PR #2 atualizado:** comment incremental adicionado em https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4392490522 — agora 7/9 = 78% visível para Eric
+  - **Pre-push quality gate empírico Operator:** ruff `All checks passed` ✅ + pytest **359 passed, 1 skipped** ✅
+  - **Estado dos PRs:**
+    - PR #1 OLLAMA: OPEN aguardando Eric smoke
+    - PR #2 MVP-LEAN: 7/9 = 78% OPEN MERGEABLE aguardando review
+  - **Próximo:** Tasks 8+9 em sessão fresca; sessão atual pode pausar
+- **Sessão 91** (@lmas-master · Morpheus — 2026-05-06, **CC.19 dispatch Operator push T6+T7**):
+  - **Decisão CC.19:** Opção C aceita (recomendação Neo CC.18) — push incremental amend PR #2 atualiza 5/9 → 7/9
+  - **Justificativa:** marco 78% atualiza visibilidade Eric; Task 8 (~14-16h DENSA) merece sessão dedicada fresca; reduz risco perda
+  - **2 commits para publicar:** `8b478dd` (Task 6 S7+C6) + `2f0201b` (Task 7 S8 banner + state file)
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc19-push-t6-t7.yaml` (token H-S03-CC19-MOR2OPERATOR-001)
+  - **Próximo:** Operator push + atualiza PR #2 → handoff back → pause estratégico antes de Task 8 sessão fresca
 - **Sessão 91** (@dev · Neo — 2026-05-06, **CC.18 MVP-LEAN-01 Task 7 ✅ DONE**):
   - **Branch local:** `feat/mvp-lean-01-task1-layout-base` (Tasks 1-7 acumulam local; 5 no remote PR #2)
   - **Implementação Task 7 (~1.5h real vs ~3h estimado):**
