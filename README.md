@@ -174,10 +174,25 @@ Fan-out paralelo via `asyncio.gather` em **2 instâncias Ollama distintas**:
 | Limitação | Workaround | Endereçada em |
 |-----------|------------|---------------|
 | Marker OCR é opt-in (não vem instalado) | `pip install revisor-contratual[ocr]` para PDFs imagem-only | SOP-003 caso 2 |
-| Modelos Ollama (Qwen 2.5 7B default + Qwen 2.5 3B + Sabia-7B preserved opt-in) NÃO inclusos | Instalar Ollama externo + `ollama pull qwen2.5:3b qwen2.5:7b` + Modelfile Sabia opcional | SOP sop-revisar-pdf (atualizado DOCS-02) + ADR-010 |
+| Modelos Ollama (Qwen 2.5 7B + Qwen 2.5 3B; Sabia-7B preserved opt-in) NÃO inclusos | App auto-pulla via OLLAMA-MGR-01 (ADR-011) — basta Ollama instalado + 7GB livres | SOP sop-revisar-pdf + ADR-010 + ADR-011 |
 | sentence-transformers (~500MB) é opt-in | populate-vault default `--zero-embeddings=True` (busca lexical funciona; vetorial degraded) | SOP-002 |
 | BACEN python-bcb >=0.3 (PyPI max real) | Pin aspiracional >=0.5 corrigido em STORY 12 | CI Linux validou |
 | UI Streamlit ainda não implementada (CLI MVP only) | Use `revisor revisar` direto na CLI | Roadmap pós-MVP |
+
+## Como rodar (1 comando — pós OLLAMA-MGR-01 / ADR-011)
+
+```bash
+python -m bloco_interface.web.app
+# → app auto-detecta Ollama, spawna instâncias missing em :11434+:11435,
+#   baixa modelos faltantes (qwen2.5:7b + qwen2.5:3b), ready em ~30s
+# → primeira vez pode levar 10-30min para download de modelos (~6.6GB total)
+# → UI banner mostra progresso de download em tempo real (SSE em /ollama-status)
+```
+
+**Pré-requisitos:**
+- Python 3.11+ + `pip install -e .`
+- [Ollama instalado](https://ollama.ai/download) (binary detectado automaticamente)
+- 7GB+ disco livre para modelos LLM (uma única vez)
 
 ## Comandos CLI
 
