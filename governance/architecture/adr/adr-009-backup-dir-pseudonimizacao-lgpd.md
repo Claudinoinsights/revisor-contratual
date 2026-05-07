@@ -2,12 +2,13 @@
 type: adr
 id: "ADR-009"
 title: "BACKUP_DIR external path + pseudonimização HMAC LGPD"
-status: accepted
+status: superseded
 date: "2026-05-01"
+superseded_date: "2026-05-07"
 domain: "lgpd-backup"
 decision_makers: ["@architect (Aria)"]
 supersedes: null
-superseded_by: null
+superseded_by: "ADR-017"
 absorves:
   - "R-NEW-SMITH-01 (BACKUP_DIR default mesmo disco)"
   - "R-NEW-SMITH-07 (pseudonimização determinística vulnerável a rainbow table)"
@@ -25,7 +26,15 @@ tags:
   - lgpd
   - pseudonimizacao
   - hmac
+  - superseded
 ---
+
+> ⚠️ **SUPERSEDED** (2026-05-07) — Este ADR foi substituído por [ADR-017](adr-017-multi-tenant-isolation-rls.md).
+> Razão: Sprint 04 pivot SaaS BYOK — Eric Claudino vira **OPERADOR LGPD** (não controlador);
+> escritório cliente é o controlador e responsável pela pseudonimização com seu cliente final.
+> Pseudonimização local não se aplica. PII passa direto via API key escritório → Anthropic,
+> com retention zero pós-resposta. Mantido para contexto histórico do design Sprint 03
+> single-tenant on-premise.
 
 # ADR-009 — BACKUP_DIR external path + pseudonimização HMAC LGPD
 

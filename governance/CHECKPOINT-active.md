@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T14:00"
+last_updated: "2026-05-07T14:30"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase2.0-branch-DONE-aguarda-Morpheus-dispatch-Aria-5-ADRs
+status: sprint-04-phase2.1-Aria-DONE-10-ADRs-aguarda-Operator-commit
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -286,6 +286,39 @@ tags:
   - **Aria escreverá 5 ADRs em branch nova** — isolado de Sprint 03
   - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase2-branch-done.yaml` (token H-S04-P2-OP2MOR-BRANCH-DONE-001)
   - **Próximo:** Morpheus dispatch Aria Phase 2 — 5 ADRs em branch nova
+- **Sessão 91 Sprint 04 Phase 2.1 KICKOFF — Morpheus dispatch Aria 5 ADRs** (@lmas-master · Morpheus — 2026-05-07T14:05):
+  - **Trigger:** Eric "Avance sempre pelas Skill corretas" + Operator branch done
+  - **Operator handoff Phase 2.0 consumed:true**
+  - **Ultrathink check Morpheus encontrou blind spot CRÍTICO:**
+    - 5 ADRs novos (014-018) NÃO bastam — pivot impacta 5 ADRs EXISTENTES também
+    - **ADR-007** (Schema sqlite-vec) → conflita com ADR-017 PostgreSQL multi-tenant
+    - **ADR-009** (LGPD on-premise + pseudonimização) → CONTRADIZ Path A cloud (Eric revogou explicitamente)
+    - **ADR-010** (Sabia Q4 + Qwen mitigation) → superseded por ADR-014 (Anthropic only)
+    - **ADR-011** (Auto-Ollama Lifecycle) → obsoleto (sem Ollama no cloud) → superseded por ADR-014
+    - **ADR-013** (MVP-LEAN) → deprecated parcial (mecanismo OCR substituído por ADR-015)
+  - **Dispatch Aria com supersede chain completo:** 5 ADRs novos + 5 ADRs existentes atualizados = 10 ADR operations
+  - **Branch atual:** `feat/sprint-04-cloud-pivot-v0.2.0` @ `439184a`
+  - **Próximo:** Aria Phase 2.1 → 10 ADR file operations em UMA turn (5 novos + 5 superseded/deprecated)
+- **Sessão 91 Sprint 04 Phase 2.1 — Aria 10 ADR ops DONE** (@architect · Aria — 2026-05-07T14:30):
+  - **Trigger:** Morpheus dispatch H-S04-P2.1-MOR2ARIA-5ADRS-001 (chain Phase 2 cloud pivot)
+  - **5 ADRs NOVOS criados** em `governance/architecture/adr/`:
+    - **ADR-014** Provider Abstraction Anthropic Only + BYOK Key Management (supersedes ADR-010 + ADR-011)
+    - **ADR-015** Vision OCR Architecture — Sonnet 4.6 + caching SHA-256 + multi-page paralelo
+    - **ADR-016** Multi-Doctype Dispatcher — Strategy pattern 4 doctypes (FIES/Veicular/Bancário/Imobiliário)
+    - **ADR-017** Multi-Tenant Isolation PostgreSQL Pool+RLS + LGPD Operador (supersedes ADR-007 + ADR-009) — BACKBONE
+    - **ADR-018** SaaS Pricing Hybrid + Billing Event State Machine (cross-domain Mifune flag para valores absolutos)
+  - **5 ADRs EXISTENTES atualizados** (frontmatter status + nota topo):
+    - **ADR-007** (Schema sqlite-vec) → status: superseded, superseded_by: ADR-017
+    - **ADR-009** (BACKUP_DIR + pseudonimização LGPD) → status: superseded, superseded_by: ADR-017
+    - **ADR-010** (Sabia Q4 + Qwen mitigation) → status: superseded, superseded_by: ADR-014
+    - **ADR-011** (Auto-Ollama Lifecycle) → status: superseded, superseded_by: ADR-014
+    - **ADR-013** (MVP-LEAN) → status: deprecated, partially_superseded_by: ADR-015 (preserva intent geral)
+  - **Cross-references explícitos** em cada ADR novo: Atlas v1+v2 sections, Smith CC.41, Eric autorização Phase 1.7-1.7.1
+  - **Pendências cross-domain Mifune** (ADR-018): valores absolutos R$ pricing pendente — Aria definiu estrutura tabelas, Mifune valida benchmark
+  - **Pendência cross-domain Trinity** (ADR-016): conteúdo legal templates D3 por doctype pendente Phase 3 PRD
+  - **Branch atual:** `feat/sprint-04-cloud-pivot-v0.2.0` — 10 file changes não-commitados
+  - **Handoff Aria → Morpheus:** `.lmas/handoffs/handoff-architect-to-morpheus-2026-05-07-sp04-phase2.1-5adrs-done.yaml` (token H-S04-P2.1-ARIA2MOR-5ADRS-DONE-001)
+  - **Próximo:** Operator commit + push 5 novos + 5 atualizados → Morpheus consolida → apresenta a Eric → Eric aprova → dispatch Trinity Phase 3 PRD v2.0.0
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌

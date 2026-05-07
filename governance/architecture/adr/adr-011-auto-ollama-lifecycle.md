@@ -2,11 +2,13 @@
 type: adr
 id: "ADR-011"
 title: "Auto-Ollama Lifecycle Management — subprocess Python + detect-then-spawn"
-status: accepted
+status: superseded
 date: "2026-05-05"
 proposed_by: "@architect (Aria)"
 accepted_by: "Eric (decisão sessão 86, Option A aprovada com recomendações Aria default)"
 accepted_date: "2026-05-05"
+superseded_date: "2026-05-07"
+superseded_by: "ADR-014"
 accepted_open_questions:
   - "Lockfile single instance (Aria default — rejeita concurrent apps single-user)"
   - "Auto-pull verification: opt-in OLLAMA_VERIFY_INFERENCE=1 default OFF (Aria default)"
@@ -47,7 +49,13 @@ tags:
   - lifecycle
   - infrastructure
   - sprint-03
+  - superseded
 ---
+
+> ⚠️ **SUPERSEDED** (2026-05-07) — Este ADR foi substituído por [ADR-014](adr-014-provider-abstraction-byok.md).
+> Razão: Sprint 04 pivot remove Ollama da arquitetura (cloud-first via Anthropic API com BYOK).
+> Auto-lifecycle management de processo Ollama não se aplica. Mantido para contexto histórico
+> do design Sprint 03 com LLMs locais.
 
 # ADR-011 — Auto-Ollama Lifecycle Management
 

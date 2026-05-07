@@ -2,8 +2,10 @@
 type: adr
 id: "ADR-013"
 title: "MVP Lean Strategy + Deployment Path"
-status: accepted
+status: deprecated
 date: "2026-05-06"
+deprecated_date: "2026-05-07"
+partially_superseded_by: "ADR-015"
 domain: infra
 adr_level: design
 decision_makers:
@@ -31,7 +33,13 @@ tags:
   - lgpd-preserved
   - cross-platform
   - sprint-03
+  - deprecated-partial
 ---
+
+> ⚠️ **DEPRECATED PARCIAL** (2026-05-07) — Mecanismo OCR substituído por [ADR-015](adr-015-vision-ocr-architecture.md).
+> Razão: marker-pdf + Surya OCR local removidos no Sprint 04 cloud-first; Vision LLM (Claude
+> Sonnet 4.6) é o novo OCR mechanism. Restante do MVP-LEAN intent (single-page deploy, simple
+> architecture, deployment path) preservado e ainda válido para reflection arquitetural.
 
 # ADR-013 — MVP Lean Strategy + Deployment Path
 
