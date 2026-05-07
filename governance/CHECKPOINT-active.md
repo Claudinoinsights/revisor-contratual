@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.26.B Neo Trilha C registry update DONE — 6 RR entries em TECH-DEBT.md + nota Change Log story + CHECKPOINT update. Suite 397+3 preservada (sem mudança código). Aguarda Morpheus consolidar."
-status: sprint-03-cc26b-neo-trilha-c-registry-update-done-aguarda-morpheus
+active_story: "CC.26.B Operator push CC.26 registry DONE — re-review verdict PASS-WITH-NOTES + 6 tech debts publicados em PR #2. Comment #issuecomment-4393350767. Aguarda Morpheus consolidar FINAL DEFINITIVO."
+status: sprint-03-cc26b-operator-push-done-aguarda-morpheus-final-definitivo
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,27 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.26.B Operator push CC.26 registry DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
+  - **Pre-push gate empírico:** working tree clean ✅; pytest **397 passed + 3 skipped** em 62.91s ✅ (CC.26 doc-only, baseline preservado)
+  - **Push:** fast-forward `97b0c50..71e8972` em `feat/mvp-lean-01-task1-layout-base` (1 commit doc-only CC.26)
+  - **PR #2:** comment publicado [#issuecomment-4393350767](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4393350767) — re-review verdict PASS-WITH-NOTES + 6 tech debts breakdown + verificações empíricas + Smith report referenciado
+  - **PR #2 progresso:** **8/9 = 89% + Smith-validated** (CC.26 é qualidade incremental, não muda contagem)
+  - **PRs paralelos estado pós CC.26:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% **+ Smith review + fixes + re-review** — bloqueio review independente
+  - **Suite remote final:** **397 passed + 3 skipped**
+  - **Tech debts pendentes:** 21 active (15 CC.25 + 6 CC.26) + 5 RESOLVED em TECH-DEBT.md
+  - **Smith adversarial loop:** COMPLETO (review → fixes → re-review)
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-06-cc26-push-done.yaml` (token H-S03-CC26-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.26 FINAL DEFINITIVO + sinaliza Eric com sumário sessão 91 + 5 trilhas atualizadas
+- **Sessão 91 CC.26.B Morpheus consolida Trilha A** (@lmas-master · Morpheus — 2026-05-06, **dispatch Operator push fast-forward CC.26 registry**):
+  - **Decisão:** Trilha A (push incremental + pause definitivo) — convergente com recomendação Neo
+  - **Razões:** (1) Commit `71e8972` é doc-only (zero risco regressão); (2) Push imediato torna re-review report + 6 tech debts visíveis Eric no PR #2; (3) Narrativa coerente: Smith review + fixes + re-review + tech debts registry; (4) Sessão 91 fecha com 24 etapas CC
+  - **Operação:** Operator push fast-forward `97b0c50..71e8972` (1 commit doc-only)
+  - **PR #2:** ganha visibility — re-review report + 6 tech debts registrados via comment
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc26-push-registry.yaml` (token H-S03-CC26-MOR2OPERATOR-001)
+  - **24 etapas CC totais:** CC.6 → CC.26.B sequenciais
+  - **Próximo:** Operator pre-push gate → push → comment PR #2 → handoff back Morpheus → consolidação FINAL DEFINITIVA CC.26 + sinal Eric pause
 - **Sessão 91 CC.26.B Neo Trilha C registry update DONE** (@dev · Neo — 2026-05-06, **6 RR entries + story note ~5min real**):
   - **Implementação doc-only:**
     - **TECH-DEBT.md:** apend nova seção "Sprint 03 CC.26 — Smith re-review CC.25 fixes (6 NEW)" com 6 entries RR-01..RR-06 (formato 7-campos)
