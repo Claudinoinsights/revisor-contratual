@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-07"
-active_story: "Sessão 91 CC.29.C — Morpheus dispatch Operator push doc-only (Opção A convergente Neo+Morpheus). 3 arquivos: TECH-DEBT.md + CHECKPOINT-active.md + report Oracle CC.29 untracked. Aguarda Operator pre-push (sem pytest) + push + comment PR #2."
-status: sprint-03-cc29c-morpheus-dispatch-operator-push-doc-only-via-skill
+active_story: "Sessão 91 CC.29.D — Morpheus consolida CC.29.C + dispatch Operator housekeeping CHECKPOINT push (Opção A convergente). 30 etapas CC totais. Honestidade técnica × 2 publicada. Aguarda Operator housekeeping push + Morpheus sinal Eric ABSOLUTO FINAL DEFINITIVO."
+status: sprint-03-cc29d-morpheus-dispatch-operator-housekeeping-via-skill
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,34 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.29.D — Morpheus consolida CC.29.C + dispatch Operator housekeeping push via Skill** (@lmas-master · Morpheus — 2026-05-07, **decisão convergente Opção A**):
+  - **Eric persistiu 'via Skill' pós CC.29.C Operator push** — workflow-via-skill-strict aplica ao housekeeping final
+  - **Recomendação Operator = A (housekeeping CHECKPOINT push + sinal Eric)** — convergente com pattern CC.28.B já estabelecido
+  - **Por que A:** (1) CHECKPOINT-active.md modificado pós-push CC.29.C precisa visibility remote; (2) padrão consolidado CC.X.B/CC.X.D housekeeping após cada push; (3) deixa main/feat branch alinhado com narrativa local; (4) pós-housekeeping, sinal Eric definitivo
+  - **Tarefa Operator:** commit + push CHECKPOINT-active.md (1 arquivo doc-only, ~1min)
+  - **Pytest:** PULAR (zero código)
+  - **Commit msg:** "docs(governance): CHECKPOINT-active.md entry CC.29.C Operator push done + CC.29.D Morpheus consolidation [Story MVP-LEAN-01]"
+  - **Sem comment PR #2 adicional:** já feito em CC.29.C; este push é apenas housekeeping
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-cc29d-housekeeping-push.yaml` (token H-S03-CC29D-MOR2OPERATOR-001)
+  - **Próximo:** Operator via Skill LMAS:agents:devops → commit + push CHECKPOINT (sem PR comment) + handoff back → Morpheus emite sinal Eric ABSOLUTO FINAL DEFINITIVO com sumário 30 etapas + 4 trilhas atualizadas
+- **Sessão 91 CC.29.C — Operator push doc-only fast-forward DONE** (@devops · Operator — 2026-05-07, **push + comment PR #2 ~3min**):
+  - **Pre-push gate:** pytest PULADO conforme handoff (zero mudança código); git status confirmado: 2 modified + 1 untracked NEW + .tmp/ ignorado
+  - **Staging:** `git add governance/CHECKPOINT-active.md governance/TECH-DEBT.md governance/qa/adversarial-review-story-mvp-lean-01-cc29.md`
+  - **Commit:** `b334b5a docs(governance): CC.29 Oracle adversarial review story file + 12 tech debts narrativos [Story MVP-LEAN-01]` — 3 files changed, 343 insertions(+), 5 deletions(-)
+  - **Push fast-forward:** `f371376..b334b5a` em `feat/mvp-lean-01-task1-layout-base` (range projetado era `64ed9e4..` mas tip remoto era `f371376` CC.28.B — ambos doc-only, fast-forward natural confirmado)
+  - **PR #2 comment:** [`#issuecomment-4393947563`](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4393947563) — sumário 12 findings + verdict PASS-WITH-NOTES + honestidade técnica × 2
+  - **PR #2 estado pós-CC.29.C:**
+    - progresso: 8/9 = 89% + Smith loop completíssimo + honestidade técnica × 2 (audit chain CC.28 + narrative findings CC.29)
+    - bloqueio: Eric review independente
+    - visibility: report Oracle + 12 tech debts visíveis publicamente
+  - **Suite remote final:** 398 passed + 3 skipped (preservada — zero código tocado em CC.29 inteira)
+  - **PRs paralelos final:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% + 30 etapas CC sumarizadas
+  - **Commits CC.29:** 1 (b334b5a doc-only)
+  - **Honestidade técnica × 2 publicada:** CC.28 (audit chain finding bloco_audit já existia) + CC.29 (12 fendas narrativas registradas em vez de polidas)
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc29c-push-done.yaml` (token H-S03-CC29C-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.29.C ABSOLUTO FINAL DEFINITIVO + sinaliza Eric com 4 trilhas restantes atualizadas + 30 etapas CC sumarizadas
 - **Sessão 91 CC.29.C — Morpheus consolida CC.29.B + dispatch Operator push doc-only via Skill** (@lmas-master · Morpheus — 2026-05-07, **decisão convergente Opção A**):
   - **Eric persistiu 'via Skill' pós CC.29.B Neo registry** — workflow-via-skill-strict aplica ao próximo step convergente
   - **Recomendação Neo = A (push doc-only CC.29.C)** — convergente com narrativa pública PR #2 alinhada com narrativa local
