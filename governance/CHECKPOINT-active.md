@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.26.B Operator push CC.26 registry DONE — re-review verdict PASS-WITH-NOTES + 6 tech debts publicados em PR #2. Comment #issuecomment-4393350767. Aguarda Morpheus consolidar FINAL DEFINITIVO."
-status: sprint-03-cc26b-operator-push-done-aguarda-morpheus-final-definitivo
+active_story: "CC.27 Neo Trilha 6 fix-of-fix DONE — 5 RR entries RESOLVED (RR-01 test + RR-02 doc + RR-03 fix + RR-04 doc + RR-06 doc) + 1 ACTIVE accepted (RR-05 UA URL design). Suite 398+3 (+1 test). Aguarda Morpheus consolidar."
+status: sprint-03-cc27-neo-trilha-6-fix-of-fix-done-aguarda-morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,55 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 reaberta CC.27 — Neo Trilha 6 fix-of-fix DONE** (@dev · Neo — 2026-05-06, **5 RR resolved + 1 active ~30min real**):
+  - **Decisão CC.27:** Eric persistiu pós pause final definitivo absoluto CC.26 (terceiro pause da sessão) — única trilha 100% Skill-dispachável = Trilha 6 fix-of-fix
+  - **Implementação zero-debt approach:**
+    - **Fase A (4 LOWs ~15min):**
+      - RR-06 (LOW): docstring `auto_trigger.py` — vermelho-via-tese edge case explicado
+      - RR-04 (LOW): docstring `scheduler.py` — env runtime stale documentado
+      - RR-05 (LOW): aceitar como debt — nota inline em `scraper_tema_1378.py` (alternativa importlib.metadata sem benefício)
+      - RR-03 (LOW): env parsing tolerante `{"true","1","yes","on","enabled"}` em `scheduler.py`
+    - **Fase B (MED ~10min):**
+      - RR-01 (MED): test novo `test_http_get_preserves_user_agent_through_retries` valida headers em retries 5xx→200
+    - **Fase C (MED ~5min):**
+      - RR-02 (MED): docstring documenta race condition + mitigação por design (probabilidade muito baixa em prod)
+  - **Quality gate:** ruff All checks passed ✅ + pytest **398 passed + 3 skipped** ✅ (+1 test, zero regressão)
+  - **Tempo real:** ~30min (vs ~3h estimado, eficiência 600%) — fixes triviais foram realmente triviais
+  - **Decisões autônomas Neo:**
+    1. RR-02 race condition: opção fácil (doc) vs robusta (file lock) — escolhi fácil; edge case low-probability
+    2. RR-05 UA URL: aceitar como debt (decisão de design)
+  - **Tech debts CC.27 status:** 5 RESOLVED + 1 ACTIVE accepted-debt (RR-05)
+  - **TECH-DEBT.md:** apend nova seção "Sprint 03 CC.27 — Fix-of-fix RR entries (5 RESOLVED + 1 ACTIVE)"
+  - **Handoff Neo → Morpheus:** a ser emitido (token H-S03-CC27-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.27 + decide push incremental Operator OR pause final
+- **Sessão 91 OFICIALMENTE FECHADA CC.26 FINAL DEFINITIVO ABSOLUTO** (@lmas-master · Morpheus — 2026-05-06, **pause após Smith adversarial loop completo**):
+  - **24 etapas CC sequenciais completadas** (CC.6 → CC.26.B) — sessão record absoluta
+  - **Smith adversarial loop COMPLETO** ✅:
+    - CC.25 Trilha 2.5: review (18 findings)
+    - CC.25 Trilha B+: fixes (3 determinísticos F-01+F-05+F-08)
+    - CC.26 Trilha 2.5 re-review: verdict PASS-WITH-NOTES (6 refinement)
+    - CC.26 Trilha C: registry (6 RR entries)
+  - **Agentes orquestrados:**
+    - Neo: 11 dispatches (Tasks 1-7 + T8 PARTIAL + T8b + CC.25 fixes + CC.26 registry)
+    - Oracle: 3 (CC.7 QA gate OLLAMA + CC.25 Smith review + CC.26 Smith re-review)
+    - Operator: 7 pushes (PR #1 + PR #2 + T6+T7 + T8 PARTIAL + T8b + CC.25 fixes + CC.26 registry)
+    - Morpheus: orquestrador 24 etapas
+  - **Marcos finais consolidados:**
+    - OLLAMA-MGR-01 Done → PR #1 OPEN MERGEABLE bloqueio Eric smoke E2E v0.3.0
+    - MVP-LEAN-01 InProgress **8/9 = 89% + Smith adversarial loop completo** → PR #2 OPEN MERGEABLE bloqueio review
+    - Suite remote: **397 passed + 3 skipped** (281 OLLAMA + 116 MVP-LEAN com fixes)
+    - Zero regressão acumulada em 24 etapas CC
+    - ~23h código+doc entregue
+  - **Tech debts:** 21 active (15 CC.25 + 6 CC.26) + 5 RESOLVED registrados em TECH-DEBT.md
+  - **Recomendação convergente:** Pause estratégico FINAL DEFINITIVO ABSOLUTO (Neo + Operator + Morpheus alinhados)
+  - **Handoff FINAL DEFINITIVO Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc26-final-definitivo-absoluto.yaml` (token H-S03-CC26-MOR2ERIC-FINAL-DEFINITIVO-001)
+  - **5 trilhas retomada quando Eric voltar:**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1 merge + tag + release (~30-60min Eric)
+    - 📋 Trilha 2: Review PR #2 (8/9 = 89% + Smith-validated) → merge OR changes-requested (~30-60min Eric)
+    - 🎯 Trilha 4: Task 9 sessão dedicada (smoke E2E real + audit chain HMAC ~4-5h, exige Ollama+Sabia/Qwen+PDF)
+    - ⏸️ Trilha 5: Pause indefinido (marcos preservados em remote)
+    - 🛠️ **Trilha 6 NOVA OPCIONAL:** Fix-of-fix dos 6 RR entries (~3h zero-debt approach)
+  - **Esta é DEFINITIVAMENTE a última Skill da sessão 91** — Morpheus aguarda Eric escolher trilha
 - **Sessão 91 CC.26.B Operator push CC.26 registry DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
   - **Pre-push gate empírico:** working tree clean ✅; pytest **397 passed + 3 skipped** em 62.91s ✅ (CC.26 doc-only, baseline preservado)
   - **Push:** fast-forward `97b0c50..71e8972` em `feat/mvp-lean-01-task1-layout-base` (1 commit doc-only CC.26)

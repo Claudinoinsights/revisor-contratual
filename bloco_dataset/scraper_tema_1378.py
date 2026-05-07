@@ -37,6 +37,9 @@ DEFAULT_TIMEOUT_SECONDS = 30.0
 RETRY_BACKOFF_SECONDS: tuple[int, ...] = (2, 4, 8)  # 3 retries exponencial
 
 # Per Smith CC.25 F-05: STJ provavelmente bloqueia bot UA padrão (python-httpx/X)
+# RR-05 (Smith CC.26): URL hardcoded é stale-prone se repo for renomeado.
+# Decisão Neo CC.27: aceitar como debt LOW — alternativa importlib.metadata adiciona
+# complexidade sem benefício real. Atualizar manualmente se URL repo mudar.
 DEFAULT_HEADERS: dict[str, str] = {
     "User-Agent": (
         "Mozilla/5.0 (compatible; revisor-contratual/0.3.0; "

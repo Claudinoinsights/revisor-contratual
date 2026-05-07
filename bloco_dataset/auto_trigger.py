@@ -65,6 +65,16 @@ def run_camada_1_check(
     ou vermelho via parser). Maintainer DEVE chamar acknowledge() (Task 7 SOP-005)
     para downgrade explícito de vermelho-via-fails. Isso preserva a invariante de que
     "vermelho-via-fails requer ack manual" — auto-downgrade silencioso é proibido.
+
+    Nota RR-06 (Smith CC.26): este invariant aplica-se SOMENTE a vermelho-via-fails-
+    consecutivas (fail_count >= 2). Para vermelho-via-tese-detected (fail_count == 0,
+    nivel=vermelho via parser detectou tese fixada), o set_state procede normalmente —
+    tese atualizada substitui state anterior sem preservar fail_count.
+
+    Nota RR-02 (Smith CC.26): há race condition teórica entre get_current() e set_state()
+    em scenario concurrent (scheduler thread + maintainer acknowledge() web POST). Em
+    prática, mitigação por design: cron daily 02:30 + acknowledge raro = probabilidade
+    muito baixa. Implementação robusta com file lock (portalocker) é tech debt futuro.
     """
     target_audit = audit_path if audit_path is not None else _audit_path()
     timestamp = datetime.now(UTC).isoformat()

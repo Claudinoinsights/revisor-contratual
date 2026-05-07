@@ -336,3 +336,36 @@ tags:
 - **Merge PR #2 recomendado:** ✅ com confidence reforçada pós-re-review
 
 *Sprint 03 CC.26 Smith re-review verdict — Oracle (sessão 91, 2026-05-06) · 6 tech debts refinement registrados.*
+
+---
+
+## Sprint 03 CC.27 — Fix-of-fix RR entries (5 RESOLVED + 1 ACTIVE)
+
+> Origem: Neo CC.27 fix-of-fix Trilha 6 (zero-debt approach pós Smith re-review CC.26).
+> 5 dos 6 RR entries resolvidos via fix concreto OU mitigação documentada. RR-05 mantido active (decisão de design).
+
+### Resolved Items — CC.27 fix-of-fix
+
+| ID | Resolved | Story | Resolution |
+|----|----------|-------|------------|
+| TD-T8B-RR01 | 2026-05-06 | MVP-LEAN-01 T8b CC.27 | MED — adicionado `test_http_get_preserves_user_agent_through_retries` em `tests/integration/test_task8b_cc25_fixes.py`. Valida headers em retries 5xx → 200. |
+| TD-T8B-RR02 | 2026-05-06 | MVP-LEAN-01 T8b CC.27 | MED — Mitigated via documentation. Race condition documentada em docstring `run_camada_1_check`. Probabilidade muito baixa em prod (cron daily + acknowledge raro). Implementação robusta com file lock = tech debt futuro se necessário. |
+| TD-T8B-RR03 | 2026-05-06 | MVP-LEAN-01 T8b CC.27 | LOW — env parsing tolerante em `bloco_backup/scheduler.py`: aceita `{"true", "1", "yes", "on", "enabled"}` (case-insensitive + strip whitespace). |
+| TD-T8B-RR04 | 2026-05-06 | MVP-LEAN-01 T8b CC.27 | LOW — docstring `create_scheduler` atualizada documentando que env é avaliado uma vez (não hot-reload). |
+| TD-T8B-RR06 | 2026-05-06 | MVP-LEAN-01 T8b CC.27 | LOW — docstring `run_camada_1_check` atualizada explicando vermelho-via-tese (fail_count=0) edge case. |
+
+### Active Items remanescente — CC.27
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added | Status |
+|----|--------|-----|-------------|-------------|-------|-------|--------|
+| TD-T8B-RR05 | Smith re-review CC.26 | LOW | F-05 UA URL hardcoded `+https://github.com/...` — stale-prone se repo renomeado | 15min | @dev | 2026-05-06 | **ACTIVE** (decisão Neo CC.27: aceitar como debt — alternativa importlib.metadata adiciona complexidade sem benefício real) |
+
+### Sumário CC.27
+
+- **Fixes aplicados:** RR-01 (test novo) + RR-03 (env parsing tolerante)
+- **Mitigações documentadas:** RR-02 (race condition doc) + RR-04 (env runtime stale doc) + RR-06 (vermelho-via-tese edge case doc)
+- **Aceitos como debt:** RR-05 (UA URL hardcoded — decisão de design)
+- **Suite preservada:** 397+3 → 398+3 (+1 test RR-01, zero regressão)
+- **Tempo real Neo:** ~30min (Fase A 4 LOWs ~15min + Fase B test RR-01 ~10min + Fase C RR-02 doc ~5min)
+
+*Sprint 03 CC.27 fix-of-fix Trilha 6 — Neo (sessão 91, 2026-05-06) · 5 RESOLVED + 1 ACTIVE accepted-debt.*

@@ -250,6 +250,55 @@ def test_auto_trigger_resets_fail_count_when_verde_via_scrape_after_red(
 
 
 @pytest.mark.integration
+def test_http_get_preserves_user_agent_through_retries() -> None:
+    """RR-01 fix (Smith CC.26): headers DEFAULT_HEADERS presentes em CADA tentativa retry.
+
+    Cenário: 503 → 503 → 200 (retry success). Valida que User-Agent é preservado
+    em todas as 3 chamadas httpx.Client (não só na primeira).
+    """
+    captured_calls: list[dict] = []
+
+    response_503 = MagicMock()
+    response_503.status_code = 503
+    response_503.text = "Service Unavailable"
+    response_503.request = MagicMock()
+
+    response_200 = MagicMock()
+    response_200.status_code = 200
+    response_200.text = '<html><body><div class="tema-status">OK</div></body></html>'
+    response_200.request = MagicMock()
+    response_200.raise_for_status = MagicMock(return_value=None)
+
+    call_count = [0]
+
+    def _capturing_client(**kwargs: object) -> MagicMock:
+        captured_calls.append(dict(kwargs))
+        client = MagicMock()
+        client.__enter__ = MagicMock(return_value=client)
+        client.__exit__ = MagicMock(return_value=False)
+        # 1ª e 2ª tentativa retornam 503; 3ª retorna 200
+        if call_count[0] < 2:
+            client.get = MagicMock(return_value=response_503)
+        else:
+            client.get = MagicMock(return_value=response_200)
+        call_count[0] += 1
+        return client
+
+    with patch.object(httpx, "Client", side_effect=_capturing_client):
+        result = scrape_tema_1378("http://test.local/tema")
+
+    # 3 chamadas (2x 503 + 1x 200)
+    assert len(captured_calls) == 3
+    # User-Agent presente em TODAS
+    for call_kwargs in captured_calls:
+        assert "headers" in call_kwargs
+        assert "User-Agent" in call_kwargs["headers"]
+        assert "Mozilla/5.0" in call_kwargs["headers"]["User-Agent"]
+    # Resultado correto na 3ª tentativa
+    assert result["nivel"] == "verde"
+
+
+@pytest.mark.integration
 def test_scrape_still_raises_scraper_error_on_404() -> None:
     """Sanity: F-05 (headers) não quebra fail-loud em 4xx."""
     response = MagicMock()

@@ -109,6 +109,14 @@ def create_scheduler() -> BackgroundScheduler:
       se ENABLE_TEMA_1378_AUTO_CHECK=true (default false). Per Smith review
       CC.25 F-01: DEFAULT_STJ_URL é placeholder; ativar em prod só após Eric
       confirmar URL real STJ + tuning empírico patterns parser.
+
+    Nota RR-04 (Smith CC.26): ENABLE_TEMA_1378_AUTO_CHECK é avaliado UMA VEZ na
+    criação do scheduler (lifespan startup). Mudanças em runtime (toggle env var
+    pós-startup) requerem reinicio do app — não é hot-reload por design (feature
+    flag simples). Documentar em .env.example o formato exato esperado.
+
+    Nota RR-03 (Smith CC.26): env parsing aceita "true", "1", "yes", "on", "enabled"
+    (case-insensitive, com strip de whitespace). Outros valores → flag false.
     """
     scheduler = BackgroundScheduler(daemon=True, timezone="UTC")
     # Job 1: backup_daily 02:00 UTC
@@ -128,8 +136,12 @@ def create_scheduler() -> BackgroundScheduler:
         replace_existing=True,
     )
     # Job 3 condicional: tema_1378_check 02:30 UTC (per Smith CC.25 F-01)
+    # RR-03 fix (Smith CC.26): tolerar formatos comuns ("true"/"1"/"yes"/"on"/"enabled")
     enable_tema_check = (
-        os.environ.get("ENABLE_TEMA_1378_AUTO_CHECK", "false").lower() == "true"
+        os.environ.get("ENABLE_TEMA_1378_AUTO_CHECK", "false")
+        .strip()
+        .lower()
+        in {"true", "1", "yes", "on", "enabled"}
     )
     if enable_tema_check:
         scheduler.add_job(
