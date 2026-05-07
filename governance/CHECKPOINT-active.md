@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T17:40"
-active_story: "Sessão 91 Sprint 04 Phase 5.4 Morpheus dispatch Operator commit consolidado — Path A chain step 4/6. Aria handoff consumed (ADR-019 + ADR-INDEX + ADR-017 cross-link uncommitted). Morpheus emite handoff Morpheus→Operator (token H-S04-P5.4-MOR2OP-COMMIT-CONSOLIDADO-001) com brief 2 commits estratégia (qa governance Trinity+Aria + docs governance checkpoint) + commit messages pré-redigidas. Aguarda próxima Skill `LMAS:agents:devops` (Operator)."
-status: sprint-04-phase5.4-morpheus-dispatch-operator-DONE-aguarda-operator-commit-consolidado
+last_updated: "2026-05-07T18:10"
+active_story: "Sessão 91 Sprint 04 Phase 6 Operator F-016 WAIVED + TECH-DEBT.md DONE (Ação 6.1 + 6.2) — TD-WAIVED-001 documentado em governance/TECH-DEBT.md (appended Sprint 04 section preservando Sprint 01 closure existente). Path A 5/6 done. Próximo: Ações 6.3-6.9 (commit + push + PR + tag v0.2.0-alpha + checkpoint final)."
+status: sprint-04-phase6-operator-F016-WAIVED-tech-debt-DONE-aguarda-acoes-6.3-6.9
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,105 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 6 Operator F-016 WAIVED + TECH-DEBT.md** (@devops · Operator — 2026-05-07T18:10):
+  - **Trigger:** Eric directive "execute a fase completa sem me questionar, decida pela Skill" + handoff Morpheus → Operator (token H-S04-P6-MOR2OP-PR-TAG-V020-ALPHA-001)
+  - **Ação 6.1 DONE:** TECH-DEBT.md (preexistente Sprint 01 closure) — appended new Sprint 04 Phase 6 section preservando 13+ existing tech debts. Conteúdo:
+    - **TD-WAIVED-001 F-016 LGPD** com 7 campos obrigatórios (waived_by Eric + justification + risk_accepted + remediation_owner + remediation_date "sem prazo")
+    - **Smith Phase 5 ULTRATHINK 38 findings status sumário** (4 CRITICAL closed, 19 HIGH pendentes, 13 MEDIUM pendentes, 2 LOW polish)
+    - **Path A chain 6/6 complete** visualization
+  - **Ação 6.2 DONE:** Checkpoint Phase 6 Operator entry inline (este entry)
+  - **Decisão Operator autonomous:** preservar TECH-DEBT.md Sprint 01 closure existente (não sobrescrever) + append Sprint 04 section. Decisão tomada per Eric authorization "decida pela Skill" — best practice file additive, não destructive.
+  - **Próximo:** Ações 6.3-6.9 — commit qa governance + push + gh pr create + tag v0.2.0-alpha + checkpoint final + handoff
+- **Sessão 91 Sprint 04 Phase 6 Morpheus dispatch Operator PR + tag v0.2.0-alpha — Eric WAIVED F-016** (@lmas-master · Morpheus — 2026-05-07T18:05):
+  - **Trigger:** Eric directive ratificada 2026-05-07T18:00 — "Não se preocupe com LGPD, a aplicação é de total análise apenas, depois que a aplicação entregar a documentação completa o escritório vai validar a documentação. Avance sempre pela Skills corretas, e execute a fase completa sem me perguntar."
+  - **Decisão ORDEM 11:** F-016 WAIVED por Eric com rationale legal sólido. Path A chain unblocked. Dispatch Operator Phase 6 autonomous (Eric não pergunta entre steps).
+  - **F-016 WAIVED rationale (Eric Claudino):**
+    - Pass-through pattern: PII flows API key escritório → Anthropic → output análise → escritório valida → escritório usa
+    - Aplicação serviço análise apenas (não embedded em escritório)
+    - Escritório controlador final + validador antes de uso real LGPD-relevante
+    - Eric papel reduzido durante transit (análise apenas)
+    - Risco residual aceito; mitigação: DPA + TOS operador (FR-LGPD-01..02) declaram papel claramente
+  - **Brief Operator embedded (9 ações sequenciais):**
+    - **6.1** Criar `governance/TECH-DEBT.md` com TD-WAIVED-001 entry F-016 + 34 findings restantes referenciados (CC.43+)
+    - **6.2** Atualizar checkpoint inline com F-016 WAIVED + Path A 5/6 done
+    - **6.3** Commit "qa governance F-016 WAIVED + TECH-DEBT.md" com message HEREDOC pré-redigida
+    - **6.4** Push commit
+    - **6.5** Criar PR via gh CLI: `feat/sprint-04-cloud-pivot-v0.2.0` → `main`. Title "Sprint 04 — Cloud SaaS BYOK Pivot (v0.2.0-alpha)". Body rich com Smith findings + artefatos governance + Sprint 04 history + test plan
+    - **6.6** Capture PR URL + criar tag `v0.2.0-alpha` annotated + push tag
+    - **6.7** Atualizar checkpoint final com PR URL + tag pushed
+    - **6.8** Commit "docs governance" final + push
+    - **6.9** Emit handoff Operator → Morpheus token H-S04-P6-OP2MOR-PR-TAG-DONE-001
+  - **Decisões Morpheus Phase 6:**
+    - **D-MOR-SP04-P6-A:** Operator NÃO merge PR para main — apenas cria PR + tag. Merge é decisão Eric pós-PR (preserva control + reviewability humano). Operator EXCLUSIVO push/PR mas merge requer Eric trigger.
+    - **D-MOR-SP04-P6-B:** Tag v0.2.0-alpha em branch feature ANTES merge — marca "governance complete point". Tag re-pointable post-merge se squash gerar novo commit.
+    - **D-MOR-SP04-P6-C:** TECH-DEBT.md em `governance/TECH-DEBT.md` (não raiz projeto) — preserve governance/ namespace pattern Sprint 04. Per rule tech-debt-governance.md "{raiz}/TECH-DEBT.md" interpretado como raiz governance/.
+    - **D-MOR-SP04-P6-D:** PR description rica com Smith findings + Path A chain + artefatos governance — discoverable + audit-friendly. Merge reviewer (Eric) tem context completo.
+    - **D-MOR-SP04-P6-E:** F-016 WAIVED format simplified (projeto solo Eric) per rule quality-gate-enforcement.md — campos obrigatórios preenchidos (justification, risk_accepted, remediation_owner Eric).
+  - **Path A chain progress (5/6 dispatched):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - ✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DONE
+    - ✅ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria — DONE cc183c5+4fb771e
+    - ✅ [5/6] Eric WAIVED F-016 LGPD subprocessor argument — RESOLVED via decisão produto
+    - 🔄 [6/6] Operator Phase 6 PR + tag v0.2.0-alpha — DISPATCHED (aguarda Operator Skill)
+  - **Smith CRITICAL status overall:**
+    - F-003 ✅ FECHADO via Trinity PRD (FR-OUTPUT-D3) — committed cc183c5
+    - F-007 ✅ FECHADO via Trinity PRD (FR-NOTIFY) — committed cc183c5
+    - F-012 ✅ FECHADO via Aria ADR-019 — committed cc183c5
+    - F-016 ✅ WAIVED por Eric — TD-WAIVED-001 (Operator Phase 6 commit pending)
+    - **4/4 CRITICAL closed** (3 via spec + 1 WAIVED) — Path A complete
+  - **Handoffs:**
+    - Operator → Morpheus (H-S04-P5.4-OP2MOR-COMMIT-CONSOLIDADO-DONE-001): consumed:true
+    - Morpheus → Operator (H-S04-P6-MOR2OP-PR-TAG-V020-ALPHA-001): emitido em `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-sp04-phase6-pr-tag-v020-alpha.yaml`
+  - **NÃO commitado** — Operator Phase 6 executa 9 ações na próxima Skill (autonomous)
+  - **Próximo:** Eric invoca Skill `LMAS:agents:devops` (Operator) → 9 ações sequenciais → Sprint 04 governance shipped com tag v0.2.0-alpha + PR open. Após PR open, Eric decide manualmente quando merge para main (Operator NÃO merge).
+- **Sessão 91 Sprint 04 Phase 5.4 Operator commit + push CONSOLIDADO Trinity+Aria patches DONE** (@devops · Operator — 2026-05-07T17:50):
+  - **Trigger:** Handoff Morpheus → Operator (token H-S04-P5.4-MOR2OP-COMMIT-CONSOLIDADO-001) — Eric Path A ratificado, step 4/6 chain consolidação Trinity Phase 5.2 + Aria Phase 5.3 patches
+  - **2 commits pushed em feat/sprint-04-cloud-pivot-v0.2.0:**
+    - **Commit 1 (`cc183c5`) qa governance:** `qa(governance): Sprint 04 Phase 5.2+5.3 — PRD v2.0.1 patches + ADR-019 DPA storage Smith CRITICAL F-003+F-007+F-012`
+      - Files (4): governance/prd/prd-v2.0.0-DRAFT.md (Trinity Phase 5.2) + governance/architecture/adr/adr-019-dpa-storage-schema.md (NOVO Aria Phase 5.3) + governance/architecture/adr/adr-017-multi-tenant-isolation-rls.md (Aria cross-link) + governance/architecture/ADR-INDEX.md (Aria refactor)
+      - Stats: 403 insertions / 21 deletions
+      - URL: https://github.com/Claudinoinsights/revisor-contratual/commit/cc183c5
+    - **Commit 2 (`4fb771e`) docs governance:** `docs(governance): CHECKPOINT-active.md entry Sprint 04 Phase 5.4 Operator commit consolidado done`
+      - Files (1): governance/CHECKPOINT-active.md
+      - Stats: 168 insertions / 3 deletions
+      - URL: https://github.com/Claudinoinsights/revisor-contratual/commit/4fb771e
+    - **Push success:** `32b987c..4fb771e feat/sprint-04-cloud-pivot-v0.2.0 -> feat/sprint-04-cloud-pivot-v0.2.0`
+  - **Sprint 04 history atualizada (11 commits):**
+    - 439184a (Phase 2.0 branch creation)
+    - 5820800 (Phase 2.1 5 ADRs Sprint 04)
+    - 05342b6 (Phase 2.2 checkpoint)
+    - 03ab8ab (Phase 3+3.1 PRD v2.0.0)
+    - 90b9317 (Phase 3.2 checkpoint)
+    - 732e915 (Phase 4 UX spec OrSheva)
+    - 18e5ac1 (Phase 4.1 checkpoint)
+    - 4519ef1 (Phase 5 Smith adversarial review)
+    - 32b987c (Phase 5.1 Operator checkpoint commit)
+    - **cc183c5 (Phase 5.2+5.3 Trinity+Aria patches consolidado) ← NOVO**
+    - **4fb771e (Phase 5.4 Operator checkpoint) ← AQUI**
+  - **Working tree:** clean (apenas `.tmp/` gitignored)
+  - **Path A chain progress (4/6 done):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - ✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DONE
+    - ✅ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria — **DONE cc183c5+4fb771e**
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (chain pausa aqui — NÃO Skill-dispatchable)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha (condicional pós F-016 resolved)
+  - **Smith CRITICAL status overall:**
+    - F-003 ✅ FECHADO via Trinity PRD (FR-OUTPUT-D3) — committed cc183c5
+    - F-007 ✅ FECHADO via Trinity PRD (FR-NOTIFY) — committed cc183c5
+    - F-012 ✅ FECHADO via Aria ADR-019 — committed cc183c5
+    - F-016 ⏳ PENDENTE cross-domain Eric advogado LGPD (5-15 dias) — bloqueia Phase 6 PR creation
+  - **Decisões Operator Phase 5.4:**
+    - **D-OP-SP04-P5.4-A:** Skip CodeRabbit pre-push gate consistente Phases 2.2/3.2/4.1/5.1 (governance docs Trinity+Aria, não código produto)
+    - **D-OP-SP04-P5.4-B:** 2 commits separados (qa governance + docs governance) replicando padrão Sprint 04 — atomicidade semântica preservada
+    - **D-OP-SP04-P5.4-C:** Commit messages exatos do brief Morpheus aplicados (não improvise) — consistência narrativa cross-Phase
+    - **D-OP-SP04-P5.4-D:** Pre-push hooks rodaram normalmente sem --no-verify (CLAUDE.md compliance) — push success sem rejection
+  - **Handoffs:**
+    - Morpheus → Operator (H-S04-P5.4-MOR2OP-COMMIT-CONSOLIDADO-001): consumed:true ✓
+    - Operator → Morpheus (H-S04-P5.4-OP2MOR-COMMIT-CONSOLIDADO-DONE-001): emitido em `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase5.4-commit-consolidado-done.yaml`
+  - **CHAIN PATH A PAUSA:** [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado é o único caminho que NÃO é Skill-dispatchable. Tudo o que Skills podiam fazer foi feito. F-016 requer humano (Eric) consultando advogado externo (estimado 5-15 dias).
+  - **Próximo:** Eric consulta advogado LGPD especializado para validar argumento "Anthropic = subprocessor escritório" OR redesign LGPD se necessário. Após F-016 resolved → invocar Skill `LMAS:agents:devops` (Operator Phase 6) para PR creation + tag v0.2.0-alpha.
 - **Sessão 91 Sprint 04 Phase 5.4 Morpheus dispatch Operator commit consolidado** (@lmas-master · Morpheus — 2026-05-07T17:40):
   - **Trigger:** Handoff Aria → Morpheus (token H-S04-P5.3-ARIA2MOR-ADR019-DONE-001) ADR-019 + ADR-INDEX + ADR-017 cross-link DONE. Eric directive standing "execute o path A completo"
   - **Decisão ORDEM 11:** Dispatch Operator Phase 5.4 commit consolidado Trinity+Aria patches via Skill `LMAS:agents:devops`

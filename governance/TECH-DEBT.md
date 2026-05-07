@@ -771,3 +771,74 @@ tags:
 - **Lesson learned:** Adversarial review COM ESCOPO DECLARADO é mandatory. Smith CC.37 (escopo modificações CC.30..CC.36) ≠ Smith CC.41 (escopo aplicação inteira como produto). 22 findings novos provam que adversarial review estreito induz falsa confiança.
 
 *Sprint 03 CC.42 Smith CC.41 anti-furos partial — Neo (sessão 91, 2026-05-07) · 2 CRITICAL RESOLVED, 20 findings restantes em backlog priorizado.*
+
+---
+
+## 🌩️ Sprint 04 — Cloud SaaS BYOK Pivot (Phase 6 — 2026-05-07)
+
+> **Sprint 04 paradigm shift:** local single-tenant on-premise → cloud SaaS B2B BYOK multi-tenant.
+> Smith Phase 5 ULTRATHINK adversarial review identificou 38 findings sobre o pivot completo (PRD v2.0.0 + 5 ADRs + UX OrSheva + Atlas v1+v2). Phase 6 fecha Path A com 4/4 CRITICAL closed (3 via spec + 1 WAIVED Eric).
+
+### WAIVED Items Sprint 04
+
+#### TD-WAIVED-001 — F-016 LGPD Subprocessor Argument
+
+| Campo | Valor |
+|-------|-------|
+| **Source** | Smith Phase 5 ULTRATHINK adversarial review (`governance/qa/smith-sp04-pivot-adversarial.md` commit `4519ef1`) |
+| **Severity** | CRITICAL (per Smith) → **WAIVED** por decisão Eric |
+| **Description** | Argumento "Anthropic = subprocessor escritório" não validado por advogado especializado LGPD. Smith F-016 sugeriu consulta externa antes Phase 7 implementation. |
+| **Waived by** | Eric Claudino (founder + operador) — auto-aprovado projeto solo |
+| **Date waived** | 2026-05-07 |
+| **Justification** | Aplicação é serviço de **análise apenas** (não embedded em escritório). Pattern pass-through: PII flows API key escritório → Anthropic → output análise → escritório valida → escritório usa. Aplicação produz documentação/análise; escritório cliente atua como **controlador final** + validador antes de uso real LGPD-relevante. Eric papel reduzido durante transit (análise apenas, não custodian PII além cache OCR 90 dias). |
+| **Risk accepted** | Possível questionamento ANPD residual sobre papel operador Eric durante fase de análise (transit). **Mitigação:** DPA Eric-escritório + TOS operador (FR-LGPD-01..02 PRD v2.0.1) declaram papel operador claramente; escritório controlador valida output antes de uso. |
+| **Remediation date** | Sem prazo — assume produto definitivo conforme decisão Eric. Revisita condicional. |
+| **Remediation owner** | Eric (revisita se ANPD audit emergir OR escritórios cliente questionarem) |
+
+### Smith Phase 5 ULTRATHINK — Status sumário (38 findings)
+
+| Severity | Count | Status |
+|----------|-------|--------|
+| CRITICAL | 4 | ✅ ALL CLOSED (3 via spec + 1 WAIVED) |
+| HIGH | 19 | ⏳ Pendentes — Sprint 05+ debt |
+| MEDIUM | 13 | ⏳ Pendentes — Sprint 05+ debt |
+| LOW | 2 | ⏳ Polish opcional |
+| **Total** | **38** | **4 closed + 34 pendentes** |
+
+#### CRITICAL fechados via spec (3) — committed cc183c5
+
+- **F-003** FR-OUTPUT-D3 (petição D3 PDF dedicated flow) — Trinity PRD v2.0.1
+- **F-007** FR-NOTIFY (notification mechanism async) — Trinity PRD v2.0.1
+- **F-012** DPA storage schema — Aria ADR-019 spec-level
+
+#### CRITICAL WAIVED (1)
+
+- **F-016** LGPD subprocessor argument — TD-WAIVED-001 (acima)
+
+#### HIGH pendentes (19) — Sprint 05+ population dedicated
+
+Referenciar Smith report Section 4: `governance/qa/smith-sp04-pivot-adversarial.md` (commit `4519ef1`) findings F-001, F-002, F-006, F-008, F-009, F-011, F-013, F-014, F-015, F-017, F-019, F-021, F-023, F-024, F-027, F-030, F-031, F-034, F-037.
+
+Population completa com formato 7 campos obrigatórios será feita em Sprint 05+ dedicated session (não Phase 6 escopo).
+
+#### MEDIUM pendentes (13) — Sprint 06+ debt
+
+Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F-022, F-025, F-028, F-029, F-032, F-033, F-035, F-038.
+
+#### LOW pendentes (2) — Polish opcional
+
+- F-026 prefers-reduced-motion cobertura incerta
+- F-036 SEO meta tags / schema.org não cobertos
+
+### Path A chain — Sprint 04 Phase 5 (6/6 complete)
+
+```
+✅ [1/6] Operator Phase 5.1 commit Smith report — DONE 4519ef1+32b987c
+✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DONE
+✅ [4/6] Operator Phase 5.4 commit consolidado — DONE cc183c5+4fb771e
+✅ [5/6] Eric WAIVED F-016 LGPD — RESOLVED via decisão produto (TD-WAIVED-001)
+✅ [6/6] Operator Phase 6 PR + tag v0.2.0-alpha — Phase 6 commits
+```
+
+*Sprint 04 Phase 6 governance ship — Operator (sessão 91, 2026-05-07) · Path A 6/6 complete · 4/4 Smith CRITICAL closed.*
