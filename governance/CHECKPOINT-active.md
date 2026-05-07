@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.25.B Operator push CC.25 fixes DONE — Smith fixes (F-01+F-05+F-08) + 15 tech debts + 10 tests publicados em PR #2. Comment URL #issuecomment-4393159237. Aguarda Morpheus consolidar FINAL."
-status: sprint-03-cc25b-operator-push-done-aguarda-morpheus-final
+active_story: "CC.26.B Neo Trilha C registry update DONE — 6 RR entries em TECH-DEBT.md + nota Change Log story + CHECKPOINT update. Suite 397+3 preservada (sem mudança código). Aguarda Morpheus consolidar."
+status: sprint-03-cc26b-neo-trilha-c-registry-update-done-aguarda-morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,64 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.26.B Neo Trilha C registry update DONE** (@dev · Neo — 2026-05-06, **6 RR entries + story note ~5min real**):
+  - **Implementação doc-only:**
+    - **TECH-DEBT.md:** apend nova seção "Sprint 03 CC.26 — Smith re-review CC.25 fixes (6 NEW)" com 6 entries RR-01..RR-06 (formato 7-campos)
+    - **Story Task 8b:** nota CC.26 verdict adicionada ao Change Log (acima de CC.25 apply-qa-fixes)
+    - **CHECKPOINT-active.md:** inline update com entry CC.26.B
+  - **Quality gate:** N/A (sem mudança de código; suite 397+3 preservado)
+  - **Esforço real:** ~5min (vs ~10min estimado)
+  - **Tempo total Smith refinement registrado:** TD-T8B-RR01 30min + RR02 1-2h + RR03..RR06 (15+15+15+5min) = ~3h fix-of-fix futuro opcional
+  - **Handoff Neo → Morpheus:** a ser emitido (token H-S03-CC26-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.26.B + decide push incremental Operator OR pause definitivo
+- **Sessão 91 CC.26 Morpheus consolida Trilha C** (@lmas-master · Morpheus — 2026-05-06, **dispatch Neo registry update**):
+  - **Decisão CC.26:** Trilha C (registry update + pause) — convergente com recomendação Oracle
+  - **Razões:** (1) Verdict PASS-WITH-NOTES é forte; merge defensável SEM fix-of-fix; (2) Eric ainda precisa aprovar PR humanamente — não Skill-dispachável; (3) Adicionar 6 tech debts ao registry preserva rastreabilidade sem bloquear pause; (4) Fix-of-fix opcional pode rodar em sessão futura sem urgência
+  - **Escopo Neo (~10min):**
+    - Adicionar nova seção em `governance/TECH-DEBT.md` "Sprint 03 CC.26 — Smith re-review CC.25 fixes (6 NEW)"
+    - 6 entries RR-01..RR-06 em formato 7-campos (TD-T8B-RR01 MED + TD-T8B-RR02 MED + TD-T8B-RR03..RR06 LOW)
+    - Story Task 8b Dev Agent Record nota CC.26 re-review verdict
+    - Atualizar CHECKPOINT inline
+    - Commit local + handoff back
+  - **23 etapas CC totais:** CC.6 → CC.26 sequenciais
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc26-registry-update.yaml` (token H-S03-CC26-MOR2NEO-001)
+  - **Próximo:** Neo executa registry update (~10min) → handoff back → Morpheus consolida CC.26.B + decide push incremental Operator OR pause definitivo
+- **Sessão 91 reaberta CC.26 — Oracle Smith re-review CC.25 fixes DONE** (@qa · Oracle — 2026-05-06, **Trilha 2.5 re-review escolhida pós Eric persistir 'via Skill' 2x**):
+  - **Decisão CC.26:** Eric persistiu pós pause final CC.25 (segundo pause da sessão) — única trilha 100% Skill-dispachável = Trilha 2.5 re-review focado nos 3 fixes determinísticos
+  - **Output:** `governance/qa/smith-re-review-cc25-fixes.md` (6 findings)
+  - **Severidades:** 0 CRITICAL + 0 HIGH + 2 MED + 4 LOW
+  - **Verdict:** **PASS-WITH-NOTES** — 3 fixes determinísticos confirmados corretos, zero regressão, zero issues HIGH/CRITICAL
+  - **Findings categorias:**
+    - 2 MED: F-05 retry headers test gap; F-08 race condition concurrent (acknowledge web + scheduler thread)
+    - 4 LOW: F-01 env parsing rígido + runtime stale; F-05 UA URL hardcoded; F-08 docstring incompleta
+  - **Tech debts adicionais:** 6 entries (TD-T8B-RR01..RR06) — refinamento futuro, não-bloqueantes
+  - **Recomendação merge:** ✅ **Merge OK** — 3 fixes corretos com confidence reforçada; tech debts LOW/MED rastreados
+  - **Suite preservada:** 397 passed + 3 skipped (Oracle não modificou código)
+  - **Handoff Oracle → Morpheus:** `.lmas/handoffs/handoff-oracle-to-morpheus-2026-05-06-cc26-re-review-done.yaml` (token H-S03-CC26-ORACLE2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.26 + decide merge OK / fix-of-fix opcional / pause
+- **Sessão 91 OFICIALMENTE FECHADA CC.25 FINAL** (@lmas-master · Morpheus — 2026-05-06, **pause estratégico DEFINITIVO aceito**):
+  - **22 etapas CC sequenciais completadas** (CC.6 → CC.25.B) — sessão record de orquestração
+  - **Agentes orquestrados:**
+    - Neo: 10 dispatches (Tasks 1-7 + T8 PARTIAL + T8b + CC.25 fixes)
+    - Oracle: 2 (CC.7 QA gate OLLAMA + CC.25 Smith adversarial review T8b)
+    - Operator: 6 pushes (PR #1 OLLAMA + PR #2 MVP-LEAN + T6+T7 + T8 PARTIAL + T8b + CC.25 fixes)
+    - Morpheus: orquestrador 22 etapas
+  - **Marcos finais consolidados:**
+    - OLLAMA-MGR-01 Done (Oracle CC.7 PASS) → PR #1 OPEN MERGEABLE bloqueio Eric smoke E2E v0.3.0
+    - MVP-LEAN-01 InProgress **8/9 = 89% + Smith fixes aplicados** (F-01+F-05+F-08 RESOLVED) → PR #2 OPEN MERGEABLE bloqueio review independente
+    - Suite remote: **397 passed + 3 skipped** (281 OLLAMA baseline + 116 MVP-LEAN com Smith fixes)
+    - Zero regressão acumulada em 22 etapas CC
+    - ~22h código entregue (15.5h Tasks 1-7+T8 PARTIAL + 2h T8b + 1h CC.24 + ~2h Smith review + 1h CC.25 fixes + 0.5h orquestração)
+  - **Tech debts:** 15 active CC.25 (5 HIGH empíricos + 7 MED + 3 LOW) + outros LOW MVP-LEAN; 5 RESOLVED em CC.25 (3 Smith determinísticos + 2 T8b implementação)
+  - **Recomendação convergente:** Pause estratégico DEFINITIVO (Neo + Operator + Morpheus alinhados)
+  - **Handoff FINAL Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc25-final.yaml` (token H-S03-CC25-MOR2ERIC-FINAL-001)
+  - **5 trilhas retomada quando Eric voltar:**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1 merge + tag + release (~30-60min Eric)
+    - 📋 Trilha 2: Review PR #2 (8/9 = 89% + Smith fixes) → merge OR changes-requested (~30-60min Eric)
+    - 🔍 Trilha 2.5 (re-review): Smith adversarial re-review CC.25 fixes (Skill qa, ~30-60min)
+    - 🎯 Trilha 4: Task 9 sessão dedicada (smoke E2E real + audit chain HMAC ~4-5h, exige Ollama+Sabia/Qwen+PDF físico)
+    - ⏸️ Trilha 5: Pause indefinido (marcos preservados em remote)
+  - **Esta é a última Skill da sessão 91 CC.25.B** — Morpheus aguarda Eric escolher trilha
 - **Sessão 91 CC.25.B Operator push CC.25 fixes DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
   - **Pre-push gate empírico:** ruff All checks passed ✅ (zero fix necessário desta vez); pytest **397 passed + 3 skipped** em 62.64s ✅
   - **Push:** fast-forward `f4fe9ef..6c5afaf` em `feat/mvp-lean-01-task1-layout-base` (1 commit CC.25 fixes)

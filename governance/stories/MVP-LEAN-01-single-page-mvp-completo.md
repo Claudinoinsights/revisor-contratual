@@ -390,6 +390,20 @@ Neo (durante implementação) DEVE consultar:
 
 ## Change Log
 
+### Task 8b CC.26 Smith re-review verdict 2026-05-06 (Oracle sessão 91)
+
+**Verdict:** PASS-WITH-NOTES — 3 fixes CC.25 (F-01 + F-05 + F-08) confirmados corretos pelo Oracle.
+
+**Findings refinement:** 6 (0 CRITICAL + 0 HIGH + 2 MED + 4 LOW) — todos não-bloqueantes; registrados em `governance/TECH-DEBT.md` como TD-T8B-RR01..RR06.
+
+**Output:** `governance/qa/smith-re-review-cc25-fixes.md` (~12KB com smoke mental + side effects scan + verdict justificado).
+
+**Recomendação merge:** ✅ Merge PR #2 OK com confidence reforçada — Smith re-review confirma fixes determinísticos corretos sem regressão.
+
+**Story status:** InProgress (Tasks 1-8 done com fixes validados; Task 9 pending).
+
+---
+
 ### Task 8b CC.25 apply-qa-fixes Trilha B+ done 2026-05-06 (Neo sessão 91 CC.25)
 
 **Status:** InProgress (Tasks 1-8 done com Smith review fixes aplicados; Task 9 pending)

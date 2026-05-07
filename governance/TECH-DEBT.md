@@ -309,3 +309,30 @@ tags:
 - **Verdict pós-fix:** merge defensável com tech debts explícitos; 5 HIGH empíricos requerem URL real STJ + HTML extraction para validação iterativa pós-deploy
 
 *Sprint 03 CC.25 Smith review apply-qa-fixes — Neo (sessão 91, 2026-05-06) · 3 fixes determinísticos + 15 tech debts registrados.*
+
+---
+
+## Sprint 03 CC.26 — Smith re-review CC.25 fixes (6 NEW)
+
+> Origem: Oracle Smith re-review CC.26 (`governance/qa/smith-re-review-cc25-fixes.md`).
+> 6 findings refinement (0 CRITICAL + 0 HIGH + 2 MED + 4 LOW). Verdict PASS-WITH-NOTES.
+
+### Active Items — CC.26 Re-review
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-T8B-RR01 | Smith re-review CC.26 | MED | F-05 retry preserva headers — falta test explícito retries 5xx → 200 (cobertura defesa-em-profundidade) | 30min | @dev | 2026-05-06 |
+| TD-T8B-RR02 | Smith re-review CC.26 | MED | F-08 race condition get_current/set_state em concurrent (scheduler thread + acknowledge web POST) | 1-2h | @dev | 2026-05-06 |
+| TD-T8B-RR03 | Smith re-review CC.26 | LOW | F-01 env parsing rígido — só "true" literal (não aceita "1"/"yes"/"on") | 15min | @dev | 2026-05-06 |
+| TD-T8B-RR04 | Smith re-review CC.26 | LOW | F-01 env não re-lida runtime — toggle requer restart (esperado mas merece doc) | 15min docs | @dev | 2026-05-06 |
+| TD-T8B-RR05 | Smith re-review CC.26 | LOW | F-05 UA URL hardcoded "+https://github.com/..." — stale-prone se repo renomeado | 15min | @dev | 2026-05-06 |
+| TD-T8B-RR06 | Smith re-review CC.26 | LOW | F-08 docstring incompleta — não menciona vermelho-via-tese (fail_count=0) edge case | 5min | @dev | 2026-05-06 |
+
+### Sumário CC.26 verdict
+
+- **Verdict:** PASS-WITH-NOTES — 3 fixes determinísticos CC.25 confirmados corretos
+- **Findings refinement:** 6 (não-bloqueantes para merge)
+- **Suite preservada:** 397 passed + 3 skipped (zero regressão)
+- **Merge PR #2 recomendado:** ✅ com confidence reforçada pós-re-review
+
+*Sprint 03 CC.26 Smith re-review verdict — Oracle (sessão 91, 2026-05-06) · 6 tech debts refinement registrados.*
