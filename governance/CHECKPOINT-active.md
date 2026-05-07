@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T15:45"
+last_updated: "2026-05-07T15:55"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase3.1-Trinity-PRD-patch-PDF-workflow-DONE-aguarda-Operator
+status: sprint-04-phase3.2-Operator-PRD-commit-DONE-aguarda-Morpheus-dispatch-Sati
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -403,6 +403,19 @@ tags:
   - **Implicação UX (Sati Phase 4):** workflow simplificado significantemente — Sati não precisa desenhar UI de leitura complexa de relatório no app; foco fica no flow upload → wait → download PDF + approve/reject button
   - **Handoff Trinity → Morpheus:** `.lmas/handoffs/handoff-pm-to-morpheus-2026-05-07-sp04-phase3.1-prd-patch-pdf.yaml` (token H-S04-P3.1-TRINITY2MOR-PATCH-DONE-001)
   - **Próximo:** Morpheus dispatch Operator (commit PRD v2.0.0 patched) → dispatch Sati Phase 4 com PRD ajustado
+- **Sessão 91 Sprint 04 Phase 3.2 — Operator commit PRD v2.0.0 DRAFT DONE** (@devops · Operator — 2026-05-07T15:55):
+  - **Trigger:** Morpheus dispatch H-S04-P3.2-MOR2OP-COMMIT-PRD-001 (Eric "avance sempre pelas skills corretas")
+  - **Commit consolidado:** **`03ab8ab`** — feat(governance): Sprint 04 Phase 3 — PRD v2.0.0 MAJOR DRAFT + Phase 3.1 PDF workflow patches
+    - 2 files: 397 insertions / 2 deletions
+    - PRD v2.0.0 DRAFT criado (~14KB, 12 seções) + 7 patches Phase 3.1 PDF workflow
+    - Checkpoint atualizado com entries Phase 3 + 3.1
+  - **Push:** `05342b6..03ab8ab feat/sprint-04-cloud-pivot-v0.2.0` ✅
+  - **Commit URL:** https://github.com/Claudinoinsights/revisor-contratual/commit/03ab8ab
+  - **Skip CodeRabbit:** governance docs only — quality gate adequado
+  - **NÃO criou PR** (Sati Phase 4 + Smith Phase 5 pendentes)
+  - **Sprint 04 progress remote:** Phase 1 + 2 + 3 + 3.1 todos pushed
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase3.2-prd-commit-done.yaml` (token H-S04-P3.2-OP2MOR-PRD-COMMIT-DONE-001)
+  - **Próximo:** Morpheus dispatch Sati Phase 4 — UX redesign OrSheva (workflow simplificado per Phase 3.1: dashboard 3 ações sem UI revisão complexa)
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
