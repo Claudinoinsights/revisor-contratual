@@ -2,11 +2,12 @@
 type: prd
 title: "Revisor Contratual — PRD v2.0.0 (Cloud SaaS BYOK Multi-Tenant)"
 project: revisor-contratual
-version: "2.0.0"
-last_updated: "2026-05-07T15:45"
+version: "2.0.1"
+last_updated: "2026-05-07T17:15"
 status: draft
 patches:
   - "Phase 3.1 (2026-05-07T15:45): PDF Generation FR-OUTPUT-01..04 + FR-APPROVE-01 simplificado + FR-D3-01 PDF + NFR-PDF-01 + SP04-PDF-OUTPUT-01 story (Eric clarification — advogado revisa PDF offline)"
+  - "Phase 5.2 (2026-05-07T17:15): Smith Phase 5 patches CRITICAL — FR-OUTPUT-D3-01..05 (F-003) + FR-NOTIFY-01..05 (F-007) + Delta v2.0.0 → v2.0.1 + Changelog entry. Eric ratifica Path A (Smith RECOMENDADO)"
 previous_version: "1.1.2"
 audience: "Eric Claudino (founder), 4 escritórios beta launchers (TBD)"
 author: "@pm Trinity (Morgan)"
@@ -118,10 +119,34 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 - **FR-OUTPUT-03** — PDF disponível para download no dashboard escritório via botão "Baixar PDF Análise" + audit log evento download (timestamp + user_id)
 - **FR-OUTPUT-04** — PDF deve ser pesquisável (texto extraível, não imagem); inclui marca d'água sutil "Análise IA — Revisão por Advogado Obrigatória" no rodapé
 
+### FR-OUTPUT-D3 — Petição D3 PDF (CRÍTICO Smith F-003)
+
+| ID | Descrição | Prioridade |
+|----|-----------|------------|
+| FR-OUTPUT-D3-01 | Sistema gera petição em PDF separado do relatório de análise (output flow distinto, não bundled) | MUST |
+| FR-OUTPUT-D3-02 | Petição usa template Jinja2 distinto em `templates_d3/{doctype}.j2` — NÃO reutiliza template do relatório de análise | MUST |
+| FR-OUTPUT-D3-03 | Estrutura legal: cabeçalho identificador (Apelação Cível / Ação Revisional / etc) + fundamentação + pedidos + fecho legal | MUST |
+| FR-OUTPUT-D3-04 | Watermark obrigatório: "Petição IA — Revisão por Advogado Obrigatória" (similar análise) | MUST |
+| FR-OUTPUT-D3-05 | Geração D3 captura audit log (timestamp + user_id + analysis_id + tenant_id) similar FR-AUDIT-01 | MUST |
+
+**NOTA:** Conteúdo legal específico por doctype (FIES vs CDC Veicular vs Bancário vs Imobiliário) será redigido por advogado especializado (cross-domain Eric — flag em Section 12). Esta seção define apenas o MECANISMO técnico — não o conteúdo legal substantivo. Cross-reference: FR-D3 abaixo cobre estrutura legal de alto nível; FR-OUTPUT-D3 cobre mecanismo de geração PDF.
+
 ### Petição D3 (Apelação Cível)
 
 - **FR-D3-01** — Geração de petição Apelação Cível **em PDF** quando análise identifica irregularidades + decisão adversa anexa; mesmo flow download FR-OUTPUT-03 (advogado baixa PDF da peça pronta para uso)
 - **FR-D3-02** — Templates por doctype em `bloco_workflow/templates_d3/{doctype}.txt` — **conteúdo legal pendente Eric advogado** (Trinity define ESTRUTURA, não conteúdo jurídico)
+
+### FR-NOTIFY — Notificação Async de Análise (CRÍTICO Smith F-007)
+
+| ID | Descrição | Prioridade |
+|----|-----------|------------|
+| FR-NOTIFY-01 | Email transactional disparado quando análise muda para `pending_review` (provider TBD: SendGrid / Resend / AWS SES — decisão cross-domain pricing) | MUST |
+| FR-NOTIFY-02 | In-app banner persistente em S3 dashboard ao re-login: "Análise X pronta para revisão" com link direto S6 | MUST |
+| FR-NOTIFY-03 | Settings preference per usuário em S7 (Tab "Notificações"): email on/off, in-app on/off, web push (future opt-in) | MUST |
+| FR-NOTIFY-04 | Email content: assunto "Análise pronta para revisão — {doctype}", corpo com link direto S6 PDF Ready + CTA "Revisar análise" | MUST |
+| FR-NOTIFY-05 | Notification events captured em audit chain (HMAC) para rastreabilidade compliance — quando email enviado, quando user opened (se trackeable), quando in-app banner mostrado | SHOULD |
+
+**NOTA:** Provider de email transactional (SendGrid vs Resend vs AWS SES) será decidido em pricing analysis cross-domain (Mifune business OR Eric direto — flag em Section 12). Implementação @dev usa interface abstrata `EmailProvider` para permitir swap entre providers sem refactor de código de negócio.
 
 ### Workflow Aprovação (Billing Trigger)
 
@@ -191,7 +216,41 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 ---
 
-## 8. Section Delta v1.1.2 → v2.0.0 (OBRIGATÓRIO per `prd-governance.md`)
+## 8. Delta History (OBRIGATÓRIO per `prd-governance.md`)
+
+### Delta v2.0.0 → v2.0.1 (current — Smith Phase 5 patches CRITICAL)
+
+**Patches motivados por Smith adversarial review (commit 4519ef1) — verdict CONCERNS + 4 CRITICAL findings.**
+
+#### F-003 — FR-OUTPUT-D3 adicionado (5 FRs)
+- Spec mecanismo PDF petição D3 separado da análise (gap identificado: UX S6 expõe "Baixar Petição D3" sem FR específico)
+- Template Jinja2 dedicado, estrutura legal, watermark, audit log
+- Conteúdo legal templates: cross-domain Eric advogado especializado (mantém Section 12 pendência)
+
+#### F-007 — FR-NOTIFY adicionado (5 FRs)
+- Notificação async de análise pronta (gap identificado: UX S5 promete "você será notificado" mas PRD não tinha FR mecanismo)
+- Email transactional + in-app banner + settings preference + future web push
+- Provider email TBD pricing cross-domain (interface `EmailProvider` permite swap)
+- Audit chain integrado para compliance LGPD
+
+#### Não modificado nesta versão (CRITICAL pendentes)
+- **F-012** (DPA storage schema) → endereçado por **Aria Phase 5.3 ADR-019** (próximo Skill na cadeia Path A)
+- **F-016** (LGPD subprocessor argument) → cross-domain Eric advogado especializado paralelo (5-15 dias)
+
+#### Não modificado nesta versão (debt aceitável)
+- 19 HIGH + 13 MEDIUM + 2 LOW Smith findings → TECH-DEBT.md CC.43+ (defer post Phase 6 PR creation)
+
+#### Escopo Atual vs v2.0.0
+
+| Métrica | v2.0.0 | v2.0.1 | Delta |
+|---|---|---|---|
+| FRs totais | ~25 | ~35 | +10 (5 D3 + 5 NOTIFY) |
+| Seções FR | 13 | 15 | +2 (FR-OUTPUT-D3 + FR-NOTIFY) |
+| Smith CRITICAL fechados via PRD | 0/4 | 2/4 | F-003 + F-007 |
+
+---
+
+### Delta v1.1.2 → v2.0.0 (MAJOR pivot — preserved histórico)
 
 ### Features Adicionadas
 
@@ -234,6 +293,16 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 ---
 
 ## 9. Changelog
+
+### v2.0.1 (2026-05-07) — Smith Phase 5 patches CRITICAL
+
+- **Added:** FR-OUTPUT-D3-01..05 (petição D3 PDF dedicated flow) — addresses Smith F-003
+- **Added:** FR-NOTIFY-01..05 (notification mechanism async) — addresses Smith F-007
+- **Section Delta:** v2.0.0 → v2.0.1 com escopo +10 FRs e 2/4 CRITICAL fechados via PRD
+- **Reason:** Smith adversarial review (commit 4519ef1) verdict CONCERNS + 4 CRITICAL findings — patches mandatory antes Phase 7 implementation. Eric ratifica Path A (Smith RECOMENDADO).
+- **Refs:** governance/qa/smith-sp04-pivot-adversarial.md (commit 4519ef1)
+- **Pending CRITICAL:** F-012 (Aria Phase 5.3 ADR-019 DPA storage schema) + F-016 (cross-domain Eric advogado LGPD subprocessor argument)
+- **Path A chain progress:** step 2/6 done (Trinity Phase 5.2)
 
 ### v2.0.0 (2026-05-07) — MAJOR BUMP — Cloud SaaS BYOK Pivot
 

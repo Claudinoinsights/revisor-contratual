@@ -223,3 +223,4 @@ Schema separado `tenant_{uuid}` para clientes premium quando volume justifica (T
 - **ADR-014 (related)** — `tenant_api_keys` com pgcrypto encryption + RLS
 - **ADR-015 (related)** — `ocr_cache` com tenant_id + RLS
 - **ADR-018 (related)** — `billing_events` com tenant_id + RLS
+- **ADR-019 (extends)** — `dpa_acceptances` schema dedicated para DPA acceptance evidence (Smith F-012 driven, level=spec)
