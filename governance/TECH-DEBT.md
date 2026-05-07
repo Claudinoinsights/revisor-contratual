@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-06"
+last_updated: "2026-05-07"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -22,7 +22,7 @@ tags:
 
 | Categoria | Quantidade |
 |---|---|
-| Active tech debts | **38** (3 MEDIUM + 12 LOW + 23 BL-* / TD-* — 14 migrados v1.1.1 + 1 NOVO v1.1.2 + 1 NOVO Sprint 03 CC.2 + 1 NOVO Sprint 03 CC.3 + 6 NOVOS Sprint 03 CC.7 Oracle PASS) |
+| Active tech debts | **50** (3 MEDIUM + 12 LOW + 23 BL-* / TD-* + 2 HIGH narrativos + 5 MED narrativos + 5 LOW narrativos CC.29 — 14 migrados v1.1.1 + 1 NOVO v1.1.2 + 1 NOVO Sprint 03 CC.2 + 1 NOVO Sprint 03 CC.3 + 6 NOVOS Sprint 03 CC.7 + 12 NOVOS Sprint 03 CC.29 Oracle adversarial story review) |
 | Active findings | **1** (F-CI-LOW-01 LOW) |
 | Resolved findings | **9** (5 Phase 3-4 + 3 sessão 86 + 1 VAULT-FIX-01 sessão 87) |
 | Sprint origem | 01 (Phase 2.B até Phase 5) + 02 (REV-INT-01..02 + REV-LLM-01) + 03 Phase 0 (VAULT-FIX-01) + 03 course-correction (PRD v1.1.0 → v1.1.1 BL-* migration) |
@@ -393,3 +393,51 @@ tags:
 - **Decisão:** registrar gap como tech debt MED (TD-T9-AUDIT-INTEGRATION); fix faz parte de Task 9 final junto com smoke E2E real
 
 *Sprint 03 CC.28 audit chain finding — Neo (sessão 91, 2026-05-06) · 1 NEW tech debt MED.*
+
+---
+
+## Sprint 03 CC.29 — Adversarial review story file MVP-LEAN-01 (12 NEW)
+
+> Origem: Oracle CC.29 adversarial review story file (`governance/qa/adversarial-review-story-mvp-lean-01-cc29.md`).
+> Verdict: PASS-WITH-NOTES (não-bloqueante, story sem mudança de código).
+> 12 findings narrativos: 2 HIGH (contradições visíveis) + 5 MED + 5 LOW (refinement governance).
+
+### Active Items — CC.29
+
+#### HIGH (2)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-STORY-SR01 | Oracle CC.29 | HIGH | Header bloco `governance/stories/MVP-LEAN-01-single-page-mvp-completo.md` linha 60-62 ainda declara "STATUS: Draft (aguarda CC.5 Keymaker validate)" — story está InProgress há 27 etapas CC. Confunde leitor pós-merge. | 2min | @dev | 2026-05-07 |
+| TD-STORY-SR02 | Oracle CC.29 | HIGH | Task 8 marcada [x] linha 194 mas File List Task 8 lista "DEFERRED Task 8b" como bullet [ ] linha 279 — Task 8b foi feito CC.24. Contradição interna. | 2min | @dev | 2026-05-07 |
+
+#### MEDIUM (5)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-STORY-SR03 | Oracle CC.29 | MED | Frontmatter `branch_sugerido: feat/mvp-lean-01-single-page` divergente de branch real `feat/mvp-lean-01-task1-layout-base`. | 1min | @dev | 2026-05-07 |
+| TD-STORY-SR04 | Oracle CC.29 | MED | Eficiência ~40% (estimate 41-55h vs real ~21.6h Tasks 1-8 + adversarial loop) não documentada em frontmatter ou seção dedicada. | 5min | @dev | 2026-05-07 |
+| TD-STORY-SR05 | Oracle CC.29 | MED | Preamble linha 70 declara banner Tema 1378 "persistente" — contradiz CC.25 feature flag default-off (`ENABLE_TEMA_1378_AUTO_CHECK`). | 1min | @dev | 2026-05-07 |
+| TD-STORY-SR06 | Oracle CC.29 | MED | Falta entries estruturadas Change Log para Task 2 (CC.11) e Task 3 (CC.12) standalone — Change Log salta de Task 1 (CC.10) para Task 4 (CC.13). | 10-15min | @dev | 2026-05-07 |
+| TD-STORY-SR07 | Oracle CC.29 | MED | Header "File List (a popular durante implementação)" linha 263 sugere arquivo ainda em construção — File List contém entries Tasks 1-8 done. | 1min | @dev | 2026-05-07 |
+
+#### LOW (5)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-STORY-SR08 | Oracle CC.29 | LOW | Validation Section CC.5 Keymaker linhas 1194-1227 não atualizada pós-implementação — Score 9/10 ainda do gate G1 inicial (Draft→Ready); gate G5 (review final) ainda não realizado. | aceitar como debt | — | 2026-05-07 |
+| TD-STORY-SR09 | Oracle CC.29 | LOW | Frontmatter `created_by: "@sm (River — Niobe)"` — convenção redundante (River = persona, Niobe = codename Matrix). | 1min | @dev | 2026-05-07 |
+| TD-STORY-SR10 | Oracle CC.29 | LOW | Tag `cc-course-correction-complete` imprecisa — course-correction continuou em 27 etapas CC.6-CC.28. | 1min | @dev | 2026-05-07 |
+| TD-STORY-SR11 | Oracle CC.29 | LOW | CC.5 recomendação "quebrar Task 8 em 8a/8b/8c/8d/8e" parcialmente seguida (T8 PARTIAL + T8b) sem nota explicando absorção 8c-8e. | 5min | @dev | 2026-05-07 |
+| TD-STORY-SR12 | Oracle CC.29 | LOW | References frontmatter linhas 17-21 sem assertion path existence — formato livre `(governance/...md)` em vez de wikilinks Obsidian `[[...]]`. | 5min | @dev | 2026-05-07 |
+
+### Sumário CC.29
+
+- **Verdict Oracle:** PASS-WITH-NOTES — story funcional, sem bloqueio para merge
+- **Densidade:** 12 findings em 1231 linhas (~1 finding por 100 linhas — qualidade alta)
+- **Natureza:** todos narrativos/governança (zero código afetado)
+- **Quick fixes (~10min) reservados:** SR-01/SR-02/SR-03/SR-05/SR-07 (HIGH+MED cosméticos) — Eric pode aplicar durante review trilha 2 OR via apply-qa-fixes futuro
+- **Suite preservada:** 398+3 (zero mudança código nesta CC)
+- **Decisão Morpheus:** Opção B (registry-only) — convergente Eric (via Skill) + Oracle (recomendação) + Morpheus (consolidação)
+
+*Sprint 03 CC.29 adversarial review story registry — Neo (sessão 91, 2026-05-07) · 12 NEW tech debts narrativos (2 HIGH + 5 MED + 5 LOW).*
