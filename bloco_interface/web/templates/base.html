@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Revisor Contratual</title>
   <!-- Fontes self-hosted em /static/fonts/ via @font-face em tokens.css (REV-INT-02 — LGPD on-premise, sem CDN externo) -->
-  <link rel="stylesheet" href="/static/tokens.css">
-  <link rel="stylesheet" href="/static/app.css">
-  <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/htmx-sse.js" defer></script>
+  <!-- CC.39 fix F-06: ?v={{ static_version }} computado automaticamente via mtime hash em app.py:_compute_static_version (substitui ?v=cc36 manual de CC.36) -->
+  <link rel="stylesheet" href="/static/tokens.css?v={{ static_version }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ static_version }}">
+  <script src="/static/htmx.min.js?v={{ static_version }}" defer></script>
+  <script src="/static/htmx-sse.js?v={{ static_version }}" defer></script>
 </head>
 <body>
   {# MVP-LEAN-01 Task 1 — Topbar persistente (C-topbar): mark + brand + usuário + CTA Sair #}

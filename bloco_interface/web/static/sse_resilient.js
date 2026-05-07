@@ -10,7 +10,10 @@
 (function () {
   'use strict';
 
-  var TIMEOUT_MS = 60000; // 60s sem evento = synthetic phase-error
+  // CC.35 fix TD-SSE-WATCHDOG-60S-PDF-OCR: aumentado de 60s para 300s (5min)
+  // como safety net. Servidor agora emite ping a cada 10s mesmo durante
+  // revisar_contrato longo (OCR PDF imagem 30min-3h).
+  var TIMEOUT_MS = 300000; // 5min sem evento = synthetic phase-error
   var TIMEOUT_CHECK_INTERVAL_MS = 5000; // checa a cada 5s
   var RETRY_BACKOFF_MS = 5000; // 1 retry com 5s backoff
 
@@ -62,7 +65,7 @@
     var data = {
       phase: lastPhase || 'unknown',
       diagnostic: 'Conexão com servidor perdida',
-      cause: 'Sem resposta do servidor por 60s — pipeline pode ter parado ou ainda estar executando no backend',
+      cause: 'Sem resposta do servidor por 5min — pipeline pode ter parado ou ainda estar executando no backend',
       solution: 'Re-execute a análise. Se persistir, verifique conectividade ou reinicie a app',
       alternative: 'Verifique audit.jsonl para confirmar se o pipeline completou no backend mesmo sem resposta UI',
       synthetic: true,

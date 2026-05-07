@@ -22,6 +22,40 @@
     {{ upload_zone('contrato') }}
     {{ upload_zone('decisao_adversa') }}
 
+    {# CC.42 fix F-A2 (Smith CC.41 CRITICAL): inputs UF + Data para metadata override.
+       Pipeline extract_metadata_from_markdown levanta MetadataExtractionError se PDF
+       imagem não tem regex extraível E overrides ausentes. Vazios = tenta detectar do PDF. #}
+    <fieldset class="metadata-overrides">
+      <legend>Metadados do contrato (preencha se PDF for imagem escaneada)</legend>
+
+      <div class="form-row">
+        <label for="uf-input">UF do contrato:</label>
+        <select name="uf" id="uf-input" data-testid="input-uf">
+          <option value="">— Detectar do PDF —</option>
+          <option value="AC">AC</option><option value="AL">AL</option>
+          <option value="AP">AP</option><option value="AM">AM</option>
+          <option value="BA">BA</option><option value="CE">CE</option>
+          <option value="DF">DF</option><option value="ES">ES</option>
+          <option value="GO">GO</option><option value="MA">MA</option>
+          <option value="MT">MT</option><option value="MS">MS</option>
+          <option value="MG">MG</option><option value="PA">PA</option>
+          <option value="PB">PB</option><option value="PR">PR</option>
+          <option value="PE">PE</option><option value="PI">PI</option>
+          <option value="RJ">RJ</option><option value="RN">RN</option>
+          <option value="RS">RS</option><option value="RO">RO</option>
+          <option value="RR">RR</option><option value="SC">SC</option>
+          <option value="SP">SP</option><option value="SE">SE</option>
+          <option value="TO">TO</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="data-input">Data de assinatura:</label>
+        <input type="date" name="data" id="data-input" data-testid="input-data">
+        <small class="form-hint">Vazio = detectar do PDF</small>
+      </div>
+    </fieldset>
+
     <button type="submit"
             class="upload-cta"
             id="upload-cta"
@@ -32,5 +66,5 @@
     </button>
   </form>
 </section>
-<script src="/static/upload.js" defer></script>
+<script src="/static/upload.js?v={{ static_version }}" defer></script>
 {% endblock %}

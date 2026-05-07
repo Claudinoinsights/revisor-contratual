@@ -341,6 +341,26 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
+# CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos
+# arquivos /static/. Bumpa automaticamente quando qualquer JS/CSS é modificado,
+# eliminando dependência de disciplina humana para bumpar ?v= manual.
+def _compute_static_version() -> str:
+    import hashlib
+
+    if not STATIC_DIR.exists():
+        return "dev"
+    mtimes = sorted(
+        str(f.stat().st_mtime)
+        for f in STATIC_DIR.rglob("*")
+        if f.is_file() and f.suffix in (".js", ".css")
+    )
+    return hashlib.sha256("|".join(mtimes).encode()).hexdigest()[:8]
+
+
+STATIC_VERSION = _compute_static_version()
+templates.env.globals["static_version"] = STATIC_VERSION
+
+
 # ── Custom exception handler (Phase D — UI-1; Task 6 refactor C6 catch-all) ──
 # Sprint 02 UI-1 mapping legacy preservado para partials/error.html (intacto).
 ERROR_TYPE_MAP = {
@@ -593,12 +613,25 @@ async def revisar(
     has_decisao_adversa = bool(
         pdf_decisao_adversa and pdf_decisao_adversa.filename and pdf_decisao_adversa.size,
     )
+    # CC.42 fix F-A2 (Smith CC.41 CRITICAL): converter data string YYYY-MM-DD → date
+    # ANTES de armazenar JOBS. Permite revisar_stream passar data_override real
+    # ao pipeline (corrige bug pré-existente data_override=None hardcoded).
+    from datetime import date as _date  # noqa: PLC0415 — local scope para parsing
+    data_obj: _date | None = None
+    if data:
+        try:
+            data_obj = _date.fromisoformat(data)
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Data inválida: '{data}' (esperado YYYY-MM-DD).",
+            ) from exc
     JOBS[job_id] = {
         "status": "queued",
         "pdf_path": pdf_path,
         "tier": tier,
         "uf": uf,
-        "data": data,
+        "data": data_obj,  # CC.42: agora é date | None, não string
         "filename": filename,
         "verdict": None,
         "error": None,
@@ -666,19 +699,39 @@ async def revisar_stream(job_id: str) -> StreamingResponse:
                 f"event: phase-start\ndata: "
                 f"{json.dumps({'phase': MVP_LEAN_PHASES[0], 'started_at': phase_start_ts})}\n\n"
             )
-            yield f"event: ping\ndata: {json.dumps({'ts': asyncio.get_event_loop().time()})}\n\n"
+            # CC.40 fix F-07: ping inicial removido (loop heartbeat CC.35/CC.38 cobre).
 
+            # CC.35 fix TD-SSE-WATCHDOG-60S-PDF-OCR: pipeline pode levar minutos
+            # (OCR PDF imagem + LLMs). Roda revisar_contrato em background task
+            # e emite ping heartbeat a cada 10s para evitar UI watchdog 60s.
             conn = open_vault(str(DEFAULT_VAULT_DB))
             try:
-                veredito = await revisar_contrato(
-                    Path(job["pdf_path"]),
-                    audit_path=DEFAULT_AUDIT_PATH,
-                    vault_conn=conn,
-                    uf_override=job["uf"] or None,
-                    data_override=None,
-                    tier_advogado=job["tier"],
-                    bacen_cache_dir=DEFAULT_BACEN_CACHE,
+                # CC.38 fix F-04: timeout global 30min para evitar hang infinito
+                # se Surya OCR travar OU outros bugs runtime.
+                # CC.42 fix F-A2: data_override agora vem do form S2 (era None hardcoded).
+                pipeline_task = asyncio.create_task(
+                    asyncio.wait_for(
+                        revisar_contrato(
+                            Path(job["pdf_path"]),
+                            audit_path=DEFAULT_AUDIT_PATH,
+                            vault_conn=conn,
+                            uf_override=job["uf"] or None,
+                            data_override=job["data"],  # date | None (CC.42)
+                            tier_advogado=job["tier"],
+                            bacen_cache_dir=DEFAULT_BACEN_CACHE,
+                        ),
+                        timeout=1800,  # 30min hard ceiling
+                    )
                 )
+                while not pipeline_task.done():
+                    try:
+                        await asyncio.wait_for(asyncio.shield(pipeline_task), timeout=10)
+                    except asyncio.TimeoutError:
+                        yield (
+                            f"event: ping\ndata: "
+                            f"{json.dumps({'ts': asyncio.get_event_loop().time()})}\n\n"
+                        )
+                veredito = await pipeline_task
             finally:
                 conn.close()
 

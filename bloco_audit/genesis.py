@@ -16,8 +16,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Default paths (parametrizáveis em chamador para testes)
-DEFAULT_AUDIT_DIR = Path("bloco_audit")
+# Default paths (parametrizáveis em chamador para testes).
+# CC.31 fix TD-AUDIT-PATH-MISMATCH: alinhado com cli.py + scheduler.py +
+# auto_trigger.py. Antes era Path("bloco_audit") relativo, causava
+# AuditGenesisLockMissing em /revisar.
+# CC.40 fix F-12: respeita XDG_DATA_HOME para containers/serverless onde
+# HOME != desktop convention.
+_XDG_DATA_HOME = Path(
+    os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share")
+)
+DEFAULT_AUDIT_DIR = _XDG_DATA_HOME / "revisor-contratual"
 DEFAULT_GENESIS_LOCK = DEFAULT_AUDIT_DIR / ".audit-genesis.lock"
 
 GENESIS_PAYLOAD_SUFFIX = "REVISOR-CONTRATUAL-GENESIS"
@@ -80,7 +88,17 @@ def compute_genesis_hash(project_init_ts: str, secret_key: bytes) -> str:
 
 
 def _get_secret_key() -> bytes:
-    """Lê AUTH_COOKIE_KEY do env. Levanta AuthCookieKeyMissing se ausente."""
+    """Lê AUTH_COOKIE_KEY do env. Levanta AuthCookieKeyMissing se ausente.
+
+    CC.40 fix F-05 (TD-AUTH-COOKIE-KEY-ENCODING): encoding é UTF-8 ASCII bytes
+    do string hex (64 bytes), NÃO bytes.fromhex (32 bytes binários). Esta é
+    convenção HISTÓRICA estabelecida quando GENESIS chains existentes foram
+    inicializadas. Migrar para bytes.fromhex invalidaria todos os audit logs
+    existentes (HMAC mismatch).
+
+    Para projetos novos: usar bytes.fromhex(key) e iniciar GENESIS chain do zero.
+    Para projetos com audit chain existente: manter UTF-8 (decisão arquitetural CC.40).
+    """
     key = os.environ.get("AUTH_COOKIE_KEY", "")
     if not key:
         raise AuthCookieKeyMissing(

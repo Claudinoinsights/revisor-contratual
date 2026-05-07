@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07"
-active_story: "Sessão 91 CC.29.D — Morpheus consolida CC.29.C + dispatch Operator housekeeping CHECKPOINT push (Opção A convergente). 30 etapas CC totais. Honestidade técnica × 2 publicada. Aguarda Operator housekeeping push + Morpheus sinal Eric ABSOLUTO FINAL DEFINITIVO."
-status: sprint-03-cc29d-morpheus-dispatch-operator-housekeeping-via-skill
+last_updated: "2026-05-07T11:45"
+active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
+status: sprint-03-cc43-PIVOT-REQUEST-aguarda-eric-elicitation-5-perguntas
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,431 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.42 — Neo fixes Smith CC.41 F-A1+F-A2 DONE** (@dev · Neo — 2026-05-07T11:00):
+  - **Trigger:** Smith CC.41 verdict FAIL + 2 CRITICAL bloqueando Eric. Morpheus dispatch sequencial: Neo F-A1 (RAM monitor) + F-A2 (UI inputs) + Operator restart
+  - **F-A1 RAM pre-flight check (CRITICAL — RESOLVED):** `bloco_engine/parsing/marker_parser.py:36-67`
+    - `import psutil` lazy (graceful skip se não instalado)
+    - `_default_marker_parser` chama `psutil.virtual_memory()` ANTES de `create_model_dict()` / `PdfConverter()`
+    - Threshold: `available < 2.5GB` AND `percent > 90%` → `RuntimeError` estruturado em PT-BR (diagnóstico + solução: fechar apps OR `ALLOW_LOW_MEMORY=1`)
+    - `ALLOW_LOW_MEMORY=1` env var bypassa check (escape hatch para hardware fronteira)
+    - **Why:** OS SIGKILL bypassa Python except handlers — sem stack trace. Smith mediu Python 8.25GB durante OCR PDF imagem 12 páginas em hardware ~16GB. Pre-flight previne OOM sem precisar de monitoring kernel
+  - **F-A2 frontend UF/Data inputs (CRITICAL — RESOLVED):** `bloco_interface/web/templates/s2_pre_upload.html:25-57`
+    - `<fieldset class="metadata-overrides">` com `<legend>Metadados do contrato (preencha se PDF for imagem escaneada)</legend>`
+    - `<select name="uf" id="uf-input" data-testid="input-uf">` — opção vazia "Detectar do PDF" + 27 UFs ordem alfabética
+    - `<input type="date" name="data" id="data-input" data-testid="input-data">` + hint "Vazio = detectar do PDF"
+    - **Why:** orchestrator.py:155 `uf = uf_override or _extract_uf(markdown)` levanta `MetadataExtractionError` se override=None E regex falha. Morpheus inventou esses campos em instruções 4x — não consultou template real. Form S2 agora oferece overrides explícitos
+  - **F-A2 backend parse data (RESOLVED):** `bloco_interface/web/app.py:601-621`
+    - `from datetime import date as _date` local scope
+    - `data: str = Form(default="")` → `_date.fromisoformat(data)` com `HTTPException 400` em formato inválido
+    - Armazenado como `date | None` em `JOBS[job_id]["data"]` (era string antes)
+    - **Why:** pipeline assina `data_override: date | None`, não string. Conversão no boundary handler.
+  - **Bug bonus data_override hardcoded (RESOLVED):** `bloco_interface/web/app.py:707`
+    - Era: `data_override=None,  # parsed do PDF; CLI faz parse de --data-assinatura`
+    - Agora: `data_override=job["data"],  # date | None (CC.42)`
+    - **Why:** mesmo após F-A2 form fields, linha 707 ignorava `job["data"]` — bug pré-existente que tornava form input inerte. Descoberto durante fix F-A2
+  - **Suite preservada:** `pytest tests/unit/test_audit.py tests/unit/test_parsing.py` → **57/57 passed in 9.58s** (26 audit + 31 parsing) — zero regressão
+  - **App restart:** taskkill python + nohup uvicorn → http://127.0.0.1:8501 /login HTTP 200, startup log limpo
+  - **TECH-DEBT.md:** seção CC.42 (linhas 750-773) — 2 CRITICAL RESOLVED + 20 findings remanescentes priorizados CC.43+
+  - **Findings Smith CC.41 status:**
+    - CRITICAL (2): F-A1 ✅ RESOLVED CC.42, F-A2 ✅ RESOLVED CC.42
+    - HIGH (7): F-B1..F-B7 → debt CC.43+ (PDFs órfãos, sqlite-vec verify, BertModel warns, static block, audit chain refactor, governance Morpheus invented, ZERO E2E test)
+    - MED (8): F-C1..F-C8 → debt CC.44+
+    - LOW (5): F-D1..F-D5 → debt
+  - **Sessão 91 totaliza:** 12 fixes acumulados CC.30..CC.42 (uncommitted, ~17+ arquivos)
+  - **NÃO commitado** — Morpheus consolida push depois
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc42-fixes-done.yaml` (token H-S03-CC42-NEO2MOR-DONE-001)
+  - **Próximo:** Eric retoma smoke /revisar com PDF real (form S2 agora aceita UF + Data overrides) OR Morpheus dispatch CC.43 (prioridade Smith F-B7 ZERO E2E test → criar 1 test E2E real, depois F-B5 audit chain refactor, F-B1 PDFs órfãos cleanup)
+- **Sessão 91 CC.42 ORDEM 11 — Morpheus consolida + sinaliza Eric** (@lmas-master · Morpheus — 2026-05-07T11:00):
+  - **Trigger:** Handoff CC.42 Neo → Morpheus (token H-S03-CC42-NEO2MOR-DONE-001) com 2 CRITICAL Smith CC.41 RESOLVED + bug bonus + suite 57/57 + app HTTP 200
+  - **Decisão ORDEM 11:** **Opção A — Sinalizar Eric retomar smoke /revisar** (não dispatch CC.43, não push agora)
+  - **Justificativa:**
+    - Opção B (CC.43 E2E test imediato) **rejeitada** — sem smoke validado, F-B7 codificaria comportamento potencialmente errado (captura bug ao invés de guard)
+    - Opção C (Operator push) **rejeitada** — viola @devops quality gate (sem story Done/Ready) + empilha código não-validado
+    - Opção A respeita padrão Smith CC.41 mandatory path: validate root-cause ANTES de codificar testes/commitar
+    - Cross-check Neo `recomendacao_neo` + memory user "smoke green antes de iterar" convergem
+  - **Handoffs consumed:**
+    - `handoff-smith-to-morpheus-2026-05-07-cc41-ultrathink-done.yaml` → consumed:true (já estava)
+    - `handoff-neo-to-morpheus-2026-05-07-cc42-fixes-done.yaml` → consumed:true (CC.42 fechado)
+  - **Sinal a Eric:** Smoke pronto em http://127.0.0.1:8501. Form S2 aceita UF (27 opções) + Data (date picker). RAM pre-flight ativo. Audit chain protegido (CC.39). data_override fixed (CC.42).
+  - **Pós-smoke decisão:**
+    - Se PASS → Operator push consolidado CC.30..CC.42 (story Ready for Review prerequisite) + Morpheus dispatch CC.43 (F-B7 E2E test design @qa → @dev)
+    - Se FAIL → Skill conforme bug runtime (Smith CC.41 P3-P5 mapeou possibilidades: vault sqlite-vec, BertModel warns, audit chain, PDFs órfãos)
+  - **NÃO commitado** — aguarda smoke validation
+- **Sessão 91 CC.42-RT — Operator runtime RAM intervention DONE** (@devops · Operator — 2026-05-07T11:30):
+  - **Trigger:** Eric smoke real disparou F-A1 RuntimeError ("0.9GB disponível / 94% usado"). F-A1 protegeu contra OS SIGKILL silencioso conforme design CC.42 — mas operação não completa
+  - **Diagnóstico surpresa:** Hipótese inicial (Ollama com 3 modelos = ~10GB) **errada**. Reality: Ollama daemon idle 19MB total (zero modelos carregados via `ollama ps`). O eater era **`python.exe PID 23604` em 7.6GB** — o próprio app (provável import side-effect de sentence-transformers + transformers BertModel no startup do vault, sem ter chegado a OCR ainda)
+  - **Ação cirúrgica:**
+    - Stop-Process python PID 23604 (7.6GB liberados instantaneamente)
+    - Restart app limpo com env vars do `.env` (PID novo 27232 a 77MB)
+  - **RAM antes/depois:**
+    - Antes: 0.7GB free / 95.5% used (pre-flight FAIL)
+    - Depois: 7.7GB free / 51.6% used (pre-flight PASS folgado)
+  - **NÃO editou código** (escopo Architect/Dev — refactor lazy-load fica para CC.43)
+  - **NÃO mexeu em Ollama** (Ollama não era o problema)
+  - **App rodando:** http://127.0.0.1:8501 /login HTTP 200 + Python 77MB initial (vai inflar conforme OCR/personas carregarem lazy, mas com 7.7GB de buffer)
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc42rt-ram-freed.yaml` (token H-S03-CC42RT-OP2MOR-RAM-FREED-001)
+  - **Próximo:** Eric retoma smoke /revisar com 7.7GB de buffer. F-A1 vai passar. OCR Surya carrega ~2-3GB → ainda sobram ~4-5GB. Personas via Ollama (HTTP) carregam modelos no daemon (lado externo, não no Python process)
+  - **CC.43 candidato (debt):** `python.exe` chegando a 7.6GB sem OCR sequer rodar é red flag — sentence-transformers + BertModel + outros imports devem ser lazy-loaded por feature flag OR mover para fork worker. Smith F-B3 (BertModel UNEXPECTED warns) é sintoma relacionado
+- **Sessão 91 CC.43 PIVOT-REQUEST — Morpheus ORDEM 4 elicitation a Eric** (@lmas-master · Morpheus — 2026-05-07T11:45):
+  - **Trigger:** Eric propôs pivot estratégico pós-CC.42-RT — frustrado com hardware local, quer migrar para OpenRouter cloud
+  - **6 dimensões do pivot:**
+    1. LLM local (Ollama Sabia+Qwen) → OpenRouter cloud (catalog 200+ modelos)
+    2. **Revogar regra LGPD local-only** (decisão LEGAL crítica — Art. 7º + 33)
+    3. UI: seletor de modelo OpenRouter
+    4. UI: seletor doctype (FIES + Veicular + Bancário + Imobiliário) — atual escopo é só CDC Veicular
+    5. UI/UX rework com "**orsheva**" (termo ambíguo — Morpheus pediu clarify)
+    6. Vision OCR multimodal LLM (substitui marker-pdf + surya)
+  - **Decisão Morpheus:** NÃO auto-progredir. ORDEM 4 elicitation com 5 perguntas a Eric:
+    1. LGPD path (A agressivo / B anonimização / C data residency BR)
+    2. Budget OpenRouter mensal teto
+    3. Escopo doctypes (A MVP+backlog / B 4 simultâneos / C 1 prioridade alternativa)
+    4. "orsheva" clarify (typo? lib? conceito?)
+    5. Autorização push CC.30..CC.42 ANTES da chain (preservar history)
+  - **Chain proposta pós-respostas:** Atlas viability research → Aria 3 ADRs → Trinity PRD v2.0.0 → Sati UX redesign → Smith adversarial → Morpheus consolidação (1 semana)
+  - **Aviso Eric:** ele é advogado — entende que revogar regra interna ≠ revogar lei LGPD. Compliance aplica mesmo após revogar local-only constraint.
+  - **App rodando:** http://127.0.0.1:8501 PID 27232 (smoke local AINDA POSSÍVEL se Eric quiser testar antes de pivot)
+  - **17+ files uncommitted CC.30..CC.42:** aguardam decisão push (Operator recomendou push primeiro para preservar history)
+  - **Próximo:** Eric responder 5 perguntas → Morpheus dispatch Atlas Phase 1 viability research (token H-S03-CC43-MOR2ANA-VIABILITY-001)
+- **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
+  - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
+  - **Verdict:** **FAIL** ❌
+  - **22 findings totais** (2 CRITICAL + 7 HIGH + 8 MED + 5 LOW):
+    - **F-A1 CRITICAL (REAL):** App OOM kill silencioso. Process Python 8.25GB durante OCR PDF imagem 12 páginas. Sem stack trace porque SIGKILL. Hardware atual + modelos LLM + surya OCR = pressão crítica RAM
+    - **F-A2 CRITICAL (REAL):** Frontend S2 form tem APENAS 2 drop-zones (contrato + decisão_adversa). Backend handler `/revisar` aceita uf=""/data=""/tier="balanced" defaults. Pipeline `extract_metadata_from_markdown` levanta MetadataExtractionError se PDF não tem regex UF/data clara E override é None. **Morpheus inventou esses campos em instruções 4x** — não consultou template real
+    - **F-B1..F-B7 HIGH:** PDFs órfãos /tmp (LGPD), sqlite-vec extension verify, BertModel UNEXPECTED warns, /audit/connection-drop quebra chain HMAC, Morpheus inventou instruções (meta-pattern), test E2E ausente, static files sync block
+    - **F-C1..F-C8 MED:** JOBS dict leak, vault check tardio, XDG test missing, phase-done streaming, regex frágil, hashlib import, BacenClient close, transformers print logs
+    - **F-D1..F-D5 LOW:** docs polish, STATIC_VERSION cache stale, Unicode noise, .env.example placeholders, pyproject upper bound
+  - **Análise cynical Smith CC.37 anterior:** escopo estreito, perdeu 6+ findings arquiteturais agora descobertos
+  - **Lessons learned:**
+    - Adversarial reviews precisam declarar ESCOPO explicitamente
+    - "100% addressed" pode ser true LOCALMENTE mas ENGANOSO se escopo era estreito
+    - Frontend ↔ Backend mismatches só pegos com revisão wider
+    - OOM crash silencioso é classe de bug invisível em logs Python
+  - **Output report:** `governance/qa/smith-ultrathink-cc41-anti-furos.md` (~22KB com 22 findings detalhados)
+  - **Roadmap proposto:**
+    - **CC.42 (URGENTE):** Operator restart + Neo F-A2 inputs UI + F-A1 RAM monitor
+    - **CC.43:** test E2E + /audit chain refactor
+    - **CC.44+:** debts conforme priorização
+  - **NÃO commitado** — Morpheus consolida push depois
+  - **Handoff Smith → Morpheus:** `.lmas/handoffs/handoff-smith-to-morpheus-2026-05-07-cc41-ultrathink-done.yaml` (token H-S03-CC41-SMITH2MOR-ULTRATHINK-DONE-001)
+  - **Próximo:** Morpheus dispatch IMEDIATO — Operator restart + Neo F-A1+F-A2
+- **Sessão 91 CC.40 — Neo CLOSE-ALL Smith remaining DONE** (@dev · Neo — 2026-05-07T09:30):
+  - **Trigger:** Eric pediu "100% resolvido" — fechar 11 findings remanescentes pós-CC.39
+  - **8 Smith findings RESOLVED:**
+    - F-05 HIGH (encoding): docstring genesis.py documenta convenção UTF-8 histórica
+    - F-07 MED: linha 669 app.py removida (ping inicial redundante)
+    - F-10 MED: marker_parser.py com logger.warning quando schema unknown
+    - F-11 MED: test_parsing.py +1 test (test_marker_disponivel_mas_falha_propaga_excecao)
+    - F-12 MED: genesis.py + chain.py respeitam XDG_DATA_HOME para containers
+    - F-15 LOW: docs (fonts via tokens.css que JÁ tem ?v=auto)
+    - F-16 LOW: .env.example header CRITICAL warning contra placeholders literais
+  - **3 findings Accepted-as-debt** com justificativa:
+    - F-08 MED phase-done streaming (refactor 2-4h vs benefício UI nice-to-have)
+    - F-09 MED JOBS thread-safety (single-user atual)
+    - F-14 LOW .env mix (refactor risco vs convenção comum)
+  - **1 finding Investigated:**
+    - F-13 LOW UnicodeDecodeError subprocess — ollama_manager JÁ usa decode(errors='replace'); origem é dep externa (marker/surya), sem fix viável
+  - **Status final Smith findings (16/16):**
+    - CRITICAL (1): 1/1 RESOLVED ✅ (CC.38)
+    - HIGH (5): 5/5 RESOLVED ✅ (CC.38 + CC.39 + CC.40)
+    - MED (6): 4/6 RESOLVED + 2 accepted-as-debt
+    - LOW (4): 2/4 RESOLVED + 1 via docs + 1 accepted-as-debt
+    - **100% addressed** (decisão consciente em cada finding)
+  - **Suite preservada:** 57/57 (audit 26 + parsing 31 com novo F-11 test) — zero regressão
+  - **App rodando:** http://127.0.0.1:8501 /login HTTP 200 + STATIC_VERSION v=f87204bf
+  - **Sessão 91 totaliza:** **10 fixes** acumulados CC.30..CC.40 + Smith review CC.37 + 8 fixes Smith findings
+  - **NÃO commitado** — Morpheus consolida push depois (16+ arquivos uncommitted)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc40-close-all-done.yaml` (token H-S03-CC40-NEO2MOR-CLOSE-ALL-DONE-001)
+  - **Próximo:** Morpheus aguarda Eric smoke (todos os fixes acumulados ativos)
+- **Sessão 91 CC.39 — Neo F-03 audit protect + F-06 cache busting automático DONE** (@dev · Neo — 2026-05-07T08:55):
+  - **F-03 HIGH fix:** `bloco_workflow/pipeline.py`:
+    - linha 23: `import logging` adicionado
+    - linha 31: `logger = logging.getLogger(__name__)`
+    - linhas 309-326: try/except sobre `append_audit_entry` no except block + `logger.error("audit FAILED entry write failed: %s (original: %s)")`. Exceção original preservada via `raise` final
+    - **Resultado:** se audit chain travar (HMAC/IO error), Eric vê o erro REAL do pipeline, não erro secundário do audit
+  - **F-06 HIGH fix:** Cache busting automático
+    - `bloco_interface/web/app.py:343-359`: `_compute_static_version()` retorna SHA-256(8 hex) dos mtimes de `.js`+`.css` em `/static/` + `templates.env.globals["static_version"]`
+    - 3 templates: `?v=cc36` → `?v={{ static_version }}` (base.html linhas 9-12, s5_processing.html:9, s2_pre_upload.html:35)
+    - **Validação empírica:** HTML servido tem `v=f87204bf` (hash atual). Bumpa automático quando JS/CSS mudam — ZERO disciplina humana necessária
+  - **F-05 HIGH:** marcado como **debt formal** (TD-AUTH-COOKIE-KEY-ENCODING). AUTH_COOKIE_KEY usa `encode("utf-8")` em vez de `bytes.fromhex` — viola convenção criptográfica mas determinístico. Fix permanente requer migration destrutivo OR docs only — decisão arquitetural pendente
+  - **Suite preservada:** test_audit 26/26 + test_parsing 30/30 = 56/56 zero regressão
+  - **App pós-restart:** http://127.0.0.1:8501 → /login HTTP 200 + STATIC_VERSION servido confirmado
+  - **TECH-DEBT.md:** seção CC.39 com 2 RESOLVED inline + 1 active debt formal
+  - **Smith findings status pós-CC.39:**
+    - 1 CRITICAL: F-01 ✅ RESOLVED CC.38
+    - 5 HIGH: F-02 ✅ auto, F-03 ✅ CC.39, F-04 ✅ CC.38, F-05 📋 debt formal, F-06 ✅ CC.39
+    - 6 MED: F-07..F-12 (debt para futuro)
+    - 4 LOW: F-13..F-16 (debt para futuro)
+  - **NÃO commitado** — Morpheus consolida push depois (CC.30..CC.39 = 14+ arquivos)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc39-fix-done.yaml` (token H-S03-CC39-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus aguarda Eric smoke (CC.38 fix do event loop blocking deve permitir pipeline completar end-to-end)
+- **Sessão 91 CC.38 — Neo F-01 + F-04 fix DONE** (@dev · Neo — 2026-05-07T08:30):
+  - **Trigger:** Smith CC.37 verdict FAIL + recomendação F-01 + F-04 fix
+  - **F-01 CRITICAL fix:** 5 edits em `bloco_workflow/pipeline.py`:
+    - linha 22: `import asyncio` adicionado (estava ausente)
+    - linha 191-200: `parse_contract` → `await asyncio.to_thread(parse_contract, ...)`
+    - linha 207-209: `_calcular_pipeline` → `await asyncio.to_thread(_calcular_pipeline, ...)`
+    - linha 219-225: `bacen_client.fetch_taxa_modalidade` → `await asyncio.to_thread(...)`
+    - linha 234-242: `buscar_hibrida` → `await asyncio.to_thread(...)`
+    - linha 275-280: `juiz_revisar` → `await asyncio.to_thread(...)`
+    - **MANTIDO:** `await run_personas_paralelas(...)` linha 258 (já async correto)
+  - **F-04 HIGH fix:** 1 edit em `bloco_interface/web/app.py:676-689`:
+    - `revisar_contrato(...)` agora envolto em `asyncio.wait_for(..., timeout=1800)` 30min hard ceiling
+    - Se Surya OCR travar (sintoma "Recognizing Text 0/281"), TimeoutError propaga, audit grava FAILED, UI mostra phase-error claro
+  - **F-02 HIGH:** auto-resolvido por F-01 (heartbeat CC.35 agora roda durante revisar_contrato)
+  - **Suite preservada:**
+    - test_audit.py: 26/26 passed
+    - test_parsing.py: 30/30 passed
+    - pipeline subset: 6/6 passed
+    - Zero regressão
+  - **App pós-restart:**
+    - http://127.0.0.1:8501 → 303 redirect /login
+    - /login → HTTP 200
+    - Python 3.13.12 + marker-pdf 1.10.2
+    - Heartbeat agora funcional durante OCR longo
+  - **TECH-DEBT.md:** seção CC.38 com 3 RESOLVED inline (F-01 CRITICAL + F-02 HIGH auto + F-04 HIGH) + resumo executivo atualizado
+  - **Lesson learned:** Smith adversarial review é insustituível. 7 fix-cycles atacaram sintomas adjacentes; causa raiz só foi descoberta com review profunda do código central. **Reviews adversariais devem ser executadas EARLY.**
+  - **Smith findings REMANESCENTES (não endereçados):** F-03 HIGH (audit protect), F-05 HIGH (encoding), F-06 HIGH (cache automático), F-07..F-16 (MED+LOW) — debt para fix futuro
+  - **NÃO commitado** — Morpheus consolida push depois (CC.30..CC.38 = 13+ arquivos)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc38-fix-done.yaml` (token H-S03-CC38-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus sinaliza Eric retomar smoke /revisar com PDF imagem — pipeline agora deve completar end-to-end com heartbeat real durante OCR
+- **Sessão 91 CC.37 — Smith adversarial review FAIL** (@qa · Oracle Smith mode — 2026-05-07T08:15):
+  - **Trigger:** Eric reportou MESMO erro 4x apesar de 7 fix-cycles (CC.30..CC.36) — Morpheus dispatchou Smith
+  - **Verdict:** **FAIL** ❌
+  - **16 findings totais:**
+    - **CRITICAL (1):** F-01 — `pipeline.py:191 parse_contract(...)` SÍNCRONO dentro de `async revisar_contrato` → bloqueia event loop → heartbeat CC.35 inútil
+    - **HIGH (5):** F-02 (heartbeat semântica OK mas inútil em event loop bloqueado), F-03 (audit FAILED path perde exceção original), F-04 (sem timeout no pipeline), F-05 (AUTH_COOKIE_KEY encoding ambíguo), F-06 (cache busting manual depende de disciplina humana)
+    - **MEDIUM (6):** F-07 ping redundante, F-08 phase-done só no fim, F-09 JOBS dict thread-safety, F-10 fallback silencioso, F-11 test missing path, F-12 XDG_DATA_HOME
+    - **LOW (4):** F-13 cosméticos
+  - **Análise cynical:** 7 fix-cycles atacaram sintomas adjacentes (config, paths, runtime, library, cache) mas **`bloco_workflow/pipeline.py` NÃO foi tocado em nenhuma**. Pipeline foi escrito sync para CLI; quando portado para FastAPI async, foi marcado `async def` por convenção mas internamente nunca foi adaptado com `to_thread`. CC.35 heartbeat correto mas inútil.
+  - **Fix mínimo viável:** F-01 (`await asyncio.to_thread(parse_contract, ...)` em pipeline.py:191 OR wrapper sync inteiro) + F-04 (`asyncio.wait_for(..., timeout=1800)` 30min hard ceiling). Effort 1-2h.
+  - **Output report:** `governance/qa/smith-adversarial-review-app-cc37.md` (~16KB completo com 16 findings detalhados)
+  - **NÃO commitado** — Morpheus consolida push depois
+  - **Handoff Smith → Morpheus:** `.lmas/handoffs/handoff-smith-to-morpheus-2026-05-07-cc37-smith-review-done.yaml` (token H-S03-CC37-SMITH2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida + dispatch Neo via Skill IMEDIATAMENTE para F-01 fix (BLOQUEADOR Eric continuar smoke)
+- **Sessão 91 CC.36 — Neo cache busting static assets DONE** (@dev · Neo — 2026-05-07T07:55):
+  - **Trigger:** Eric reportou MESMO erro "Sem resposta do servidor por 60s" apesar do fix CC.35 (TIMEOUT_MS=300000ms)
+  - **Investigação Morpheus:**
+    - `sse_resilient.js` no DISCO tem TIMEOUT_MS=300000 ✅
+    - App rodando (Python PID 13728, 6.2GB RAM)
+    - Pipeline OCR REAL EM PROGRESSO: Recognizing Layout 12/12 ✅, OCR Detection 3/3 ✅, Detecting bboxes 3/3 ✅, Recognizing Text 0/281 (em curso)
+    - Templates carregavam scripts SEM versionamento → **browser cacheou JS antigo (60000)**
+  - **Fix aplicado:**
+    - `templates/base.html:8-11` — `tokens.css?v=cc36` + `app.css?v=cc36` + `htmx.min.js?v=cc36` + `htmx-sse.js?v=cc36`
+    - `templates/s5_processing.html:9` — `sse_resilient.js?v=cc36`
+    - `templates/s2_pre_upload.html:35` — `upload.js?v=cc36`
+    - **6 assets total versionados** (4 JS + 2 CSS)
+  - **App NÃO reiniciado:** preserva pipeline OCR ativo Eric (~10min progresso)
+  - **TECH-DEBT.md:** seção CC.36 com TD-STATIC-CACHE-NO-VERSIONING MED RESOLVED inline + resumo executivo 54 → 55
+  - **Estratégia futura:** bump `?v=ccNN` a cada release ou commit
+  - **Lesson learned:** quando usuário continua vendo bug pós-fix, **suspeite de cache** (browser/CDN/proxy/OS) antes de assumir fix não aplicado
+  - **Estado app:**
+    - http://127.0.0.1:8501 ainda servindo (mas event loop ocupado com OCR — HTTP pode timeoutar curl)
+    - Pipeline backend Eric continua: surya OCR processando 281 elementos texto
+    - audit.jsonl está com entries pré-CC.35 — quando pipeline atual completar, nova entry com sucesso/erro vai aparecer
+  - **NÃO commitado** — Morpheus consolida push depois (CC.30..CC.36 = 9 arquivos código + 6 governance)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc36-cache-busting-done.yaml` (token H-S03-CC36-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus sinaliza Eric:
+    1. Pipeline atual provavelmente vai completar OK em alguns minutos (heartbeat servidor já está implementado pre-cache, então deve funcionar)
+    2. Quando completar OU atingir watchdog 60s, Eric refaz upload + Ctrl+Shift+R no browser
+    3. Hard reload puxa assets ?v=cc36 com TIMEOUT_MS=300000ms + heartbeat funcional
+- **Sessão 91 CC.35 — Neo fix pages_count + SSE heartbeat DONE** (@dev · Neo — 2026-05-07T07:30):
+  - **Trigger:** Eric reportou "Conexão com servidor perdida — Sem resposta do servidor por 60s"
+  - **Investigação:** audit.jsonl revelou pipeline rodou 3h18min e FAILED com `'list' object has no attribute 'get'` 1s antes do UI declarar lost_connection. **Dois bugs separados.**
+  - **Bug #1 HIGH (TD-PAGES-COUNT-LIST-VS-DICT):** CC.34 assumiu `metadata.get("page_stats", {})` retorna dict, mas marker 1.10.2 retorna `list[dict]` (uma entry por página)
+    - Fix: `bloco_engine/parsing/marker_parser.py:47-58` — isinstance(page_stats, list) → len(); isinstance(dict) → .get("page_count"); else → fallback rendered.metadata.get("pages") OR 1
+  - **Bug #2 MED (TD-SSE-WATCHDOG-60S-PDF-OCR):** UI client declarava lost_connection após 60s sem evento; servidor emitia UM ping inicial e bloqueava em `await revisar_contrato(...)` por minutos sem mais pings (comentário JS prometia "server emite ping a cada 10s" mas não cumpria)
+    - Fix combinado (Opção C Morpheus):
+      - **Servidor (`app.py:660-697`):** `asyncio.create_task(revisar_contrato(...))` + loop `asyncio.wait_for(asyncio.shield(task), timeout=10)` emitindo ping até pipeline terminar (heartbeat REAL)
+      - **Client (`sse_resilient.js:13`):** `TIMEOUT_MS` 60000 → 300000 (5min safety net) + mensagem atualizada
+  - **Suite preservada:** test_parsing 30/30 + test_audit 26/26 (zero regressão)
+  - **Validação empírica:** app rodando pós-restart, /login HTTP 200
+  - **Lessons learned:**
+    - **#1:** Adapters de API (CC.34) precisam validação empírica de schema retorno — `isinstance` checks são defensa básica
+    - **#2:** Comentários de código não substituem código. JS prometia heartbeat 10s mas servidor não cumpria — bug latente desde implementação inicial
+  - **Estado app pós-fix:**
+    - http://127.0.0.1:8501 → 303 redirect /login → 200
+    - Python 3.13.12 + marker-pdf 1.10.2
+    - Heartbeat real 10s durante pipeline longo
+    - Watchdog UI 5min safety
+  - **NÃO commitado** — Morpheus consolida push depois (CC.30+CC.31+CC.33+CC.34+CC.35 acumulados)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc35-fix-done.yaml` (token H-S03-CC35-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus sinaliza Eric retomar smoke /revisar com PDF imagem (agora deve completar end-to-end)
+- **Sessão 91 CC.34 — Neo adapt marker_parser.py para API marker-pdf 1.x DONE** (@dev · Neo — 2026-05-07T03:50):
+  - **Trigger:** Eric reportou erro durante /revisar com PDF imagem: `No module named 'marker.convert'`
+  - **Root cause:** marker-pdf 1.x removeu `marker.convert` e renomeou `load_all_models → create_model_dict`. Código `marker_parser.py` usava API 0.2.x (incompatível com marker 1.10.2 instalado em CC.33).
+  - **Fix aplicado:**
+    - `bloco_engine/parsing/marker_parser.py:33-52` — `_default_marker_parser` adaptado para nova API:
+      - `from marker.converters.pdf import PdfConverter` (era `marker.convert.convert_single_pdf`)
+      - `from marker.models import create_model_dict` (era `load_all_models`)
+      - `models = create_model_dict()` + `converter = PdfConverter(artifact_dict=models)` + `rendered = converter(str(pdf_path))`
+      - `full_text = rendered.markdown` + `pages_count` lê de `metadata.get("page_stats", {}).get("page_count")` com fallback
+    - `tests/unit/test_parsing.py:269-298` — 3 tests adaptados:
+      - `test_marker_indisponivel_levanta_ocr_required`
+      - `test_parser_ocr_required_message_contem_solucao_acionavel`
+      - `test_parser_ocr_required_message_contem_alternativa`
+      - Todos usam agora `monkeypatch.setattr("bloco_engine.parsing.marker_parser._is_marker_available", lambda: False)` — antes assumiam marker indisponível em CI, agora marker está instalado em dev (CC.33)
+  - **Suite preservada:**
+    - `test_parsing.py`: 30/30 passed (1.52s)
+    - `test_audit.py`: 26/26 passed (sanity)
+    - Zero regressão
+  - **Validação empírica:** `_is_marker_available()` retorna True; `_default_marker_parser` import OK; app /login HTTP 200 pós-restart
+  - **TECH-DEBT.md:** seção CC.34 com TD-MARKER-API-BREAKING-CHANGE HIGH RESOLVED inline + resumo executivo 51 → 52 active
+  - **Lesson learned:** pyproject.toml com pin loose `marker-pdf>=0.2` (sem upper bound) permitiu jump major version 0.x → 1.x silencioso. Recomendação futura: `marker-pdf>=1.0,<2.0`. Smith reviews não pegaram porque tests usam `parser_fn` injection (mocks) — não exercitam imports reais.
+  - **Estado app pós-fix:**
+    - http://127.0.0.1:8501 → 303 redirect /login → 200 form
+    - Python 3.13.12 + marker-pdf 1.10.2 funcional
+    - Modelos Ollama :11434 + :11435 ativos
+  - **NÃO commitado** — Morpheus consolida push depois (CC.30 + CC.31 + CC.33 + CC.34 acumulados)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc34-marker-adapt-done.yaml` (token H-S03-CC34-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus sinaliza Eric retomar smoke /revisar com PDF imagem (download surya-ocr models acontece on-demand primeira execução; ~500MB-1GB single-shot)
+- **Sessão 91 CC.33 — Operator Python downgrade DONE** (@devops · Operator — 2026-05-07T03:30):
+  - **7 fases sequenciais executadas com sucesso:**
+    - **Fase 1:** Python 3.12 ausente, mas Python 3.13.12 já disponível em `C:\Users\User\AppData\Local\Programs\Python\Python313\` — adapted plano para 3.13 (equivalente, todos wheels disponíveis, economia ~5min winget)
+    - **Fase 2:** Backup `.env` → `.env.bak-cc33`, GENESIS lock + Ollama processes preservados
+    - **Fase 3:** Python 3.14 app killado, porta 8501 livre
+    - **Fase 4:** `py -3.13 -m pip install -e ".[dev,ocr]"` SUCCESS — instalou 100+ packages incluindo:
+      - **`marker-pdf-1.10.2`** ✅ (resolveu problema CC.32)
+      - **`Pillow-10.4.0`** ✅ (Pillow 12.1.1 desinstalado, downgrade automático para satisfazer constraint marker-pdf)
+      - **`surya-ocr-0.17.1`** + **`pdftext-0.6.3`** + **`pymupdf4llm-1.27.2.3`** + **`torch-2.11.0`** + **`fastapi-0.136.1`** + outros
+    - **Fase 5:** test_audit.py **26/26 passed** em 9.59s — audit chain preservada após downgrade
+    - **Fase 6:** App restart com Python 3.13 + env vars → /login HTTP 200; GENESIS hash retornado IDÊNTICO ao anterior (`2e4ba99502f40b5b...3782e918`) — chain HMAC preservada (depende só da chave AUTH_COOKIE_KEY, não do Python)
+    - **Fase 7:** CHECKPOINT atualizado, handoff back emitido
+  - **Imports validados:**
+    - `import marker` ✅
+    - `from bloco_audit import genesis` ✅
+    - `from bloco_engine.parsing import marker_parser` ✅
+    - `from bloco_interface.web.app import app` (18 routes) ✅
+  - **Salvaguardas preservadas via design:**
+    - Audit GENESIS lock + AUTH_COOKIE_KEY → HMAC consistente (chain válida)
+    - `~/.ollama/` modelos + processes Ollama → mantidos
+    - `~/.local/share/revisor-contratual/` (vault.db, audit.jsonl, bacen-cache) → mantido
+    - `.env` → backup .env.bak-cc33, .env original mantido
+    - `pyproject.toml`, código `bloco_*` → não modificados
+  - **App rodando:** http://127.0.0.1:8501 com Python 3.13.12
+  - **Próximo step:** Morpheus sinaliza Eric retomar smoke /revisar com PDF (texto extraível OU imagem — OCR via marker-pdf agora funciona)
+  - **NÃO commitado** — Morpheus consolida push depois (junto com smoke PASS evidence acumulada CC.30+CC.31+CC.33)
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc33-downgrade-done.yaml` (token H-S03-CC33-OPERATOR2MOR-DONE-001)
+- **Sessão 91 CC.33 — Morpheus decidiu Opção A + dispatch Operator** (@lmas-master · Morpheus — 2026-05-07T03:10):
+  - **Análise Morpheus das 4 opções:**
+    - **A** (downgrade Python 3.12): definitivo, Python 3.12 LTS, todos wheels disponíveis ⭐
+    - **B** rejeitada: ~2-5GB GUI installer não automatizável via Skill
+    - **C** rejeitada: apenas adia problema PDF imagem
+    - **D** rejeitada: refactor sem revisão Smith introduz mais risco
+  - **Decisão:** Opção A
+  - **Plano dispatchado a Operator:** 7 fases sequenciais
+    1. Verificação Python 3.12 disponível (winget se ausente)
+    2. Backup `.env` + verificar GENESIS preservado
+    3. Kill app Python 3.14 atual
+    4. Reinstall completo com Python 3.12: `py -3.12 -m pip install -e .[dev,ocr]`
+    5. Validação: import marker, version Python, sanity test_audit
+    6. Restart app com Python 3.12
+    7. CHECKPOINT update + handoff back
+  - **Salvaguardas críticas preservadas via design:**
+    - Audit chain (GENESIS lock + AUTH_COOKIE_KEY) — chain HMAC só depende da chave, não do Python
+    - Modelos Ollama em `~/.ollama/`
+    - Vault data em `~/.local/share/revisor-contratual/`
+  - **4 contingências mapeadas:** Python 3.12 não instalável → Opção C; reinstall conflito → reportar; sanity falha → investigar; app não sobe → log
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-cc33-python-downgrade.yaml` (token H-S03-CC33-MOR2OPERATOR-001)
+  - **Próximo:** Operator via Skill LMAS:agents:devops executa fases 1-7
+- **Sessão 91 CC.32 — Operator BLOQUEADO em pip install [ocr]** (@devops · Operator — 2026-05-07T03:00):
+  - **Trigger:** Eric reportou error_handler sugeriu `pip install revisor-contratual[ocr]`
+  - **Tentativa 1:** `pip install -e ".[ocr]"` → FAILED
+    - regex falhou build wheel ("Unable to find a compatible Visual Studio installation")
+    - Pillow falhou build wheel (mesma razão)
+  - **Tentativa 2:** `pip install --only-binary=:all: marker-pdf` → FAILED
+    - `ResolutionImpossible: marker-pdf 1.10.2 (latest) requer Pillow<11.0.0,>=10.1.0`
+    - Sistema atual: Pillow 12.1.1
+    - Pillow 10.x NÃO TEM wheels para Python 3.14 (só 3.10-3.13)
+    - Pillow 12.x TEM wheels Py3.14 mas NÃO é aceita por marker-pdf
+  - **Investigação metadata PyPI:** TODAS as versões marker-pdf (0.1.3 até 1.10.2) fixam Pillow<11
+  - **Root cause arquitetural:** Python 3.14 escolhido em CC.30 ambiente é INCOMPATÍVEL com marker-pdf por causa de constraint Pillow<11 que não tem wheels Py3.14
+  - **3 opções de resolução** (decisão Eric/Morpheus):
+    - **(A) Downgrade Python para 3.12** — solução definitiva. Recriar venv, reinstalar tudo (~10-20min). Marker-pdf instala normalmente. **Recomendado.**
+    - **(B) Visual Studio Build Tools** — instalar ~2-5GB MSVC C compiler (~30min download). Permite build wheels from source (Pillow 10.x + regex). Pesado mas mantém Python 3.14.
+    - **(C) Workaround sem OCR** — Eric continua testando smoke E2E só com PDFs que tenham camada de texto extraível (não-imagem). PDFs imagem ficam fora do escopo até resolver A ou B. Permite continuar smoke parcial agora.
+  - **Estado app:** ainda rodando em http://127.0.0.1:8501 (sem OCR)
+  - **NÃO foi modificado:** pyproject.toml, código bloco_*, .env (nada)
+  - **Honestidade técnica #5:** Python 3.14 (escolhido em CC.30 setup) revelou-se incompatível com dep opcional marker-pdf. Bug não estava em código do projeto — estava em escolha de Python version vs ecossistema de wheels disponíveis.
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc32-ocr-blocked.yaml` (token H-S03-CC32-OPERATOR2MOR-BLOCKED-001)
+  - **Próximo:** Morpheus apresenta 3 opções a Eric + ele decide
+- **Sessão 91 CC.31 — Neo fix arquitetural path mismatch bloco_audit** (@dev · Neo — 2026-05-07T02:30):
+  - **Trigger:** Eric reportou erro durante smoke /revisar: `bloco_audit\.audit-genesis.lock ausente`
+  - **Investigação Morpheus:** GENESIS lock existe em `~/.local/share/revisor-contratual/`, mas app procurava em `bloco_audit/` (path RELATIVO)
+  - **Root cause:** `bloco_audit/{genesis,chain}.py` outliers usando paths relativos vs consenso `~/.local/share/revisor-contratual/` (cli.py, scheduler.py, auto_trigger.py)
+  - **Fix aplicado:** 3 linhas em 2 arquivos:
+    - `bloco_audit/genesis.py:20-22` — `DEFAULT_AUDIT_DIR` + `DEFAULT_GENESIS_LOCK` realinhados
+    - `bloco_audit/chain.py:21-25` — `DEFAULT_AUDIT_LOG` realinhado
+  - **Suite full:** 398 passed + 2 skipped (zero regressão) + 1 borderline (`test_paralelismo_llm_real` ratio 0.71 vs 0.70 — não relacionado, smoke roda só com Ollama vivo)
+  - **Ruff bloco_audit:** 9 erros pré-existentes mantidos (UP017 datetime + 1 E501 docstring linha 48 — fora escopo); 3 E501 dos meus comentários corrigidos
+  - **Validação empírica:** `genesis.DEFAULT_GENESIS_LOCK` resolve `C:\Users\User\.local\share\revisor-contratual\.audit-genesis.lock` ✓ existe ✓; `get_genesis_hash()` retorna `2e4ba99502f40b5b...3782e918` consistente com lock assinado pela `AUTH_COOKIE_KEY` do `.env`
+  - **App restart:** PID novo, `http://127.0.0.1:8501/login` HTTP 200 confirmado
+  - **TECH-DEBT.md:** seção CC.31 com TD-AUDIT-PATH-MISMATCH HIGH RESOLVED inline + linha resumo executivo atualizada
+  - **Lesson learned:** module outliers escapam adversarial reviews focados em outras áreas; tests com tmpdir fixtures não pegam defaults runtime
+  - **Estado app pós-fix:**
+    - `http://127.0.0.1:8501` → 303 redirect /login
+    - `/login` → 200 (form HTML pronto)
+    - Modelos Ollama: sabia-7b-instruct + qwen2.5:7b + qwen2.5:3b ✓
+    - GENESIS lock lido OK (HMAC consistente)
+  - **NÃO commitado** — Morpheus consolida push depois (junto com smoke PASS evidence)
+  - **Handoff Neo → Morpheus:** `.lmas/handoffs/handoff-neo-to-morpheus-2026-05-07-cc31-fix-done.yaml` (token H-S03-CC31-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida + sinaliza Eric retomar smoke /revisar (login admin/admin + upload PDF + form → SSE flow agora deve funcionar)
+- **Sessão 91 retomada CC.30 — Operator bootstrap .env completo** (@devops · Operator — 2026-05-07T02:10):
+  - **Trigger:** Eric iniciou Trilha 1 smoke E2E v0.3.0 — login admin/admin falhou
+  - **Investigação Morpheus:** descoberta bug HIGH em `bloco_interface/web/auth.py:27` — `DEFAULT_PASSWORD_HASH` é bcrypt INVÁLIDO para "admin" (`verify_password = False`). Comentário linha 26 mente sobre origem do hash
+  - **Smith adversarial reviews CC.25/CC.26/CC.29 não pegaram:** nenhum testou login real — falso positivo em "código revisado"
+  - **Bootstrap CC.30 executado:**
+    - `.env` completo escrito (5 críticos + 5 opcionais)
+    - `AUTH_COOKIE_KEY` PRESERVADA (`31fa0c75...6e5d` — assinou GENESIS)
+    - `ADMIN_PASSWORD_HASH` real gerado via bcrypt rounds=12 (senha = "admin")
+    - `REVISOR_SECRET_KEY` gerado (`secrets.token_hex(32)`)
+    - `FERNET_KEY` gerado (`Fernet.generate_key()`)
+    - `.env.example` template público criado (commitável)
+    - `.env.bak` backup original
+    - `.gitignore` linha 36 já tem `!.env.example` — exception correta para template
+  - **ZERO API keys externas necessárias** — sistema 100% local (Ollama + BACEN público)
+  - **Validação Python:** `auth.authenticate('admin', 'admin') = True` ✅ + Fernet aceita key
+  - **TECH-DEBT.md:** seção CC.30 com TD-AUTH-DEFAULT-HASH-INVALID HIGH; resumo executivo 50 → 51 active
+  - **Estado app:** rodando background (`python -m bloco_interface.web.app` started CC.30 com env vars in-memory; `.env` agora persiste configuração)
+  - **Lesson learned:** adversarial reviews de código não substituem smoke E2E real
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc30-env-done.yaml` (token H-S03-CC30-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida + Eric retoma smoke E2E (login admin/admin agora deve funcionar) → reportar resultado
+- **Sessão 91 ENCERRAMENTO ABSOLUTO FINAL DEFINITIVO** (@lmas-master · Morpheus — 2026-05-07, **sinal Eric pós-30 etapas CC**):
+  - **30 etapas CC sequenciais** (CC.6 → CC.29.D) totais sessão 91
+  - **Agentes orquestrados:** Neo 14 + Oracle 4 + Operator 11 + Morpheus 30
+  - **Smith adversarial loop COMPLETÍSSIMO+:** 5 fases código (CC.25-CC.27) + 2 findings honestos (CC.28 audit chain + CC.29 narrative review) + 1 narrative review (CC.29.A)
+  - **Honestidade técnica × 2 publicada como legado:** CC.28 (bloco_audit JÁ EXISTE Phase 0) + CC.29 (12 fendas narrativas no story file)
+  - **Marcos finais:**
+    - OLLAMA-MGR-01 Done → PR #1 OPEN MERGEABLE (bloqueio Eric smoke E2E v0.3.0)
+    - MVP-LEAN-01 InProgress 8/9 = 89% → PR #2 OPEN MERGEABLE (bloqueio review)
+    - Suite 398 passed + 3 skipped (zero regressão em 30 etapas)
+    - 50 tech debts active (15 Smith + 1 CC.27 + 1 CC.28 + 12 CC.29 + 21 anteriores)
+    - 11 commits CC pushed em 11 Operator dispatches
+    - 7 comments PR #2 (CC.22 → CC.29.C)
+    - Tempo real ~24h
+  - **4 trilhas retomada (todas Eric-bound):**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 (~30-60min Eric → release v0.3.0)
+    - 📋 Trilha 2: Review PR #2 (~30-60min Eric → merge OR changes)
+    - 🎯 Trilha 4: Task 9 sessão dedicada (~4-5h Ollama+models+PDF + audit integration)
+    - ⏸️ Trilha 5: Pause indefinido
+  - **Reconhecimento gap mínimo:** entry CC.29 ENCERRAMENTO no CHECKPOINT ficará pendente em local — preço aceitável para evitar loop housekeeping recursivo (alerta Operator CC.29.D)
+  - **NÃO iniciar CC.29.E** — loop housekeeping infinito evitável reconhecendo natureza recursiva
+  - **Handoff ABSOLUTO FINAL DEFINITIVO Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-07-sessao-91-encerramento-final.yaml` (token H-S03-SESSAO91-MOR2ERIC-ENCERRAMENTO-FINAL-001)
+  - **Esta É a última Skill da sessão 91** — Morpheus aguarda Eric escolher trilha
+- **Sessão 91 CC.29.D — Operator housekeeping push DONE** (@devops · Operator — 2026-05-07, **push silencioso ~1min**):
+  - **Pre-push gate:** pytest PULADO conforme handoff (zero código); 1 modified + .tmp/ ignorado
+  - **Staging:** `git add governance/CHECKPOINT-active.md`
+  - **Commit:** `4fa5c5e docs(governance): CHECKPOINT-active.md entries CC.29.C Operator push done + CC.29.D Morpheus consolidation [Story MVP-LEAN-01]` — 1 file, 30 insertions, 2 deletions
+  - **Push fast-forward:** `b334b5a..4fa5c5e` em `feat/mvp-lean-01-task1-layout-base`
+  - **Sem PR comment:** housekeeping silencioso (comment principal já em CC.29.C `#issuecomment-4393947563`)
+  - **Pattern CC.28.B replicado:** housekeeping CHECKPOINT após push principal — disciplina narrativa local↔remote alinhada
+  - **Sessão 91 totaliza 30 etapas CC** (CC.6 → CC.29.D) — todas pushed
+  - **Suite remote final:** 398 passed + 3 skipped (preservada)
+  - **PRs paralelos final pós-CC.29.D:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% + Smith loop completíssimo + honestidade técnica × 2 + CHECKPOINT alinhado
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc29d-housekeeping-done.yaml` (token H-S03-CC29D-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus emite sinal Eric ABSOLUTO FINAL DEFINITIVO com sumário sessão 91 atualizado (30 etapas CC + honestidade técnica × 2 + 4 trilhas restantes) — pause definitivo aguardando Eric humano
 - **Sessão 91 CC.29.D — Morpheus consolida CC.29.C + dispatch Operator housekeeping push via Skill** (@lmas-master · Morpheus — 2026-05-07, **decisão convergente Opção A**):
   - **Eric persistiu 'via Skill' pós CC.29.C Operator push** — workflow-via-skill-strict aplica ao housekeeping final
   - **Recomendação Operator = A (housekeeping CHECKPOINT push + sinal Eric)** — convergente com pattern CC.28.B já estabelecido

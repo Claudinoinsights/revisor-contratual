@@ -6,5 +6,5 @@
 
 {% block workspace %}
 {{ processing_pane(phases=phases, filename=filename, job_id=job_id) }}
-<script src="/static/sse_resilient.js" defer></script>
+<script src="/static/sse_resilient.js?v={{ static_version }}" defer></script>
 {% endblock %}
