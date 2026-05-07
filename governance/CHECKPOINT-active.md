@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T11:55"
+last_updated: "2026-05-07T13:55"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-03-cc43-PUSH-DONE-aguarda-Morpheus-dispatch-Atlas-Phase1
+status: sprint-04-phase2-KICKOFF-Operator-branch-creation-then-Aria-5-ADRs
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -124,6 +124,156 @@ tags:
   - **History preservada:** mesmo se Sprint 04 pivot supersede parte do código, commit f5b94b5 fica como base de comparação
   - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc43-push-done.yaml` (token H-S03-CC43-OP2MOR-PUSH-DONE-001)
   - **Próximo:** Morpheus dispatch Atlas Phase 1 viability research (cloud LLM + vision OCR + LGPD-A + R$ 1500/mês budget + 4 doctypes simultâneos + OrSheva brandbook como input Sati)
+- **Sessão 91 Sprint 04 Phase 1 — Atlas viability research DONE** (@analyst · Atlas — 2026-05-07T12:30):
+  - **Trigger:** Morpheus dispatch H-S04-P1-MOR2ANA-VIABILITY-001 (chain pivot Sprint 04)
+  - **Output:** `governance/research/openrouter-vision-ocr-viability.md` (~12KB, 5 seções estruturadas)
+  - **Web research executed:** 5 fetches paralelos — OpenRouter API catalog (top 30 modelos mai/2026), OpenRouter privacy/ZDR docs, Anthropic API privacy commercial, OpenAI privacy enterprise, vision OCR benchmark search
+  - **Realidade temporal corrigida:** dispatch listou modelos legacy (Claude 3.5 Sonnet, GPT-4o, Gemini 1.5) — mai/2026 frontier é Claude 4.7 Opus / Sonnet 4.6 / Haiku 4.5, GPT-5.4 / Pro, Gemini 3.1 Pro / Flash latest, DeepSeek V4
+  - **Veredito Atlas:** ✅ GO com stack **Hybrid**
+    - **OCR vision:** Claude Sonnet 4.6 (97,6% extração complex, 0,09% hallucination — best legal)
+    - **4 personas paralelas:** Gemini Flash latest ($0,5/$3/M, 1M context — economy mas vision-capable)
+    - **Juiz revisor:** Claude Sonnet 4.6 (síntese final premium)
+    - **Custo:** ~R$ 3,15/análise → **475 análises/mês em R$ 1500** (~120/doctype)
+  - **LGPD Path A mapeado:** base legal Art. 7º I (consentimento explícito) + Art. 8º termo Eric redige + disclaimer S2 + ZDR per-request OpenRouter `zdr=true` + Anthropic API comercial não-treina
+  - **Riscos não-mitigados Path A explícitos:** Art. 33 transferência internacional, OpenAI 30-day default retention, Gemini free tier treina (forçar billing pago em Aria ADR)
+  - **Cost tables A/B/C:** Veicular baseline + multiplicador 4 doctypes (FIES 0,9× / Veicular 1,0× / Bancário 0,55× / Imobiliário 2,1×)
+  - **4 ADRs flaggados para Aria Phase 2:** ADR-014 OpenRouter integration, ADR-015 Vision OCR architecture, ADR-016 Multi-doctype dispatcher, ADR-017 LGPD compliance flow
+  - **Pendências para Eric decidir antes Phase 2:** confirmar provider primário, volume mensal estimado, billing OpenRouter ($50+ saldo inicial), começar redação termo
+  - **Handoff Atlas → Morpheus:** `.lmas/handoffs/handoff-analyst-to-morpheus-2026-05-07-sp04-phase1-viability-done.yaml` (token H-S04-P1-ANA2MOR-VIABILITY-DONE-001)
+  - **Próximo:** Morpheus consolidação ORDEM 11 + apresentação research a Eric. SE Eric aprova: dispatch Aria Phase 2 (3 ADRs). SE pede ajustes: Atlas refina.
+- **Sessão 91 Sprint 04 Phase 1.5 — Morpheus expõe conflito matemático Eric** (@lmas-master · Morpheus — 2026-05-07T12:45):
+  - **Trigger:** Eric respondeu 3 perguntas Atlas: (1) Anthropic puro, (2) 1000 análises/mês, (3) termo SIM
+  - **Conflito detectado por Atlas:** as 3 respostas são individualmente válidas mas matematicamente impossíveis em conjunto
+    - Sonnet 4.6 puro × 1000 = R$ 8.300/mês (+553% over R$ 1500)
+    - Hybrid Anthropic × 1000 = R$ 4.180/mês (+279% over)
+    - Haiku 4.5 puro × 1000 = R$ 2.750/mês (+183% over) — barreira mínima Anthropic puro
+  - **Decisão Morpheus:** NÃO auto-decidir. Apresentar 3 opções de resolução a Eric:
+    - **R1:** Aumentar budget (R1a R$ 8.300, R1b R$ 4.180, R1c R$ 2.750)
+    - **R2:** Reduzir volume (Haiku puro 545/mês em R$ 1500)
+    - **R3:** Quebrar "Anthropic puro" — Hybrid Anthropic+Gemini com configuração Haiku OCR + Gemini personas + Haiku Juiz fits 1000 em R$ 1500 (~R$ 1,50/análise)
+  - **Trade-offs explicitados a Eric:**
+    - R1 → preserva LGPD posture ULTRA + 1000 volume; custa R$ 2750-8300/mês
+    - R2 → preserva LGPD ULTRA + budget; entrega 360-545/mês (45-82% redução)
+    - R3 → preserva 1000 volume + budget; aumenta surface LGPD para 2 providers (Google billing pago não-treina mas é provider extra)
+  - **Outputs sem decisão:** Eric responde R1/R2/R3 ou negocia combinação (ex: R1c+R2 mix)
+  - **Termo consentimento Eric:** PODE começar redação agora paralelo (independe da decisão stack)
+  - **Aria Phase 2 BLOQUEADO** até Eric resolver conflito
+  - **Push research Atlas BLOQUEADO** também (prematuro commit até decisão final)
+  - **App rodando:** http://127.0.0.1:8501 PID 27232 RAM OK (não tocou)
+  - **Próximo:** Eric responde escolha → Morpheus update research com stack final → dispatch Aria Phase 2 (4 ADRs)
+- **Sessão 91 Sprint 04 Phase 1.6 — Morpheus elicitation business model ambíguo** (@lmas-master · Morpheus — 2026-05-07T12:55):
+  - **Trigger:** Eric perguntou "Gostaria de usar apenas uma assinatura do Claude para usar os agentes" — frase ambígua entre 2 sistemas
+  - **Distinção crítica detectada por Morpheus:**
+    - **Sistema A:** Claude Pro/Max/Code que EXECUTA os agentes LMAS (Morpheus, Atlas, Neo, Operator, etc.). Eric JÁ paga. Não muda.
+    - **Sistema B:** API que roda DENTRO do produto quando cliente final upload PDF. Requer billing por token (OpenRouter OR Anthropic API direto). É o que Atlas precificou.
+  - **Reality check:** Sistema A NÃO pode substituir Sistema B. Claude Pro consumer não permite produtizar em SaaS terceiro.
+  - **Question Eric ambíguo entre 3 cenários:**
+    - **Cenário 1:** SaaS comercial (cliente final upload autonomous) → conflito R1/R2/R3 anterior continua valendo
+    - **Cenário 2:** Ferramenta INTERNA Eric (ele processa contratos manualmente via seu Claude Code) → arquitetura muda DRASTICAMENTE: dispensa OpenRouter, dispensa LGPD termo cliente final, vira Skill custom Claude Code
+    - **Cenário 3:** Híbrido — split a definir
+  - **Decisão Morpheus:** ORDEM 4 elicitation antes de qualquer dispatch. Não progredir até Eric decifrar.
+  - **Implicação Cenário 2 (se Eric escolher):** todo roadmap Sprint 04 reinicia
+    - Atlas refaz research focado em Skill custom Claude Code
+    - Aria desenha integração nativa (não OpenRouter API)
+    - Sati aplica OrSheva em interface diferente (talvez nem FastAPI)
+    - Custo runtime: zero adicional (já pago via Claude Code)
+    - Volume limit: tempo Eric pessoal (não escala SaaS)
+  - **Aria Phase 2 BLOQUEADO** ainda
+  - **Termo consentimento Eric:** PODE começar redação se Cenário 1 ou 3; SE Cenário 2, talvez nem precise (uso interno do advogado é diferente legalmente)
+  - **Próximo:** Eric responde Cenário 1/2/3 → Morpheus reroda routing conforme escolha
+- **Sessão 91 Sprint 04 Phase 1.7 — Eric esclarece SaaS BYOK, conflito R1/R2/R3 dissolve** (@lmas-master · Morpheus — 2026-05-07T13:05):
+  - **Eric esclareceu (3 confirmações importantes):**
+    1. **Cenário 1 confirmado** — SaaS comercial para escritórios de advocacia
+    2. **BYOK (Bring Your Own Key)** — cada escritório cliente coloca sua própria API key para rodar
+    3. **LMAS NÃO embutido no produto** — LMAS é apenas o framework de construção. Produto entregue ao escritório é Python/FastAPI/HTMX standalone
+  - **Implicações arquiteturais MAIORES:**
+    - ❌ **Conflito R1/R2/R3 DISSOLVIDO** — Eric não paga API, escritório paga direto seu provider. Budget R$ 1500 era assumption errada.
+    - 🔄 **LGPD muda papéis:** Eric vira OPERADOR (provê ferramenta), escritório é CONTROLADOR (relação com cliente final). DPA + TOS SaaS necessários.
+    - 🔄 **Surface LGPD Eric minimizada:** PII passa direto API → provider via key escritório, sem retenção em servidor Eric (apenas logs operacionais)
+    - 🔄 **Modelo receita:** assinatura SaaS por escritório (não por análise). Mifune cross-domain decision pendente.
+  - **4 novas decisões arquiteturais Eric DEVE responder antes Aria:**
+    - **A.** Provider abstraction: A1 (Anthropic only hardcoded) / A2 (abstract Anthropic+OpenRouter+OpenAI) / A3 (OpenRouter como gateway único)
+    - **B.** Stack default: B1 (hardcoded Atlas recommendation) / B2 (cliente escolhe modelos UI) / B3 (tier presets Econômico/Equilibrado/Premium)
+    - **C.** Volume reframe: C1 (1000 = total entre escritórios) / C2 (1000 = por escritório típico) / C3 (aspiracional não definido)
+    - **D.** Pricing SaaS: D1 (fixa mensal R$/escritório) / D2 (tiered por volume) / D3 (per advogado ativo) / D4 (markup escondido — quebra BYOK)
+  - **Roadmap Sprint 04 reframado:**
+    - Phase 1.7 (now): Eric responde A/B/C/D
+    - Atlas v2 research: BYOK + multi-tenant patterns + API key security
+    - Aria 5 ADRs (era 4): +ADR-018 SaaS pricing (Mifune cross) +ADR-019 multi-tenant isolation
+    - Trinity PRD v2.0.0: FRs BYOK + onboarding API key + billing escritório
+    - Sati: onboarding flow API key + Settings model selector se B2/B3 + dashboard escritório
+    - Smith: BYOK security (key leakage), LGPD operador vs controlador, multi-tenant isolation
+  - **Atlas v1 research:** parcialmente válido (preço modelos + LGPD framework + OCR landscape mantém), parcialmente obsoleto (perspectiva Eric paga vs escritório paga)
+  - **Termo consentimento Eric:** agora é responsabilidade ESCRITÓRIO redigir com cliente final. Eric oferece template OPCIONAL.
+  - **Eric capacidade jurídica:** pode redigir DPA + TOS SaaS, mas precisa Aria definir multi-tenant isolation técnico ANTES
+  - **Próximo:** Eric responde A/B/C/D → Atlas v2 research OR pular direto Aria se decisões claras
+- **Sessão 91 Sprint 04 Phase 1.7.1 — Eric responde A/B/C/D, 3 de 4 lockadas** (@lmas-master · Morpheus — 2026-05-07T13:20):
+  - **Eric respondeu:**
+    - **A1** (Anthropic only hardcoded) ✅ locked
+    - **B:** delegou a Morpheus ("você sabe qual a melhor") — Morpheus aplicou Atlas judgment
+    - **C3** (volume aspiracional não definido) ✅ locked — não bloqueia Aria
+    - **D:** "ganho por cada documentação aprovada" — **AMBÍGUO**, requer clarification
+  - **Decisão B Morpheus aplicou Atlas judgment:**
+    - A1 invalidou recomendação Hybrid original (Gemini Flash sai)
+    - **Stack Anthropic Hybrid:** Sonnet 4.6 OCR + Juiz, Haiku 4.5 4 personas
+    - Custo escritório: R$ 4,18/análise (R$ 0,76 × 5,5)
+    - Trade-off: -50% custo vs Sonnet puro, +52% vs Haiku puro — sweet spot legal accuracy
+  - **D requer clarification — 4 sub-leituras "documentação aprovada":**
+    - D-a: pipeline complete (todas análises) — simples
+    - D-b: petição D3 gerada (só com decisão adversa anexa) — alinhado value
+    - D-c: advogado clica "Aprovar" no UI — alinhado workflow real
+    - D-d: outcome judicial favorável — provavelmente inviável tech (sem visibility)
+  - **Implicação arquitetural por D:** ADR-018 (pricing) precisa modelar billing event — depende de qual sub-opção
+  - **Recomendação Morpheus:** Eric responde D → Atlas v2 dispatch (1 turn) com brief multi-tenant + BYOK security + DPA template + pricing per-success benchmark SaaS jurídico Brasil
+  - **Aria Phase 2 BLOQUEADO** ainda — falta D clear
+  - **Próximo:** Eric responde D-a/b/c/d → Atlas v2 research OR direct Aria
+- **Sessão 91 Sprint 04 Phase 1.8 — Atlas v2 BYOK supplement DONE** (@analyst · Atlas — 2026-05-07T13:50):
+  - **Trigger:** Eric respondeu D-c (advogado clica "Aprovar" no UI), Morpheus dispatch Atlas v2 research
+  - **Output:** `governance/research/byok-saas-multitenant-pricing-v2.md` (~14KB, 4 seções complementares)
+  - **Web research:** 5 searches — OWASP/AWS BYOK best practices, PostgreSQL RLS multi-tenant patterns, SaaS jurídico BR pricing benchmark, outcome-based SaaS 2026, LGPD operador/controlador ANPD orientações
+  - **Veredict Atlas v2:**
+    - **BYOK Security:** MVP PostgreSQL pgcrypto + master env key; Produção AWS Secrets Manager + KMS; Pattern Quota Interna (1 key escritório + audit per-advogado)
+    - **Multi-tenant:** Pool + RLS PostgreSQL + 3 camadas (RLS + encryption at rest + TLS); Vault jurisprudência SHARED entre tenants; promotion path Silo enterprise
+    - **Pricing:** **Hybrid recomendado** — base R$ 200-500/escritório + per-approval R$ 30-50 (sweet spot R$ 50 = 10% custo manual R$ 400-1200); Billing engine Stripe ou Asaas
+    - **LGPD operador:** Surface massivamente reduzida vs controlador; DPA Eric-escritório obrigatório (9 pontos estruturais); termo consentimento cliente final = responsabilidade escritório
+  - **Cost reframe escritório:** R$ 4,18 API + R$ X aprovação Eric (Sweet R$ 50) = total R$ 54,18/análise vs R$ 400-1200 manual (5-15× barato)
+  - **Pricing model recomendado:**
+    - Tier Starter: R$ 200/mês + R$ 50/aprovação (5 inclusas)
+    - Tier Pro: R$ 500/mês + R$ 30/aprovação (30 inclusas)
+    - Tier Enterprise: negociado (incluindo customer-managed KMS key)
+  - **5 ADRs flaggados para Aria Phase 2 (era 4):**
+    - ADR-014: Provider abstraction A1 + BYOK key management (Quota Interna multi-user)
+    - ADR-015: Vision OCR architecture (preserva v1)
+    - ADR-016: Multi-doctype dispatcher
+    - ADR-017: Multi-tenant isolation (Pool+RLS+3 layers) + audit trail
+    - ADR-018: SaaS pricing & billing event (Hybrid + state machine)
+  - **Pendências Eric paralelas:** redigir DPA template (advogado), confirmar números pricing absolutos (base+per-approval), escolher billing engine, definir tier final
+  - **Handoff Atlas → Morpheus:** `.lmas/handoffs/handoff-analyst-to-morpheus-2026-05-07-sp04-phase1.8-byok-supplement-done.yaml` (token H-S04-P1.8-ANA2MOR-VIABILITY-V2-DONE-001)
+  - **Próximo:** Morpheus consolida ORDEM 11 + apresenta a Eric → Eric aprova/ajusta → dispatch Aria Phase 2 (5 ADRs)
+- **Sessão 91 Sprint 04 Phase 2 KICKOFF — Morpheus consolida + dispatch Operator branch** (@lmas-master · Morpheus — 2026-05-07T13:55):
+  - **Trigger:** Eric "Avance" + reforço "Sempre pela Skill" = aprovação Atlas v1+v2 sem ajustes, momentum
+  - **Atlas v1+v2 handoffs consumed:true** (Morpheus action, não delegação)
+  - **Decisão branching:** branch nova `feat/sprint-04-cloud-pivot-v0.2.0` from c755b1e ANTES de Aria escrever ADRs
+    - Razão: Aria escreve 5 ADRs em arquivos governance/architecture/adr/. Mais limpo isolar de Sprint 03 ancorado em feat/mvp-lean-01-task1-layout-base
+    - Promotion path: depois Sprint 04 conclude, merge para main com PR review
+  - **Sequência dispatches Phase 2:**
+    1. Operator FIRST: cria branch + push (small dispatch, doc-only)
+    2. Aria THEN: 5 ADRs em branch nova (próxima Eric turn)
+    3. Operator commit ADRs + push
+    4. Morpheus consolida → apresenta Eric
+    5. Eric aprova → dispatch Trinity Phase 3 PRD v2.0.0
+  - **5 ADRs escopo Aria (já mapeados):**
+    - ADR-014 Provider Abstraction A1 + BYOK key management
+    - ADR-015 Vision OCR Architecture (preserva research v1)
+    - ADR-016 Multi-Doctype Dispatcher (Strategy pattern)
+    - ADR-017 Multi-Tenant Isolation (Pool+RLS+3 layers)
+    - ADR-018 SaaS Pricing & Billing Event (Hybrid + state machine)
+  - **Pendências Eric paralelas (não bloqueiam Aria):**
+    - DPA template (Eric advogado redige)
+    - Confirmação tier pricing absoluto (Atlas range R$ 200-500 base + R$ 30-50 per-approval)
+    - Billing engine choice (Stripe ou Asaas)
+    - Mifune cross-domain participation opcional (validar pricing benchmark)
+  - **Próximo:** Operator dispatch quick-branch creation (token H-S04-P2-MOR2OP-BRANCH-001)
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
