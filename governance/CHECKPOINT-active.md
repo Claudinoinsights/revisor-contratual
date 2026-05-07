@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.25 Neo Trilha B+ DONE — 3 fixes determinísticos (F-01 feature flag + F-05 User-Agent + F-08 invariant) + 15 tech debts registrados em TECH-DEBT.md. Suite 397+3 (+10 tests, zero regressão). Aguarda Morpheus consolidar."
-status: sprint-03-cc25-neo-trilha-b-plus-done-aguarda-morpheus
+active_story: "CC.25.B Operator push CC.25 fixes DONE — Smith fixes (F-01+F-05+F-08) + 15 tech debts + 10 tests publicados em PR #2. Comment URL #issuecomment-4393159237. Aguarda Morpheus consolidar FINAL."
+status: sprint-03-cc25b-operator-push-done-aguarda-morpheus-final
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,28 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.25.B Operator push CC.25 fixes DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
+  - **Pre-push gate empírico:** ruff All checks passed ✅ (zero fix necessário desta vez); pytest **397 passed + 3 skipped** em 62.64s ✅
+  - **Push:** fast-forward `f4fe9ef..6c5afaf` em `feat/mvp-lean-01-task1-layout-base` (1 commit CC.25 fixes)
+  - **PR #2:** comment publicado [#issuecomment-4393159237](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4393159237) — Smith fixes (F-01+F-05+F-08 RESOLVED) + 15 tech debts + 10 tests + Smith review report visíveis
+  - **PR #2 progresso permanece:** **8/9 = 89%** (CC.25 é qualidade incremental, não muda contagem)
+  - **PRs paralelos estado final pós CC.25.B:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% **+ Smith fixes aplicados** — bloqueio review independente
+  - **Suite remote final:** **397 passed + 3 skipped**
+  - **Tech debts pendentes:** 15 active (5 HIGH empíricos + 7 MED + 3 LOW) em TECH-DEBT.md — validáveis com URL real STJ pré-deploy
+  - **Smith re-review CC.25 fixes:** DEFERRED — opcional pós-merge no próprio PR
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-06-cc25-push-done.yaml` (token H-S03-CC25-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.25 FINAL + sinaliza Eric com sumário + 5 trilhas atualizadas + pause definitivo
+- **Sessão 91 CC.25.B Morpheus consolida Trilha A** (@lmas-master · Morpheus — 2026-05-06, **dispatch Operator push fast-forward CC.25 fixes**):
+  - **Decisão:** Trilha A (push incremental + pause) — convergente com recomendação Neo
+  - **Razões:** (1) CC.25 fechou todos os blockers determinísticos pré-merge (F-01 + F-05 + F-08 RESOLVED); (2) push imediato torna 3 fixes + 15 tech debts visíveis Eric no PR #2; (3) Smith re-review opcional pós-merge sem perda; (4) Task 9 mistura código+environment Eric → sessão dedicada
+  - **Operação:** Operator push fast-forward `f4fe9ef..6c5afaf` (1 commit CC.25)
+  - **PR #2:** progresso permanece **8/9 = 89%** (CC.25 não muda contagem; é qualidade incremental — 3 fixes + 15 debts visíveis)
+  - **Smith re-review T8b fixes:** DEFERRED — opcional pós-merge no próprio PR
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc25-push-cc25-fixes.yaml` (token H-S03-CC25-MOR2OPERATOR-001)
+  - **21 etapas CC totais:** CC.6 → CC.25.B sequenciais
+  - **Próximo:** Operator pre-push gate → push → comment PR #2 → handoff back Morpheus → consolidação FINAL CC.25 + sinal Eric pause definitivo
 - **Sessão 91 CC.25 Neo Trilha B+ DONE** (@dev · Neo — 2026-05-06, **3 fixes determinísticos + 15 tech debts ~1h real**):
   - **Implementação:**
     - **F-01 feature flag:** `bloco_backup/scheduler.py` — job 3 condicional em env `ENABLE_TEMA_1378_AUTO_CHECK` (default false)
