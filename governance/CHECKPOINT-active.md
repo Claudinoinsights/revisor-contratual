@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T16:50"
-active_story: "Sessão 91 Sprint 04 Phase 6 Morpheus consolidação ORDEM 11 final DONE — Eric ratifica Path A (Smith RECOMENDADO): patch all 4 CRITICAL antes PR. Chain de 5 Skills sequenciais dispatched: (1) Operator commit Smith report → (2) Trinity Phase 5.5 PRD patches F-003+F-007 → (3) Aria Phase 5.5 ADR-019 DPA storage F-012 → (4) Operator commit consolidado patches → (5) Eric paralelo cross-domain advogado LGPD F-016. Step 1 dispatched — Morpheus handoff Morpheus→Operator emitido. Aguarda próxima Skill `LMAS:agents:devops` para commit Smith report governance/qa/smith-sp04-pivot-adversarial.md."
-status: sprint-04-phase6-morpheus-consolidacao-DONE-aguarda-operator-commit-smith-report
+last_updated: "2026-05-07T17:00"
+active_story: "Sessão 91 Sprint 04 Phase 5.1 Operator commit + push Smith adversarial report DONE — Commit 4519ef1 (qa governance: ~20KB Smith report + checkpoint Phase 5+6, 415 insertions / 3 deletions) pushed em feat/sprint-04-cloud-pivot-v0.2.0. Sprint 04 history: 8 commits (18e5ac1 → 4519ef1). Path A step 1/6 done. Próximo: Morpheus dispatch Trinity Phase 5.2 PRD patches F-003 FR-OUTPUT-D3 + F-007 FR-NOTIFY-01."
+status: sprint-04-phase5.1-operator-commit-smith-DONE-aguarda-Morpheus-dispatch-Trinity-phase5.2
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,37 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 5.1 Operator commit + push Smith adversarial report DONE** (@devops · Operator — 2026-05-07T17:00):
+  - **Trigger:** Handoff Morpheus → Operator (token H-S04-P6-MOR2OP-COMMIT-SMITH-001) — Eric Path A ratificado, step 1/6 chain Smith report standalone commit antes Trinity/Aria patches
+  - **Commit 4519ef1 (qa governance):** `qa(governance): Sprint 04 Phase 5 — Smith ULTRATHINK adversarial review pivot completo`
+    - **Files (2):** governance/qa/smith-sp04-pivot-adversarial.md (~20KB, 368 lines, 11 seções, 38 findings) + governance/CHECKPOINT-active.md (+47/-3 entries Phase 5 + Phase 6)
+    - **Stats:** 415 insertions / 3 deletions
+    - **URL:** https://github.com/Claudinoinsights/revisor-contratual/commit/4519ef1
+    - **Push success:** `18e5ac1..4519ef1 feat/sprint-04-cloud-pivot-v0.2.0 -> feat/sprint-04-cloud-pivot-v0.2.0`
+  - **Sprint 04 history atualizada (8 commits):**
+    - 439184a (Phase 2.0 branch creation)
+    - 5820800 (Phase 2.1 5 ADRs Sprint 04)
+    - 05342b6 (Phase 2.2 checkpoint)
+    - 03ab8ab (Phase 3+3.1 PRD v2.0.0)
+    - 90b9317 (Phase 3.2 checkpoint)
+    - 732e915 (Phase 4 UX spec OrSheva)
+    - 18e5ac1 (Phase 4.1 checkpoint)
+    - **4519ef1 (Phase 5 Smith adversarial review) ← AQUI**
+  - **Path A chain progress (1/6 step done):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1
+    - 🔜 [2/6] Trinity Phase 5.2 PRD patches F-003 FR-OUTPUT-D3 + F-007 FR-NOTIFY-01
+    - ⏳ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012
+    - ⏳ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria patches
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (5-15 dias)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha (após F-016 resolvido)
+  - **Decisões Operator Phase 5.1:**
+    - **D-OP-SP04-P5.1-A:** Skip CodeRabbit pre-push gate consistente Phases 2.2/3.2/4.1 (Smith report é governance markdown adversarial review, não código — CodeRabbit foca code review, não aplica). Padrão Sprint 04 estabelecido.
+    - **D-OP-SP04-P5.1-B:** 1 commit standalone (não bundle Trinity/Aria patches) — preserve evidence trail antes modificar PRD/ADRs. Future review pode rastrear: Smith identificou findings → Trinity+Aria patches Y → Operator commits sequenciais.
+    - **D-OP-SP04-P5.1-C:** TECH-DEBT.md NÃO populado ainda (defer Phase 6.2 ou pós-PR creation) — 19 HIGH + 13 MEDIUM + 2 LOW = 34 entries merece dispatch dedicado, não polui scope commit Phase 5.1.
+  - **Handoffs:**
+    - Morpheus → Operator (H-S04-P6-MOR2OP-COMMIT-SMITH-001): consumed:true (Operator consumiu via commit+push)
+    - Operator → Morpheus (H-S04-P5.1-OP2MOR-COMMIT-SMITH-DONE-001): emitido em `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase5.1-commit-smith-done.yaml`
+  - **Próximo:** Morpheus dispatch Trinity Phase 5.2 — PRD patches F-003 (FR-OUTPUT-D3 template Jinja2 separado petição D3) + F-007 (FR-NOTIFY-01 email transactional + in-app banner) via Skill `LMAS:agents:pm`
 - **Sessão 91 Sprint 04 Phase 6 Morpheus consolidação ORDEM 11 final + Eric Path A ratification** (@lmas-master · Morpheus — 2026-05-07T16:50):
   - **Trigger:** Handoff Smith → Morpheus (token H-S04-P5-SMITH2MOR-ADVERSARIAL-DONE-001) verdict CONCERNS + 38 findings + 3 paths Eric. Eric responde "execute o recomendado sempre pela Skill" + ultrathink keyword
   - **Decisão ORDEM 11:** **Path A ratificado** (Smith RECOMENDADO — patch all 4 CRITICAL antes PR)
