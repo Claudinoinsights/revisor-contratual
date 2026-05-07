@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T15:55"
+last_updated: "2026-05-07T16:15"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase3.2-Operator-PRD-commit-DONE-aguarda-Morpheus-dispatch-Sati
+status: sprint-04-phase4-Sati-UX-OrSheva-DONE-aguarda-Operator-commit
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -416,6 +416,31 @@ tags:
   - **Sprint 04 progress remote:** Phase 1 + 2 + 3 + 3.1 todos pushed
   - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase3.2-prd-commit-done.yaml` (token H-S04-P3.2-OP2MOR-PRD-COMMIT-DONE-001)
   - **Próximo:** Morpheus dispatch Sati Phase 4 — UX redesign OrSheva (workflow simplificado per Phase 3.1: dashboard 3 ações sem UI revisão complexa)
+- **Sessão 91 Sprint 04 Phase 4 — Sati UX Spec OrSheva DONE** (@ux-design-expert · Sati — 2026-05-07T16:15):
+  - **Trigger:** Morpheus dispatch H-S04-P4-MOR2SATI-UX-ORSHEVA-001 (Eric "avance sempre pelas skills corretas")
+  - **Output:** `governance/ux-spec-v2.0.0-DRAFT.md` (~22KB, 8 seções)
+  - **Estrutura UX Spec:**
+    1. Sumário — escopo simplificado (workflow PDF offline)
+    2. OrSheva Brandbook Application — token mapping completo (or/sh/pearl/bone/ink), fonts (Fraunces/Manrope/JetBrains/Frank Ruhl), themes light/dark, spacing scale
+    3. **8 Estados/Telas (S1-S8) com wireframes ASCII completos:**
+       - S1 Login — autenticação tenant
+       - S2 Onboarding — wizard 4 passos (Dados/Key/DPA/Tier)
+       - S3 Dashboard — listagem com filtros + tabela 3 ações 📥✅❌
+       - S4 Nova Análise — upload PDF + UF + Data + doctype selector
+       - S5 Processing — SSE 5 fases progress real-time
+       - S6 PDF Ready — CTA BAIXAR primário + Aprovar/Desaprovar
+       - S7 Settings — tabs Usuários/API Key/Tier/Billing com dual-key rotation UI
+       - S8 Admin — Eric only super-user view
+    4. **7 Componentes (C1-C7):** CTA, Tabela, Modal, Form Input, Progress, Tier Badge, Toast — anatomia + tokens + acessibilidade
+    5. Responsive breakpoints (mobile/tablet/desktop)
+    6. **WCAG AA accessibility:** contrast ratios auditados (or-500 on pearl 4.6:1 ✅), keyboard nav, screen reader, focus indicators, reduced motion, form errors pt-BR
+    7. **6 Notas UX críticas:** workflow respeita ferramenta advogado, CTA primário S6 é BAIXAR, onboarding 4 passos digestíveis, dark theme premium, grain texturas warmth, Frank Ruhl easter egg
+    8. Cross-references — PRD v2.0.0 FRs por tela + 5 ADRs + Atlas + OrSheva
+  - **Decisão UX crítica destaque:** S6 CTA primário é "Baixar PDF" (não Aprovar) — advogado precisa revisar antes; Aprovar/Desaprovar são secundários até audit log capturar download timestamp (ético-correct)
+  - **Workflow simplificado vs cenário UI complexa:** Sati surface menor (sem UI leitura/anotação relatório) — foco 90% em onboarding + dashboard + settings
+  - **Implicação Smith Phase 5:** adversarial review pode validar (a) WCAG AA real automatizado, (b) gaps workflow primeira análise, (c) mobile 320px robustez, (d) edge cases (key revoke durante análise, tier downgrade)
+  - **Handoff Sati → Morpheus:** `.lmas/handoffs/handoff-ux-to-morpheus-2026-05-07-sp04-phase4-ux-orsheva-done.yaml` (token H-S04-P4-SATI2MOR-UX-DONE-001)
+  - **Próximo:** Morpheus dispatch Operator commit + push UX spec → dispatch Smith Phase 5 adversarial review pivot completo
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
