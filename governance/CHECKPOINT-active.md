@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T16:15"
+last_updated: "2026-05-07T16:25"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase4-Sati-UX-OrSheva-DONE-aguarda-Operator-commit
+status: sprint-04-phase4.1-Operator-UX-commit-DONE-aguarda-Morpheus-dispatch-Smith
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -441,6 +441,19 @@ tags:
   - **Implicação Smith Phase 5:** adversarial review pode validar (a) WCAG AA real automatizado, (b) gaps workflow primeira análise, (c) mobile 320px robustez, (d) edge cases (key revoke durante análise, tier downgrade)
   - **Handoff Sati → Morpheus:** `.lmas/handoffs/handoff-ux-to-morpheus-2026-05-07-sp04-phase4-ux-orsheva-done.yaml` (token H-S04-P4-SATI2MOR-UX-DONE-001)
   - **Próximo:** Morpheus dispatch Operator commit + push UX spec → dispatch Smith Phase 5 adversarial review pivot completo
+- **Sessão 91 Sprint 04 Phase 4.1 — Operator commit UX spec OrSheva DONE** (@devops · Operator — 2026-05-07T16:25):
+  - **Trigger:** Morpheus dispatch H-S04-P4.1-MOR2OP-COMMIT-UX-001 (Eric "execute o recomendado sempre pela Skill")
+  - **Commit consolidado:** **`732e915`** — feat(governance): Sprint 04 Phase 4 — UX Spec v2.0.0 OrSheva (8 telas + 7 componentes)
+    - 2 files: 614 insertions / 2 deletions
+    - UX Spec v2.0.0 DRAFT criado (~22KB, 8 seções)
+    - Checkpoint atualizado com entry Phase 4
+  - **Push:** `90b9317..732e915 feat/sprint-04-cloud-pivot-v0.2.0` ✅
+  - **Commit URL:** https://github.com/Claudinoinsights/revisor-contratual/commit/732e915
+  - **Skip CodeRabbit:** governance docs only
+  - **NÃO criou PR** (Smith Phase 5 pendente)
+  - **Sprint 04 progress remote:** Phases 1+2+3+4 todos pushed
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase4.1-ux-commit-done.yaml` (token H-S04-P4.1-OP2MOR-UX-COMMIT-DONE-001)
+  - **Próximo:** Morpheus dispatch Smith Phase 5 — adversarial review pivot completo (PRD v2.0.0 + 5 ADRs + UX spec OrSheva); último gate antes de verdict Eric ORDEM 11 final
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
