@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.28 Neo Trilha 4-prep audit chain finding — implementação JÁ EXISTE em bloco_audit (Phase 0, 26 tests). Gap integration auto_trigger/state registrado como TD-T9-AUDIT-INTEGRATION (MED). Suite 398+3. Aguarda Morpheus consolidar."
-status: sprint-03-cc28-neo-finding-audit-chain-aguarda-morpheus
+active_story: "CC.28.B Operator push CC.28 finding DONE — bloco_audit finding publicado em PR #2. Comment URL #issuecomment-4393715589. Aguarda Morpheus consolidar ABSOLUTO FINAL DEFINITIVO."
+status: sprint-03-cc28b-operator-push-done-aguarda-morpheus-absoluto-final-definitivo
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,27 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.28.B Operator push CC.28 finding DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
+  - **Pre-push gate empírico:** working tree clean ✅; pytest **398 passed + 3 skipped** em 63.35s ✅
+  - **Push:** fast-forward `4464fb5..64ed9e4` em `feat/mvp-lean-01-task1-layout-base` (1 commit doc-only CC.28)
+  - **PR #2:** comment publicado [#issuecomment-4393715589](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4393715589) — finding bloco_audit já existe + gap registrado + honestidade técnica + sumário 26 etapas CC
+  - **PR #2 progresso:** 8/9 = 89% + Smith loop completíssimo + honestidade técnica documentada
+  - **PRs paralelos estado pós CC.28:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% **+ Smith loop completíssimo + finding CC.28** — bloqueio review independente
+  - **Suite remote final:** **398 passed + 3 skipped**
+  - **Tech debts:** 17 active (16 anteriores + 1 CC.28 TD-T9-AUDIT-INTEGRATION) + 11 RESOLVED em TECH-DEBT.md
+  - **Honestidade técnica documentada:** finding > código duplicado
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-06-cc28-push-done.yaml` (token H-S03-CC28-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.28 ABSOLUTO FINAL DEFINITIVO + sinaliza Eric com sumário sessão 91 + 4 trilhas restantes
+- **Sessão 91 CC.28.B Morpheus consolida Trilha A** (@lmas-master · Morpheus — 2026-05-06, **dispatch Operator push fast-forward CC.28 doc-only**):
+  - **Decisão:** Trilha A (push incremental doc-only + pause ABSOLUTO) — convergente com recomendação Neo
+  - **Razões:** (1) Commit `64ed9e4` é doc-only (zero risco regressão); (2) Push imediato torna finding Neo visível Eric — evita Eric pensar que trabalho redundante foi feito; (3) Tech debt registrado é informação valiosa para Eric/futuros agentes; (4) **Após push, NENHUMA trilha é Skill-dispachable** — todas exigem Eric humano
+  - **Operação:** Operator push fast-forward `4464fb5..64ed9e4` (1 commit doc-only)
+  - **PR #2:** ganha visibility — finding bloco_audit já existe + gap registrado
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc28-push-finding.yaml` (token H-S03-CC28-MOR2OPERATOR-001)
+  - **26 etapas CC totais:** CC.6 → CC.28.B sequenciais
+  - **Próximo:** Operator pre-push gate → push → comment PR #2 → handoff back Morpheus → consolidação ABSOLUTA FINAL DEFINITIVA CC.28 + sinal Eric pause
 - **Sessão 91 reaberta CC.28 — Neo Trilha 4-prep audit chain finding** (@dev · Neo — 2026-05-06, **finding doc-only ~10min real**):
   - **Decisão CC.28:** Eric persistiu pós pause absoluto final CC.27 (quarto pause da sessão) — única trilha Skill-dispachável = Task 9-prep audit chain HMAC
   - **Finding crítico:** `bloco_audit/chain.py` (FR-AUDIT-01 ADR-005) JÁ EXISTE em Phase 0 com 26 tests passando — `append_audit_entry()`, `verify_audit_integrity()`, `get_genesis_hash()`, exceptions, leitura eficiente última linha
