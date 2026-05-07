@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T18:10"
-active_story: "Sessão 91 Sprint 04 Phase 6 Operator F-016 WAIVED + TECH-DEBT.md DONE (Ação 6.1 + 6.2) — TD-WAIVED-001 documentado em governance/TECH-DEBT.md (appended Sprint 04 section preservando Sprint 01 closure existente). Path A 5/6 done. Próximo: Ações 6.3-6.9 (commit + push + PR + tag v0.2.0-alpha + checkpoint final)."
-status: sprint-04-phase6-operator-F016-WAIVED-tech-debt-DONE-aguarda-acoes-6.3-6.9
+last_updated: "2026-05-07T18:30"
+active_story: "Sessão 91 Sprint 04 Phase 6 Operator PR + tag v0.2.0-alpha SHIPPED — Sprint 04 governance COMPLETE. Path A chain 6/6 ✅ done. Smith CRITICAL all closed (F-003+F-007+F-012 via spec + F-016 WAIVED Eric). PR #3 open: https://github.com/Claudinoinsights/revisor-contratual/pull/3. Tag v0.2.0-alpha pushed em branch feature. Sprint 04 history: 12 commits totais. Próximo: Eric merge PR (decisão Eric quando) → Phase 7+ implementation (~14 stories Neo)."
+status: sprint-04-phase6-operator-PR-tag-SHIPPED-sprint-04-governance-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,54 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 6 Operator PR + tag v0.2.0-alpha SHIPPED — Sprint 04 governance COMPLETE** (@devops · Operator — 2026-05-07T18:30):
+  - **9 ações Phase 6 executadas autonomously** (Eric directive "execute a fase completa sem me questionar"):
+    - **Ação 6.1** ✅ TECH-DEBT.md Sprint 04 section appended (preservando Sprint 01 closure existente)
+    - **Ação 6.2** ✅ Checkpoint Phase 6 Operator F-016 WAIVED entry inline
+    - **Ação 6.3** ✅ Commit `6906367` qa governance (TECH-DEBT + checkpoint, 173 insertions / 3 deletions)
+    - **Ação 6.4** ✅ Push `4fb771e..6906367`
+    - **Ação 6.5** ✅ PR #3 created via gh CLI: https://github.com/Claudinoinsights/revisor-contratual/pull/3
+    - **Ação 6.6** ✅ Tag `v0.2.0-alpha` annotated criado + pushed em branch feature
+    - **Ação 6.7** ✅ Checkpoint final entry inline com PR URL + tag (este entry)
+    - **Ação 6.8** 🔄 Commit checkpoint final + push (next)
+    - **Ação 6.9** 🔄 Emit handoff Operator → Morpheus final (next)
+  - **PR #3 detalhes:**
+    - Title: "Sprint 04 — Cloud SaaS BYOK Pivot (v0.2.0-alpha)"
+    - Base: `main` ← Head: `feat/sprint-04-cloud-pivot-v0.2.0`
+    - Body: Smith findings status (4/4 closed) + Path A chain + artefatos governance + test plan + merge instructions
+    - URL: https://github.com/Claudinoinsights/revisor-contratual/pull/3
+  - **Tag v0.2.0-alpha:**
+    - Annotated tag em branch feature ANTES merge (re-pointable post-merge)
+    - Message inclui Smith CRITICAL status final + PR URL + Phase 7+ implementation pending
+    - Pushed: `* [new tag] v0.2.0-alpha -> v0.2.0-alpha`
+  - **Sprint 04 history (12 commits):**
+    - 439184a (Phase 2.0 branch creation)
+    - 5820800 (Phase 2.1 5 ADRs)
+    - 05342b6 (Phase 2.2 checkpoint)
+    - 03ab8ab (Phase 3+3.1 PRD v2.0.0)
+    - 90b9317 (Phase 3.2 checkpoint)
+    - 732e915 (Phase 4 UX OrSheva)
+    - 18e5ac1 (Phase 4.1 checkpoint)
+    - 4519ef1 (Phase 5 Smith adversarial review)
+    - 32b987c (Phase 5.1 Operator checkpoint)
+    - cc183c5 (Phase 5.2+5.3 Trinity+Aria patches)
+    - 4fb771e (Phase 5.4 Operator checkpoint)
+    - **6906367 (Phase 6 F-016 WAIVED + TECH-DEBT.md) ← AQUI**
+  - **Path A chain 6/6 ✅ COMPLETE:**
+    - ✅ [1/6] Operator Phase 5.1 commit Smith report — 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1
+    - ✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012
+    - ✅ [4/6] Operator Phase 5.4 commit consolidado — cc183c5+4fb771e
+    - ✅ [5/6] Eric WAIVED F-016 LGPD — TD-WAIVED-001
+    - ✅ [6/6] Operator Phase 6 PR + tag v0.2.0-alpha — 6906367 + PR #3 + tag
+  - **Smith CRITICAL status FINAL: 4/4 ALL CLOSED**
+  - **Decisões Operator autonomous (Eric authorization):**
+    - **D-OP-SP04-P6-A:** TECH-DEBT.md preserve Sprint 01 closure existente + append Sprint 04 section (não destructive overwrite)
+    - **D-OP-SP04-P6-B:** PR #3 base=main head=feat/sprint-04-cloud-pivot-v0.2.0 — NÃO merge (Eric decide)
+    - **D-OP-SP04-P6-C:** Tag v0.2.0-alpha em branch feature pre-merge (re-pointable post-merge se squash)
+    - **D-OP-SP04-P6-D:** Skip CodeRabbit gate consistente Phases 2.2/3.2/4.1/5.1/5.4 (governance docs)
+    - **D-OP-SP04-P6-E:** Pre-push hooks rodaram normalmente sem --no-verify
+  - **Próximo:** Eric merge PR #3 (decisão Eric quando) → Phase 7+ implementation (~14 stories Sprint 04 estimated 8-12 semanas Neo via Skills)
 - **Sessão 91 Sprint 04 Phase 6 Operator F-016 WAIVED + TECH-DEBT.md** (@devops · Operator — 2026-05-07T18:10):
   - **Trigger:** Eric directive "execute a fase completa sem me questionar, decida pela Skill" + handoff Morpheus → Operator (token H-S04-P6-MOR2OP-PR-TAG-V020-ALPHA-001)
   - **Ação 6.1 DONE:** TECH-DEBT.md (preexistente Sprint 01 closure) — appended new Sprint 04 Phase 6 section preservando 13+ existing tech debts. Conteúdo:
