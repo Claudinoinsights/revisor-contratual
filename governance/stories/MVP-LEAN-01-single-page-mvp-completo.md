@@ -390,6 +390,39 @@ Neo (durante implementação) DEVE consultar:
 
 ## Change Log
 
+### Task 9-prep CC.28 audit chain finding 2026-05-06 (Neo sessão 91 CC.28)
+
+**Status:** InProgress (Tasks 1-8 done + Smith loop completíssimo + RR refinement; Task 9 final ainda pending)
+
+**Finding CC.28 Trilha 4-prep (zero código novo, doc-only):**
+
+Eric persistiu "via Skill" pós pause absoluto final CC.27. Análise das 4 trilhas restantes identificou Task 9-prep (audit chain HMAC verification) como única Skill-dispachável. Ao iniciar implementação, descoberto que **`bloco_audit/chain.py` JÁ EXISTE** (FR-AUDIT-01 ADR-005, implementado em Phase 0) com:
+- `append_audit_entry(event_type, payload)` — write com chain
+- `verify_audit_integrity(audit_path)` — verifica chain inteira O(N)
+- `get_genesis_hash()` — HMAC ancorado em `.audit-genesis.lock`
+- `AuditChainError` + `AuditIntegrityError` exceptions
+- **26 tests passando** em `tests/unit/test_audit.py`
+
+**Gap real identificado:** `bloco_dataset/auto_trigger.py:_write_audit` + `bloco_dataset/tema_1378_state.py:acknowledge` fazem direct `f.write(json.dumps(entry))` SEM passar por `append_audit_entry()`. Entries dessas funções (tipo `tema_1378_auto_check` + `tema_1378_acknowledge`) NÃO são cobertas pela chain HMAC verification.
+
+**Decisão Neo:** Registrar gap como tech debt `TD-T9-AUDIT-INTEGRATION` (MED) em `governance/TECH-DEBT.md`. Refactor menor (~1-2h) faz parte de Task 9 final junto com smoke E2E real (que exige environment Eric).
+
+**Quality gate empírico:** N/A — sem mudança de código (apenas registry update + doc).
+**Suite preservada:** 398 passed + 3 skipped (zero regressão).
+
+**Tempo real Neo:** ~10min (investigação + finding + registry update).
+
+**Honestidade técnica:** trabalho redundante evitado — handoff Morpheus pedia recriar implementação que já existe há semanas. Reportar finding > criar código duplicado.
+
+**File List CC.28:**
+- MOD: `governance/TECH-DEBT.md` (+nova seção "Sprint 03 CC.28 — Task 9-prep audit chain finding")
+- MOD: `governance/CHECKPOINT-active.md` (entry CC.28 inline)
+
+**Próximos passos:**
+- Task 9 final (Neo, ~4-5h): smoke E2E real + audit integration (TD-T9-AUDIT-INTEGRATION) → MVP-LEAN-01 Done 9/9 = 100% (depende Eric environment)
+
+---
+
 ### Task 8b CC.27 fix-of-fix Trilha 6 done 2026-05-06 (Neo sessão 91 CC.27)
 
 **Status:** InProgress (Tasks 1-8 done com fixes Smith-validated + RR refinement aplicado; Task 9 pending)

@@ -369,3 +369,27 @@ tags:
 - **Tempo real Neo:** ~30min (Fase A 4 LOWs ~15min + Fase B test RR-01 ~10min + Fase C RR-02 doc ~5min)
 
 *Sprint 03 CC.27 fix-of-fix Trilha 6 — Neo (sessão 91, 2026-05-06) · 5 RESOLVED + 1 ACTIVE accepted-debt.*
+
+---
+
+## Sprint 03 CC.28 — Task 9-prep audit chain finding (1 NEW)
+
+> Origem: Neo CC.28 Trilha 4-prep (audit chain HMAC verification) — sessão 91, 2026-05-06.
+> Finding: implementação `bloco_audit/chain.py` JÁ EXISTE (Phase 0) com 26 tests passando.
+> Gap real: integration pendente em auto_trigger / tema_1378_state.
+
+### Active Items — CC.28
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-T9-AUDIT-INTEGRATION | Neo CC.28 | MED | `bloco_dataset/auto_trigger.py:_write_audit` + `bloco_dataset/tema_1378_state.py:acknowledge` fazem direct `f.write(json.dumps(entry))` sem passar por `bloco_audit.chain.append_audit_entry()`. Entries dessas funções (tema_1378_auto_check + tema_1378_acknowledge) NÃO são cobertas pela chain HMAC verification. Refactor menor: substituir direct write por `append_audit_entry(event_type, payload, ...)` + ajustar entry format ({ts, event_type, payload} vs atual {type, timestamp, ...}). | 1-2h | @dev | 2026-05-06 |
+
+### Sumário CC.28
+
+- **Finding:** `bloco_audit/chain.py` (FR-AUDIT-01 ADR-005) JÁ IMPLEMENTADO em Phase 0 — `append_audit_entry()` + `verify_audit_integrity()` + `get_genesis_hash()` + 26 tests em `tests/unit/test_audit.py` passando ✅
+- **Trabalho redundante evitado:** handoff CC.28 pedia recriar `bloco_audit/` que já existia
+- **Gap real:** integration pendente — `auto_trigger._write_audit` + `tema_1378_state.acknowledge` precisam usar `append_audit_entry()` para que entries Tema 1378 também sejam validáveis via chain HMAC
+- **Suite preservada:** 398+3 (zero mudança código nesta CC)
+- **Decisão:** registrar gap como tech debt MED (TD-T9-AUDIT-INTEGRATION); fix faz parte de Task 9 final junto com smoke E2E real
+
+*Sprint 03 CC.28 audit chain finding — Neo (sessão 91, 2026-05-06) · 1 NEW tech debt MED.*

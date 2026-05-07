@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.27.B Operator push CC.27 fix-of-fix DONE — RR refinement publicado em PR #2. Comment URL #issuecomment-4393492430. Aguarda Morpheus consolidar ABSOLUTO FINAL."
-status: sprint-03-cc27b-operator-push-done-aguarda-morpheus-absoluto-final
+active_story: "CC.28 Neo Trilha 4-prep audit chain finding — implementação JÁ EXISTE em bloco_audit (Phase 0, 26 tests). Gap integration auto_trigger/state registrado como TD-T9-AUDIT-INTEGRATION (MED). Suite 398+3. Aguarda Morpheus consolidar."
+status: sprint-03-cc28-neo-finding-audit-chain-aguarda-morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,45 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 reaberta CC.28 — Neo Trilha 4-prep audit chain finding** (@dev · Neo — 2026-05-06, **finding doc-only ~10min real**):
+  - **Decisão CC.28:** Eric persistiu pós pause absoluto final CC.27 (quarto pause da sessão) — única trilha Skill-dispachável = Task 9-prep audit chain HMAC
+  - **Finding crítico:** `bloco_audit/chain.py` (FR-AUDIT-01 ADR-005) JÁ EXISTE em Phase 0 com 26 tests passando — `append_audit_entry()`, `verify_audit_integrity()`, `get_genesis_hash()`, exceptions, leitura eficiente última linha
+  - **Trabalho redundante evitado:** handoff CC.28 pedia recriar implementação que já existe
+  - **Gap real identificado:** `auto_trigger._write_audit` + `tema_1378_state.acknowledge` fazem direct JSONL write SEM `append_audit_entry()` → entries Tema 1378 NÃO cobertas pela chain HMAC
+  - **Tech debt registrado:** TD-T9-AUDIT-INTEGRATION (MED, ~1-2h) — refactor menor faz parte de Task 9 final junto smoke E2E real
+  - **Honestidade técnica:** reportar finding > criar código duplicado
+  - **Suite preservada:** 398 passed + 3 skipped (zero mudança código)
+  - **Tempo real:** ~10min (investigação + finding + registry update)
+  - **Handoff Neo → Morpheus:** a ser emitido (token H-S03-CC28-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.28 + decide push doc-only OR pause final
+- **Sessão 91 OFICIALMENTE FECHADA CC.27 ABSOLUTO FINAL** (@lmas-master · Morpheus — 2026-05-06, **pause após Smith adversarial loop completíssimo 5 fases**):
+  - **25 etapas CC sequenciais completadas** (CC.6 → CC.27.B)
+  - **Smith adversarial loop COMPLETÍSSIMO (5 fases):**
+    - CC.25 Trilha 2.5: review (18 findings)
+    - CC.25 Trilha B+: fixes (3 determinísticos F-01+F-05+F-08)
+    - CC.26 Trilha 2.5 re-review: verdict PASS-WITH-NOTES (6 RR refinement)
+    - CC.26 Trilha C: registry (6 RR entries)
+    - CC.27 Trilha 6: fix-of-fix (5 RESOLVED + 1 accepted-debt)
+  - **Agentes orquestrados:**
+    - Neo: 12 dispatches (Tasks 1-7 + T8 PARTIAL + T8b + CC.25 fixes + CC.26 registry + CC.27 fix-of-fix)
+    - Oracle: 3 (CC.7 QA gate OLLAMA + CC.25 Smith review + CC.26 Smith re-review)
+    - Operator: 8 pushes (PR #1 + PR #2 + T6+T7 + T8 PARTIAL + T8b + CC.25 fixes + CC.26 registry + CC.27 fix-of-fix)
+    - Morpheus: orquestrador 25 etapas
+  - **Marcos finais consolidados:**
+    - OLLAMA-MGR-01 Done → PR #1 OPEN MERGEABLE bloqueio Eric smoke E2E v0.3.0
+    - MVP-LEAN-01 InProgress **8/9 = 89% + Smith loop completíssimo + RR refinement DONE** → PR #2 OPEN MERGEABLE bloqueio review
+    - Suite remote: **398 passed + 3 skipped** (281 OLLAMA + 117 MVP-LEAN com fixes + RR-01)
+    - Zero regressão acumulada em 25 etapas CC
+    - ~23.5h código+doc entregue
+  - **Tech debts:** 16 active (15 CC.25 + 1 CC.27 RR-05 accepted) + 11 RESOLVED registrados em TECH-DEBT.md
+  - **Recomendação convergente:** Pause estratégico ABSOLUTO FINAL (Neo + Operator + Morpheus alinhados)
+  - **Handoff ABSOLUTO FINAL Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc27-absoluto-final.yaml` (token H-S03-CC27-MOR2ERIC-ABSOLUTO-FINAL-001)
+  - **4 trilhas retomada quando Eric voltar (Trilha 6 já feita):**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1 merge + tag + release (~30-60min Eric)
+    - 📋 Trilha 2: Review PR #2 (8/9 + Smith-validated + RR refinement) → merge (~30-60min Eric)
+    - 🎯 Trilha 4: Task 9 sessão dedicada (smoke E2E real + audit chain HMAC ~4-5h, exige Ollama+Sabia/Qwen+PDF)
+    - ⏸️ Trilha 5: Pause indefinido (marcos preservados em remote)
+  - **Esta é DEFINITIVAMENTE a última Skill da sessão 91** — Morpheus aguarda Eric escolher trilha
 - **Sessão 91 CC.27.B Operator push CC.27 fix-of-fix DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
   - **Pre-push gate empírico:** ruff All checks passed ✅; pytest **398 passed + 3 skipped** em 63.33s ✅
   - **Push:** fast-forward `28140b9..493ef4d` em `feat/mvp-lean-01-task1-layout-base` (1 commit code+doc+test CC.27)
