@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T13:55"
+last_updated: "2026-05-07T14:00"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase2-KICKOFF-Operator-branch-creation-then-Aria-5-ADRs
+status: sprint-04-phase2.0-branch-DONE-aguarda-Morpheus-dispatch-Aria-5-ADRs
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -274,6 +274,18 @@ tags:
     - Billing engine choice (Stripe ou Asaas)
     - Mifune cross-domain participation opcional (validar pricing benchmark)
   - **Próximo:** Operator dispatch quick-branch creation (token H-S04-P2-MOR2OP-BRANCH-001)
+- **Sessão 91 Sprint 04 Phase 2.0 — Operator branch creation DONE** (@devops · Operator — 2026-05-07T14:00):
+  - **Trigger:** Morpheus dispatch isolar Sprint 04 work de Sprint 03 ancorado
+  - **Step A — commit research pré-branch:** `d53011e docs(governance): Atlas v1+v2 research + checkpoint Sprint 04 transition` (3 files: 835+/2-)
+    - Pushed em `feat/mvp-lean-01-task1-layout-base` (c755b1e..d53011e)
+  - **Step B — branch nova criada:** `feat/sprint-04-cloud-pivot-v0.2.0` from d53011e
+    - Pushed origin com upstream tracking
+    - URL: https://github.com/Claudinoinsights/revisor-contratual/tree/feat/sprint-04-cloud-pivot-v0.2.0
+  - **Step C — validado:** branch atual = `feat/sprint-04-cloud-pivot-v0.2.0`, log limpo
+  - **Sprint 03 anchor preservado:** `feat/mvp-lean-01-task1-layout-base` last commit d53011e — base de comparação se rollback necessário
+  - **Aria escreverá 5 ADRs em branch nova** — isolado de Sprint 03
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase2-branch-done.yaml` (token H-S04-P2-OP2MOR-BRANCH-DONE-001)
+  - **Próximo:** Morpheus dispatch Aria Phase 2 — 5 ADRs em branch nova
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
