@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T14:45"
+last_updated: "2026-05-07T15:45"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase2.2-Operator-commit-DONE-aguarda-Morpheus-consolida-Eric
+status: sprint-04-phase3.1-Trinity-PRD-patch-PDF-workflow-DONE-aguarda-Operator
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -333,6 +333,76 @@ tags:
   - **History preservada:** Sprint 03 anchor `feat/mvp-lean-01-task1-layout-base @ d53011e` intacto
   - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase2.2-commit-adrs-done.yaml` (token H-S04-P2.2-OP2MOR-COMMIT-ADRS-DONE-001)
   - **Próximo:** Morpheus consolida ORDEM 11 + apresenta resumo dos 5 ADRs novos a Eric → Eric aprova → dispatch Trinity Phase 3 PRD v2.0.0 OR pede ajustes
+- **Sessão 91 Sprint 04 Phase 2.3 — Morpheus consolidação + apresentação Eric** (@lmas-master · Morpheus — 2026-05-07T15:00):
+  - **Trigger:** Operator Phase 2.2 done (commits 5820800 + 05342b6 pushed); Eric "avance sempre pelas skills corretas"
+  - **Operator handoff consumed:true** (mark Morpheus internal)
+  - **Apresentação executiva a Eric:** 5 ADRs novos (paragraph each) + supersede chain visual + pendências cross-domain + 4 opções decisão (numbered)
+  - **ADR-017 destacado como BACKBONE** — peça central; outros ADRs derivam dele (PostgreSQL+RLS+LGPD operador)
+  - **Pendências cross-domain flaggadas:**
+    - ADR-018 valores absolutos R$ pricing → Mifune (business) OR Eric decide direto
+    - ADR-016 conteúdo legal templates D3 → Trinity Phase 3 PRD + Eric advogado
+    - DPA template → Eric advogado redige paralelo a Trinity
+  - **4 opções decisão apresentadas a Eric:**
+    1. Aprovar Phase 2.1 → dispatch Trinity Phase 3 PRD v2.0.0
+    2. Pedir ajustes ADR específico
+    3. Pausar Sprint 04 (revisar antes Phase 3)
+    4. Aprovar + começar DPA template paralelo
+  - **HALT** — não auto-progredir Phase 3 sem aprovação Eric
+  - **Próximo:** Eric decide 1/2/3/4 → Morpheus reage conforme escolha
+- **Sessão 91 Sprint 04 Phase 3 KICKOFF — Eric "execute o recomendado" → Morpheus Opção 4 + dispatch Trinity** (@lmas-master · Morpheus — 2026-05-07T15:10):
+  - **Trigger:** Eric "execute o recomendado sempre pela Skill" — Morpheus decide + executa
+  - **Decisão Morpheus:** **Opção 4 — Aprovar Phase 2.1 + DPA paralelo**
+  - **Razão:** paralelismo crítico path — Trinity escreve PRD v2.0.0 enquanto Eric (advogado) redige DPA template. DPA é OBRIGATÓRIO para ADR-017 LGPD operador funcional; não pode aguardar Sprint 04 conclusion
+  - **Phase 2.1 ADRs APROVADOS** (status proposed mantido até Eric ratificar formalmente em PR review final)
+  - **Eric paralelo:** redigir DPA template Eric-escritório (Atlas v2 Section 4 listou 9 pontos estruturais)
+  - **Dispatch Trinity (PM) Phase 3:**
+    - Token: H-S04-P3-MOR2TRINITY-PRD-V200-001
+    - Output: `governance/prd/prd-v2.0.0-DRAFT.md`
+    - Inputs: Atlas v1+v2 research + 5 ADRs novos + Eric autorizações Phase 1.7-1.7.1 + OrSheva brandbook
+    - PRD v2.0.0 MAJOR: cloud LLM, BYOK, multi-tenant, 4 doctypes, vision OCR, per-approval billing, LGPD operador
+    - Delta section v1.1.2 → v2.0.0 obrigatório (per prd-governance.md)
+    - Stories impact: MVP-LEAN-01 superseded? Split 4 doctype stories?
+  - **Próximo:** Trinity entrega PRD v2.0.0 DRAFT → Operator commit → dispatch Sati Phase 4 (UX OrSheva)
+- **Sessão 91 Sprint 04 Phase 3 — Trinity PRD v2.0.0 DRAFT DONE** (@pm · Trinity Morgan — 2026-05-07T15:30):
+  - **Trigger:** Morpheus dispatch H-S04-P3-MOR2TRINITY-PRD-V200-001 (Eric "execute o recomendado" Opção 4 = aprovar Phase 2.1 + DPA paralelo)
+  - **Output:** `governance/prd/prd-v2.0.0-DRAFT.md` (~14KB, 12 seções)
+  - **PRD v2.0.0 MAJOR bump** — supersedes PRD v1.1.2 integralmente
+  - **Estrutura PRD:**
+    1. Sumário Executivo — pivot SaaS B2B BYOK
+    2. Público-alvo — escritórios advocacia BR
+    3. Modelo de Negócio — BYOK + Hybrid pricing (Mifune cross-domain pendente valores)
+    4. **25+ FRs revisados** (FR-AUTH-* / FR-API-KEY-* / FR-OCR-* / FR-DOCTYPE-* / FR-PERSONAS-* / FR-D3-* / FR-APPROVE-* / FR-BILLING-* / FR-AUDIT-* / FR-LGPD-* / FR-DASH-* / FR-ADMIN-*)
+    5. **5 NFRs adaptados** (PERF, COST, LGPD, SCALE, AUDIT, AVAILABILITY, SUPPORT)
+    6. 6 Constraints (LGPD operador, Anthropic only, per-approval, volume aspiracional, stack Hybrid, online required)
+    7. 10 Out-of-Scope (multi-provider, KMS customer-managed, mais doctypes, mobile, sub-keys, offline, integrações, white-label, push, HIPAA/SOC)
+    8. **Section Delta v1.1.2 → v2.0.0** OBRIGATÓRIO (per prd-governance.md): Added/Modified/Removed/Escopo
+    9. Changelog MAJOR
+    10. **13 Stories sugeridas Sprint 04** (SP04-AUTH/LGPD/BYOK/OCR/DOCTYPE-{DISPATCHER,VEICULAR,FIES,BANCARIO,IMOBILIARIO}/APPROVE/BILLING/DASH/ADMIN)
+    11. Cross-references (Atlas v1+v2 + 5 ADRs + decisões Eric + Smith)
+    12. Pendências cross-domain
+  - **Pendências cross-domain flaggadas (Trinity não decide):**
+    - Valores absolutos R$ pricing → Mifune ou Eric direto
+    - Conteúdo legal templates D3 → Eric advogado
+    - Texto DPA + TOS operador → Eric advogado paralelo Phase 3
+    - UX redesign OrSheva → Sati Phase 4
+    - Adversarial review → Smith Phase 5
+  - **Handoff Trinity → Morpheus:** `.lmas/handoffs/handoff-pm-to-morpheus-2026-05-07-sp04-phase3-prd-v200-done.yaml` (token H-S04-P3-TRINITY2MOR-PRD-V200-DONE-001)
+  - **Próximo:** Operator commit + push PRD v2.0.0 → Morpheus consolida → dispatch Sati Phase 4 UX redesign OrSheva
+- **Sessão 91 Sprint 04 Phase 3.1 — Trinity patch PRD v2.0.0 PDF workflow DONE** (@pm · Trinity Morgan — 2026-05-07T15:45):
+  - **Trigger:** Eric clarification "advogado apenas pega PDF gerado para aprovar/desaprovar" — workflow simplifica
+  - **7 patches aplicados em PRD v2.0.0 DRAFT** (sem novo bump — ainda DRAFT, edit direto):
+    1. **FR-OUTPUT-01..04 NEW** — PDF Generation server-side (Jinja2 + WeasyPrint/ReportLab); marca d'água "Análise IA — Revisão por Advogado Obrigatória"
+    2. **FR-APPROVE-01 simplificado** — UI dashboard com 3 ações [Baixar PDF] + [Aprovar] + [Desaprovar]; sem UI de revisão complexa (advogado revisa PDF offline)
+    3. **FR-D3-01 atualizado** — Petição Apelação Cível também em PDF (consistência)
+    4. **Delta Section 8 atualizado** — added "PDF Generation server-side" + "Workflow simplificado approval"
+    5. **SP04-PDF-OUTPUT-01 NEW story** — geração PDF entre SP04-DOCTYPE-IMOBILIARIO-01 e SP04-APPROVE-01 (total stories 13 → 14)
+    6. **SP04-DASH-01 ajustado** — descrição inclui [Baixar PDF] + [Aprovar] + [Desaprovar]
+    7. **NFR-PDF-01 NEW** — geração PDF ≤3s + failover graceful
+  - **Frontmatter atualizado:** `last_updated: 2026-05-07T15:45` + campo `patches:` documentando edit
+  - **Implicação ADRs:** ADR-018 state machine PRESERVADO (approval click ainda billing trigger); nenhum ADR precisa mudar
+  - **Implicação UX (Sati Phase 4):** workflow simplificado significantemente — Sati não precisa desenhar UI de leitura complexa de relatório no app; foco fica no flow upload → wait → download PDF + approve/reject button
+  - **Handoff Trinity → Morpheus:** `.lmas/handoffs/handoff-pm-to-morpheus-2026-05-07-sp04-phase3.1-prd-patch-pdf.yaml` (token H-S04-P3.1-TRINITY2MOR-PATCH-DONE-001)
+  - **Próximo:** Morpheus dispatch Operator (commit PRD v2.0.0 patched) → dispatch Sati Phase 4 com PRD ajustado
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
