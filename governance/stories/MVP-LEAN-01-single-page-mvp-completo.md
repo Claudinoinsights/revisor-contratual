@@ -390,6 +390,68 @@ Neo (durante implementação) DEVE consultar:
 
 ## Change Log
 
+### Task 8b CC.25 apply-qa-fixes Trilha B+ done 2026-05-06 (Neo sessão 91 CC.25)
+
+**Status:** InProgress (Tasks 1-8 done com Smith review fixes aplicados; Task 9 pending)
+
+**Implementação CC.25 Trilha B+ (~1h real vs ~1-1.5h estimado):**
+
+Pós Oracle Smith adversarial review T8b (CC.25 Trilha 2.5 — 18 findings: 1 CRITICAL + 7 HIGH + 7 MED + 3 LOW), aplicados 3 fixes determinísticos + 15 tech debts registrados:
+
+- **F-01 fix (CRITICAL — feature flag) em `bloco_backup/scheduler.py`:** Job 3 `tema_1378_check` agora condicional em env var `ENABLE_TEMA_1378_AUTO_CHECK` (default false). Em prod, scheduler NÃO registra scraper sem env explícito → mitiga catastrophic-fail-em-loop quando URL placeholder não funciona. Logger documenta decisão.
+
+- **F-05 fix (HIGH — User-Agent) em `bloco_dataset/scraper_tema_1378.py`:** Adicionada constante `DEFAULT_HEADERS` com User-Agent Mozilla/5.0 + Accept-Language pt-BR + Accept HTML. httpx.Client passa `headers=DEFAULT_HEADERS`. STJ provavelmente bloqueia bot UA `python-httpx/X` — agora identifica como browser real com referência ao projeto.
+
+- **F-08 fix (HIGH — invariant) em `bloco_dataset/auto_trigger.py:run_camada_1_check`:** Lógica corrigida para preservar fail_count quando estado atual é vermelho-via-fails-consecutivas (≥2). Auto-downgrade silencioso (vermelho → amarelo via scrape) é proibido pela invariante Task 7 SOP-005 — maintainer DEVE chamar `acknowledge()` explicitamente. Preserva info forense + protocolo ack manual.
+
+- **`governance/TECH-DEBT.md` (apend nova seção):** 15 tech debts CC.25 registrados (TD-T8B-F02, F03, F04, F06, F07, F09..F18) + 3 RESOLVED entries (F-01, F-05, F-08) — formato 7-campos per `tech-debt-governance.md` rule. Total active: 5 HIGH empíricos + 7 MED + 3 LOW.
+
+**Tests novos (10 tests em `tests/integration/test_task8b_cc25_fixes.py`):**
+- 3 tests F-01 feature flag (skip when disabled/explicit-false + include when enabled)
+- 2 tests F-05 headers (DEFAULT_HEADERS constant + httpx.Client recebe headers)
+- 4 tests F-08 invariant (preserva quando vermelho-via-fails + reseta quando não-vermelho + edge case vermelho-via-tese + reset_to_verde via scrape verde)
+- 1 sanity test (4xx fail-loud preservado pós-fix)
+
+**Atualizações tests existentes:**
+- `tests/integration/test_task8_lgpd_backup.py:test_create_scheduler_has_3_jobs` — adicionado `monkeypatch.setenv("ENABLE_TEMA_1378_AUTO_CHECK", "true")` para preservar semântica do test 3-jobs com flag enabled
+
+**Quality gate empírico Neo:**
+- ruff: All checks passed em arquivos modificados ✅
+- pytest: 387+3 → **397 passed + 3 skipped** em 62.98s ✅ (+10 tests CC.25, zero regressão)
+
+**Decisões autônomas Neo (CC.25):**
+1. Test `test_create_scheduler_has_3_jobs` legacy mantido com `monkeypatch.setenv` flag=true (preserva semântica original em vez de remover) — alternativa seria criar `test_create_scheduler_has_2_jobs_when_flag_disabled` separado, mas atualizar é mais limpo
+2. F-08 invariant fix usa condição explícita `nivel == "vermelho" AND fail_count >= 2` (não apenas nivel — porque vermelho-via-tese tem fail_count=0 e deve aceitar update)
+3. DEFAULT_HEADERS UA inclui `+https://github.com/...` URL no User-Agent (boa prática bot identification per RFC)
+
+**ACs cobertos pós-CC.25:**
+- ✅ **AC-MVP-MONITOR Camada 1:** scraper httpx + parser + state machine + **feature flag default-off** + User-Agent + invariant SOP-005 preservada
+- ✅ **AC-MVP-LIFESPAN-ORDER §2.4:** scheduler.start() carrega 2 jobs (sem flag) ou 3 jobs (com flag) — flexibilidade controlada por env
+
+**Tech debts fechados (3 RESOLVED):**
+- ✅ TD-T8B-F01 CRITICAL — feature flag mitiga
+- ✅ TD-T8B-F05 HIGH — User-Agent headers
+- ✅ TD-T8B-F08 HIGH — invariant preservada
+
+**Tech debts remanescentes registrados (15 active):**
+- 5 HIGH empíricos: F-02 (false positive 1378), F-03 (cross-tema contamination), F-04 (regex inline), F-06 (tag mismatch), F-07 (faltam tests timeout/network)
+- 7 MED: F-09..F-15
+- 3 LOW: F-16..F-18
+- Validáveis quando URL real STJ for testada (Eric pré-deploy)
+
+**File List CC.25:**
+- MOD: `bloco_backup/scheduler.py` (+feature flag env-based job 3 condicional)
+- MOD: `bloco_dataset/scraper_tema_1378.py` (+DEFAULT_HEADERS constant + headers passed)
+- MOD: `bloco_dataset/auto_trigger.py` (+F-08 invariant fix preserve fail_count)
+- MOD: `governance/TECH-DEBT.md` (+nova seção CC.25 com 18 entries)
+- MOD: `tests/integration/test_task8_lgpd_backup.py` (test_create_scheduler_has_3_jobs com monkeypatch.setenv flag)
+- NEW: `tests/integration/test_task8b_cc25_fixes.py` (10 tests)
+
+**Próximos passos:**
+- Task 9 (Neo, ~4-5h): smoke E2E real + audit chain HMAC verification → MVP-LEAN-01 Done 9/9 = 100% (depende Eric environment Ollama+Sabia/Qwen+PDF físico)
+
+---
+
 ### Task 8b done 2026-05-06 (Neo sessão 91 CC.24)
 
 **Status:** InProgress (Tasks 1-7 done + Task 8 done [T8 PARTIAL CC.21 + T8b CC.24] = 8/9; Task 9 pending)

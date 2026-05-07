@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.24 Operator push T8b DONE — PR #2 atualizado 7.5/9 → 8/9 = 89%. Commits 0f6b569..48e05ab pushed (d7a37c1 T8b + 48e05ab lint fix). Comment URL #issuecomment-4393000417. Aguarda Morpheus consolidar final."
-status: sprint-03-cc24-operator-push-task8b-done-aguarda-morpheus-final
+active_story: "CC.25 Neo Trilha B+ DONE — 3 fixes determinísticos (F-01 feature flag + F-05 User-Agent + F-08 invariant) + 15 tech debts registrados em TECH-DEBT.md. Suite 397+3 (+10 tests, zero regressão). Aguarda Morpheus consolidar."
+status: sprint-03-cc25-neo-trilha-b-plus-done-aguarda-morpheus
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,71 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.25 Neo Trilha B+ DONE** (@dev · Neo — 2026-05-06, **3 fixes determinísticos + 15 tech debts ~1h real**):
+  - **Implementação:**
+    - **F-01 feature flag:** `bloco_backup/scheduler.py` — job 3 condicional em env `ENABLE_TEMA_1378_AUTO_CHECK` (default false)
+    - **F-05 User-Agent:** `bloco_dataset/scraper_tema_1378.py` — `DEFAULT_HEADERS` constant (Mozilla/5.0 + Accept-Language pt-BR) passed para httpx.Client
+    - **F-08 invariant fix:** `bloco_dataset/auto_trigger.py:run_camada_1_check` — preserva fail_count quando vermelho-via-fails (≥2). SOP-005 ack manual obrigatório preservado.
+    - **TECH-DEBT.md:** apend nova seção CC.25 com 15 tech debts (5 HIGH empíricos + 7 MED + 3 LOW) + 3 RESOLVED entries
+    - **Tests:** novos `tests/integration/test_task8b_cc25_fixes.py` (10 tests) + atualizado `test_create_scheduler_has_3_jobs` com `monkeypatch.setenv` flag=true
+  - **Quality gate:**
+    - ruff All checks passed em arquivos modificados ✅ (após fix 2 E501 em docstrings)
+    - pytest **397 passed + 3 skipped** em 62.98s ✅ (387+3 baseline → +10 tests CC.25, zero regressão)
+  - **Decisões autônomas Neo:**
+    1. Test legacy `test_create_scheduler_has_3_jobs` mantido com `monkeypatch.setenv` flag=true (preserva semântica original)
+    2. F-08 invariant: condição explícita `nivel == "vermelho" AND fail_count >= 2` (vermelho-via-tese tem fail_count=0 e deve aceitar update)
+    3. DEFAULT_HEADERS UA inclui `+https://github.com/...` (RFC bot identification)
+  - **Tech debts fechados:** TD-T8B-F01 (CRITICAL via feature flag) + TD-T8B-F05 (HIGH via headers) + TD-T8B-F08 (HIGH via invariant fix)
+  - **Tech debts remanescentes:** 15 active (5 HIGH empíricos + 7 MED + 3 LOW) — validáveis com URL real STJ pré-deploy
+  - **Handoff Neo → Morpheus:** a ser emitido (token H-S03-CC25-NEO2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.25.B + decide push incremental Operator OR Smith re-review OR pause
+- **Sessão 91 CC.25 Morpheus consolida Trilha B+** (@lmas-master · Morpheus — 2026-05-06, **dispatch Neo apply-qa-fixes focado**):
+  - **Decisão CC.25:** Trilha B+ híbrida (Trilha B Oracle + F-08 fix incluído) — equilibra zero-debt approach com pragmatismo (6 HIGH empíricos não-corrigíveis sem URL real)
+  - **Escopo Neo (~1-1.5h):**
+    - **A.** Feature flag `ENABLE_TEMA_1378_AUTO_CHECK` em `bloco_backup/scheduler.py` (env var default false; condicional `scheduler.add_job` job 3) → mitiga F-01 CRITICAL
+    - **B.** User-Agent + Accept-Language headers em `scraper_tema_1378.py` httpx.Client → mitiga F-05 HIGH
+    - **C.** F-08 fix em `auto_trigger.py:74` — preservar fail_count quando atual nivel é vermelho (preservar invariante Task 7 SOP-005)
+    - **D.** `governance/TECH-DEBT.md` (criar) — 15 tech debts remanescentes (F-02..F-04, F-06, F-07, F-09..F-18) com SEV/source/description/effort/owner/added
+    - **E.** Tests novos: scheduler com flag false/true + UA header presente + auto_trigger preserva fail_count quando vermelho
+  - **HALT em 2h** se complexidade explodir
+  - **Restrições:** NÃO push (Operator EXCLUSIVE), NÃO ativar scheduler em prod (feature flag default-off), NÃO mexer fora do escopo
+  - **Handoff Morpheus → Neo:** `.lmas/handoffs/handoff-morpheus-to-neo-2026-05-06-cc25-trilha-b-plus.yaml` (token H-S03-CC25-MOR2NEO-001)
+  - **Próximo:** Neo executa ~1-1.5h → handoff back → Morpheus decide push incremental Operator OR Smith re-review OR pause
+- **Sessão 91 reaberta CC.25 — Oracle Smith adversarial review T8b DONE** (@qa · Oracle — 2026-05-06, **Trilha 2.5 escolhida pós Eric persistir 'via Skill'**):
+  - **Decisão CC.25:** Eric persistiu pós pause final CC.24 — única trilha 100% Skill-dispachável sem dependência humana = Trilha 2.5 (Smith adversarial review T8b)
+  - **Output:** `governance/qa/smith-adversarial-review-t8b-cc25.md` (18 findings cynical mode)
+  - **Severidades:** 1 CRITICAL + 7 HIGH + 7 MED + 3 LOW
+  - **Verdict:** **CONCERNS** — merge defensável se Eric mitigar pré-deploy
+  - **Mitigações obrigatórias antes de ativar scheduler em prod:**
+    - F-01 (CRITICAL): DEFAULT_STJ_URL placeholder — confirmar URL real + adicionar feature flag `ENABLE_TEMA_1378_AUTO_CHECK` default-off
+    - F-05 (HIGH): User-Agent ausente — adicionar headers (5min trivial)
+    - F-08 (HIGH): set_state(fail_count=0) reset semântico — decidir comportamento ou corrigir
+  - **Tech debts não-bloqueantes:** 6 HIGH empíricos (validáveis com URL real) + 6 MED + 3 LOW
+  - **Suite preservada:** 387 passed + 3 skipped (Oracle não modificou código, só revisou)
+  - **Handoff Oracle → Morpheus:** `.lmas/handoffs/handoff-oracle-to-morpheus-2026-05-06-cc25-smith-review-done.yaml` (token H-S03-CC25-ORACLE2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.25 + decide apply-qa-fixes Neo (3 críticos) OR merge com tech debts OR pause
+- **Sessão 91 OFICIALMENTE FECHADA CC.24 FINAL** (@lmas-master · Morpheus — 2026-05-06, **pause estratégico aceito**):
+  - **19 etapas CC sequenciais completadas** (CC.6 → CC.24) — convergência absoluta de orquestração
+  - **Agentes orquestrados:** Neo (8 dispatches Tasks 1-7 + T8 PARTIAL + T8b), Oracle (1 QA gate CC.7), Operator (5 pushes), Morpheus (orquestrador 19 etapas)
+  - **Marcos finais consolidados:**
+    - OLLAMA-MGR-01 Done (Oracle CC.7 PASS) → PR #1 OPEN MERGEABLE bloqueio Eric smoke E2E v0.3.0
+    - MVP-LEAN-01 InProgress **8/9 = 89%** → PR #2 OPEN MERGEABLE bloqueio review independente
+    - Suite remote: **387 passed + 3 skipped** (281 OLLAMA baseline + 106 MVP-LEAN T1-T8)
+    - Zero regressão acumulada em 19 etapas CC
+    - ~18.5h código entregue (15.5h Tasks 1-7+T8 PARTIAL + 2h T8b + 1h orquestração CC.24)
+  - **Recomendação convergente:** Pause estratégico final (Neo + Operator + Morpheus alinhados)
+  - **Handoff FINAL Morpheus → Eric:** `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-06-cc24-final.yaml` (token H-S03-CC24-MOR2ERIC-FINAL-001)
+  - **5 trilhas retomada quando Eric voltar:**
+    - 🔥 Trilha 1: Smoke E2E v0.3.0 → desbloqueia PR #1 merge + tag + release (~30-60min Eric)
+    - 📋 Trilha 2: Review PR #2 (8/9 = 89%) → merge OR changes-requested (~30-60min Eric)
+    - 🔍 **Trilha 2.5 NOVA:** Smith adversarial review T8b código (Skill qa, ~1-2h sessão fresca)
+    - 🎯 Trilha 4: Task 9 sessão dedicada (smoke E2E real + audit chain HMAC ~4-5h, exige Ollama + Sabia/Qwen 7B + PDF físico)
+    - ⏸️ Trilha 5: Pause indefinido (marcos preservados em remote)
+  - **Tech debts pendentes pós-MVP:**
+    - TD-MVP-LEAN-08B-URL-VERIFY (MED) — Eric confirma URL STJ real + tuning patterns parser
+    - TD-OLLAMA-SMOKE-E2E-REAL (HIGH) — pre-release blocker v0.3.0
+    - TD-MVP-LEAN-08-FERNET-WIRE (LOW) — encrypt_pdf não wired POST /revisar
+  - **Esta é a última Skill da sessão 91 CC.24** — Morpheus aguarda Eric escolher trilha
 - **Sessão 91 CC.24 Operator push T8b DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
   - **Pre-push gate empírico:** ruff All checks passed ✅ (após fix E501 em `test_task8_lgpd_backup.py:226` — Neo não rodou ruff nesse arquivo no commit T8b; Operator detectou + criou commit lint fix `48e05ab`); pytest **387 passed + 3 skipped** ✅
   - **Push:** fast-forward `0f6b569..48e05ab` em `feat/mvp-lean-01-task1-layout-base` (2 commits: `d7a37c1` T8b + `48e05ab` lint fix)

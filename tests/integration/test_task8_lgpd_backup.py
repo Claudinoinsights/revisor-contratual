@@ -223,8 +223,12 @@ def test_is_posix_returns_correct_value() -> None:
 
 # ── APScheduler backup ────────────────────────────────────────────────────
 @pytest.mark.integration
-def test_create_scheduler_has_3_jobs() -> None:
-    """Scheduler 3 jobs: backup_daily + backup_rotation + tema_1378_check (Task 8b)."""
+def test_create_scheduler_has_3_jobs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Scheduler 3 jobs com flag enabled: backup_daily + backup_rotation + tema_1378_check.
+
+    Per CC.25 F-01 fix: tema_1378_check é condicional em ENABLE_TEMA_1378_AUTO_CHECK env.
+    """
+    monkeypatch.setenv("ENABLE_TEMA_1378_AUTO_CHECK", "true")
     sched = scheduler_mod.create_scheduler()
     job_ids = {job.id for job in sched.get_jobs()}
     assert "backup_daily" in job_ids

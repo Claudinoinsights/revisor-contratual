@@ -265,3 +265,47 @@ tags:
 ---
 
 *Sprint 02 DEVOPS-01 debts — Operator+Neo (sessão 86, 2026-05-05) · TD-PIPELINE-SMOKE-REAL partial RESOLVED + 2 novos debts (1 HIGH + 1 LOW).*
+
+---
+
+## Sprint 03 CC.25 — Smith adversarial review T8b (15 NEW + 3 RESOLVED)
+
+> Origem: Oracle Smith adversarial review CC.25 (`governance/qa/smith-adversarial-review-t8b-cc25.md`).
+> 18 findings totais. **3 fixes determinísticos aplicados em CC.25 Trilha B+** (F-01 + F-05 + F-08 RESOLVED). **15 findings empíricos remanescentes** registrados como tech debt.
+
+### Active Items — Task 8b Smith Findings
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| TD-T8B-F02 | Smith CC.25 | HIGH | Estratégia 3 fallback aceita "1378" em qualquer contexto numérico — false positive (ex: "Processo 1378/2026") | 1h | @dev | 2026-05-06 |
+| TD-T8B-F03 | Smith CC.25 | HIGH | `_classify_snippet` busca tese em `snippet OR full_html` — cross-tema contamination (tese de Tema 4555 atribuída ao 1378) | 1h | @dev | 2026-05-06 |
+| TD-T8B-F04 | Smith CC.25 | HIGH | Estratégia 1 regex `[^<]+` força conteúdo inline — provável dead code em HTML aninhado real STJ | 1h | @dev | 2026-05-06 |
+| TD-T8B-F06 | Smith CC.25 | HIGH | Estratégia 2 regex permite mismatch tags abertura/fechamento (`<article>...</div>`) — usar backreference `\1` | 30min | @dev | 2026-05-06 |
+| TD-T8B-F07 | Smith CC.25 | HIGH | Faltam tests `httpx.TimeoutException` / `NetworkError` — paths críticos não exercitados | 1h | @dev | 2026-05-06 |
+| TD-T8B-F09 | Smith CC.25 | MED | `RE_TESE_FIXADA` limit `[^\n<]{20,300}` corta tese real STJ multi-line ou com `<br>` interno | 30min | @dev | 2026-05-06 |
+| TD-T8B-F10 | Smith CC.25 | MED | `RE_JULGAMENTO_DATE` só aceita DD/MM/YYYY — STJ usa "1º de junho de 2026", "junho/2026" etc. | 1h | @dev | 2026-05-06 |
+| TD-T8B-F11 | Smith CC.25 | MED | `response.raise_for_status()` em `_http_get_with_retry` é dead code redundante (4xx + 5xx já tratados) | 5min | @dev | 2026-05-06 |
+| TD-T8B-F12 | Smith CC.25 | MED | Audit entry write não-atomic em Windows / concurrent jobs — usar `os.open(O_APPEND)` ou file lock | 2h | @dev | 2026-05-06 |
+| TD-T8B-F13 | Smith CC.25 | MED | Patterns CSS class hardcoded `(?:status\|1378\|repetitivo)` sem evidência empírica HTML real STJ | 1h Eric+@dev | @dev | 2026-05-06 |
+| TD-T8B-F14 | Smith CC.25 | MED | Mock factory não simula retry success após falha intermitente (ex: 503→503→200) | 30min | @dev | 2026-05-06 |
+| TD-T8B-F15 | Smith CC.25 | MED | Tests usam HTML sintético sem quirks reais (encoding latin-1/BOM, JS-rendered, cookies) | 2h | @dev | 2026-05-06 |
+| TD-T8B-F16 | Smith CC.25 | LOW | Tese truncada 200 chars em `_classify_snippet` perde semântica jurídica | 15min | @dev | 2026-05-06 |
+| TD-T8B-F17 | Smith CC.25 | LOW | Logger sem `log.debug` para parser strategy decisions (snippet capturado, regex match groups) | 15min | @dev | 2026-05-06 |
+| TD-T8B-F18 | Smith CC.25 | LOW | 4xx não diferenciados — 401/403 (UA/auth) vs 404 (URL errada) tratados igual; mensagem genérica | 30min | @dev | 2026-05-06 |
+
+### Resolved Items — Task 8b CC.25 fixes
+
+| ID | Resolved | Story | Resolution |
+|----|----------|-------|------------|
+| TD-T8B-F01 | 2026-05-06 | MVP-LEAN-01 T8b CC.25 | CRITICAL — mitigado via feature flag `ENABLE_TEMA_1378_AUTO_CHECK` default false em `bloco_backup/scheduler.py`. Scheduler em prod NÃO registra job 3 sem env explícito |
+| TD-T8B-F05 | 2026-05-06 | MVP-LEAN-01 T8b CC.25 | HIGH — mitigado via `DEFAULT_HEADERS` (User-Agent Mozilla/5.0 + Accept-Language pt-BR) em `bloco_dataset/scraper_tema_1378.py:DEFAULT_HEADERS` passed para httpx.Client |
+| TD-T8B-F08 | 2026-05-06 | MVP-LEAN-01 T8b CC.25 | HIGH — corrigido em `bloco_dataset/auto_trigger.py:run_camada_1_check` — preserva fail_count quando estado atual é vermelho-via-fails (≥2). Invariante Task 7 SOP-005 mantida |
+
+### Sumário CC.25
+
+- **Smith findings totais:** 18 (1 CRITICAL + 7 HIGH + 7 MED + 3 LOW)
+- **Resolved em CC.25 Trilha B+:** 3 (F-01, F-05, F-08 — todos determinísticos)
+- **Active tech debt remanescente:** 15 (5 HIGH empíricos + 7 MED + 3 LOW)
+- **Verdict pós-fix:** merge defensável com tech debts explícitos; 5 HIGH empíricos requerem URL real STJ + HTML extraction para validação iterativa pós-deploy
+
+*Sprint 03 CC.25 Smith review apply-qa-fixes — Neo (sessão 91, 2026-05-06) · 3 fixes determinísticos + 15 tech debts registrados.*

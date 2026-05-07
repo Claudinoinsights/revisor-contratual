@@ -59,6 +59,12 @@ def run_camada_1_check(
     """Executa scrape Camada 1 + atualiza state Task 7. Retorna audit entry gerado.
 
     Robusto: NUNCA propaga exception. Em caso de erro, increment_fail() é chamado.
+
+    F-08 invariant (Smith CC.25): se estado atual é vermelho-via-fails-consecutivas
+    (≥2), fail_count é preservado mesmo quando scraper detecta julgamento real (amarelo
+    ou vermelho via parser). Maintainer DEVE chamar acknowledge() (Task 7 SOP-005)
+    para downgrade explícito de vermelho-via-fails. Isso preserva a invariante de que
+    "vermelho-via-fails requer ack manual" — auto-downgrade silencioso é proibido.
     """
     target_audit = audit_path if audit_path is not None else _audit_path()
     timestamp = datetime.now(UTC).isoformat()
@@ -68,10 +74,16 @@ def run_camada_1_check(
         if result["nivel"] == "verde":
             tema_1378_state.reset_to_verde()
         else:
+            # F-08 fix: preservar fail_count se vermelho-via-fails (≥2) — invariante SOP-005
+            current = tema_1378_state.get_current()
+            preserve_fail_count = (
+                current.get("nivel") == "vermelho"
+                and current.get("fail_count", 0) >= 2
+            )
             tema_1378_state.set_state(
                 nivel=result["nivel"],
                 mensagem=result["mensagem"],
-                fail_count=0,
+                fail_count=current.get("fail_count", 0) if preserve_fail_count else 0,
                 julgamento_data=result.get("julgamento_data"),
                 tese_fixada=result.get("tese_fixada"),
             )

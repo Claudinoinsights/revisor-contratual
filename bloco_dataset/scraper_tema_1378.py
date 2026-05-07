@@ -36,6 +36,16 @@ DEFAULT_STJ_URL = "https://www.stj.jus.br/repetitivos/temas_repetitivos/"
 DEFAULT_TIMEOUT_SECONDS = 30.0
 RETRY_BACKOFF_SECONDS: tuple[int, ...] = (2, 4, 8)  # 3 retries exponencial
 
+# Per Smith CC.25 F-05: STJ provavelmente bloqueia bot UA padrão (python-httpx/X)
+DEFAULT_HEADERS: dict[str, str] = {
+    "User-Agent": (
+        "Mozilla/5.0 (compatible; revisor-contratual/0.3.0; "
+        "+https://github.com/Claudinoinsights/revisor-contratual)"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+}
+
 # Patterns text-extraction (case-insensitive)
 RE_JULGAMENTO_DATE = re.compile(
     r"julgamento\s+(?:pautado|marcado|previsto)\s+para\s+(\d{2}/\d{2}/\d{4})",
@@ -141,7 +151,11 @@ def _http_get_with_retry(
     last_exc: Exception | None = None
     for attempt, backoff in enumerate(RETRY_BACKOFF_SECONDS, start=1):
         try:
-            with httpx.Client(timeout=timeout, follow_redirects=True) as client:
+            with httpx.Client(
+                timeout=timeout,
+                follow_redirects=True,
+                headers=DEFAULT_HEADERS,
+            ) as client:
                 response = client.get(url)
                 if 400 <= response.status_code < 500:
                     raise ScraperError(

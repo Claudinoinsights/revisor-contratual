@@ -98,12 +98,17 @@ def backup_rotation() -> int:
 
 
 def create_scheduler() -> BackgroundScheduler:
-    """Cria BackgroundScheduler com 3 jobs registrados (não-iniciado).
+    """Cria BackgroundScheduler com jobs registrados (não-iniciado).
 
-    Jobs:
+    Jobs sempre registrados:
     - backup_daily: 02:00 UTC (Task 8 PARTIAL)
     - backup_rotation: 24h interval (Task 8 PARTIAL)
-    - tema_1378_check: 02:30 UTC (Task 8b — Camada 1 STJ scraper)
+
+    Jobs condicionais (env var):
+    - tema_1378_check: 02:30 UTC (Task 8b Camada 1 STJ scraper) — só registrado
+      se ENABLE_TEMA_1378_AUTO_CHECK=true (default false). Per Smith review
+      CC.25 F-01: DEFAULT_STJ_URL é placeholder; ativar em prod só após Eric
+      confirmar URL real STJ + tuning empírico patterns parser.
     """
     scheduler = BackgroundScheduler(daemon=True, timezone="UTC")
     # Job 1: backup_daily 02:00 UTC
@@ -122,12 +127,25 @@ def create_scheduler() -> BackgroundScheduler:
         name="Rotation backups >7 dias",
         replace_existing=True,
     )
-    # Job 3: tema_1378_check 02:30 UTC daily (após backup_daily 02:00)
-    scheduler.add_job(
-        run_camada_1_check,
-        trigger=CronTrigger(hour=2, minute=30),
-        id="tema_1378_check",
-        name="Tema 1378 STJ scraper Camada 1",
-        replace_existing=True,
+    # Job 3 condicional: tema_1378_check 02:30 UTC (per Smith CC.25 F-01)
+    enable_tema_check = (
+        os.environ.get("ENABLE_TEMA_1378_AUTO_CHECK", "false").lower() == "true"
     )
+    if enable_tema_check:
+        scheduler.add_job(
+            run_camada_1_check,
+            trigger=CronTrigger(hour=2, minute=30),
+            id="tema_1378_check",
+            name="Tema 1378 STJ scraper Camada 1",
+            replace_existing=True,
+        )
+        logger.info(
+            "create_scheduler: tema_1378_check job registered "
+            "(ENABLE_TEMA_1378_AUTO_CHECK=true)"
+        )
+    else:
+        logger.info(
+            "create_scheduler: tema_1378_check SKIPPED "
+            "(ENABLE_TEMA_1378_AUTO_CHECK=false — set env var to enable in prod)"
+        )
     return scheduler
