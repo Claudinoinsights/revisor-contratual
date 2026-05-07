@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T11:45"
+last_updated: "2026-05-07T11:55"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-03-cc43-PIVOT-REQUEST-aguarda-eric-elicitation-5-perguntas
+status: sprint-03-cc43-PUSH-DONE-aguarda-Morpheus-dispatch-Atlas-Phase1
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -107,6 +107,23 @@ tags:
   - **App rodando:** http://127.0.0.1:8501 PID 27232 (smoke local AINDA POSSÍVEL se Eric quiser testar antes de pivot)
   - **17+ files uncommitted CC.30..CC.42:** aguardam decisão push (Operator recomendou push primeiro para preservar history)
   - **Próximo:** Eric responder 5 perguntas → Morpheus dispatch Atlas Phase 1 viability research (token H-S03-CC43-MOR2ANA-VIABILITY-001)
+- **Sessão 91 CC.43-PUSH — Operator commit consolidado + push DONE** (@devops · Operator — 2026-05-07T11:55):
+  - **Trigger:** Eric autorizou push CC.30..CC.42 ANTES da chain Sprint 04 (resposta #5 elicitation Morpheus)
+  - **Pre-push gate:** Suite 57/57 passed em 20.48s (test_audit 26 + test_parsing 31) — zero regressão validada
+  - **Stage cirúrgico:** 15 files (12 modified + 3 added) — explicit add por arquivo (nunca `git add .`)
+    - Modified: bloco_audit/{chain,genesis}.py, bloco_engine/parsing/marker_parser.py, bloco_interface/web/{app.py, static/sse_resilient.js, templates/{base,s2_pre_upload,s5_processing}.html}, bloco_workflow/pipeline.py, governance/{CHECKPOINT-active,TECH-DEBT}.md, tests/unit/test_parsing.py
+    - Added: .env.example (negation pattern .gitignore), governance/qa/{smith-adversarial-review-app-cc37,smith-ultrathink-cc41-anti-furos}.md
+    - Skipped: .tmp/ (gitignored), .lmas/handoffs/ (gitignored — runtime context only)
+  - **Commit consolidado:** **`f5b94b5`** com mensagem detalhada listando 12 fix-cycles + Smith status + Sprint 04 roadmap (1891+/53-)
+  - **Push:** `4fa5c5e..f5b94b5  feat/mvp-lean-01-task1-layout-base -> feat/mvp-lean-01-task1-layout-base` ✅
+  - **Branch real:** `feat/mvp-lean-01-task1-layout-base` (não `feature/revisor-contratual-v0.1.0` como dispatch assumiu — diagnóstico real corrigiu)
+  - **Remote:** https://github.com/Claudinoinsights/revisor-contratual
+  - **Commit URL:** https://github.com/Claudinoinsights/revisor-contratual/commit/f5b94b5
+  - **NÃO criou PR** — Eric pode pedir depois; push direto na feature branch atual
+  - **NÃO bypass --no-verify** — pre-push hook não interveio
+  - **History preservada:** mesmo se Sprint 04 pivot supersede parte do código, commit f5b94b5 fica como base de comparação
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-cc43-push-done.yaml` (token H-S03-CC43-OP2MOR-PUSH-DONE-001)
+  - **Próximo:** Morpheus dispatch Atlas Phase 1 viability research (cloud LLM + vision OCR + LGPD-A + R$ 1500/mês budget + 4 doctypes simultâneos + OrSheva brandbook como input Sati)
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
