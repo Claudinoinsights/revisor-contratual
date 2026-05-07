@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T16:25"
-active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase4.1-Operator-UX-commit-DONE-aguarda-Morpheus-dispatch-Smith
+last_updated: "2026-05-07T16:50"
+active_story: "Sessão 91 Sprint 04 Phase 6 Morpheus consolidação ORDEM 11 final DONE — Eric ratifica Path A (Smith RECOMENDADO): patch all 4 CRITICAL antes PR. Chain de 5 Skills sequenciais dispatched: (1) Operator commit Smith report → (2) Trinity Phase 5.5 PRD patches F-003+F-007 → (3) Aria Phase 5.5 ADR-019 DPA storage F-012 → (4) Operator commit consolidado patches → (5) Eric paralelo cross-domain advogado LGPD F-016. Step 1 dispatched — Morpheus handoff Morpheus→Operator emitido. Aguarda próxima Skill `LMAS:agents:devops` para commit Smith report governance/qa/smith-sp04-pivot-adversarial.md."
+status: sprint-04-phase6-morpheus-consolidacao-DONE-aguarda-operator-commit-smith-report
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,50 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 6 Morpheus consolidação ORDEM 11 final + Eric Path A ratification** (@lmas-master · Morpheus — 2026-05-07T16:50):
+  - **Trigger:** Handoff Smith → Morpheus (token H-S04-P5-SMITH2MOR-ADVERSARIAL-DONE-001) verdict CONCERNS + 38 findings + 3 paths Eric. Eric responde "execute o recomendado sempre pela Skill" + ultrathink keyword
+  - **Decisão ORDEM 11:** **Path A ratificado** (Smith RECOMENDADO — patch all 4 CRITICAL antes PR)
+  - **Justificativa Eric directive interpretation (ULTRATHINK):**
+    - "o recomendado" = Smith Path A explícito ✅ RECOMENDADO no handoff (não Path B nem Path C)
+    - "sempre pela Skill" = workflow chain via Skills LMAS (memory feedback `feedback_workflow_via_skill_strict` aplicado)
+    - "ultrathink" = decisão não-trivial — Path A tem 5 sub-passos sequenciais via Skills + 1 cross-domain Eric (F-016 advogado LGPD)
+    - Override sobre instrução "HALT aguardando decisão Eric" no dispatch original — Eric já decidiu vendo verdict + 3 paths apresentados no Smith handoff close-out
+  - **Chain Path A — 5 Skills sequenciais + 1 cross-domain Eric:**
+    1. ✅ NEXT — `LMAS:agents:devops` (Operator) commit + push Smith report (preserve evidence trail antes de modificar PRD/ADRs) — handoff dispatched neste turn
+    2. `LMAS:agents:pm` (Trinity) Phase 5.5 PRD patches: F-003 FR-OUTPUT-D3 (template Jinja2 separado D3 vs análise) + F-007 FR-NOTIFY-01 (email transactional + in-app banner)
+    3. `LMAS:agents:architect` (Aria) Phase 5.5 ADR-019 OR estende ADR-017 — schema dpa_acceptances (UUID + version + hash SHA-256 + timestamp + IP + user_agent + RLS + retention permanent legal evidence)
+    4. `LMAS:agents:devops` (Operator) commit + push consolidado patches Trinity+Aria
+    5. Eric paralelo cross-domain — F-016 advogado LGPD especializado validação argumento "Anthropic = subprocessor escritório" (custo R$ 2-5k vs risk Mi+ multa Art. 52 ANPD) — NÃO Skill (cross-domain)
+    6. `LMAS:agents:devops` (Operator) PR creation + tag v0.2.0-alpha (após F-016 resolvido, paralelo Trinity+Aria patches já merged)
+  - **Risk mitigation:** Path A endereça todos os 4 CRITICAL findings explicitamente. F-016 fica em paralelo Eric (5-15 dias estimado advogado consultoria) — não bloqueia Trinity/Aria patches técnicos que podem progredir simultaneamente
+  - **TECH-DEBT.md TODO:** populate 19 HIGH (CC.43+) + 13 MEDIUM (CC.50+) + 2 LOW (polish opcional) — Operator Phase 6.2 ou pós-PR creation
+  - **Handoffs consumed:**
+    - `handoff-smith-to-morpheus-2026-05-07-sp04-phase5-adversarial-done.yaml` → consumed:true (Phase 6 fechado)
+  - **Handoff Morpheus → Operator emitido:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-sp04-phase5.1-commit-smith-report.yaml` (token H-S04-P6-MOR2OP-COMMIT-SMITH-001)
+  - **NÃO commitado** — Operator EXCLUSIVO push (próxima Skill)
+  - **Próximo:** Eric invoca Skill `LMAS:agents:devops` (Operator) → commit + push Smith report (1 commit feat governance) → Operator handoff back Morpheus → Morpheus dispatch Trinity Phase 5.5
+- **Sessão 91 Sprint 04 Phase 5 Smith ULTRATHINK adversarial review DONE** (@qa · Smith — 2026-05-07T16:40):
+  - **Trigger:** Morpheus dispatch H-S04-P5-MOR2SMITH-ADVERSARIAL-001 — Eric clarification "advogado vai apenas pegar o documento em PDF para aprovar/desaprovar" + "Continue sempre pelas Skills corretas" + ultrathink keyword
+  - **Inputs auditados:** PRD v2.0.0 DRAFT (FRs ~25+) + 5 ADRs Sprint 04 (014-018) + UX Spec v2.0.0 DRAFT (8 telas + 7 componentes) + Atlas v1+v2 research
+  - **Verdict: CONCERNS** ⚠️ — pivot arquiteturalmente sólido mas 38 findings reais bloqueiam Phase 7 implementation responsável sem patches
+  - **38 findings classificados:**
+    - **CRITICAL (4)** — bloqueiam Phase 7:
+      - F-003 UX S6 expõe "Baixar Petição D3" sem FR-OUTPUT específico para D3 (spec gap)
+      - F-007 Tab fechada durante S5 processing: comportamento não declarado (UX promete notificação, PRD sem mecanismo)
+      - F-012 DPA acceptance storage/versioning não definido (ANPD audit risk legal)
+      - F-016 Argumento "Anthropic = subprocessor escritório" não validado por advogado especializado LGPD
+    - **HIGH (19)** — debt CC.43+: F-001 watermark customization, F-002 persona prompt loading, F-006 onboarding payment flow, F-008 login expira upload, F-009 refresh S6 behavior, F-011 sem undo approval, F-013 RLS pen test, F-014 retention cron, F-015 ocr_cache PII contradiz zero-retention, F-017 cancel mid-flight refund, F-019 Stripe webhook retry, F-021 Sonnet deprecation, F-023 API outage degraded mode, F-024 WCAG contrast incompletos, F-027 audit chain HMAC tenant_id, F-030 pricing benchmark apples-to-oranges, F-031 valores absolutos pendentes, F-034 backup/restore strategy, F-037 Admin Eric BYPASS RLS
+    - **MEDIUM (13)**: F-004, F-005, F-010, F-018, F-020, F-022, F-025, F-028, F-029, F-032, F-033, F-035, F-038
+    - **LOW (2)**: F-026 prefers-reduced-motion, F-036 SEO
+  - **8 dimensões cobertas:** D1 Cross-doc coherence, D2 Workflow gaps, D3 LGPD operador robustez, D4 Pricing edge cases, D5 Vendor lock-in Anthropic, D6 WCAG real, D7 12 cycles work loss, D8 Custo realista
+  - **10 edge cases mapeados:** análise órfã tier-shift, concurrent approve, key revoked mid-flight, DPA versioned, browser back S5, PDF render timeout, Stripe customer deleted, LGPD Art. 18 deletion, admin gone rogue, WebSocket vs SSE
+  - **Recomendações estratégicas (8):** Phase 5.5 patches obrigatórios + penetration testing externo + advogado LGPD especializado + TECH-DEBT.md populated + Mifune dispatch + architecture review iter 2 + beta limit 4 escritórios + Smith Sprint 05+ recurrent
+  - **Path forward:** Phase 5.5 patches (Trinity F-003+F-007 PRD + Aria F-012 ADR-019 DPA storage + Eric F-016 advogado consultoria) → Phase 6 Morpheus consolidação → Eric decide GO/patches/aceitar debt
+  - **Output artifact:** `governance/qa/smith-sp04-pivot-adversarial.md` (~14KB, 11 seções)
+  - **Paridade Smith CC.41:** atingida (CC.41=22 findings, este=38 findings — escopo wider que comfortable, declarado)
+  - **NÃO commitado** — Operator Phase 5.1 dispatch pelo Morpheus
+  - **Handoff Smith → Morpheus:** `.lmas/handoffs/handoff-smith-to-morpheus-2026-05-07-sp04-phase5-adversarial-done.yaml` (token H-S04-P5-SMITH2MOR-ADVERSARIAL-DONE-001)
+  - **Próximo:** Morpheus consolidação ORDEM 11 final → apresentação Eric com 4 CRITICAL + verdict CONCERNS + decisão path forward
 - **Sessão 91 CC.42 — Neo fixes Smith CC.41 F-A1+F-A2 DONE** (@dev · Neo — 2026-05-07T11:00):
   - **Trigger:** Smith CC.41 verdict FAIL + 2 CRITICAL bloqueando Eric. Morpheus dispatch sequencial: Neo F-A1 (RAM monitor) + F-A2 (UI inputs) + Operator restart
   - **F-A1 RAM pre-flight check (CRITICAL — RESOLVED):** `bloco_engine/parsing/marker_parser.py:36-67`
