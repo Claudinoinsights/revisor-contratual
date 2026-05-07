@@ -3,8 +3,8 @@ type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "CC.27 Neo Trilha 6 fix-of-fix DONE — 5 RR entries RESOLVED (RR-01 test + RR-02 doc + RR-03 fix + RR-04 doc + RR-06 doc) + 1 ACTIVE accepted (RR-05 UA URL design). Suite 398+3 (+1 test). Aguarda Morpheus consolidar."
-status: sprint-03-cc27-neo-trilha-6-fix-of-fix-done-aguarda-morpheus
+active_story: "CC.27.B Operator push CC.27 fix-of-fix DONE — RR refinement publicado em PR #2. Comment URL #issuecomment-4393492430. Aguarda Morpheus consolidar ABSOLUTO FINAL."
+status: sprint-03-cc27b-operator-push-done-aguarda-morpheus-absoluto-final
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,27 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 CC.27.B Operator push CC.27 fix-of-fix DONE** (@devops · Operator — 2026-05-06, **push fast-forward + comment PR #2**):
+  - **Pre-push gate empírico:** ruff All checks passed ✅; pytest **398 passed + 3 skipped** em 63.33s ✅
+  - **Push:** fast-forward `28140b9..493ef4d` em `feat/mvp-lean-01-task1-layout-base` (1 commit code+doc+test CC.27)
+  - **PR #2:** comment publicado [#issuecomment-4393492430](https://github.com/Claudinoinsights/revisor-contratual/pull/2#issuecomment-4393492430) — 5 RR resolved + 1 accepted-debt + Smith loop COMPLETO + sumário 25 etapas CC
+  - **PR #2 progresso:** 8/9 = 89% + Smith-validated + RR refinement aplicado
+  - **PRs paralelos estado pós CC.27:**
+    - PR #1 OLLAMA-MGR-01: OPEN MERGEABLE — bloqueio Eric smoke E2E v0.3.0
+    - PR #2 MVP-LEAN-01: OPEN MERGEABLE 8/9 = 89% **+ Smith adversarial loop completo + RR refinement** — bloqueio review independente
+  - **Suite remote final:** **398 passed + 3 skipped**
+  - **Tech debts:** 16 active (15 CC.25 empíricos + 1 CC.27 RR-05) + 11 RESOLVED em TECH-DEBT.md
+  - **Smith adversarial loop:** COMPLETO + RR refinement DONE
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-06-cc27-push-done.yaml` (token H-S03-CC27-OPERATOR2MOR-DONE-001)
+  - **Próximo:** Morpheus consolida CC.27 ABSOLUTO FINAL + sinaliza Eric com sumário sessão 91 + 4 trilhas restantes (1, 2, 4, 5 — sem 6 que foi feita)
+- **Sessão 91 CC.27.B Morpheus consolida Trilha A** (@lmas-master · Morpheus — 2026-05-06, **dispatch Operator push fast-forward CC.27 fix-of-fix**):
+  - **Decisão:** Trilha A (push incremental + pause ABSOLUTO) — convergente com recomendação Neo
+  - **Razões:** (1) Commit `493ef4d` é code+doc+test (zero risco regressão); (2) Push imediato torna 5 RR resolved + 1 accepted-debt visíveis Eric no PR #2; (3) Narrativa final coerente: Smith review + fixes + re-review + RR refinement; (4) **Após push, nenhuma trilha restante é Skill-dispachável** — todas exigem Eric humano
+  - **Operação:** Operator push fast-forward `28140b9..493ef4d` (1 commit code+doc+test)
+  - **PR #2:** ganha visibility — 5 RR resolved + 1 accepted-debt via comment
+  - **Handoff Morpheus → Operator:** `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-06-cc27-push-fix-of-fix.yaml` (token H-S03-CC27-MOR2OPERATOR-001)
+  - **25 etapas CC totais:** CC.6 → CC.27.B sequenciais
+  - **Próximo:** Operator pre-push gate → push → comment PR #2 → handoff back Morpheus → consolidação ABSOLUTA FINAL CC.27 + sinal Eric pause definitivo
 - **Sessão 91 reaberta CC.27 — Neo Trilha 6 fix-of-fix DONE** (@dev · Neo — 2026-05-06, **5 RR resolved + 1 active ~30min real**):
   - **Decisão CC.27:** Eric persistiu pós pause final definitivo absoluto CC.26 (terceiro pause da sessão) — única trilha 100% Skill-dispachável = Trilha 6 fix-of-fix
   - **Implementação zero-debt approach:**
