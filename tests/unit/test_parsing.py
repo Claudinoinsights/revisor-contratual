@@ -262,18 +262,29 @@ class TestParseContract:
         assert result.parser_used == "marker_ocr"
         assert result.fidelity_score is not None and result.fidelity_score >= 0.9
 
-    def test_marker_indisponivel_levanta_ocr_required(self, pdf_path: Path) -> None:
-        # primary devolve markdown insuficiente E marker_fn=None com Marker não instalado
-        # Em CI marker NÃO está instalado → levanta ParserOCRRequired
+    def test_marker_indisponivel_levanta_ocr_required(
+        self, pdf_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # primary devolve markdown insuficiente E marker_fn=None com Marker não instalado.
+        # CC.34: marker pode estar instalado em dev (CC.33 install [ocr]); mock para
+        # forçar path "indisponível" e exercitar mensagem ParserOCRRequired.
+        monkeypatch.setattr(
+            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+        )
         with pytest.raises(ParserOCRRequired):
             parse_contract(
                 pdf_path,
                 pymupdf_fn=_fake_parser(MARKDOWN_VAZIO),
-                marker_fn=None,  # força default — Marker indisponível em CI
+                marker_fn=None,  # força default — Marker indisponível (mocked CC.34)
             )
 
-    def test_parser_ocr_required_message_contem_solucao_acionavel(self, pdf_path: Path) -> None:
+    def test_parser_ocr_required_message_contem_solucao_acionavel(
+        self, pdf_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """F-PIPELINE-LOW-01 hardening UX: mensagem PT-BR contém comando pip install acionável."""
+        monkeypatch.setattr(
+            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+        )
         with pytest.raises(ParserOCRRequired) as exc_info:
             parse_contract(
                 pdf_path,
@@ -284,8 +295,13 @@ class TestParseContract:
         assert "pip install revisor-contratual[ocr]" in msg
         assert "Solução" in msg or "Solucao" in msg
 
-    def test_parser_ocr_required_message_contem_alternativa(self, pdf_path: Path) -> None:
+    def test_parser_ocr_required_message_contem_alternativa(
+        self, pdf_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """F-PIPELINE-LOW-01 hardening UX: mensagem oferece alternativa para usuário sem OCR."""
+        monkeypatch.setattr(
+            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+        )
         with pytest.raises(ParserOCRRequired) as exc_info:
             parse_contract(
                 pdf_path,
@@ -295,6 +311,33 @@ class TestParseContract:
         msg = str(exc_info.value)
         assert "converta para PDF" in msg or "preservando a camada de texto" in msg
         assert "Alternativa" in msg
+
+    def test_marker_disponivel_mas_falha_propaga_excecao(
+        self, pdf_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """CC.40 fix F-11: cobre path 'marker instalado mas runtime falha' (Smith CC.37).
+
+        Scenario antes não testado: marker disponível + _default_marker_parser
+        levanta exceção runtime (timeout OCR, etc). Garante que exceção
+        propaga corretamente em vez de silently fallback.
+        """
+        def mock_marker_runtime_fail(*args: object, **kwargs: object) -> tuple[str, int]:
+            raise RuntimeError("Surya OCR timeout simulado")
+
+        # marker disponível (mocked True) mas _default_marker_parser injetado falhando
+        monkeypatch.setattr(
+            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: True
+        )
+        monkeypatch.setattr(
+            "bloco_engine.parsing.marker_parser._default_marker_parser",
+            mock_marker_runtime_fail,
+        )
+        with pytest.raises(RuntimeError, match="Surya OCR timeout"):
+            parse_contract(
+                pdf_path,
+                pymupdf_fn=_fake_parser(MARKDOWN_VAZIO),
+                marker_fn=None,  # força default → _default_marker_parser → fail
+            )
 
     def test_metadata_extraction_falha_com_overrides_ausentes(self, pdf_path: Path) -> None:
         # markdown rico em palavras mas sem UF/data

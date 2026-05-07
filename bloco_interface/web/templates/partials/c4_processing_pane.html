@@ -1,0 +1,45 @@
+{# MVP-LEAN-01 Task 4 — C4 Processing pane (componente macro).
+
+Macro renderiza lista de 5 fases com estados pending/running/done/error.
+Estados controlados via JS sse_resilient.js que atualiza data-state attribute.
+
+Uso:
+  {% from "partials/c4_processing_pane.html" import processing_pane %}
+  {{ processing_pane(phases=phases, filename=filename, job_id=job_id) }}
+#}
+
+{% macro processing_pane(phases, filename, job_id) %}
+<section class="processing-pane"
+         data-job-id="{{ job_id|e }}"
+         data-stream-url="/revisar/stream/{{ job_id|e }}"
+         aria-labelledby="processing-heading">
+  <h2 id="processing-heading" class="processing-heading">Analisando contrato</h2>
+
+  <div class="processing-meta">
+    <span class="processing-filename">📄 {{ filename|e }}</span>
+  </div>
+
+  <ol class="processing-phases" role="list" aria-label="Lista de fases do pipeline">
+    {% for phase in phases %}
+    <li class="processing-phase"
+        data-phase="{{ phase|e }}"
+        data-state="pending"
+        aria-live="polite"
+        aria-label="Fase {{ loop.index }} de {{ phases|length }}: {{ phase|e }} (pendente)">
+      <span class="processing-phase__icon" aria-hidden="true">…</span>
+      <span class="processing-phase__index">{{ loop.index }}/{{ phases|length }}</span>
+      <span class="processing-phase__label">{{ phase|e }}</span>
+      <span class="processing-phase__elapsed" data-testid="phase-elapsed"></span>
+      <span class="processing-phase__sr-status" hidden></span>
+    </li>
+    {% endfor %}
+  </ol>
+
+  <div class="processing-footer">
+    <span class="processing-elapsed">Tempo decorrido: <span data-testid="total-elapsed">0</span>s · estimado total: ~3min</span>
+    <button type="button" class="processing-cancel" data-testid="processing-cancel" aria-label="Cancelar análise e recomeçar">
+      Cancelar e recomeçar
+    </button>
+  </div>
+</section>
+{% endmacro %}

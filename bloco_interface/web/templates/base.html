@@ -5,26 +5,114 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Revisor Contratual</title>
   <!-- Fontes self-hosted em /static/fonts/ via @font-face em tokens.css (REV-INT-02 — LGPD on-premise, sem CDN externo) -->
-  <link rel="stylesheet" href="/static/tokens.css">
-  <link rel="stylesheet" href="/static/app.css">
-  <script src="/static/htmx.min.js" defer></script>
-  <script src="/static/htmx-sse.js" defer></script>
+  <!-- CC.39 fix F-06: ?v={{ static_version }} computado automaticamente via mtime hash em app.py:_compute_static_version (substitui ?v=cc36 manual de CC.36) -->
+  <link rel="stylesheet" href="/static/tokens.css?v={{ static_version }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ static_version }}">
+  <script src="/static/htmx.min.js?v={{ static_version }}" defer></script>
+  <script src="/static/htmx-sse.js?v={{ static_version }}" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <span class="mark">⚖</span>
-    <span class="brand">Revisor</span>
+  {# MVP-LEAN-01 Task 1 — Topbar persistente (C-topbar): mark + brand + usuário + CTA Sair #}
+  <header class="topbar" aria-label="Barra de navegação principal">
+    <span class="mark" aria-hidden="true">⚖</span>
+    <span class="brand">Revisor Contratual</span>
+    {% if session_user %}
+    <span class="topbar-user" data-testid="topbar-user">{{ session_user|e }}</span>
+    <button type="button" class="topbar-logout" data-testid="topbar-logout"
+            hx-post="/logout" hx-trigger="click">Sair</button>
+    {% endif %}
   </header>
+
+  {# Phase D / OLLAMA-MGR-01 AC-6: banner SSE auto-pull progress (oculto se state=ready) #}
+  <div id="ollama-status-banner" hx-ext="sse" sse-connect="/ollama-status"
+       style="display: none; padding: 12px 16px;
+              background: var(--warning-soft); border-left: 4px solid var(--warning);
+              margin: 0; font-family: var(--f-ui);">
+    <p style="margin: 0; font-weight: 600; color: var(--text); font-size: 16px;">
+      ⏳ Baixando modelos LLM...
+      <span id="pull-percent">0</span>%
+      <span id="pull-model" style="color: var(--text-muted); font-family: var(--f-mono); font-weight: 400; font-size: 14px;"></span>
+    </p>
+    <p style="margin: 4px 0 0 0; font-size: 14px; color: var(--text-muted);">
+      ETA: <span id="pull-eta">calculando...</span>
+    </p>
+  </div>
+
+  {# MVP-LEAN-01 Task 1 — Banner Tema 1378 STJ persistente (C2): visível S1-S8, 3 níveis #}
+  {% if tema_1378 and tema_1378.nivel != 'oculto' %}
+  <aside class="banner-tema-1378 banner-tema-1378--{{ tema_1378.nivel }}"
+         data-testid="banner-tema-1378"
+         {% if tema_1378.nivel == 'vermelho' %}role="alert"{% else %}role="status"{% endif %}
+         aria-live="{% if tema_1378.nivel == 'vermelho' %}assertive{% else %}polite{% endif %}">
+    <p class="banner-tema-1378__msg">{{ tema_1378.mensagem|e }}</p>
+    {% if tema_1378.acoes %}
+    <ul class="banner-tema-1378__acoes" aria-label="Ações disponíveis">
+      {% for acao in tema_1378.acoes %}
+      <li><a href="{{ acao.href|e }}">{{ acao.label|e }}</a></li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+  </aside>
+  {% endif %}
 
   <aside class="sidebar">
     <h3>Histórico</h3>
     {% block sidebar %}{% endblock %}
   </aside>
 
-  <main class="container">
+  {# MVP-LEAN-01 Task 1+7 — Main com id="app-main" + aria-live para HTMX swap.
+     Task 7: class main-disabled quando banner Tema 1378 CRITICAL (nivel=vermelho). #}
+  <main id="app-main"
+        class="container{% if main_disabled %} main-disabled{% endif %}"
+        aria-live="polite"
+        aria-label="Área principal de conteúdo"
+        {% if main_disabled %}aria-disabled="true" data-testid="main-disabled"{% endif %}>
     <div id="workspace">
       {% block workspace %}{% endblock %}
     </div>
   </main>
+
+  {# MVP-LEAN-01 Task 1 — Footer C7: versão + audit.jsonl + LGPD micro-disclaimer #}
+  <footer class="footer-c7" data-testid="footer-c7" aria-label="Rodapé com versão e disclaimers">
+    <span>Revisor Contratual {{ app_version|e }}</span>
+    <span aria-hidden="true">·</span>
+    <a href="{{ audit_url|e }}" data-testid="footer-audit-link">audit.jsonl</a>
+    <span aria-hidden="true">·</span>
+    <span>100% local · LGPD §46</span>
+  </footer>
+
+  {# Phase D / OLLAMA-MGR-01: handler SSE para banner ollama-status (parse + show/hide) #}
+  <script>
+    document.addEventListener('htmx:sseMessage', function (e) {
+      if (e.detail.type !== 'status') return;
+      try {
+        const data = JSON.parse(e.detail.data);
+        const banner = document.getElementById('ollama-status-banner');
+        if (!banner) return;
+        const pctEl = document.getElementById('pull-percent');
+        const modelEl = document.getElementById('pull-model');
+        const etaEl = document.getElementById('pull-eta');
+        if (data.state === 'ready') {
+          banner.style.display = 'none';
+        } else if (data.state === 'error') {
+          banner.style.display = 'block';
+          if (pctEl) pctEl.textContent = '⚠️';
+          if (modelEl) modelEl.textContent = '';
+          if (etaEl) etaEl.textContent = data.error || 'Verifique audit.jsonl';
+        } else {
+          banner.style.display = 'block';
+          if (pctEl) pctEl.textContent = data.percent || 0;
+          if (modelEl) modelEl.textContent = data.model || '';
+          if (etaEl) {
+            etaEl.textContent = data.eta_seconds
+              ? Math.floor(data.eta_seconds / 60) + ' min'
+              : 'calculando...';
+          }
+        }
+      } catch (err) {
+        console.error('SSE ollama-status parse failed:', err);
+      }
+    });
+  </script>
 </body>
 </html>

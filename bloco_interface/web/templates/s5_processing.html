@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% from "partials/c4_processing_pane.html" import processing_pane %}
+
+{# MVP-LEAN-01 Task 4 — S5 Processing (per ux-spec §3 S5 linhas 379-438).
+   5 fases canônicas via macro C4 + SSE client resilient (heartbeat + timeout + retry). #}
+
+{% block workspace %}
+{{ processing_pane(phases=phases, filename=filename, job_id=job_id) }}
+<script src="/static/sse_resilient.js?v={{ static_version }}" defer></script>
+{% endblock %}

@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-05"
-active_story: "🎉 v0.2.0 RELEASED — Sprint 02 100% CLOSED · ZERO HIGH ATIVOS · 11 debts resolved · Sprint 03 BACKLOG"
-status: v0.2.0-RELEASED-sprint-02-CLOSED-sprint-03-BACKLOG
+last_updated: "2026-05-06"
+active_story: "🚀 Sprint 03 Phase 0 VAULT-FIX-01 PUSHED + CC.1A CC FECHADO — feature/sprint-03-vault-fix-01 commits 3d055c6 (VAULT-FIX-01) + ef8d087 (CC.1A docs); CI verde Python 3.11+3.12. Próximo: CC.2 Aria ADR-013 + Eric decide PR creation"
+status: sprint-03-phase-0-vault-fix-01-PUSHED-cc1a-FECHADO-cc2-aria-em-curso
 
 # Status executivo atualizado sessão 86 (Operator consolidação pós v0.2.0 release):
 #  • Sprint 01: 100% closed (v0.1.0 published)

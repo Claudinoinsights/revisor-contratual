@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{# MVP-LEAN-01 Task 2 — S1 Login (não-autenticado).
+   Per ux-spec §3 S1 linhas 197-237: sem banner Tema 1378 + sem nome usuário no topbar
+   (info regulatório só pós-auth para coerência LGPD).
+   tema_1378.nivel="oculto" + session_user=None passados pela rota /login. #}
+
+{% block workspace %}
+<section class="login-container" aria-labelledby="login-title">
+  <h1 id="login-title" class="login-title">Revisor Contratual</h1>
+  <p class="login-subtitle">Análise de contratos CDC PF Veículos</p>
+
+  <form class="login-form"
+        method="post"
+        action="/login"
+        hx-post="/login"
+        hx-swap="outerHTML"
+        hx-target="this"
+        aria-label="Formulário de login">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token|e }}">
+
+    <label for="username">Usuário</label>
+    <input id="username"
+           name="username"
+           type="text"
+           required
+           autofocus
+           autocomplete="username"
+           aria-required="true">
+
+    <label for="password">Senha</label>
+    <input id="password"
+           name="password"
+           type="password"
+           required
+           autocomplete="current-password"
+           aria-required="true">
+
+    <button type="submit" class="login-submit">Entrar</button>
+
+    {% if error %}
+    <div class="login-error" role="alert" aria-live="polite" data-testid="login-error">
+      {{ error|e }}
+    </div>
+    {% endif %}
+  </form>
+</section>
+{% endblock %}
