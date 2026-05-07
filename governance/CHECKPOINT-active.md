@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T17:00"
-active_story: "Sessão 91 Sprint 04 Phase 5.1 Operator commit + push Smith adversarial report DONE — Commit 4519ef1 (qa governance: ~20KB Smith report + checkpoint Phase 5+6, 415 insertions / 3 deletions) pushed em feat/sprint-04-cloud-pivot-v0.2.0. Sprint 04 history: 8 commits (18e5ac1 → 4519ef1). Path A step 1/6 done. Próximo: Morpheus dispatch Trinity Phase 5.2 PRD patches F-003 FR-OUTPUT-D3 + F-007 FR-NOTIFY-01."
-status: sprint-04-phase5.1-operator-commit-smith-DONE-aguarda-Morpheus-dispatch-Trinity-phase5.2
+last_updated: "2026-05-07T17:40"
+active_story: "Sessão 91 Sprint 04 Phase 5.4 Morpheus dispatch Operator commit consolidado — Path A chain step 4/6. Aria handoff consumed (ADR-019 + ADR-INDEX + ADR-017 cross-link uncommitted). Morpheus emite handoff Morpheus→Operator (token H-S04-P5.4-MOR2OP-COMMIT-CONSOLIDADO-001) com brief 2 commits estratégia (qa governance Trinity+Aria + docs governance checkpoint) + commit messages pré-redigidas. Aguarda próxima Skill `LMAS:agents:devops` (Operator)."
+status: sprint-04-phase5.4-morpheus-dispatch-operator-DONE-aguarda-operator-commit-consolidado
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,171 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 5.4 Morpheus dispatch Operator commit consolidado** (@lmas-master · Morpheus — 2026-05-07T17:40):
+  - **Trigger:** Handoff Aria → Morpheus (token H-S04-P5.3-ARIA2MOR-ADR019-DONE-001) ADR-019 + ADR-INDEX + ADR-017 cross-link DONE. Eric directive standing "execute o path A completo"
+  - **Decisão ORDEM 11:** Dispatch Operator Phase 5.4 commit consolidado Trinity+Aria patches via Skill `LMAS:agents:devops`
+  - **Brief Operator embedded — 2 commits estratégia replicando padrão Phase 5.1:**
+    - **Commit 1 — qa governance:** PRD v2.0.1 (Trinity Phase 5.2) + ADR-019 (Aria Phase 5.3) + ADR-017 cross-link + ADR-INDEX refactor (4 files). Message conventional referencing Smith F-003+F-007+F-012 fechados + Trinity+Aria handoffs tokens
+    - **Commit 2 — docs governance:** CHECKPOINT-active.md entry Phase 5.4 (1 file). Message referenciando hash do Commit 1 + Path A 4/6 progress
+  - **Files uncommitted (5 total):**
+    - CRIADO: `governance/architecture/adr/adr-019-dpa-storage-schema.md` (~10KB, 10 seções)
+    - MODIFICADO: `governance/architecture/adr/adr-017-multi-tenant-isolation-rls.md` (+1 linha cross-link)
+    - MODIFICADO: `governance/architecture/ADR-INDEX.md` (+66/-24 refactor Sprint 04)
+    - MODIFICADO: `governance/prd/prd-v2.0.0-DRAFT.md` (+72/-3 Trinity Phase 5.2)
+    - MODIFICADO: `governance/CHECKPOINT-active.md` (entries Phase 5.2 + 5.3 + 5.3-Aria-DONE + 5.4 Morpheus)
+  - **Pre-push checks Operator:**
+    - Skip CodeRabbit consistente Phases 2.2/3.2/4.1/5.1 (governance docs, não código)
+    - Verify branch feat/sprint-04-cloud-pivot-v0.2.0
+    - Verify 5 files staged (4 modified + 1 new)
+    - Validate frontmatter ADR-019 + PRD v2.0.1 (version=2.0.1)
+    - Skip --no-verify (não bypass hooks per CLAUDE.md)
+  - **Decisões Morpheus Phase 5.4:**
+    - **D-MOR-SP04-P5.4-A:** 2 commits separados (qa governance + docs governance) replicando padrão Phase 4.1 + Phase 5.1 — preserva atomicidade semântica + history granularidade git blame
+    - **D-MOR-SP04-P5.4-B:** Commit 1 bundle Trinity+Aria patches juntos — ambos endereçam Smith CRITICAL findings (F-003+F-007+F-012). Commit consolidado representa "Path A patches CRITICAL closure" semanticamente unificado. Alternative rejected: 2 commits separados Trinity vs Aria (quebraria narrativa Path A unified)
+    - **D-MOR-SP04-P5.4-C:** Commit messages pré-redigidas embedded no handoff — Operator não precisa improvise. Reduce decision fatigue + consistência narrativa Sprint 04
+    - **D-MOR-SP04-P5.4-D:** NÃO PR creation nesta phase — Phase 6 separado pós F-016 cross-domain Eric resolved. Justificativa: PR sem F-016 LGPD validado deixaria Smith CRITICAL pendente em PR aberto (smell para reviewer)
+  - **Path A chain progress (4/6 dispatched):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - ✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DONE
+    - 🔄 [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria — DISPATCHED
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (chain pausa aqui — NÃO Skill-dispatchable)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha (condicional pós F-016)
+  - **Smith CRITICAL status overall:**
+    - F-003 ✅ FECHADO via Trinity PRD (FR-OUTPUT-D3)
+    - F-007 ✅ FECHADO via Trinity PRD (FR-NOTIFY)
+    - F-012 ✅ FECHADO via Aria ADR-019
+    - F-016 ⏳ PENDENTE cross-domain Eric advogado LGPD (5-15 dias)
+  - **Handoffs:**
+    - Aria → Morpheus (H-S04-P5.3-ARIA2MOR-ADR019-DONE-001): consumed:true
+    - Morpheus → Operator (H-S04-P5.4-MOR2OP-COMMIT-CONSOLIDADO-001): emitido em `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-sp04-phase5.4-commit-consolidado.yaml`
+  - **NÃO commitado** — Operator Phase 5.4 commit+push na próxima Skill
+  - **Próximo:** Eric invoca Skill `LMAS:agents:devops` (Operator) → 2 commits qa governance + docs governance pushed → handoff Operator → Morpheus signaling chain Path A pause em [5/6] aguardando Eric F-016 paralelo
+- **Sessão 91 Sprint 04 Phase 5.3 Aria ADR-019 DPA Storage Schema DONE** (@architect · Aria — 2026-05-07T17:35):
+  - **Trigger:** Handoff Morpheus → Aria (token H-S04-P5.3-MOR2ARIA-ADR019-DPA-001) — Eric authorized autonomous chain
+  - **4 files modificados:**
+    - **CRIADO** `governance/architecture/adr/adr-019-dpa-storage-schema.md` (~10KB, 10 seções spec-level): Contexto + Decisão SQL canônico + Razão + 5 Alternativas + DPA Versioning Protocol semver + Retention Policy permanent + Audit Chain HMAC + 3 API Endpoints + Consequências + Cross-references
+    - **MODIFICADO** `governance/architecture/adr/adr-017-multi-tenant-isolation-rls.md` (+1 linha cross-link ADR-019)
+    - **ATUALIZADO** `governance/architecture/ADR-INDEX.md` — Sprint 04 ADRs (014-019) indexadas + 5 superseded marcadas (007/009/010/011/013-parcial) + frontmatter sprint=04 + stats atualizadas
+    - **ATUALIZADO** `governance/CHECKPOINT-active.md` (entry Phase 5.3 Aria DONE)
+  - **Schema SQL summary (9 colunas + RLS + 2 indexes):**
+    - id UUID PK + tenant_id FK ON DELETE RESTRICT + dpa_version VARCHAR(20) semver + dpa_text_hash VARCHAR(64) SHA-256 + accepted_at TIMESTAMP TZ + accepted_by_user_id FK ON DELETE RESTRICT + ip_address INET + user_agent TEXT + created_at TIMESTAMP TZ DEFAULT NOW()
+    - CONSTRAINT UNIQUE(tenant_id, dpa_version) — idempotência
+    - RLS policy `tenant_isolation` consistente ADR-017 BACKBONE
+    - 2 indexes: idx_tenant + idx_version
+  - **Decisões Aria Phase 5.3:**
+    - **D-ARIA-SP04-P5.3-A:** ADR-019 level=spec confirmado (não design) — F-012 envolve LGPD R$ 50M risk, schema SQL completo + 7 spec_coverage items obrigatório
+    - **D-ARIA-SP04-P5.3-B:** ADR-017 cross-link adicionado em "Cross-references" section (1 linha após ADR-018) — preserva pattern existente do BACKBONE
+    - **D-ARIA-SP04-P5.3-C:** ADR-INDEX gap descoberto — Sprint 04 ADRs (014-018) não estavam indexadas. Aproveitei para indexar 014-019 + marcar superseded chain (007→017, 009→017, 010→014, 011→014, 013-parcial→015) + atualizar metadata sprint/etapa/stats. Smith potencial finding "ADR-INDEX stale" preempted.
+    - **D-ARIA-SP04-P5.3-D:** Cabeçalho ADR-019 com bloco LMAS `[@architect Aria]` preserva pattern Sprint 03 ADRs (consistência narrativa)
+    - **D-ARIA-SP04-P5.3-E:** Retention permanent justificada com distinção LGPD Art. 18 explícita — PII tratada eliminável vs PROOF de consent permanent. Anonymization possível para `accepted_by_user_id` (UUID null sentinel) preserva evidence aceite.
+  - **Smith F-012 status:** ✅ FECHADO via ADR-019
+  - **Path A chain progress (3/6 done):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - ✅ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DONE
+    - 🔜 [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria patches — NEXT
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (5-15 dias)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha
+  - **Smith CRITICAL status overall:**
+    - F-003 ✅ FECHADO via Trinity PRD (FR-OUTPUT-D3)
+    - F-007 ✅ FECHADO via Trinity PRD (FR-NOTIFY)
+    - F-012 ✅ FECHADO via Aria ADR-019
+    - F-016 ⏳ PENDENTE cross-domain Eric advogado LGPD especializado
+  - **Handoffs:**
+    - Morpheus → Aria (H-S04-P5.3-MOR2ARIA-ADR019-DPA-001): consumed:true ✓
+    - Aria → Morpheus (H-S04-P5.3-ARIA2MOR-ADR019-DONE-001): emitido em `.lmas/handoffs/handoff-aria-to-morpheus-2026-05-07-sp04-phase5.3-adr019-done.yaml`
+  - **NÃO commitado** — Operator Phase 5.4 commit consolidado Trinity+Aria patches na próxima Skill
+  - **Próximo:** Eric invoca Skill `LMAS:agents:lmas-master` (Morpheus) → dispatch Operator Phase 5.4 commit consolidado (PRD v2.0.1 + ADR-019 + ADR-017 cross-link + ADR-INDEX + checkpoint) via Skill `LMAS:agents:devops`
+- **Sessão 91 Sprint 04 Phase 5.3 Morpheus dispatch Aria ADR-019 DPA storage** (@lmas-master · Morpheus — 2026-05-07T17:25):
+  - **Trigger:** Handoff Trinity → Morpheus (token H-S04-P5.2-TRINITY2MOR-PRD-PATCHES-DONE-001) PRD v2.0.0 → v2.0.1 DONE com 10 novos FRs (F-003 + F-007 fechados). Eric directive standing "execute o path A completo"
+  - **Decisão ORDEM 11:** Dispatch Aria Phase 5.3 ADR-019 DPA storage schema (Smith F-012) via Skill `LMAS:agents:architect`
+  - **Brief Aria embedded no handoff:**
+    - **ADR level: spec** (não design) — inclui schema SQL completo, RLS policies, retention policy, versioning protocol, audit integration, API endpoints
+    - **Schema canônico `dpa_acceptances`:** 9 colunas (id UUID + tenant_id FK + dpa_version semver + dpa_text_hash SHA-256 + accepted_at TIMESTAMP TZ + accepted_by_user_id FK + ip_address INET + user_agent TEXT + created_at default NOW); CONSTRAINT UNIQUE(tenant_id, dpa_version)
+    - **RLS policy:** tenant_isolation consistente ADR-017 BACKBONE pattern
+    - **Retention:** PERMANENT (evidence legal LGPD — distinção PII tratada vs PROOF de consent)
+    - **DPA versioning protocol:** semver (MAJOR força re-aceite, MINOR opcional, PATCH sem) + 30 dias notice + bloqueio uso pós-prazo
+    - **Storage canônico texto DPA:** `governance/legal/dpa-templates/{version}.md` versionado git + hash SHA-256 valida integridade
+    - **Audit chain HMAC integration:** acceptance event capturado em chain (ADR-005 + ADR-017) — evidence dupla DB + chain
+    - **3 API endpoints:** GET /current + POST /accept + GET /history (admin only)
+    - **5 Alternativas Consideradas:** boolean column (REJEITADA), PDF BLOB (REJEITADA), DocuSign external (REJEITADA), JSONB array (REJEITADA), schema dedicated (✅ CHOSEN)
+  - **Aria adicionalmente DEVE:**
+    - Atualizar `governance/architecture/ADR-INDEX.md` com entry ADR-019 (criar índice se não existir per rule adr-governance.md)
+    - Adicionar nota ADR-017 BACKBONE referenciando ADR-019 (cross-link bidirecional, 1 linha)
+    - Atualizar checkpoint inline (rule checkpoint-protocol.md)
+  - **Restrições Aria:**
+    - NÃO redige texto legal substantivo DPA (cross-domain Eric advogado paralelo F-016)
+    - NÃO commit (Operator Phase 5.4 commit consolidado Trinity+Aria patches)
+    - NÃO modifica PRD (Trinity Phase 5.2 done — flag em handoff se cross-reference necessária)
+    - NÃO modifica ADRs existentes EXCETO ADR-017 cross-link 1 linha
+    - Conformidade rules: adr-governance.md + adr-scope.md (level=spec) + obsidian-format-guard.md
+  - **Path A chain progress (3/6 dispatched):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - 🔄 [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — DISPATCHED (aguarda Aria Skill ativa)
+    - ⏳ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria patches
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (5-15 dias)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha
+  - **Handoffs:**
+    - Trinity → Morpheus (H-S04-P5.2-TRINITY2MOR-PRD-PATCHES-DONE-001): consumed:true
+    - Morpheus → Aria (H-S04-P5.3-MOR2ARIA-ADR019-DPA-001): emitido em `.lmas/handoffs/handoff-morpheus-to-aria-2026-05-07-sp04-phase5.3-adr019-dpa.yaml`
+  - **NÃO commitado** — Aria faz ADR-019 inline, Operator Phase 5.4 commit consolidado depois
+  - **Próximo:** Eric invoca Skill `LMAS:agents:architect` (Aria) → cria ADR-019 + ADR-INDEX.md + ADR-017 cross-link → handoff Aria → Morpheus
+- **Sessão 91 Sprint 04 Phase 5.2 Trinity PRD patches v2.0.0 → v2.0.1 DONE** (@pm · Trinity (Morgan) — 2026-05-07T17:20):
+  - **Trigger:** Handoff Morpheus → Trinity (token H-S04-P5.2-MOR2TRINITY-PRD-PATCHES-001) — Eric authorized autonomous chain "execute o path A completo como recomendado sempre pela Skill"
+  - **5 STEPS aplicados em `governance/prd/prd-v2.0.0-DRAFT.md`:**
+    - **STEP 1 frontmatter:** `version: "2.0.1"` + `last_updated: "2026-05-07T17:15"` + entry novo em patches array
+    - **STEP 2 FR-OUTPUT-D3:** nova seção entre FR-OUTPUT e FR-D3 — 5 FRs (D3-01 PDF separado análise + D3-02 template Jinja2 distinto + D3-03 estrutura legal + D3-04 watermark "Petição IA" + D3-05 audit log) + NOTA cross-domain Eric conteúdo legal
+    - **STEP 3 FR-NOTIFY:** nova seção entre FR-D3 e FR-APPROVE (semanticamente próximo de workflow events) — 5 FRs (NOTIFY-01 email transactional + NOTIFY-02 in-app banner + NOTIFY-03 settings preference + NOTIFY-04 email content + NOTIFY-05 audit chain) + NOTA cross-domain pricing provider
+    - **STEP 4 Section Delta:** Section 8 renomeada "Delta History" + nested "Delta v2.0.0 → v2.0.1 (current)" antes de "Delta v1.1.2 → v2.0.0 (MAJOR pivot — preserved histórico)"
+    - **STEP 5 Changelog:** entry v2.0.1 (2026-05-07) antes do entry v2.0.0
+  - **Diff stats:** +72 insertions / -3 deletions (1 file modified)
+  - **10 novos FRs confirmados:** 5 FR-OUTPUT-D3 + 5 FR-NOTIFY (Smith F-003 + F-007 fechados via PRD)
+  - **Decisões Trinity Phase 5.2:**
+    - **D-TRINITY-SP04-P5.2-A:** FR-NOTIFY posicionado entre FR-D3 e FR-APPROVE (não imediato após FR-OUTPUT-D3 conforme brief literal) — fluxo lógico: PDF generation → workflow events → approval. Brief flexível interpretado.
+    - **D-TRINITY-SP04-P5.2-B:** Section 8 renomeada para "Delta History" (não criada section nova) — preserva numeração e adiciona delta v2.0.0 → v2.0.1 como subseção primeira (mais recente primeiro). Existing v1.1.2 → v2.0.0 preservado como subseção segunda.
+    - **D-TRINITY-SP04-P5.2-C:** Conteúdo legal templates D3 + Provider email NÃO precificados (mantém flag Section 12 cross-domain). Aceitos como TBD com placeholders claros.
+    - **D-TRINITY-SP04-P5.2-D:** PATCH bump justificado vs MINOR — fechamento de gaps de spec identificados por Smith adversarial review, não adição de feature nova ao produto. Delta histórico claro.
+  - **Path A chain progress (2/6 done):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - ✅ [2/6] Trinity Phase 5.2 PRD patches v2.0.0 → v2.0.1 — DONE
+    - 🔜 [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012 — NEXT
+    - ⏳ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria patches
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (5-15 dias)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha
+  - **Handoffs:**
+    - Morpheus → Trinity (H-S04-P5.2-MOR2TRINITY-PRD-PATCHES-001): consumed:true ✓
+    - Trinity → Morpheus (H-S04-P5.2-TRINITY2MOR-PRD-PATCHES-DONE-001): emitido em `.lmas/handoffs/handoff-trinity-to-morpheus-2026-05-07-sp04-phase5.2-prd-patches-done.yaml`
+  - **NÃO commitado** — Operator Phase 5.4 commit consolidado Trinity+Aria patches depois Aria Phase 5.3
+  - **Próximo:** Eric invoca Skill `LMAS:agents:lmas-master` (Morpheus consolidação) → dispatch Aria Phase 5.3 ADR-019 DPA storage F-012 via Skill `LMAS:agents:architect`
+- **Sessão 91 Sprint 04 Phase 5.2 Morpheus dispatch Trinity PRD patches** (@lmas-master · Morpheus — 2026-05-07T17:10):
+  - **Trigger:** Handoff Operator → Morpheus (token H-S04-P5.1-OP2MOR-COMMIT-SMITH-DONE-001) Phase 5.1 commits 4519ef1+32b987c Smith report DONE. Eric "execute o recomendado sempre pela Skill" → continue Path A step 2/6
+  - **Decisão ORDEM 11:** Dispatch Trinity Phase 5.2 PRD patches via Skill `LMAS:agents:pm` (memory `feedback_workflow_via_skill_strict` aplicado)
+  - **Brief Trinity embedded no handoff:**
+    - **F-003 patch — FR-OUTPUT-D3 nova seção:** 5 FRs (D3-01 PDF separado análise + D3-02 template Jinja2 distinto + D3-03 estrutura legal + D3-04 watermark "Petição IA" + D3-05 audit log)
+    - **F-007 patch — FR-NOTIFY nova seção:** 5 FRs (NOTIFY-01 email transactional + NOTIFY-02 in-app banner + NOTIFY-03 settings preference + NOTIFY-04 email content + NOTIFY-05 audit chain)
+    - **PATCH bump v2.0.0 → v2.0.1:** frontmatter + Changelog entry referenciando Smith commit 4519ef1
+    - **Total novos FRs:** 10 (5 D3 + 5 NOTIFY)
+  - **Restrições Trinity:**
+    - PATCH bump apenas (não MINOR/MAJOR — fecha gaps, não adiciona feature nova)
+    - NÃO redige conteúdo legal templates D3 (cross-domain Eric advogado paralelo F-016)
+    - NÃO precifica Notification provider (TBD pricing cross-domain)
+    - NÃO commit (Operator Phase 5.4 commit consolidado Trinity+Aria)
+    - NÃO modifica ADRs (Aria Phase 5.3 ADR-019 separado)
+    - Apenas governance/prd/prd-v2.0.0-DRAFT.md modificado nesta phase
+  - **Path A chain progress (2/6 dispatched):**
+    - ✅ [1/6] Operator Phase 5.1 commit + push Smith report — DONE 4519ef1+32b987c
+    - 🔄 [2/6] Trinity Phase 5.2 PRD patches F-003 + F-007 — DISPATCHED (aguarda Trinity Skill ativa)
+    - ⏳ [3/6] Aria Phase 5.3 ADR-019 DPA storage F-012
+    - ⏳ [4/6] Operator Phase 5.4 commit consolidado Trinity+Aria patches
+    - ⏳ [5/6] Eric paralelo cross-domain F-016 advogado LGPD especializado (5-15 dias)
+    - ⏳ [6/6] Operator Phase 6 PR creation + tag v0.2.0-alpha
+  - **Handoffs:**
+    - Operator → Morpheus (H-S04-P5.1-OP2MOR-COMMIT-SMITH-DONE-001): consumed:true
+    - Morpheus → Trinity (H-S04-P5.2-MOR2TRINITY-PRD-PATCHES-001): emitido em `.lmas/handoffs/handoff-morpheus-to-trinity-2026-05-07-sp04-phase5.2-prd-patches.yaml`
+  - **NÃO commitado** — Trinity faz patches inline, Operator Phase 5.4 commit consolidado depois Aria
+  - **Próximo:** Eric invoca Skill `LMAS:agents:pm` (Trinity) → patches F-003 + F-007 inline em PRD v2.0.0-DRAFT.md → handoff Trinity → Morpheus
 - **Sessão 91 Sprint 04 Phase 5.1 Operator commit + push Smith adversarial report DONE** (@devops · Operator — 2026-05-07T17:00):
   - **Trigger:** Handoff Morpheus → Operator (token H-S04-P6-MOR2OP-COMMIT-SMITH-001) — Eric Path A ratificado, step 1/6 chain Smith report standalone commit antes Trinity/Aria patches
   - **Commit 4519ef1 (qa governance):** `qa(governance): Sprint 04 Phase 5 — Smith ULTRATHINK adversarial review pivot completo`
