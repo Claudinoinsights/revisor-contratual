@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T14:30"
+last_updated: "2026-05-07T14:45"
 active_story: "Sessão 91 CC.42 DONE — Neo fixes Smith CC.41 F-A1 (RAM pre-flight psutil <2.5GB+>90% → RuntimeError PT-BR + ALLOW_LOW_MEMORY override) + F-A2 (frontend fieldset metadata-overrides com select 27 UFs + input type=date; backend parse data str → date.fromisoformat com HTTPException 400) + bug bonus app.py:707 data_override hardcoded None → job['data']. Suite 57/57 preservada. App HTTP 200 startup limpo. 20 findings Smith CC.41 remanescentes (7 HIGH + 8 MED + 5 LOW) priorizados CC.43+. Aguarda Eric retomar smoke /revisar com PDF real OR Morpheus dispatch CC.43."
-status: sprint-04-phase2.1-Aria-DONE-10-ADRs-aguarda-Operator-commit
+status: sprint-04-phase2.2-Operator-commit-DONE-aguarda-Morpheus-consolida-Eric
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -319,6 +319,20 @@ tags:
   - **Branch atual:** `feat/sprint-04-cloud-pivot-v0.2.0` — 10 file changes não-commitados
   - **Handoff Aria → Morpheus:** `.lmas/handoffs/handoff-architect-to-morpheus-2026-05-07-sp04-phase2.1-5adrs-done.yaml` (token H-S04-P2.1-ARIA2MOR-5ADRS-DONE-001)
   - **Próximo:** Operator commit + push 5 novos + 5 atualizados → Morpheus consolida → apresenta a Eric → Eric aprova → dispatch Trinity Phase 3 PRD v2.0.0
+- **Sessão 91 Sprint 04 Phase 2.2 — Operator commit 10 ADRs DONE** (@devops · Operator — 2026-05-07T14:45):
+  - **Trigger:** Morpheus dispatch H-S04-P2.2-MOR2OP-COMMIT-ADRS-001 (Eric "avance sempre pelas skills corretas")
+  - **Pre-push gate:** skip CodeRabbit (governance docs only, sem código) — quality gate adequado
+  - **Commit consolidado:** **`5820800`** — feat(governance): Sprint 04 Phase 2.1 — 5 novos ADRs + 5 supersede chain
+    - 11 files (10 ADRs + 1 checkpoint): 867 insertions / 9 deletions
+    - 5 ADRs novos criados (014/015/016/017/018)
+    - 5 ADRs existentes atualizados (007/009/010/011/013) — frontmatter status + nota topo supersede
+  - **Push:** `439184a..5820800  feat/sprint-04-cloud-pivot-v0.2.0` ✅
+  - **Commit URL:** https://github.com/Claudinoinsights/revisor-contratual/commit/5820800
+  - **Branch URL:** https://github.com/Claudinoinsights/revisor-contratual/tree/feat/sprint-04-cloud-pivot-v0.2.0
+  - **NÃO criou PR** (Trinity + Sati + Smith pendentes)
+  - **History preservada:** Sprint 03 anchor `feat/mvp-lean-01-task1-layout-base @ d53011e` intacto
+  - **Handoff Operator → Morpheus:** `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase2.2-commit-adrs-done.yaml` (token H-S04-P2.2-OP2MOR-COMMIT-ADRS-DONE-001)
+  - **Próximo:** Morpheus consolida ORDEM 11 + apresenta resumo dos 5 ADRs novos a Eric → Eric aprova → dispatch Trinity Phase 3 PRD v2.0.0 OR pede ajustes
 - **Sessão 91 CC.41 — Smith ULTRATHINK Anti-Furos FAIL** (@qa · Oracle Smith mode máxima — 2026-05-07T10:00):
   - **Trigger:** Eric reportou (1) link local não abre + (2) campos UF/Data/Tier não aparecem na tela
   - **Verdict:** **FAIL** ❌
