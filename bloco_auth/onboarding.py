@@ -27,7 +27,8 @@ from fastapi import Request
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bloco_auth.models import Tenant, User
+from bloco_auth.byok_encryption import encrypt_api_key, truncate_fingerprint
+from bloco_auth.models import Tenant, TenantAPIKey, User
 from bloco_auth.passwords import hash_password
 
 
@@ -256,14 +257,16 @@ async def complete_onboarding(
         raise OnboardingError(f"Sessão {session_id} não encontrada")
 
     step1: OnboardingStep1Data | None = session.get("step1")
+    step2: OnboardingStep2Data | None = session.get("step2")
     step3: OnboardingStep3Data | None = session.get("step3")
     step4: OnboardingStep4Data | None = session.get("step4")
-    if step1 is None or step3 is None or step4 is None:
+    if step1 is None or step2 is None or step3 is None or step4 is None:
         raise OnboardingError("Wizard incompleto — todos 4 steps devem ser preenchidos")
     if not step3.accepted:
         raise OnboardingError("DPA não aceita — onboarding bloqueado")
 
-    # Triple insert atomic — single transaction
+    # Quadruple insert atomic — single transaction (SP04-BYOK-01 chunk 4 extension)
+    # Sequência: tenant → user → dpa_acceptance → tenant_api_keys (encrypted)
     async with db_session.begin():
         tenant = Tenant(
             cnpj=step1.cnpj,
@@ -285,7 +288,7 @@ async def complete_onboarding(
         db_session.add(user)
         await db_session.flush()  # gera user.id sem commit
 
-        # Triple insert step 3 — DPA acceptance (chunk 5 / AC-06)
+        # Triple insert step 3 — DPA acceptance (AUTH-01 chunk 5 / AC-06)
         # Falha aqui (texto inexistente, hash compute error) rollback completo.
         try:
             await _dpa.accept_dpa(
@@ -300,6 +303,22 @@ async def complete_onboarding(
                 f"DPA texto canônico v{step3.dpa_version} não encontrado — "
                 f"onboarding bloqueado. Detalhe: {exc}"
             ) from exc
+
+        # Quadruple insert step 4 — BYOK encrypted api_key (SP04-BYOK-01 chunk 4 / AC-03)
+        # Tank Phase 12.3a — quadruple insert atomic (rollback completo se encrypt falha).
+        # Audit chain event byok_key_set é emitido em chunk 7 via byok_lifecycle helper
+        # (separação de concern — lifecycle audit centralizado em byok_lifecycle.py).
+        plain_api_key = step2.anthropic_api_key
+        encrypted = await encrypt_api_key(plain_api_key, db_session)
+        fingerprint = truncate_fingerprint(plain_api_key)
+
+        db_session.add(TenantAPIKey(
+            tenant_id=tenant.id,
+            encrypted_key=encrypted,
+            key_fingerprint=fingerprint,
+            status="active",
+        ))
+        await db_session.flush()
 
     # Sessão finalizada — limpa
     _SESSIONS.pop(session_id, None)
