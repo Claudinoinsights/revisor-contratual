@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T20:00"
+last_updated: "2026-05-08T20:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,48 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🎯 Sessão 91 Sprint 04 Phase 13.2 EXECUTADA — @po Keymaker `*validate-story-draft` SP04-LGPD-01 verdict GO 10/10** (@po · Keymaker — 2026-05-08T20:30):
+  - **Trigger:** River dispatch H-S04-P19-SM2PO (consumed via Skill `LMAS:agents:po`)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill"
+  - **Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Draft → **Ready**
+  - **10-point PO master checklist TODOS PASS:**
+    - ✅ #1 Frontmatter completo (18 campos paridade SP04-BYOK-01)
+    - ✅ #2 Sumário Section 1 (3 deliverables PRD-aligned + NOTA divergência documentada)
+    - ✅ #3 As a / I want / So that (Eric DPO + escritório controlador)
+    - ✅ #4 6 ACs testáveis com critérios "Tested:" explícitos
+    - ✅ #5 File List pre-implementation (8 novos + 5 modificados + 2 cross-domain pendências)
+    - ✅ #6 Pre-flight Section 5 com justificativas (Tank ratify light + Aria skip + Sati MANDATORY + Eric advogado MANDATORY)
+    - ✅ #7 6 risks tabelados P/I/M
+    - ✅ #8 Implementation Plan 7 chunks Path B
+    - ✅ #9 Cross-references rastreáveis (PRD lines 167-170 + ADRs + UX + predecessors)
+    - ✅ #10 dependencies + source_frs canônicos (FR-LGPD-01..02 + FR-AUDIT-01)
+  - **Validação especial divergência Morpheus brief vs PRD canônico — River-decision CONFIRMADA CORRETA:**
+    - Keymaker invoca LMAS rule "No Invention" (`.claude/rules/quality-gate-enforcement.md`): "Cada deliverable DEVE ser rastreável a PRD FR-* / NFR-* / CON-* / pedido explícito do usuário / ADR. Se agente não consegue apontar fonte → BLOCK até fonte ser identificada OR feature removida."
+    - PRD canônico v2.0.0-DRAFT lines 167-170: 3 deliverables (FR-LGPD-01 + FR-LGPD-02 + FR-AUDIT-01)
+    - Morpheus brief preliminar: 5 deliverables (forget Art. 18 + export Art. 18 + DPO admin + retention scheduler — NÃO rastreáveis a FRs canônicos)
+    - **River-decision alinhar PRD = PROCEDIMENTO CORRETO LMAS Constitution disciplinado**
+    - Forget/Export/DPO admin/retention scheduler = Sprint 05+ stories separadas (audit trail explícito)
+  - **Concerns River flagged — Keymaker decisão (2 ACEITÁVEIS):**
+    - Eric advogado MANDATORY pre-implement → análogo AUTH-01 chunk 5 placeholder pattern aceitável
+    - DPA texto pendência consolidada via AC-01 → não-bloqueante validate
+  - **Concerns adicionais Keymaker (3 LOW non-bloqueantes):**
+    - K-LGPD-01: AC-04 Sati Opção A novo step vs B combine DPA+TOS (River recomenda B)
+    - K-LGPD-02: AC-02 TOS qualidade ANPD-defensável (Eric pode buscar second opinion advogado especializado)
+    - K-LGPD-03: Branch base provisional `feat/sp04-byok-01` HEAD vs main pós-merge (rebase trivial pattern AUTH→BYOK validado)
+  - **Story file modifications:**
+    - Frontmatter: `status: Draft → Ready`
+    - Section 9 QA Validation: completa com 10-point checklist + validação divergência + concerns
+    - Section 12 Change Log: entry @po Keymaker validate-story-draft GO
+  - **Sprint 04 backlog tracking:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 2/14 done (SP04-BYOK-01 PR #5 await Eric merge)
+    - ✅ 1/14 Ready (SP04-LGPD-01 — esta entry; pronto Eric advogado paralelo + Sati wireframe + Tank ratify + Neo *develop)
+    - ⏸ 11/14 backlog
+  - **Handoff IN consumed:** H-S04-P19-SM2PO-VALIDATE-LGPD-01-001 (River brief)
+  - **Handoff OUT emitted:** H-S04-P20-PO2DEV-DEVELOP-LGPD-01-001 (Neo brief — Eric advogado paralelo + Sati wireframe + Tank ratify + chunks 1-7)
+  - **Conventional commit:** `docs(governance): validate-story-draft SP04-LGPD-01 — verdict GO score 10/10 [Story SP04-LGPD-01]` (NÃO push)
+  - **Próxima Skill:** `LMAS:agents:dev` (@dev Neo) consume + orchestrar pre-implement (Eric advogado MANDATORY texto + Sati wireframe + Tank ratify) + execute chunks 1-7 Path B (estimativa 2-3 days similar SP04-BYOK-01)
 
 - **🌊 Sessão 91 Sprint 04 Phase 13.1 EXECUTADA — @sm River `*draft` SP04-LGPD-01 DONE com escopo PRD-aligned** (@sm · River — 2026-05-08T20:00):
   - **Trigger:** Morpheus dispatch H-S04-P19-MOR2SM (consumed via Skill `LMAS:agents:sm`)

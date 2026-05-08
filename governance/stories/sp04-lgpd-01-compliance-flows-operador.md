@@ -2,7 +2,7 @@
 type: story
 id: "SP04-LGPD-01"
 title: "LGPD compliance flows — DPA + TOS operador + audit isolation endpoint"
-status: Draft
+status: Ready
 epic: "Sprint 04 Cloud SaaS BYOK"
 project: revisor-contratual
 sprint: "04"
@@ -310,9 +310,71 @@ Conforme padrão AUTH-01/BYOK-01:
 
 ---
 
-## 9. QA Validation (vazio — preenchido @po validate-story-draft G3)
+## 9. QA Validation (@po Keymaker — *validate-story-draft G3)
 
-> @po Keymaker `*validate-story-draft SP04-LGPD-01` — 10-point checklist preenche aqui pós-validate.
+### Verdict @po Keymaker (2026-05-08)
+
+**Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Draft → **Ready**
+
+> Story tem qualidade técnica sólida, escopo PRD-aligned (não scope creep Morpheus brief), paridade estrutural com SP04-BYOK-01 (template validado). River-decision alinhar PRD canônico (3 deliverables) sobre brief Morpheus preliminar (5 deliverables) é PROCEDIMENTO CORRETO conforme LMAS rule "No Invention" + "PRD-driven story creation". Forget/Export/DPO admin/retention scheduler movidos para Sprint 05+ stories separadas mantêm audit trail explícito + escopo realista.
+
+### 10-point PO Master Checklist (G3)
+
+| # | Ponto | Score | Evidência |
+|---|-------|-------|-----------|
+| 1 | Frontmatter completo (18 campos) | ✅ 1/1 | type/id/title/status/epic/project/sprint/phase/priority/estimated_days/agent/branch/created/created_by/dependencies(5)/source_frs(3)/cross_references/tags(8) — paridade SP04-BYOK-01 |
+| 2 | Sumário Section 1 claro | ✅ 1/1 | Contexto LGPD operador + 3 deliverables explícitos + foundation impact (P1+ baseline) + branch strategy + **NOTA divergência Morpheus brief vs PRD canônico documentada** |
+| 3 | As a / I want / So that Section 2 | ✅ 1/1 | Eric (DPO advogado operador) + escritório (controlador) — papéis Art. 5º LGPD distintos |
+| 4 | ACs estruturadas Section 3 (testable + 5+) | ✅ 1/1 | 6 ACs (excede mínimo 5) — AC-01 DPA texto v1.0.0 + AC-02 TOS NOVO + AC-03 schema mirror + AC-04 endpoints mirror + AC-05 audit isolation + AC-06 coverage. Cada AC com critérios "Tested:" explícitos |
+| 5 | File List Section 4 pre-implementation contract | ✅ 1/1 | 8 novos código/tests + 5 modificados + 2 pendências cross-domain (Eric advogado MANDATORY DPA+TOS texto + Sati wireframe MANDATORY Opção A vs B) explícitas |
+| 6 | Pre-flight consultation Section 5 | ✅ 1/1 | Tank ratify (light — mirror ADR-019 sem desvio) + Aria skip (justificada) + Sati MANDATORY (wireframe TOS step) + Eric advogado MANDATORY pre-implement (texto substantivo bloqueia Neo) |
+| 7 | Risk Assessment Section 6 (3+ risks com P/I/M) | ✅ 1/1 | 6 risks tabelados (Eric timeline + Sati Opção A/B + TOS ANPD-defensável + audit isolation data leak + migration breaking + scope creep Morpheus reabertura) |
+| 8 | Implementation Plan Section 7 chunks | ✅ 1/1 | 7 chunks Path B detalhados (vs 8 BYOK — escopo menor justifica) + estimativa 2-3 days + branch creation timing |
+| 9 | Cross-references rastreáveis | ✅ 1/1 | PRD v2.0.0 lines 167-170 + ADRs 005/009/017/019 + UX (Sati wireframe MANDATORY) + predecessors AUTH-01+BYOK-01 + Smith F-016 já WAIVED |
+| 10 | Frontmatter dependencies + source_frs canônicos | ✅ 1/1 | 5 dependencies (AUTH-01 + BYOK-01 + ADRs 017/019/005) + 3 source_frs canônicos (FR-LGPD-01..02 + FR-AUDIT-01) — links rastreáveis PRD oficial |
+| **TOTAL** | | **10/10** | **GO threshold ≥ 7/10 — exceeded by 3 pontos** |
+
+### Validação especial: Divergência Morpheus brief vs PRD canônico
+
+**Decisão Keymaker: River-decision PROCEDIMENTO CORRETO ✅**
+
+| Aspecto | Validação |
+|---------|-----------|
+| **Alinhamento PRD canônico está correto?** | ✅ SIM — PRD v2.0.0-DRAFT lines 167-170 explicitamente lista FR-LGPD-01 (DPA) + FR-LGPD-02 (TOS/EULA) + FR-AUDIT-01 (audit isolation endpoint) — escopo restritivo canônico |
+| **River-decision viola brief Morpheus authority?** | ✅ NÃO — Morpheus brief é orientação preliminar (não decisão canônica). Keymaker invoca **LMAS rule "No Invention"** (`.claude/rules/quality-gate-enforcement.md`): "Cada deliverable DEVE ser rastreável a PRD FR-* / NFR-* / CON-* / pedido explícito do usuário / ADR. Se agente não consegue apontar fonte → BLOCK até fonte ser identificada OR feature removida." |
+| **Forget/Export/DPO admin scope creep removido é defensável?** | ✅ SIM — features valiosas mas Sprint 05+ stories separadas (audit trail explícito por story; escopo MVP conservador; retrabalho prevenido) |
+| **River-decision audit trail explícito?** | ✅ SIM — Section 1 NOTA divergência + Section 5 Pre-flight consultation + Section 12 Change Log entry. Decisão totalmente documentada e rastreável |
+
+**Conclusão:** River executou disciplina LMAS Constitution correta. Brief Morpheus serve como sugestão orquestracional; PRD canônico é a fonte. Quando divergem, alinhar PRD é PROCEDIMENTO mandatory por rule `quality-gate-enforcement.md` (No Invention universal cross-domain).
+
+### Concerns River flagged — Keymaker decisão
+
+| Concern River | Decisão Keymaker | Justificativa |
+|---|---|---|
+| **Eric advogado MANDATORY pre-implement (bloqueia Neo *develop)** | ✅ ACEITÁVEL Ready | Story Ready é estado válido mesmo com Eric advogado pre-implement pendente. Análogo SP04-AUTH-01 chunk 5 que entregou DPA flow com texto placeholder + AUTH-01 fechou Done — Eric finalizou texto pós-Done. Em LGPD-01, Eric tem oportunidade finalizar paralelo Neo chunks 1-3 (setup + DB foundation + skeleton TOS flow); chunks 4-7 esperam texto |
+| **DPA texto v1.0.0.md placeholder pendência herdada AUTH-01** | ✅ ACEITÁVEL escopo deste story | SP04-LGPD-01 AC-01 explicitamente CONSOLIDA finalize texto v1.0.0.md (closure pendência). Não-bloqueante validate-story-draft |
+
+### Concerns adicionais Keymaker (LOW non-bloqueantes — flag para Neo/Eric)
+
+| # | Concern | Severidade | Recomendação |
+|---|---------|-----------|--------------|
+| K-LGPD-01 | **AC-04 Sati Opção A vs B onboarding decision** | LOW | Sati wireframe MANDATORY pre-Neo *develop chunk 4. River recomenda Opção B (combine DPA+TOS step 3 — menor friction); Sati confirma OR propõe alternativa. NÃO bloqueia Ready |
+| K-LGPD-02 | **AC-02 TOS texto operador qualidade ANPD-defensável** | LOW | Risk #3 já flagged Section 6. Eric advogado pode buscar second opinion advogado especializado LGPD se incerto. Audit trail proteção |
+| K-LGPD-03 | **Branch base feat/sp04-byok-01 HEAD provisional vs main pós-merge** | LOW | Recomenda aguardar Eric merge AUTH+BYOK para branch base main clean. Mas BYOK base é viável se urgência (rebase trivial pós-merge — pattern AUTH-01→BYOK-01 já validado) |
+
+### Próximo step
+
+**Recomendação Keymaker:** Skill `LMAS:agents:dev` (@dev Neo) consume + execute pre-implement orchestration:
+
+1. **Eric advogado paralelo (MANDATORY):** finalizar `governance/legal/dpa-templates/v1.0.0.md` + redigir `governance/legal/tos-templates/v1.0.0.md` ANPD-ready (loop iterativo ~1-2 days)
+2. **Sati Skill wireframe MANDATORY:** Opção A novo wizard step 5 vs Opção B combine DPA+TOS step 3 (River recomenda B)
+3. **Tank Skill ratify pre-implement (light):** schema tos_acceptances mirror dpa_acceptances ADR-019 + UNIQUE constraint + indexes seletivos
+4. **Após consultations + Eric texto preliminar:** Neo `*develop` chunks 1-7 Path B (similar SP04-BYOK-01 ritmo + estimativa 2-3 days)
+5. **Branch creation:** Neo cria `feat/sp04-lgpd-01` no início chunk 1 (base provisional `feat/sp04-byok-01` HEAD OR main pós-merge — Eric decide via review PR #4/#5)
+
+**Cadeia próxima Skill:** Neo *develop → Oracle qa-gate G5 → Keymaker close-story → Operator push+PR Sprint 04 PR #6 (similar Path B AUTH-01/BYOK-01).
+
+— Keymaker, equilibrando prioridades 🎯
 
 ---
 
@@ -332,6 +394,7 @@ Conforme padrão AUTH-01/BYOK-01:
 
 | Data | Author | Change |
 |------|--------|--------|
+| 2026-05-08 | @po Keymaker | Phase 13.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (TODOS PASS — paridade SP04-BYOK-01 + escopo PRD-aligned + ACs testáveis "Tested:" explícitas + pre-flight Section 5 com justificativas + 6 risks tabelados + 7 chunks Path B + cross-references rastreáveis); **Validação especial divergência Morpheus brief vs PRD canônico:** River-decision PROCEDIMENTO CORRETO confirmado por Keymaker invocando LMAS rule "No Invention" (`quality-gate-enforcement.md`) — PRD é canônico (3 deliverables); Morpheus brief é preliminar (5 deliverables); Forget/Export/DPO/retention scheduler movidos para Sprint 05+ stories separadas (audit trail). Concerns River flagged 2 ACEITÁVEIS pós-Ready (Eric advogado MANDATORY pre-implement análogo AUTH-01 chunk 5 placeholder pattern; DPA texto pendência consolidada via AC-01); 3 concerns adicionais Keymaker LOW non-bloqueantes (K-LGPD-01 Sati Opção A vs B + K-LGPD-02 TOS qualidade ANPD + K-LGPD-03 branch base provisional). Próximo step: cadeia Eric advogado paralelo + Sati Skill wireframe + Tank ratify (light) + Neo *develop chunks 1-7 Path B (estimativa 2-3 days). Conventional commit `docs(governance): validate-story-draft SP04-LGPD-01 — verdict GO score 10/10 [Story SP04-LGPD-01]`. |
 | 2026-05-08 | @sm River | Story criada Draft Phase 13.1 — LGPD compliance flows operador posture. **Foundation legal P1** Sprint 04 (após Foundation P0 cycle COMPLETO AUTH-01 + BYOK-01). Pre-leitura: PRD v2.0.0-DRAFT FR-LGPD-01..02 + FR-AUDIT-01 (lines 167-170) + ADR-017 BACKBONE LGPD operador + ADR-019 DPA Storage + ADR-005 Audit chain + bloco_lgpd/ existing (encryption + headers + permissions Sprint 03 — verify reusability Neo pre-implement). **River decisão crítica: alinhar PRD canônico (3 deliverables) — Morpheus brief sugeriu 5 deliverables (forget/export/DPO admin/retention scheduler), mas escopo PRD restritivo a FR-LGPD-01 DPA + FR-LGPD-02 TOS/EULA + FR-AUDIT-01 audit isolation endpoint.** Forget/Export/DPO admin = stories Sprint 05+ separadas (não neste story). 6 ACs estruturadas (DPA texto v1.0.0 finalize + TOS texto v1.0.0 novo + schema tos_acceptances mirror dpa_acceptances + endpoints TOS flow mirror DPA + endpoint audit isolation FR-AUDIT-01 + coverage condicional bloco_lgpd). Pre-flight consultation: Tank ratify schema (mandatory pre-implement); Aria skip (ADR-019 mirror — sem nova decisão); Sati wireframe MANDATORY (Opção A novo wizard step 5 vs Opção B combine DPA+TOS step 3 — River recomenda B menor friction); **Eric advogado MANDATORY pre-implement** — bloqueia Neo *develop sem texto substantivo DPA v1.0.0.md ANPD-ready + TOS v1.0.0.md operador posture redigido. 6 risks documentados (Eric advogado timeline, Sati Opção A/B drop-off, TOS texto ANPD-defensável, audit isolation data leak, migration breaking, scope creep Morpheus brief reabertura). Implementation Plan 7 chunks Path B sugeridos. Estimativa 2-3 days (escopo restritivo PRD vs Morpheus 4-6 days — Eric advogado loop paralelo). Branch sugerido: feat/sp04-lgpd-01 base main pós-AUTH+BYOK merge OR provisional. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
 
 ---
