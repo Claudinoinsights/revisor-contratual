@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T20:30"
+last_updated: "2026-05-08T20:45"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,33 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **📊 Sessão 91 Sprint 04 Phase 13.3a EXECUTADA — @data-engineer Tank ratify pre-implement LIGHT SP04-LGPD-01** (@data-engineer · Tank — 2026-05-08T20:45):
+  - **Trigger:** Keymaker MANDATORY pre-Neo chunk 2 — Tank intercepta cadeia (consume H-S04-P20-PO2DEV via redirect)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill"
+  - **Pre-leitura:** story Section 1-4 + ADR-019 DPA Storage spec + migration AUTH-01 sp04_001 (referência pattern dpa_acceptances)
+  - **3 decisões LIGHT formalizadas (vs Phase 12.3a SP04-BYOK-01 5 itens vinculantes):**
+    1. **Schema mirror sem desvio** — River seguiu ADR-019 risca-a-risca; Tank confirma sem refinement
+    2. **UNIQUE constraint (tenant_id, tos_version) + COMMENT inline** — multi-version audit trail semantic documentada em pg_constraint metadata (re-aceite mesma version = 409 Conflict idempotent)
+    3. **Indexes ambos mantidos** — tenant_id (high seletividade "minha aceitação") + tos_version (DPO admin metrics futuro); overhead writes negligível tabela append-only; consistency dpa_acceptances; reavaliar 5K+ tenants TD-SP04-08
+  - **Schema ADR-019 alignment:** ✅ Confirmado mirror sem desvio
+  - **Story file modifications:**
+    - AC-03 SQL: ADD `COMMENT ON CONSTRAINT unique_tenant_tos_version` inline (semântica multi-version)
+    - Section 5 Pre-flight: nova subsection "Tank ratify decisions LIGHT (2026-05-08 — Phase 13.3a)" com 3 decisões + justificativas + roadmap promotion
+    - Section 12 Change Log: entry @data-engineer Tank ratify LIGHT
+    - Frontmatter: mantém `status: Ready` (Tank ratify não muda lifecycle)
+  - **TECH-DEBT.md Sprint 06+ flagged:**
+    - TD-SP04-08 (Tank LGPD): Reavaliar indexes em 5K+ tenants — pattern para todas tabelas audit acceptance (dpa + tos)
+  - **Sprint 04 backlog:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 2/14 done (SP04-BYOK-01 PR #5 await Eric merge)
+    - ✅ 1/14 Ready Tank-ratified LIGHT (SP04-LGPD-01 — esta entry; Neo *develop pronto após Sati wireframe + Eric advogado paralelo)
+    - ⏸ 11/14 backlog
+  - **Handoffs:**
+    - IN consumed (intercept): H-S04-P20-PO2DEV-DEVELOP-LGPD-01-001 (Keymaker original brief Neo)
+    - OUT emitted: H-S04-P20a-DBE2DEV-RATIFY-LGPD-01-001 (Tank → Neo com decisões LIGHT aplicadas)
+  - **Conventional commit:** `docs(governance): Tank ratify pre-implement SP04-LGPD-01 LIGHT — 3 itens decisões [Story SP04-LGPD-01]` (NÃO push)
+  - **Próxima Skill:** `LMAS:agents:dev` (@dev Neo) consume Tank decisions LIGHT + execute chunks 1-7 Path B com schema final Tank-ratified (chunk 2 DB foundation usa AC-03 SQL refinado com COMMENT inline)
 
 - **🎯 Sessão 91 Sprint 04 Phase 13.2 EXECUTADA — @po Keymaker `*validate-story-draft` SP04-LGPD-01 verdict GO 10/10** (@po · Keymaker — 2026-05-08T20:30):
   - **Trigger:** River dispatch H-S04-P19-SM2PO (consumed via Skill `LMAS:agents:po`)

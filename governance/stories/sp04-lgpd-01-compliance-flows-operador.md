@@ -119,9 +119,16 @@ CREATE POLICY tos_tenant_isolation ON tos_acceptances
 
 CREATE INDEX idx_tos_acceptances_tenant ON tos_acceptances(tenant_id);
 CREATE INDEX idx_tos_acceptances_version ON tos_acceptances(tos_version);
+
+-- Tank Phase 13.3a Item 2: documenta semântica multi-version em pg_constraint metadata
+COMMENT ON CONSTRAINT unique_tenant_tos_version ON tos_acceptances IS
+  'Multi-version audit trail: cada (tenant, version) gera 1 row distinct. '
+  'TOS major bump força re-aceite (ADR-019 §5 pattern); minor bumps (typo/clarification) '
+  'NÃO requerem re-aceite. Re-aceite mesma version retorna 409 Conflict (idempotent).';
 ```
 
 Pattern idêntico `dpa_acceptances` (ADR-019) — retention permanent (ON DELETE RESTRICT).
+Tank Phase 13.3a ratify LIGHT: mirror sem desvio + COMMENT ON CONSTRAINT inline + 2 indexes mantidos (TD-SP04-08 reavaliar 5K+ tenants).
 
 ### AC-04 — Endpoints TOS flow (parallel DPA pattern)
 
@@ -240,6 +247,73 @@ Auth obrigatório (Depends `get_current_user` + `apply_rls_context`). Audit even
 - Considerar cognitive load — wizard 5 passos pode aumentar friction de onboarding (drop-off risk)
 
 **River recomenda Opção B** (combine DPA+TOS step 3) — menor friction + texto único legal Eric advogado pode estruturar com headers DPA e TOS sequential. Sati confirma OR propõe alternativa.
+
+### Tank ratify decisions LIGHT (2026-05-08 — Phase 13.3a)
+
+> **Authority:** @data-engineer Tank — schema/arquitetura DB decisões formalizadas pre-Neo chunk 2 DB foundation. Decisões são **vinculantes** para Neo durante chunks 1-7 implementation.
+
+**Pre-leitura completa:** Tank validou story Section 1-4 + ADR-019 (DPA Storage Schema spec) + migration AUTH-01 `sp04_001_auth_multitenant.sql` (referência pattern dpa_acceptances).
+
+**Schema canônico ADR-019 mirror:** ✅ Tank ratifica River alignment **sem desvio** (tabela `tos_acceptances` é mirror estrutural de `dpa_acceptances`).
+
+**3 itens LIGHT ratificados:**
+
+#### Item 1 — Schema `tos_acceptances` mirror confirmed
+
+**Decisão Tank:** ✅ **Mirror sem desvio** — pattern idêntico dpa_acceptances ADR-019.
+
+- UUID PK + tenant_id FK ON DELETE RESTRICT (audit retention permanent Art. 52 LGPD)
+- version + hash + accepted_at + user_id FK + IP + user_agent (evidence ANPD)
+- RLS pattern idêntico AUTH-01/BYOK-01 BACKBONE
+- 2 indexes seletivos (tenant_id + version)
+
+**Justificativa:** Pattern audit governance LGPD `dpa_acceptances` validado em SP04-AUTH-01 chunk 5 + Oracle qa-gate G5. Reuse pattern reduz surface bugs + consistency BACKBONE.
+
+**Impacto AC-03 SQL:** Sem refinement — River draft é canônico.
+
+#### Item 2 — UNIQUE constraint multi-version semantic
+
+**Decisão Tank:** ✅ **Confirmar UNIQUE composite + adicionar `COMMENT ON CONSTRAINT` inline migration**.
+
+```sql
+-- Adicionar comentário pós-CREATE TABLE (Tank refinement Item 2):
+COMMENT ON CONSTRAINT unique_tenant_tos_version ON tos_acceptances IS
+  'Multi-version audit trail: cada (tenant, version) gera 1 row distinct. '
+  'TOS major bump força re-aceite (ADR-019 §5 pattern); minor bumps (typo/clarification) '
+  'NÃO requerem re-aceite. Re-aceite mesma version retorna 409 Conflict (idempotent).';
+```
+
+**Justificativa:** UNIQUE composite permite múltiplas aceitações distintas per version (audit history) — pattern dpa_acceptances mesmo. Comentário inline documenta semantic em pg_constraint metadata (queryable via `\d+ tos_acceptances` psql).
+
+**Impacto AC-03 SQL:** ADD `COMMENT ON CONSTRAINT` após CREATE TABLE.
+
+#### Item 3 — Indexes seletivos manter ambos
+
+**Decisão Tank:** ✅ **Manter ambos** (idx_tos_acceptances_tenant + idx_tos_acceptances_version).
+
+**Justificativa:**
+- Index tenant_id: seletividade ALTA para queries "minha aceitação atual" (most common access pattern)
+- Index tos_version: seletividade ALTA para DPO admin metrics futuro ("quantos aceitaram v1.0.0?")
+- Tabela append-only (ON DELETE RESTRICT) — overhead writes negligível
+- Consistency dpa_acceptances pattern (mesmos 2 indexes) facilita debugging/audit
+
+**Roadmap:** Quando MVP escalar para 5K+ tenants, reavaliar com EXPLAIN ANALYZE. Tracked como **TD-SP04-08** TECH-DEBT.md (Tank Phase 13.3a).
+
+**Impacto AC-03 SQL:** Sem refinement — River draft mantido.
+
+---
+
+### Tank close-out LIGHT
+
+✅ **3 itens ratificados:** mirror confirmed sem desvio + UNIQUE composite com COMMENT inline + indexes ambos
+✅ **Schema ADR-019 alignment** confirmado (River seguiu ADR risca-a-risca)
+✅ **Decisões vinculantes** para Neo chunks 1-7 implementation
+✅ **TECH-DEBT.md Sprint 06+ flagged:** TD-SP04-08 (reavaliar indexes em 5K+ tenants — pattern para todas tabelas audit acceptance: dpa + tos)
+⏳ **Próximo:** Neo *develop chunks 1-7 com Tank decisions LIGHT aplicadas
+
+— Tank, carregando os dados 🗄️
+
+---
 
 ### Eric advogado (MANDATORY pre-implement — bloqueia Neo *develop)
 
@@ -394,6 +468,7 @@ Conforme padrão AUTH-01/BYOK-01:
 
 | Data | Author | Change |
 |------|--------|--------|
+| 2026-05-08 | @data-engineer Tank | Phase 13.3a — Tank ratify pre-implement LIGHT executado (vs Phase 12.3a SP04-BYOK-01 5 itens vinculantes — esta é ratify mais simples). Pre-leitura: story Section 1-4 + ADR-019 DPA Storage spec + migration AUTH-01 sp04_001 (referência pattern dpa_acceptances). 3 decisões formalizadas: (1) Schema mirror dpa_acceptances confirmado SEM DESVIO — River seguiu ADR-019 risca-a-risca; (2) UNIQUE constraint (tenant_id, tos_version) confirmado + COMMENT ON CONSTRAINT inline migration adicionado documentando multi-version audit trail semantic (re-aceite mesma version = 409 Conflict idempotent); (3) Indexes ambos seletivos mantidos (tenant_id high seletividade "minha aceitação"; tos_version high seletividade "quantos aceitaram vN" DPO admin metrics futuro) — overhead writes negligível em tabela append-only ON DELETE RESTRICT; consistency dpa_acceptances pattern. Decisões vinculantes Neo chunks 1-7. Schema ADR-019 alignment confirmado. Section 5 nova subsection "Tank ratify decisions LIGHT" + AC-03 SQL refinement (COMMENT ON CONSTRAINT inline). TECH-DEBT.md Sprint 06+ flagged: TD-SP04-08 (reavaliar indexes em 5K+ tenants — pattern para todas tabelas audit acceptance: dpa + tos). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + chunks 1-7 Path B com decisões LIGHT aplicadas (estimativa 2-3 days). Conventional commit `docs(governance): Tank ratify pre-implement SP04-LGPD-01 LIGHT — 3 itens decisões [Story SP04-LGPD-01]`. |
 | 2026-05-08 | @po Keymaker | Phase 13.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (TODOS PASS — paridade SP04-BYOK-01 + escopo PRD-aligned + ACs testáveis "Tested:" explícitas + pre-flight Section 5 com justificativas + 6 risks tabelados + 7 chunks Path B + cross-references rastreáveis); **Validação especial divergência Morpheus brief vs PRD canônico:** River-decision PROCEDIMENTO CORRETO confirmado por Keymaker invocando LMAS rule "No Invention" (`quality-gate-enforcement.md`) — PRD é canônico (3 deliverables); Morpheus brief é preliminar (5 deliverables); Forget/Export/DPO/retention scheduler movidos para Sprint 05+ stories separadas (audit trail). Concerns River flagged 2 ACEITÁVEIS pós-Ready (Eric advogado MANDATORY pre-implement análogo AUTH-01 chunk 5 placeholder pattern; DPA texto pendência consolidada via AC-01); 3 concerns adicionais Keymaker LOW non-bloqueantes (K-LGPD-01 Sati Opção A vs B + K-LGPD-02 TOS qualidade ANPD + K-LGPD-03 branch base provisional). Próximo step: cadeia Eric advogado paralelo + Sati Skill wireframe + Tank ratify (light) + Neo *develop chunks 1-7 Path B (estimativa 2-3 days). Conventional commit `docs(governance): validate-story-draft SP04-LGPD-01 — verdict GO score 10/10 [Story SP04-LGPD-01]`. |
 | 2026-05-08 | @sm River | Story criada Draft Phase 13.1 — LGPD compliance flows operador posture. **Foundation legal P1** Sprint 04 (após Foundation P0 cycle COMPLETO AUTH-01 + BYOK-01). Pre-leitura: PRD v2.0.0-DRAFT FR-LGPD-01..02 + FR-AUDIT-01 (lines 167-170) + ADR-017 BACKBONE LGPD operador + ADR-019 DPA Storage + ADR-005 Audit chain + bloco_lgpd/ existing (encryption + headers + permissions Sprint 03 — verify reusability Neo pre-implement). **River decisão crítica: alinhar PRD canônico (3 deliverables) — Morpheus brief sugeriu 5 deliverables (forget/export/DPO admin/retention scheduler), mas escopo PRD restritivo a FR-LGPD-01 DPA + FR-LGPD-02 TOS/EULA + FR-AUDIT-01 audit isolation endpoint.** Forget/Export/DPO admin = stories Sprint 05+ separadas (não neste story). 6 ACs estruturadas (DPA texto v1.0.0 finalize + TOS texto v1.0.0 novo + schema tos_acceptances mirror dpa_acceptances + endpoints TOS flow mirror DPA + endpoint audit isolation FR-AUDIT-01 + coverage condicional bloco_lgpd). Pre-flight consultation: Tank ratify schema (mandatory pre-implement); Aria skip (ADR-019 mirror — sem nova decisão); Sati wireframe MANDATORY (Opção A novo wizard step 5 vs Opção B combine DPA+TOS step 3 — River recomenda B menor friction); **Eric advogado MANDATORY pre-implement** — bloqueia Neo *develop sem texto substantivo DPA v1.0.0.md ANPD-ready + TOS v1.0.0.md operador posture redigido. 6 risks documentados (Eric advogado timeline, Sati Opção A/B drop-off, TOS texto ANPD-defensável, audit isolation data leak, migration breaking, scope creep Morpheus brief reabertura). Implementation Plan 7 chunks Path B sugeridos. Estimativa 2-3 days (escopo restritivo PRD vs Morpheus 4-6 days — Eric advogado loop paralelo). Branch sugerido: feat/sp04-lgpd-01 base main pós-AUTH+BYOK merge OR provisional. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
 
