@@ -1,0 +1,74 @@
+{% extends "onboarding/_wizard_base.html" %}
+
+{% block title %}Passo 2 de 4 · Anthropic API Key{% endblock %}
+
+{% block wizard_meta %}
+<nav class="wizard-progress" aria-label="Progresso do onboarding">
+  <ol>
+    <li class="step done"><span>✓</span> Escritório</li>
+    <li class="step active" aria-current="step"><span>2</span> API Key</li>
+    <li class="step"><span>3</span> DPA</li>
+    <li class="step"><span>4</span> Plano</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block wizard %}
+<section class="wizard-step" aria-labelledby="step2-title">
+  <p class="wizard-eyebrow">Passo 2 de 4</p>
+  <h1 id="step2-title" class="wizard-title">Conecte sua <em>API key</em> Anthropic</h1>
+  <p class="wizard-subtitle">
+    Você opera no modelo BYOK (Bring Your Own Key) — sua chave Anthropic é
+    cifrada at-rest com pgcrypto e nunca trafega via terceiros (ADR-014).
+    A análise de contratos consome diretamente do seu plano Anthropic.
+  </p>
+
+  <form class="wizard-form"
+        method="post"
+        action="/api/onboarding/step2?session_id={{ session_id|e }}"
+        hx-post="/api/onboarding/step2?session_id={{ session_id|e }}"
+        hx-target="#wizard-container"
+        hx-swap="outerHTML"
+        hx-indicator="#loading-spinner">
+
+    <fieldset class="form-fieldset">
+      <legend class="visually-hidden">Anthropic API key validation</legend>
+
+      <div class="form-field">
+        <label for="anthropic_api_key">Anthropic API Key</label>
+        <input id="anthropic_api_key"
+               name="anthropic_api_key"
+               type="password"
+               required
+               minlength="10"
+               maxlength="200"
+               autofocus
+               autocomplete="off"
+               spellcheck="false"
+               aria-required="true"
+               aria-describedby="key-hint"
+               placeholder="sk-ant-...">
+        <p id="key-hint" class="form-hint">
+          Validamos via ping HTTP a <code>api.anthropic.com/v1/models</code>.
+          A chave é cifrada antes de qualquer persistência.
+        </p>
+      </div>
+    </fieldset>
+
+    <details class="wizard-disclaimer">
+      <summary>Como obter sua API key?</summary>
+      <ol>
+        <li>Acesse <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a></li>
+        <li>Settings → API Keys → Create Key</li>
+        <li>Cole a chave acima — começa com <code>sk-ant-</code></li>
+      </ol>
+    </details>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">
+        Validar e prosseguir →
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}

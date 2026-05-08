@@ -1,0 +1,122 @@
+{% extends "onboarding/_wizard_base.html" %}
+
+{% block title %}Passo 1 de 4 · Dados do escritório{% endblock %}
+
+{% block wizard_meta %}
+<nav class="wizard-progress" aria-label="Progresso do onboarding">
+  <ol>
+    <li class="step active" aria-current="step"><span>1</span> Escritório</li>
+    <li class="step"><span>2</span> API Key</li>
+    <li class="step"><span>3</span> DPA</li>
+    <li class="step"><span>4</span> Plano</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block wizard %}
+<section class="wizard-step" aria-labelledby="step1-title">
+  <p class="wizard-eyebrow">Passo 1 de 4</p>
+  <h1 id="step1-title" class="wizard-title">Cadastre seu <em>escritório</em></h1>
+  <p class="wizard-subtitle">
+    Identificamos sua organização para isolar seus dados via Row-Level Security
+    multi-tenant (ADR-017). Cada escritório opera em seu próprio espaço cifrado.
+  </p>
+
+  <form class="wizard-form"
+        method="post"
+        action="/api/auth/signup"
+        hx-post="/api/auth/signup"
+        hx-target="#wizard-container"
+        hx-swap="outerHTML"
+        hx-indicator="#loading-spinner"
+        aria-describedby="form1-help">
+    <p id="form1-help" class="visually-hidden">
+      Todos os campos são obrigatórios. Erros aparecem abaixo de cada campo.
+    </p>
+
+    <fieldset class="form-fieldset">
+      <legend class="visually-hidden">Dados cadastrais do escritório</legend>
+
+      <div class="form-field">
+        <label for="cnpj">CNPJ</label>
+        <input id="cnpj"
+               name="cnpj"
+               type="text"
+               inputmode="numeric"
+               pattern="[\d./\-]{14,18}"
+               maxlength="18"
+               required
+               autocomplete="off"
+               autofocus
+               aria-required="true"
+               aria-describedby="cnpj-hint"
+               placeholder="00.000.000/0000-00">
+        <p id="cnpj-hint" class="form-hint">14 dígitos · máscara opcional</p>
+      </div>
+
+      <div class="form-field">
+        <label for="razao_social">Razão social</label>
+        <input id="razao_social"
+               name="razao_social"
+               type="text"
+               required
+               minlength="3"
+               maxlength="500"
+               autocomplete="organization"
+               aria-required="true">
+      </div>
+
+      <div class="form-field">
+        <label for="advogado_responsavel">Advogado responsável</label>
+        <input id="advogado_responsavel"
+               name="advogado_responsavel"
+               type="text"
+               required
+               minlength="3"
+               maxlength="200"
+               autocomplete="name"
+               aria-required="true"
+               aria-describedby="adv-hint">
+        <p id="adv-hint" class="form-hint">Nome do sócio principal — ficará como primeiro usuário do escritório</p>
+      </div>
+
+      <div class="form-field">
+        <label for="email">Email institucional</label>
+        <input id="email"
+               name="email"
+               type="email"
+               required
+               maxlength="255"
+               autocomplete="email"
+               aria-required="true"
+               aria-describedby="email-hint">
+        <p id="email-hint" class="form-hint">Será o login do advogado responsável</p>
+      </div>
+
+      <div class="form-field">
+        <label for="senha">Senha</label>
+        <input id="senha"
+               name="senha"
+               type="password"
+               required
+               minlength="8"
+               maxlength="72"
+               autocomplete="new-password"
+               aria-required="true"
+               aria-describedby="senha-hint">
+        <p id="senha-hint" class="form-hint">Mínimo 8 caracteres · armazenada via bcrypt cost 12 (jamais texto plano)</p>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">
+        Prosseguir para Passo 2 →
+      </button>
+    </div>
+  </form>
+
+  <p class="wizard-footer-note">
+    Já tem conta? <a href="/login">Fazer login</a>
+  </p>
+</section>
+{% endblock %}

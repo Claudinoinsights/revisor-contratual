@@ -1,0 +1,105 @@
+{% extends "onboarding/_wizard_base.html" %}
+
+{% block title %}Passo 4 de 4 · Plano{% endblock %}
+
+{% block wizard_meta %}
+<nav class="wizard-progress" aria-label="Progresso do onboarding">
+  <ol>
+    <li class="step done"><span>✓</span> Escritório</li>
+    <li class="step done"><span>✓</span> API Key</li>
+    <li class="step done"><span>✓</span> DPA</li>
+    <li class="step active" aria-current="step"><span>4</span> Plano</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block wizard %}
+<section class="wizard-step" aria-labelledby="step4-title">
+  <p class="wizard-eyebrow">Passo 4 de 4 — último!</p>
+  <h1 id="step4-title" class="wizard-title">Escolha seu <em>plano</em></h1>
+  <p class="wizard-subtitle">
+    Você pode mudar de plano depois. O modelo BYOK significa que você paga
+    apenas pelo Anthropic; nossa cobrança é por aprovação de análise (ADR-018).
+  </p>
+
+  <form class="wizard-form"
+        method="post"
+        action="/api/onboarding/step4?session_id={{ session_id|e }}"
+        hx-post="/api/onboarding/step4?session_id={{ session_id|e }}"
+        hx-target="#wizard-container"
+        hx-swap="outerHTML"
+        hx-indicator="#loading-spinner">
+
+    <fieldset class="tier-fieldset">
+      <legend class="visually-hidden">Selecione um plano</legend>
+
+      <div class="tier-grid">
+        <label class="tier-card" for="tier-starter">
+          <input id="tier-starter"
+                 name="tier"
+                 type="radio"
+                 value="Starter"
+                 required
+                 checked
+                 aria-describedby="tier-starter-desc">
+          <span class="tier-name">Starter</span>
+          <span class="tier-price">R$ TBD</span>
+          <span class="tier-period">por mês</span>
+          <ul id="tier-starter-desc" class="tier-features">
+            <li>Até 50 análises/mês</li>
+            <li>1 advogado responsável</li>
+            <li>Audit chain básico</li>
+            <li>Suporte email</li>
+          </ul>
+        </label>
+
+        <label class="tier-card tier-card-featured" for="tier-pro">
+          <span class="tier-badge">Mais popular</span>
+          <input id="tier-pro"
+                 name="tier"
+                 type="radio"
+                 value="Pro"
+                 aria-describedby="tier-pro-desc">
+          <span class="tier-name">Pro</span>
+          <span class="tier-price">R$ TBD</span>
+          <span class="tier-period">por mês</span>
+          <ul id="tier-pro-desc" class="tier-features">
+            <li>Até 500 análises/mês</li>
+            <li>Até 10 advogados internos</li>
+            <li>Audit chain HMAC + export</li>
+            <li>Suporte prioritário</li>
+          </ul>
+        </label>
+
+        <label class="tier-card" for="tier-enterprise">
+          <input id="tier-enterprise"
+                 name="tier"
+                 type="radio"
+                 value="Enterprise"
+                 aria-describedby="tier-enterprise-desc">
+          <span class="tier-name">Enterprise</span>
+          <span class="tier-price">Sob consulta</span>
+          <span class="tier-period">contrato anual</span>
+          <ul id="tier-enterprise-desc" class="tier-features">
+            <li>Análises ilimitadas</li>
+            <li>Advogados ilimitados</li>
+            <li>Schema isolado dedicado (Silo)</li>
+            <li>SLA 99.9% + Customer Success</li>
+          </ul>
+        </label>
+      </div>
+    </fieldset>
+
+    <p class="wizard-disclaimer">
+      Pricing TBD aguardando definição cross-domain (Mifune business strategy).
+      Você pode prosseguir e ajustar plano depois — primeiro mês cortesia.
+    </p>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">
+        Finalizar onboarding →
+      </button>
+    </div>
+  </form>
+</section>
+{% endblock %}

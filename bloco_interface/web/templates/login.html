@@ -1,0 +1,64 @@
+{% extends "onboarding/_wizard_base.html" %}
+
+{% block title %}Entrar · Revisor Contratual{% endblock %}
+
+{% block wizard %}
+<section class="wizard-step wizard-step-narrow" aria-labelledby="login-title">
+  <h1 id="login-title" class="wizard-title">Bem-vindo de <em>volta</em></h1>
+  <p class="wizard-subtitle">
+    Acesse sua conta Revisor Contratual.
+  </p>
+
+  <form class="wizard-form"
+        method="post"
+        action="/api/auth/login"
+        hx-post="/api/auth/login"
+        hx-target="#wizard-container"
+        hx-swap="innerHTML"
+        hx-indicator="#loading-spinner"
+        aria-label="Formulário de login">
+
+    <fieldset class="form-fieldset">
+      <legend class="visually-hidden">Credenciais de acesso</legend>
+
+      <div class="form-field">
+        <label for="login-email">Email</label>
+        <input id="login-email"
+               name="email"
+               type="email"
+               required
+               maxlength="255"
+               autofocus
+               autocomplete="username"
+               aria-required="true">
+      </div>
+
+      <div class="form-field">
+        <label for="login-senha">Senha</label>
+        <input id="login-senha"
+               name="senha"
+               type="password"
+               required
+               minlength="1"
+               maxlength="72"
+               autocomplete="current-password"
+               aria-required="true">
+      </div>
+
+      <div class="form-field-aux">
+        <a href="#" class="aux-link" aria-disabled="true" title="Disponível em breve (story SP04-PASSWORD-RESET)">
+          Esqueci minha senha
+        </a>
+      </div>
+    </fieldset>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Entrar</button>
+    </div>
+  </form>
+
+  <p class="wizard-footer-note">
+    Não tem conta? <a href="/onboarding/step1">Crie aqui</a>
+  </p>
+</section>
+{% endblock %}

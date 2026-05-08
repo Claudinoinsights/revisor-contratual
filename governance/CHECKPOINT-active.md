@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T02:00"
-active_story: "Sessão 91 Sprint 04 Phase 7.2.5 — @dev Neo Chunk 5 (DPA flow ADR-019) DONE em branch feat/sp04-auth-01. 3 files novos + 3 modified: bloco_auth/dpa.py (3 endpoints + compute_dpa_hash NFC + get_dpa_text cache TTL 5min + accept_dpa idempotent transaction-aware), governance/legal/dpa-templates/v1.0.0.md (placeholder estrutural 9 seções LGPD), tests/unit/test_dpa_hash.py (10 tests). Modify: complete_onboarding triple insert atomic (tenant+user+dpa_acceptance), api.py passa request, web/app.py include_router. AC-06 ✅. pytest 28 passed (chunks 3+4+5 unit) + 4 skipped (chunk 4 integration deferred). 31 routes (28 prev + 3 DPA). ACs 6/8 done (01/02/03/04/05/06/07). AC-08 pendente (chunk 7 coverage). Path B chain 9/N (chunks 1-2-3-4-5 done de 8)."
-status: sprint-04-phase7.2.5-chunk-5-DONE-AC-06-fechado-aguarda-morpheus-dispatch-chunk-6
+last_updated: "2026-05-08T04:00"
+active_story: "Sessão 91 Sprint 04 Phase 7.2.6 — @dev Neo Chunk 6 (UI templates Sati S2 OrSheva) DONE em branch feat/sp04-auth-01. 6 files novos: _wizard_base.html standalone (não extends Sprint 03 base.html — Sprint 04 SaaS é flow distinto), 4 onboarding steps + login.html, onboarding.css ~530 LOC com OrSheva tokens canônicos extraídos do brandbook (paleta orange/shadow/pearl + typography Fraunces/Manrope/JetBrains/Frank Ruhl Libre). Jinja2 6/6 templates válidos. WCAG AA compliant. AC-01 completo (backend + UI). pytest regression 28 passed + 4 skipped. ACs 7/8 done (01/02/03/04/05/06/07). AC-08 pendente (chunk 7). Path B chain 10/N (chunks 1-6 done de 8 = 75%)."
+status: sprint-04-phase7.2.6-chunk-6-DONE-AC-01-completo-aguarda-morpheus-dispatch-chunk-7
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,60 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 91 Sprint 04 Phase 7.2.6 — @dev Neo Chunk 6 DONE (UI templates Sati S2 OrSheva)** (@dev · Neo — 2026-05-08T04:00):
+  - **Trigger:** Morpheus dispatch H-S04-P9.8-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
+  - **6 files novos:**
+    - `bloco_interface/web/templates/onboarding/_wizard_base.html` — standalone base (NÃO extends Sprint 03 base.html — Sprint 04 SaaS é flow visualmente distinto sem topbar/sidebar/Tema 1378). Header brand mark + slot wizard_meta. OrSheva fonts via Google Fonts @import (preconnect + display=swap). Skip-to-main link. HTMX self-host script
+    - `bloco_interface/web/templates/onboarding/step1.html` — Form dados escritório (CNPJ + razão + advogado + email + senha) com fieldset/legend semantic, aria-describedby hints, autocomplete attributes, autofocus first field
+    - `bloco_interface/web/templates/onboarding/step2.html` — Anthropic API key password type + autocomplete="off" + spellcheck="false" + `<details>` instruções obter chave
+    - `bloco_interface/web/templates/onboarding/step3.html` — DPA `<article>` com `hx-get="/api/tenant/dpa/text/v1.0.0" hx-trigger="load"` carrega texto on-mount. Form checkbox aceito + hidden dpa_version + hx-vals JSON. Disclaimer legal forte hash+IP+timestamp evidence
+    - `bloco_interface/web/templates/onboarding/step4.html` — 3 tier cards (Starter/Pro destaque/Enterprise) com radio inputs invisible + label clickable. CSS-only selected state via `:has(input:checked)`. R$ TBD placeholder Mifune business cross-domain
+    - `bloco_interface/web/templates/login.html` — narrow container (max 480px). Form email + senha + autocomplete corretos + link "Esqueci minha senha" disabled (story SP04-PASSWORD-RESET backlog)
+    - `bloco_interface/web/static/onboarding.css` — ~530 LOC com 14 seções organizadas: Tokens OrSheva canônicos (paleta orange --or-500 #EE6B20 + shadow --sh-500 + neutrals pearl/bone/stone/ink) + Reset/Base + Header/Footer + Progress indicator + Container + Typography + Forms + Buttons + DPA text + Tier cards + Alerts + HTMX indicator + Responsive 768px breakpoint + prefers-reduced-motion
+  - **Jinja2 6/6 templates válidos** — `env.get_template()` OK sem ParseError
+  - **pytest regression 28 passed + 4 skipped** — chunks 3-5 unit não regridem
+  - **CodeRabbit DEFERRED** padrão. Self-critique manual: **0 CRITICAL** (Jinja2 autoescape ON, DPA texto server-rendered confiável, JWT Bearer mitiga CSRF), **0 HIGH** (label/fieldset/legend semantic, aria-required/describedby consistente, skip-link, focus-visible 2px+offset, prefers-reduced-motion). MEDIUM: self-host fonts TECH-DEBT, `:has()` modern selector >95% browser, client-side CNPJ validation Sprint 05+, DPA markdown rendering Sprint 05+
+  - **Decisões Neo autônomas:**
+    - Standalone _wizard_base.html (Sprint 04 flow distinto Sprint 03 single-user) — login.html standalone (não colide com s1_login.html cookie auth Sprint 03)
+    - OrSheva tokens canônicos extraídos brandbook (paleta orange/shadow/pearl + Fraunces/Manrope/JetBrains/Frank Ruhl Libre)
+    - Google Fonts @import pragmatic (self-host TECH-DEBT Sprint 05+)
+    - Light mode only (dark mode story posterior)
+    - Sem grain texture (refinement Sprint 05+)
+    - CSS `:has(input:checked)` modern selector para tier card selected state
+    - `:focus-visible` ao invés de `:focus` (focus ring keyboard-only)
+    - Progress indicator `<ol>` semantic com `aria-current="step"`
+  - **AC-01 completo** (backend chunk 4 + UI chunk 6). ACs cumulativos: **7/8** (01/02/03/04/05/06/07 — 87% AC + UI). AC-08 pendente (chunk 7 coverage)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume + dispatch chunk 7 OR HALT)
+  - **Path B chain progress:** 10/N (chunks 1-6 done de 8 = **75%**)
+  - **Action items qa-gate G5 (chunk 8 closure):**
+    - Eric advogado finaliza texto substantivo `governance/legal/dpa-templates/v1.0.0.md`
+    - UX manual review via browser MCP (chunk 7 E2E ou session posterior)
+    - Self-host fonts migration (TECH-DEBT.md candidate)
+
+- **👑 Sessão 91 Sprint 04 Phase 7.2.6 dispatch — Morpheus → @dev Neo Chunk 6 UI templates Sati S2 OrSheva** (@lmas-master · Morpheus — 2026-05-08T03:00):
+  - **Trigger:** Eric "Avance pela Skill" — 6ª invocação Neo na chain autônoma
+  - **Handoff IN consumed:** H-S04-P9.7-DEV2MOR-CHUNK-5-DONE-001 (DPA flow ADR-019 done, AC-06 ✅)
+  - **Handoff OUT emitted:** H-S04-P9.8-MOR2DEV-CHUNK-6-UI-TEMPLATES-001
+  - **Brief Neo Chunk 6 (6 files novos + 1 opcional):**
+    - `bloco_interface/web/templates/onboarding/step1.html` — Form dados escritório (CNPJ mask + razão + advogado + email + senha) HTMX hx-post /api/auth/signup
+    - `bloco_interface/web/templates/onboarding/step2.html` — API key Anthropic + loading state ping ~10s
+    - `bloco_interface/web/templates/onboarding/step3.html` — DPA texto fetch hx-get /api/tenant/dpa/text/v1.0.0 + checkbox aceito + disclaimer hash
+    - `bloco_interface/web/templates/onboarding/step4.html` — 3 cards tier (Starter/Pro/Enterprise R$ TBD) + auto-login redirect placeholder
+    - `bloco_interface/web/templates/login.html` — Sati S1 form email + senha + "esqueci senha" link placeholder
+    - `bloco_interface/web/static/onboarding.css` — OrSheva tokens (Fraunces serif heading + Manrope sans body + JetBrains mono code + Frank Ruhl Libre accent) + WCAG AA contrast 4.5:1 body / 3:1 headers
+    - OPCIONAL `bloco_interface/web/templates/onboarding/_layout.html` — base com progress indicator 1/4 → 4/4
+  - **Estratégia Morpheus:**
+    - HTMX-driven (não SPA) — segue padrão Sprint 03 REV-INT-01 (substituiu Streamlit). Partials swap server-rendered
+    - Self-host fonts preferido (privacy + offline + perf) OR @import Google Fonts
+    - WCAG AA: aria-labels + aria-describedby erros + focus visible + skip-to-main + semantic landmarks
+    - Progressive enhancement (HTMX = enhancement; form submit padrão fallback)
+    - Dashboard redirect = placeholder (story SP04-DASH-01 backlog)
+    - Tests visuais manuais via browser MCP em chunk 7 (templates = HTML estático, baixa surface bug)
+  - **Pre-leitura obrigatória Neo:** governance/ux-spec-v2.0.0-DRAFT.md S1 + S2 (Sati wireframes); existing patterns bloco_interface/web/templates/ Sprint 03
+  - **OrSheva brandbook:** disponível em `the_matrix/projects/Revisor-Contratual/orsheva-brandbook.html` (memory: revisor-contratual-saas-byok). Se inacessível em staging, Neo usa paleta neutra premium consistente
+  - **Cross-doc:** Story AC-01 (UI wireframe), ADR-014 (UX BYOK), Atlas v2 brand identity references
+  - **Path B chain progress:** 9/N → 10/N target (chunks 1-6 done de 8 = 75%)
 
 - **💻 Sessão 91 Sprint 04 Phase 7.2.5 — @dev Neo Chunk 5 DONE (DPA flow ADR-019 — fecha AC-06)** (@dev · Neo — 2026-05-08T02:00):
   - **Trigger:** Morpheus dispatch H-S04-P9.7-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
