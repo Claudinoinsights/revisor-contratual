@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T19:00"
+last_updated: "2026-05-08T19:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,35 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **👑 Sessão 91 Sprint 04 Phase 13 dispatch — Morpheus → @sm River draft SP04-LGPD-01 (próxima story P1 paralelo)** (@lmas-master · Morpheus — 2026-05-08T19:30):
+  - **Trigger:** Eric "Avance com o recomendado até finalizar a Sprint. sempre pela Skill" — Foundation P0 cycle COMPLETO entregue (PRs #4/#5 await Eric merge não-bloqueante para próxima story P1 paralelo)
+  - **Handoff IN consumed:** H-S04-P18-OPS2MOR-PUSH-PR-BYOK-DONE-001 (Operator push+PR Sprint 04 PR #5 done; CI rodando; Cloudflare Pages SUCCESS preview)
+  - **Handoff OUT emitted:** H-S04-P19-MOR2SM-DRAFT-NEXT-001
+  - **Story alvo:** **SP04-LGPD-01** — LGPD compliance flows (operador posture + retention + direito esquecimento + DPO interface)
+  - **Razão estratégica (Morpheus análise candidatas P1):**
+    - SP04-LGPD-01 é **MAIS paralelo-safe** entre 12 candidatas P1: NÃO depende BYOK runtime (compliance flows independentes da inferência Anthropic)
+    - Cross-domain Eric advogado complementar à pendência DPA texto v1.0.0.md (Eric pode redigir LGPD compliance code complementar paralelo)
+    - Foundation legal P0 — todas stories P1+ subsequentes assumem LGPD compliance baseline (analyses retention + audit retention permanent + forget cascade)
+    - Smith F-016 (LGPD subprocessor argument) já WAIVED via TD-WAIVED-001 — SP04-LGPD-01 endereça compliance operador formal
+    - Alternativas avaliadas: SP04-OCR-01 (depende BYOK runtime; mock até merge), SP04-DOCTYPE-01/PARSING-01/EXPORT-01 (cascade dep), SP04-DASH-01 (depende auth), SP04-PRICING-01 (cross-domain Mifune; valid mas LGPD precede)
+  - **Brief River (LMAS:agents:sm):**
+    - **Pre-leitura obrigatória (7 docs):** PRD v2.0.0-DRAFT Section LGPD + ADR-009 (Sprint 03 LGPD on-premise — superseded por ADR-017) + ADR-017 BACKBONE LGPD operador + ADR-019 DPA Storage + SP04-AUTH-01 + SP04-BYOK-01 templates + bloco_lgpd/ existing
+    - **Story scope 5 entregáveis:** (1) DPA storage retention policies + scheduler (audit permanent + analyses 12mo + logs 12mo); (2) POST /api/tenant/lgpd/forget (Art. 18 — purge cascade tenant + users + dpa_acceptances retidas + tenant_api_keys revoke + analyses soft-delete); (3) GET /api/tenant/lgpd/export (Art. 18 — ZIP estruturado JSON tenant data + analyses + audit trail); (4) DPO interface admin /admin/lgpd dashboard; (5) Compliance audit chain HMAC events
+    - **6 ACs sugeridas (River refina):** AC-01 retention policies + scheduler, AC-02 forget endpoint, AC-03 export endpoint, AC-04 admin DPO dashboard, AC-05 audit chain LGPD events, AC-06 coverage condicional ≥80% bloco_lgpd
+    - **Pre-flight consultation:** Tank schema retention policies + cascade delete (mandatory antes Neo chunk 2); Aria possível ADR-021 LGPD Operator Compliance Workflows (se gap design); Sati admin dashboard wireframe; **Eric advogado consultation MANDATORY** — texto retention policies + DPO interface compliance ANPD
+    - **Estimativa:** 4-6 days (LGPD compliance complexity + Eric advogado loop)
+    - **Branch sugerido:** `feat/sp04-lgpd-01` (base `main` após AUTH-01+BYOK merge OR base `feat/sp04-byok-01` HEAD provisional rebase)
+  - **Sprint 04 backlog tracking:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 2/14 done (SP04-BYOK-01 PR #5 await Eric merge)
+    - 📝 1/14 in-progress draft (SP04-LGPD-01 — esta entry; River draft em curso)
+    - ⏸ 11/14 backlog (desbloqueadas pós-merge AUTH-01+BYOK)
+  - **PRs #4/#5 status (não-bloqueante paralelo):**
+    - PR #4 SP04-AUTH-01: https://github.com/Claudinoinsights/revisor-contratual/pull/4 (await Eric merge)
+    - PR #5 SP04-BYOK-01: https://github.com/Claudinoinsights/revisor-contratual/pull/5 (await Eric merge — base feat/sp04-auth-01)
+  - **Conventional commit:** `docs(governance): Phase 13 dispatch @sm River draft SP04-LGPD-01 — Sprint 04 paralelo P1 [Story SP04-LGPD-01]` (NÃO push)
+  - **Próxima Skill:** `LMAS:agents:sm` (@sm River) consume H-S04-P19-MOR2SM-DRAFT-NEXT-001 + execute `*draft` SP04-LGPD-01 → emit handoff @po Keymaker validate-story-draft
 
 - **⚡ Sessão 91 Sprint 04 Phase 12.6 EXECUTADA — @devops Operator push+PR Sprint 04 PR #5 SP04-BYOK-01 DONE** (@devops · Operator — 2026-05-08T19:00):
   - **Trigger:** Keymaker dispatch H-S04-P18-PO2OPS-PUSH-PR-BYOK-001 (consumed via Skill `LMAS:agents:devops`)
