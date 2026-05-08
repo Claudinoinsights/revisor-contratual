@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T21:15"
-active_story: "Sessão 91 Sprint 04 Phase 7.2.1-2 — @dev Neo Chunks 1-2 (Setup environment + DB foundation) DONE em branch feat/sp04-auth-01. 6 files novos + 2 modified: pyproject.toml +4 deps Sprint 04 (sqlalchemy[asyncio], asyncpg, pyjwt[crypto], passlib[bcrypt]); .env.example seção Sprint 04 (DATABASE_URL + JWT_SECRET_KEY + JWT_EXPIRY_HOURS=24 + JWT_ALGORITHM=HS256 + DPA_TEMPLATES_DIR); bloco_auth/__init__.py + models.py (Tenant, User, DpaAcceptance SQLAlchemy 2.0 async) + db.py (async engine + RLS context helper); bloco_database/__init__.py + migrations/sp04_001_auth_multitenant.sql (DDL canônico — 3 tabelas + 4 RLS policies + 7 indexes + pgcrypto extension + smoke queries). Chunks 3-8 pendentes (JWT/bcrypt → Auth API → DPA → UI → tests → closure). Path B chain step 6/N in-progress."
-status: sprint-04-phase7.2.1-2-chunks-1-2-DONE-aguarda-morpheus-dispatch-chunk-3
+last_updated: "2026-05-07T21:50"
+active_story: "Sessão 91 Sprint 04 Phase 7.2.3 — @dev Neo Chunk 3 (JWT + bcrypt foundation) DONE. 5 files novos + 1 modified em branch feat/sp04-auth-01: jwt_utils.py (PyJWT HS256 + JWTPayload pydantic + lazy _load_secret eager validation), passwords.py (raw bcrypt 4.x — passlib droppado por incompat 1.7.4 ↔ bcrypt 4.x), middleware.py (FastAPI Depends 401 RFC 6750), test_jwt.py (8 tests), test_bcrypt.py (10 tests), pyproject.toml (passlib removido). pytest 18/18 passing ✅. Coverage chunk 3 modules: jwt_utils 87% + passwords 97% (gate ≥ 80% atingido para módulos novos). CodeRabbit DEFERRED (CLI não instalado WSL nem Windows) — self-critique manual @dev Neo: 0 CRITICAL/0 HIGH. Pip install -e .[dev] executado: pyjwt 2.12.1 + email-validator 2.3.0 instalados. Chunks 4-8 pendentes. Path B chain 7/N (chunks 1-2-3 done de 8)."
+status: sprint-04-phase7.2.3-chunk-3-DONE-aguarda-morpheus-dispatch-chunk-4
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,40 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 91 Sprint 04 Phase 7.2.3 — @dev Neo Chunk 3 DONE (JWT + bcrypt foundation)** (@dev · Neo — 2026-05-07T21:50):
+  - **Trigger:** Morpheus dispatch H-S04-P9.5-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
+  - **5 files novos + 1 modified:**
+    - `bloco_auth/jwt_utils.py` — PyJWT HS256 encode/decode + `JWTPayload` pydantic BaseModel + `JWTError` + `ConfigError`. `_load_secret()` `@lru_cache` valida `JWT_SECRET_KEY` ≥ 32 bytes eager (Story Risk #3). PyJWT `options={"require": [...]}` detecta missing claims. `validate_config()` hook startup explícito
+    - `bloco_auth/passwords.py` — raw bcrypt 4.x (não passlib — incompat 1.7.4 ↔ bcrypt 4.x via `__about__` removido). `hash_password` cost 12 default + `verify_password` constant-time + `verify_cost_factor` regex parser + `PasswordTooLongError` anti silent truncation
+    - `bloco_auth/middleware.py` — FastAPI `Depends(get_current_user)` extrai Bearer token, decoda JWT, retorna `(tenant_id, user_id)`. HTTPException 401 com `WWW-Authenticate: Bearer` (RFC 6750). Re-export `apply_rls_context = with_tenant_context`
+    - `tests/unit/test_jwt.py` — 8 tests (encode/decode roundtrip, exp 24h Smith F-008, expired, tampered payload, missing claim, secret < 32 bytes, secret missing, validate_config eager)
+    - `tests/unit/test_bcrypt.py` — 10 tests (hash/verify roundtrip, wrong password, cost 12 prefix `$2b$12$`, cost < 12 rejection via raw bcrypt forge, salt único anti-rainbow, password > 72 bytes too long, cost insuficiente em hash_password, invalid format, malformed hash defensive False)
+    - `pyproject.toml` — modified: removido `passlib[bcrypt]` (incompat documentada inline)
+  - **pytest 18/18 PASSING ✅** — `2.31s` (sem DB, sem fixtures pesadas)
+  - **Coverage chunk 3:** `jwt_utils.py` 87% + `passwords.py` 97% (≥ 80% target) | `middleware.py`, `models.py`, `db.py` 0% (chunks 4+ via integration)
+  - **CodeRabbit DEFERRED** — CLI não instalado WSL nem Windows (`bash: not found` + `~/.local/bin/coderabbit` ausente). Self-critique manual @dev Neo: **0 CRITICAL** (secrets via env, constant-time bcrypt, RFC 6750 headers), **0 HIGH** (no SECRET_KEY leak em mensagens, defensive False em malformed). MEDIUM observations registradas: rate limiting deferido chunk 4, JWT rotation Sprint 05+, JWT_ALGORITHM whitelist TBD. **Action item:** Operator/CC.43 install CodeRabbit (TECH-DEBT.md candidate) + re-run em chunk 8 closure
+  - **Decisões Neo autônomas:**
+    - `passlib` droppado runtime (incompat 1.7.4 ↔ bcrypt>=4.0). Raw bcrypt já em deps Sprint 03. API mantida (`hash_password`, `verify_password`, `verify_cost_factor`)
+    - `_load_secret` via `@lru_cache(maxsize=1)` em vez de eager `_SECRET = _load_secret()` no module-level. Permite tests resetar cache + lazy boot
+    - 5º file (`passwords.py`) além dos 4 do brief — bcrypt logic precisa de home; chunk 4 consumirá igual
+    - Test `tampered_signature` tampera payload (não signature) — base64url 43 chars × 6 bits = 258 bits para 256-bit HMAC, então 2 bits finais são padding e alguns last-char swaps não mudam bytes reais
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume + dispatch chunk 4 OR HALT)
+  - **Path B chain progress:** 7/N (chunks 1-2-3 done de 8)
+  - **Pre-req chunk 4:** PostgreSQL local rodando + migration aplicada (RLS isolation E2E test #1 BLOCKING)
+
+- **👑 Sessão 91 Sprint 04 Phase 7.2.3 dispatch — Morpheus → @dev Neo Chunk 3 JWT + bcrypt** (@lmas-master · Morpheus — 2026-05-07T21:25):
+  - **Trigger:** Eric "Avance pela Skill" + Opção A explicit (continuar chain autônoma, não pausar pós-foundation milestone)
+  - **Handoff IN consumed:** H-S04-P9-DEV2MOR-CHUNK-2-DONE-001 (chunks 1-2 done)
+  - **Handoff OUT emitted:** H-S04-P9.5-MOR2DEV-CHUNK-3-JWT-BCRYPT-001
+  - **Brief Neo Chunk 3 (4 files novos):**
+    - `bloco_auth/jwt_utils.py` — encode_jwt + decode_jwt + JWTPayload (pydantic BaseModel idiomático projeto) + JWTError + SECRET_KEY ≥ 32 bytes validation no import
+    - `bloco_auth/middleware.py` — FastAPI Depends `get_current_user` (extrai Bearer token + decode + retorna tuple `(tenant_id, user_id)` UUID; 401 se ausente/inválido/expirado) + `apply_rls_context` wrapper de db.py
+    - `tests/unit/test_jwt.py` — 6 tests: encode/decode roundtrip, exp 24h (Smith F-008), expired rejection, tampered signature rejection, missing claim rejection, secret < 32 bytes
+    - `tests/unit/test_bcrypt.py` — 5 tests: hash/verify roundtrip, wrong password rejection, cost 12 enforcement (`$2b$12$` prefix), cost < 12 rejection, salt único
+  - **Pre-requisito Chunk 3:** `pip install -e ".[dev]"` (Neo TENTA Bash — se OK roda pytest; se falha documenta deferred)
+  - **CodeRabbit:** mandatory chunk 3 (security-sensitive — JWT secret + bcrypt cost); Self-healing CRITICAL max 2 iterations
+  - **Path B chain progress:** 6/N in-progress → próximo handoff Neo → Morpheus signaling chunk 3 done
 
 - **💻 Sessão 91 Sprint 04 Phase 7.2.1-2 — @dev Neo Chunks 1-2 DONE (Setup + DB Foundation)** (@dev · Neo — 2026-05-07T21:15):
   - **Trigger:** Eric "Avance pela Skill" → Morpheus dispatch H-S04-P9-MOR2DEV (consumed via Skill `LMAS:agents:dev`)

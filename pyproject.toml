@@ -61,7 +61,8 @@ dependencies = [
   "sqlalchemy[asyncio]>=2.0",  # ORM async para PostgreSQL multi-tenant
   "asyncpg>=0.29",             # driver PostgreSQL async (SQLAlchemy 2.0 async engine)
   "pyjwt[crypto]>=2.8",        # JWT HS256 — login token com tenant_id/user_id claims (FR-AUTH-03)
-  "passlib[bcrypt]>=1.7.4",    # CryptContext bcrypt cost 12 (Sprint 03 bcrypt já presente; passlib é wrapper idiomático)
+  # NOTE: passlib droppado — incompat passlib 1.7.4 ↔ bcrypt>=4.0 (__about__ removido).
+  # SP04 password hashing usa raw `bcrypt>=4.0` (já em deps Sprint 03 acima).
 ]
 
 [project.optional-dependencies]

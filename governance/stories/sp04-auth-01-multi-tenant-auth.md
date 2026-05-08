@@ -340,23 +340,58 @@ Payload comum:
 - `bloco_auth/models.py` — created: SQLAlchemy 2.0 async ORM (`Tenant`, `User`, `DpaAcceptance`) com `Mapped` typing, `PG_UUID(as_uuid=True)`, `INET`, `DateTime(timezone=True)`, ON DELETE rules (CASCADE users, RESTRICT dpa_acceptances), composite UniqueConstraints
 - `bloco_auth/db.py` — created: async engine factory + sessionmaker singleton + `with_tenant_context(session, tenant_id)` async context manager (executa `SET LOCAL app.tenant_id` dentro de transaction — RLS ativação automática). Helper `reset_engine()` para uso em tests integration
 
+**Phase 7.2.3 — Chunk 3 (JWT + bcrypt foundation) [2026-05-07]**
+- `bloco_auth/jwt_utils.py` — created: JWT HS256 encode/decode + `JWTPayload` pydantic BaseModel + `JWTError` + `ConfigError`. `_load_secret()` com `@lru_cache` valida `JWT_SECRET_KEY` ≥ 32 bytes eager. PyJWT 2.12.1 com `options={"require": [...]}` detecta missing claims. `validate_config()` hook explícito para startup (Story Risk #3 secret rotation)
+- `bloco_auth/passwords.py` — created: raw bcrypt (não passlib — incompat passlib 1.7.4 ↔ bcrypt 4.x via `__about__` removido). `hash_password` cost 12 + `verify_password` constant-time + `verify_cost_factor` defensive parser + `PasswordTooLongError` anti silent truncation
+- `bloco_auth/middleware.py` — created: FastAPI `Depends(get_current_user)` extrai `Bearer <token>`, decoda JWT, retorna `(tenant_id, user_id)`. HTTPException 401 com `WWW-Authenticate: Bearer` (RFC 6750). Re-export semântico `apply_rls_context = with_tenant_context` (db.py)
+- `tests/unit/test_jwt.py` — created: 8 tests (encode/decode roundtrip, expiry 24h Smith F-008, expired rejection, tampered payload, missing claim, secret < 32 bytes, secret missing, validate_config eager)
+- `tests/unit/test_bcrypt.py` — created: 10 tests (hash/verify roundtrip, wrong password, cost 12 prefix `$2b$12$`, cost < 12 rejection via raw bcrypt forge, salt único, password too long, cost insuficiente em hash_password, invalid format, malformed hash defensive False)
+- `pyproject.toml` — modified: removido `passlib[bcrypt]` (incompat documentada inline), comentário de razão técnica preservado
+
+**Decisões Neo autônomas (Eric mandate):**
+- Removido passlib em runtime (incompat passlib 1.7.4 ↔ bcrypt>=4.0). Raw bcrypt já presente em deps Sprint 03. API mantida (`hash_password`, `verify_password`, `verify_cost_factor`) — chunk 4 consome sem mudança
+- `_load_secret` via `@lru_cache(maxsize=1)` em vez de eager module-level `_SECRET = _load_secret()`. Permite tests resetarem cache + lazy boot sem ConfigError em import
+- `validate_config()` exposto como hook explícito para startup app (`bloco_interface/web/app.py` chamará no boot — chunk subsequente)
+- Adicionado `bloco_auth/passwords.py` como 5º file novo (brief mencionou 4) — bcrypt logic precisa de home; chunk 4 consumirá igual
+
 ### Test results
 
-**Chunks 1-2 (foundation):** sem testes — chunks são SETUP + DDL + ORM models. Testes JWT/bcrypt/DPA hash entram em chunks 3-7.
+**Chunks 1-2 (foundation):** sem testes — chunks são SETUP + DDL + ORM models.
 
-**Deferred validations (Chunk 2 → próximo turn ou Operator local env):**
-- `pip install -e ".[dev]"` para resolver Sprint 04 deps
-- `psql "$DATABASE_URL" -f bloco_database/migrations/sp04_001_auth_multitenant.sql` para aplicar migration localmente
+**Chunk 3 — pytest 18/18 PASSING ✅:**
+```
+tests/unit/test_jwt.py ........        8 passed
+tests/unit/test_bcrypt.py ..........  10 passed
+======== 18 passed in 2.31s ========
+```
+Coverage chunk 3 modules: `bloco_auth/jwt_utils.py` 87%, `bloco_auth/passwords.py` 97%. `bloco_auth/middleware.py`, `models.py`, `db.py` 0% (esperado — tests entram chunks 4+ via integration). Coverage global 44% (gate ≥ 80% é em chunk 8 closure conforme Story AC-08).
+
+**Deferred validations (Chunk 2 → chunk 4 OR Operator local env):**
+- `psql "$DATABASE_URL" -f bloco_database/migrations/sp04_001_auth_multitenant.sql` para aplicar migration localmente (chunk 4 RLS isolation E2E test #1 BLOCKING precisa DB rodando)
 - Smoke queries no rodapé do SQL (verificar `pg_extension`, `pg_class.relrowsecurity`, `pg_policies`, `pg_indexes`)
+
+**Resolved:** `pip install -e ".[dev]"` ✅ executado em chunk 3 — pyjwt 2.12.1 + email-validator 2.3.0 + dnspython 2.8.0 instalados; sqlalchemy 2.0.48, passlib 1.7.4, pydantic 2.12.5 already-satisfied.
 
 ### CodeRabbit results
 
-**Chunks 1-2:** CodeRabbit pre-commit deferido para chunk com business logic significativa (chunk 3 JWT/bcrypt OR consolidado em chunk 8 story closure). Foundation files (config + DDL + ORM declarativo) têm baixa surface para findings CRITICAL/HIGH.
+**Chunks 1-2:** deferido para chunk com business logic.
+
+**Chunk 3 — DEFERRED (CodeRabbit CLI não instalado no ambiente):**
+- WSL bash: `bash: not found` (WSL distro não configurada para esta tool)
+- Windows direct: `coderabbit not in PATH`, `~/.local/bin/coderabbit` ausente
+- Self-critique manual @dev Neo (substituto fallback per dev agent definition):
+  - **0 CRITICAL detectados** — secrets via env (`JWT_SECRET_KEY` validado eager), bcrypt `checkpw` constant-time interno, sem hardcoded values, sem eval/exec dynamic, RFC 6750 `WWW-Authenticate: Bearer` em 401 responses
+  - **0 HIGH detectados** — `JWTError` wrapping não vaza `SECRET_KEY` em mensagens, `PasswordTooLongError` anti silent truncation, `verify_password` defensive `False` em hash malformado, `verify_cost_factor` regex parser não-throws
+  - **MEDIUM observations (registrar TECH-DEBT.md candidate):**
+    - Rate limiting em endpoints auth deferido para chunk 4 (api.py)
+    - JWT secret rotation strategy (dual-key pattern) deferido para Sprint 05+
+    - `_get_algorithm()` lê `JWT_ALGORITHM` env sem whitelist explícito; PyJWT default rejeita `"none"` algorithm — defesa adequada via biblioteca, mas explícito seria mais robusto
+- **Action item:** Operator/CC.43 follow-up para instalar CodeRabbit CLI (TECH-DEBT.md entry) + re-run full review em chunk 8 story closure
 
 ### Chunks remaining (sequência recomendada Morpheus)
 
-- [ ] **Chunk 3:** JWT + bcrypt foundation — `bloco_auth/jwt_utils.py` + `bloco_auth/middleware.py` + `tests/unit/test_jwt.py` + `tests/unit/test_bcrypt.py`
-- [ ] **Chunk 4:** Auth API — `bloco_auth/api.py` + `bloco_auth/onboarding.py` + `tests/integration/test_auth_rls_isolation.py` (RLS isolation #1 BLOCKING)
+- [x] **Chunk 3:** JWT + bcrypt foundation — `bloco_auth/jwt_utils.py` + `bloco_auth/passwords.py` + `bloco_auth/middleware.py` + `tests/unit/test_jwt.py` + `tests/unit/test_bcrypt.py` ✅ DONE 18/18 tests passing
+- [ ] **Chunk 4:** Auth API — `bloco_auth/api.py` + `bloco_auth/onboarding.py` + `tests/integration/test_auth_rls_isolation.py` (RLS isolation #1 BLOCKING). Pre-req: PostgreSQL local rodando + migration aplicada
 - [ ] **Chunk 5:** DPA flow — `bloco_auth/dpa.py` + 3 endpoints + `governance/legal/dpa-templates/v1.0.0.md` placeholder + tests
 - [ ] **Chunk 6:** UI templates — 4 onboarding steps + login.html + onboarding.css OrSheva (Sati S2/S1 wireframes)
 - [ ] **Chunk 7:** Integration + E2E — `test_onboarding_e2e.py` + `test_users_crud.py` + `test_login_jwt.py` + coverage ≥ 80%
@@ -411,6 +446,7 @@ Após Eric merge PR #3 → @dev Neo pode iniciar implementation imediatamente (s
 | 2026-05-07 | @sm River | Story criada Draft (Phase 7.1 Sprint 04 — foundation) |
 | 2026-05-07 | @po Keymaker | QA Validation G3 — Verdict: ✅ GO (Score: 10/10) — Status Draft → Ready |
 | 2026-05-07 | @dev Neo | Phase 7.2.1-2 — Chunks 1-2 implementados (setup environment + DB foundation): pyproject.toml deps, bloco_auth + bloco_database packages, migration SQL canônica (3 tabelas + 4 RLS policies + 7 indexes), SQLAlchemy 2.0 async models, async engine + RLS context helper. 6 files novos + 2 modified. Chunks 3-8 pendentes. |
+| 2026-05-07 | @dev Neo | Phase 7.2.3 — Chunk 3 (JWT + bcrypt foundation) implementado: jwt_utils.py (PyJWT HS256 + JWTPayload pydantic + ConfigError eager validation), passwords.py (raw bcrypt 4.x — passlib droppado por incompat), middleware.py (FastAPI Depends 401 RFC 6750), test_jwt.py 8 tests + test_bcrypt.py 10 tests = 18/18 passing. Coverage local jwt_utils 87% + passwords 97%. CodeRabbit deferred (CLI não instalado) — self-critique manual: 0 CRITICAL/0 HIGH. 5 files novos + 1 modified (pyproject.toml). |
 
 ---
 
