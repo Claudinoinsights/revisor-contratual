@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T13:45"
-active_story: "Sessão 91 Sprint 04 Phase 10 EXECUTADA — @devops Operator push+PR Sprint 04 PR #4 done. Pre-push quality gate 5/5 PASS (working tree clean + branch feat/sp04-auth-01 + 13 commits main..HEAD = 1 contexto branch-creation 5685727 + 12 Path B + last hash 3e0fb06 + pytest 50/50 sanity passed in 4.55s); CodeRabbit DEFERRED (WSL bash não-disponível na máquina dev — self-critique fallback aceito precedent qa-gate G5). Push 5685727..3e0fb06 -u origin success. PR #4 criado https://github.com/Claudinoinsights/revisor-contratual/pull/4 — title `feat(sprint-04): SP04-AUTH-01 multi-tenant authentication + tenant onboarding [Story SP04-AUTH-01]` body Markdown estruturada completa (Summary + 8 Implementation chunks + qa-gate G5 verdict CONCERNS + 8 forward action items consolidados + Test plan + Pre-PR review) base main. PR state: OPEN, mergeable: MERGEABLE, mergeStateStatus: UNSTABLE (CI rodando — pytest Python 3.11 QUEUED + pytest Python 3.12 IN_PROGRESS + Workers Builds IN_PROGRESS; Cloudflare Pages ✅ SUCCESS preview deploy). Q-gate cycle COMPLETO: implementation 100% ✅ + qa-gate G5 CONCERNS ✅ + close-story Done ✅ + push+PR Sprint 04 PR #4 ✅. Path B chain Sprint 04 SP04-AUTH-01 → COMPLETO. Aguarda: Eric review+merge (human-in-loop production gate)."
-status: sprint-04-phase10-operator-push-pr-DONE-aguarda-eric-review-merge
+last_updated: "2026-05-08T14:00"
+active_story: "Sessão 91 Sprint 04 Phase 11 SEALED — Morpheus consume Operator handoff + Q-gate cycle COMPLETO até agent flow alcança. PR #4 LIVE https://github.com/Claudinoinsights/revisor-contratual/pull/4 aguardando Eric review+merge (human-in-loop production gate único pendente). 3 opções Eric documentadas em handoff advisory H-S04-P14-MOR2ERIC-PHASE11-AWAIT-REVIEW-001: (1) Approve+Merge → trigger Morpheus dispatch Operator runbook ops (revisor_app BYPASSRLS + apply migration + integration tests com DB) + decisão release tag v0.3.0-sp04-auth-01-foundation; (2) Request changes → Morpheus dispatch agente fix loop conforme natureza (Neo code OR Keymaker governance OR Oracle test); (3) Continuar Sprint 04 paralelo → Morpheus dispatch @sm River draft próxima foundation P0 (recomendação Morpheus: SP04-BYOK-01 Anthropic key management runtime, completa Cloud SaaS BYOK loop). Foundation P0 Sprint 04 entregue → 13 stories dependentes desbloqueadas pós-merge. Sem próxima Skill agent automática — fluxo pausa aguardando Eric decisão."
+status: sprint-04-phase11-Q-gate-cycle-COMPLETO-aguarda-eric-decisao-merge-or-request-or-paralelo
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,36 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **👑 Sessão 91 Sprint 04 Phase 11 SEALED — Q-gate cycle SP04-AUTH-01 COMPLETO + aguardando Eric decisão** (@lmas-master · Morpheus — 2026-05-08T14:00):
+  - **Trigger:** Eric "Avance pela Skill" — Operator push+PR done; agent flow alcançou limite natural (human-in-loop gate)
+  - **Handoff IN consumed:** H-S04-P13-OPS2MOR-PUSH-PR-DONE-001 (Operator push+PR summary completo: pre-push 5/5 PASS + push 5685727..3e0fb06 + PR #4 URL + CI status checks)
+  - **Handoff OUT advisory emitted:** H-S04-P14-MOR2ERIC-PHASE11-AWAIT-REVIEW-001 (artifact advisory para Eric — não-Skill humano)
+  - **PR #4 LIVE:** https://github.com/Claudinoinsights/revisor-contratual/pull/4
+    - State OPEN | MERGEABLE | mergeStateStatus UNSTABLE (CI rodando)
+    - ✅ Cloudflare Pages preview deploy SUCCESS
+    - 🔄 pytest Python 3.11 QUEUED + Python 3.12 IN_PROGRESS
+    - 🔄 Workers Builds IN_PROGRESS
+  - **Q-gate cycle Sprint 04 SP04-AUTH-01 (COMPLETO até agent flow alcança):**
+    - ✅ Path B implementation chunks 1-8 (100%) — Neo
+    - ✅ qa-gate G5 verdict CONCERNS — Oracle (1 HIGH setup ops + 3 MEDIUM TECH-DEBT + 0 CRITICAL)
+    - ✅ close-story Done com observations — Keymaker (status frontmatter Done + Section 11 close-story decision + 8 forward action items)
+    - ✅ push+PR Sprint 04 PR #4 — Operator (PR #4 LIVE com body Markdown estruturada completa)
+    - ⏳ **Eric review+merge** (human-in-loop production gate — único pendente)
+  - **3 opções Eric (documentadas em handoff advisory):**
+    1. **Approve+Merge PR #4** → aguardar CI green → squash merge per `git-workflow.md` → trigger Morpheus dispatch Operator runbook ops (setup `revisor_app` BYPASSRLS role + apply migration + integration tests com DB + verify coverage ≥ 80% empírico) → decidir release tag `v0.3.0-sp04-auth-01-foundation`
+    2. **Request changes** GitHub UI → Morpheus dispatch agente fix loop:
+       - Code fix → @dev Neo Skill `*develop` re-implement
+       - Governance fix → @po Keymaker OR @sm River Skill
+       - Test gap → @qa Oracle Skill `*review` retest
+    3. **Continuar Sprint 04 paralelo** → Morpheus dispatch @sm River Skill `*draft` próxima foundation P0:
+       - **SP04-BYOK-01** (Anthropic key management runtime) — **Morpheus recomenda** (completa Cloud SaaS BYOK loop pós-auth)
+       - SP04-LGPD-01 (LGPD compliance flows) — alternativa P0 cross-domain Eric advogado
+       - SP04-OCR-01 (Vision OCR Sonnet 4.6) — alternativa P0 doctype dispatcher precursor
+  - **Foundation P0 entregue → 13 stories Sprint 04 dependentes desbloqueadas pós-merge:**
+    SP04-LGPD-01, SP04-BYOK-01, SP04-OCR-01, SP04-DOCTYPE-01, SP04-PRICING-01, SP04-BILLING-01, SP04-DASH-01, SP04-PARSING-01, SP04-EXPORT-01, SP04-AUDIT-API-01, SP04-MONITORING-01, SP04-PASSWORD-RESET, SP04-SESSION-PERSISTENCE
+  - **Sem próxima Skill agent automática.** Fluxo pausa aqui aguardando Eric decisão produto.
+  - **Conventional commit:** `docs(governance): Phase 11 Q-gate cycle COMPLETO — aguardando Eric review+merge PR #4 [Story SP04-AUTH-01]` (NÃO push — PR #4 já em fluxo Eric review, push extra adicionaria ruído)
 
 - **⚡ Sessão 91 Sprint 04 Phase 10 EXECUTADA — @devops Operator push+PR Sprint 04 PR #4 DONE** (@devops · Operator — 2026-05-08T13:45):
   - **Trigger:** Morpheus dispatch H-S04-P13-MOR2OPS-PUSH-PR-001 (consumed via Skill `LMAS:agents:devops`)
