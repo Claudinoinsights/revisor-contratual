@@ -132,6 +132,9 @@ omit = ["tests/*", "**/__init__.py"]
 
 [tool.coverage.report]
 # NFR-MAINT-02: ≥80% bloco_engine, ≥70% workflow/vault, ≥60% geral
+# Sprint 04 SP04-AUTH-01 AC-08: bloco_auth coverage ≥ 80% verificado
+#   condicionalmente quando DATABASE_URL setada (integration tests passam);
+#   sem DB tests skip → unit-only baseline ≥ 60% geral mantido (Sprint 03 compat)
 fail_under = 60
 show_missing = true
 
