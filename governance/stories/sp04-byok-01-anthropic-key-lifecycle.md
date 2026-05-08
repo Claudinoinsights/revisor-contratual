@@ -1,0 +1,457 @@
+---
+type: story
+id: "SP04-BYOK-01"
+title: "BYOK Anthropic key lifecycle — encryption + runtime injection + rotate/revoke"
+status: Draft
+epic: "Sprint 04 Cloud SaaS BYOK"
+project: revisor-contratual
+sprint: "04"
+phase: 12.1
+priority: P0
+estimated_days: "3-5"
+agent: "@dev (Neo)"
+branch: "feat/sp04-byok-01 (será criada pós validate-story-draft → Ready)"
+created: "2026-05-08"
+created_by: "@sm River"
+dependencies:
+  - "SP04-AUTH-01 (Done — foundation P0 — wizard step2 OnboardingStep2Data + ping_anthropic_api validators existentes)"
+  - "ADR-014 (BYOK Provider Abstraction Anthropic Only — schema tenant_api_keys + dual-key rotation 24h overlap + pgcrypto)"
+  - "ADR-017 (Multi-tenant Pool+RLS BACKBONE — RLS pattern aplicado universalmente)"
+  - "ADR-019 (DPA Storage Schema — pattern audit + retention reusable)"
+  - "ADR-005 (Audit chain HMAC — payload tenant_id integration)"
+source_frs:
+  - "FR-API-KEY-01 (cadastro + validação via ping)"
+  - "FR-API-KEY-02 (encryption pgcrypto.pgp_sym_encrypt)"
+  - "FR-API-KEY-03 (rotação dual-key 24h overlap)"
+  - "FR-API-KEY-04 (revoke self-service + suspend tenant + audit truncated)"
+cross_references:
+  prd: "governance/prd/prd-v2.0.0-DRAFT.md Section BYOK API Key Management (lines 89-94)"
+  ux: "UX spec wizard step2 existente (SP04-AUTH-01 entregue) + panel `Configurações > BYOK` Settings novo (Sati pre-flight opcional)"
+  adrs: ["adr-014", "adr-017", "adr-019", "adr-005"]
+  story_predecessor: "SP04-AUTH-01"
+  smith_findings_addressed: "F-014 (BYOK key encryption verification — Atlas v2 Section 1)"
+tags:
+  - project/revisor-contratual
+  - story
+  - sprint-04
+  - epic-byok
+  - foundation
+  - p0
+  - multi-tenant
+  - encryption
+  - anthropic
+---
+
+# SP04-BYOK-01 — BYOK Anthropic key lifecycle
+
+```
+[@sm · River (Facilitator)] — Sprint 04 · Phase 12.1 · SP04-BYOK-01 · BYOK lifecycle
+SPRINT: 04 · PHASE: 12.1 · DOMÍNIO: software-dev/byok-encryption
+```
+
+> **Foundation Sprint 04 P0** — completa Cloud SaaS BYOK loop pós-SP04-AUTH-01. Wizard step2 já coleta `anthropic_api_key` validada via ping; SP04-BYOK-01 entrega encryption at rest pgcrypto + runtime injection middleware Anthropic SDK + lifecycle endpoints rotate/revoke + audit chain HMAC + LGPD compliance. Sem essa story, OCR/PARSING/EXPORT (P1+) ficam tecnicamente bloqueadas para inferência.
+
+---
+
+## 1. Sumário
+
+Story foundation Sprint 04 P0 — implementa o ciclo completo de gestão BYOK (Bring Your Own Key) Anthropic conforme ADR-014 + FR-API-KEY-01..04. Foundation entregue por SP04-AUTH-01 já coleta `anthropic_api_key` no wizard step2 com validação via ping `GET https://api.anthropic.com/v1/models` (`OnboardingStep2Data` em `bloco_auth/onboarding.py`). Esta story fecha o loop entregando 5 capabilities runtime-críticas:
+
+1. **Persistence layer** — tabela `tenant_api_keys` (ADR-014 §Decisão.Componentes 7) com `encrypted_key BYTEA` via `pgcrypto.pgp_sym_encrypt(key, master_key)`, RLS isolation tenant, dual-key state machine `current_key + pending_key` (FR-API-KEY-02 + FR-API-KEY-03)
+2. **Runtime injection middleware** — FastAPI dependency `get_anthropic_client(tenant_id)` decrypta + instancia `anthropic.Anthropic(api_key=...)` SDK per-request, cache request-scoped (não cross-request por security), graceful 503 + audit em decryption failures
+3. **Lifecycle endpoints** — `POST /api/tenant/byok/rotate` (state machine current→pending overlap 24h, revalida via ping antes de aceitar; FR-API-KEY-03), `POST /api/tenant/byok/revoke` (clear encrypted + tenant.status='suspended_byok' + force re-onboarding step2; FR-API-KEY-04), `GET /api/tenant/byok/status` (current key fingerprint truncated `sk-ant-...XYZ` + last_used_at)
+4. **Audit chain integration** — eventos `byok_key_set`/`byok_key_rotated`/`byok_key_revoked`/`byok_key_used` em audit chain HMAC ADR-005 com payload `{tenant_id, user_id, action, key_fingerprint_truncated, timestamp}`. Chave **NUNCA** logada full (sempre truncada `sk-ant-...XYZ` per ADR-014)
+5. **LGPD compliance operador** — direito ao esquecimento via `POST /api/tenant/byok/revoke` purge encrypted blob (audit retention permanent per ADR-019); ADR-017 LGPD operador posture preserved
+
+**Foundation impact:** Desbloqueia SP04-OCR-01 (Vision Sonnet 4.6 inference), SP04-DOCTYPE-01 (Strategy doctype dispatcher LLM calls), SP04-PARSING-01 (parser Anthropic 4 personas) — 3 stories Sprint 04 P1 que dependem de inference Anthropic operacional. Sem BYOK lifecycle, todas seriam mock-only ou impossíveis.
+
+**Branch strategy:** `feat/sp04-byok-01` base `main`. Quando SP04-AUTH-01 PR #4 merge para main, rebase trivial onto main (zero conflict expected — extends `bloco_auth`, não modifies estrutura existente).
+
+---
+
+## 2. As a / I want / So that
+
+- **As a** advogado responsável de escritório de advocacia (BYOK tenant)
+- **I want** cadastrar minha API key Anthropic encriptada, rotacioná-la sem downtime, e revogá-la quando necessário (suspeita compromisso, troca de conta Anthropic, ou off-boarding)
+- **So that** mantenho controle exclusivo do meu billing Anthropic + segurança máxima com encryption at rest + audit completa de uso interno por advogado, sem que Eric (operador SaaS) tenha acesso à minha chave em texto claro nem sofra risco financeiro de tokens
+
+---
+
+## 3. Acceptance Criteria (8 ACs)
+
+### AC-01 — Schema PostgreSQL `tenant_api_keys` (ADR-014 §Decisão.Componentes 7)
+
+Migration SQL canônica conforme ADR-014 + ADR-017 RLS pattern:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE tenant_api_keys (
+  tenant_id UUID PRIMARY KEY REFERENCES tenants(id) ON DELETE CASCADE,
+  encrypted_key BYTEA NOT NULL,             -- pgp_sym_encrypt(key, master_key)
+  key_fingerprint VARCHAR(20) NOT NULL,     -- 'sk-ant-...XYZ' truncated for audit/UI
+  status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active|pending_rotation|revoked
+  pending_encrypted_key BYTEA,              -- dual-key rotation overlap 24h (NULL when not rotating)
+  pending_fingerprint VARCHAR(20),
+  rotation_started_at TIMESTAMP WITH TIME ZONE,  -- NOW() when rotation begins; NULL outside rotation
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  last_used_at TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT rotation_consistency CHECK (
+    (status = 'pending_rotation' AND pending_encrypted_key IS NOT NULL AND rotation_started_at IS NOT NULL)
+    OR (status != 'pending_rotation' AND pending_encrypted_key IS NULL AND pending_fingerprint IS NULL AND rotation_started_at IS NULL)
+  )
+);
+
+ALTER TABLE tenant_api_keys ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY byok_tenant_isolation ON tenant_api_keys
+  USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
+
+CREATE INDEX idx_byok_status ON tenant_api_keys(status) WHERE status != 'revoked';
+CREATE INDEX idx_byok_rotation ON tenant_api_keys(rotation_started_at) WHERE status = 'pending_rotation';
+```
+
+**Notas:**
+- `tenant_id` é PK (não FK adicional) — Quota Interna pattern ADR-014: 1 key/escritório
+- `pending_*` campos NULL quando não há rotation (CHECK constraint força consistency)
+- ON DELETE CASCADE de `tenants` — quando tenant é purged, key encrypted vai junto (LGPD compliance)
+- RLS USING policy idêntico padrão SP04-AUTH-01 (consistent BACKBONE)
+
+### AC-02 — Encryption at rest pgcrypto AES-256
+
+Implementação `bloco_auth/byok_encryption.py`:
+
+```python
+def encrypt_api_key(plain_key: str, master_key: str) -> bytes:
+    """pgp_sym_encrypt via PostgreSQL function call (não Python crypto direto)."""
+    # SELECT pgp_sym_encrypt($1, $2) AS encrypted -- via SQLAlchemy func.pgp_sym_encrypt
+    ...
+
+def decrypt_api_key(encrypted: bytes, master_key: str) -> str:
+    """pgp_sym_decrypt via PostgreSQL function call."""
+    # SELECT pgp_sym_decrypt($1, $2)::text AS plain -- via SQLAlchemy func.pgp_sym_decrypt
+    ...
+
+def truncate_fingerprint(plain_key: str) -> str:
+    """Format 'sk-ant-...XYZ' (first 7 + last 3 chars). Para audit/UI."""
+    if len(plain_key) < 12:
+        raise ValueError("API key too short to fingerprint safely")
+    return f"{plain_key[:7]}...{plain_key[-3:]}"
+```
+
+**Master key:** lida de env var `MASTER_ENCRYPTION_KEY` (ADR-014 §Decisão.Componentes 3); validation eager via `@lru_cache` no module init; ConfigError eager se env ausente OR < 32 bytes (mesmo pattern SP04-AUTH-01 `bloco_auth/jwt_utils.py`). Filesystem permission 600 em `.env` (NUNCA commitada).
+
+**Tested:** roundtrip insert encrypted via `pgp_sym_encrypt` + select decrypted via `pgp_sym_decrypt` = original plain key (integration test PostgreSQL); fingerprint formato `sk-ant-...XYZ` deterministic.
+
+### AC-03 — Setter `set_api_key` integrado ao `complete_onboarding` (extend SP04-AUTH-01)
+
+Modificação atomic em `bloco_auth/onboarding.py.complete_onboarding()`:
+
+- Atualmente (SP04-AUTH-01 chunk 4): triple insert `tenant + user + dpa_acceptance` em single transaction
+- SP04-BYOK-01 extends: **quadruple insert** `tenant + user + dpa_acceptance + tenant_api_keys` (encrypted + fingerprint) em single transaction
+- Audit chain event `byok_key_set` com payload `{tenant_id, user_id, action: "set", key_fingerprint, timestamp}` — chave NUNCA logada full
+
+**Tested:** integration test E2E onboarding wizard 4 steps → `tenant_api_keys` row presente com `encrypted_key` ≠ plain + `fingerprint` formato correto + audit event recorded.
+
+### AC-04 — Runtime injection middleware Anthropic SDK
+
+Implementação `bloco_auth/byok_middleware.py`:
+
+```python
+from anthropic import Anthropic
+from fastapi import Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from bloco_auth.byok_encryption import decrypt_api_key
+from bloco_auth.middleware import get_current_user  # SP04-AUTH-01 existing
+from bloco_auth.models import TenantAPIKey
+
+async def get_anthropic_client(
+    current_user: tuple[UUID, UUID] = Depends(get_current_user),
+    db_session: AsyncSession = Depends(get_db_session),
+) -> Anthropic:
+    """Decrypta api_key do tenant ativo + retorna SDK instance per-request.
+
+    Cache: request-scoped via FastAPI Depends caching (não cross-request).
+    Failure mode: 503 Service Unavailable + audit byok_decryption_failed se decrypt fails.
+    """
+    tenant_id, user_id = current_user
+
+    # RLS aplicado automaticamente via SET LOCAL app.tenant_id (middleware AUTH-01)
+    result = await db_session.execute(
+        select(TenantAPIKey).where(TenantAPIKey.tenant_id == tenant_id)
+    )
+    key_row = result.scalar_one_or_none()
+
+    if key_row is None or key_row.status == "revoked":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="BYOK não configurado ou revogado — re-onboarding step2 necessário",
+        )
+
+    try:
+        plain_key = await decrypt_api_key_async(key_row.encrypted_key, db_session)
+    except Exception as exc:
+        await _audit_byok(db_session, tenant_id, user_id, "byok_decryption_failed", key_row.key_fingerprint)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="BYOK decryption failure — operator alert triggered",
+        ) from exc
+
+    # Update last_used_at (background task — não bloqueia request)
+    await db_session.execute(
+        update(TenantAPIKey)
+        .where(TenantAPIKey.tenant_id == tenant_id)
+        .values(last_used_at=datetime.now(timezone.utc))
+    )
+
+    return Anthropic(api_key=plain_key)
+```
+
+**Tested:** integration test mock `anthropic.Anthropic` SDK + verify decrypted key injected matches encrypted/decrypt roundtrip; failure path 503 + audit event.
+
+### AC-05 — Endpoint `POST /api/tenant/byok/rotate` (FR-API-KEY-03)
+
+Dual-key rotation 24h overlap window (ADR-014 §Decisão.Componentes 5):
+
+```
+Request body: {"new_api_key": "sk-ant-..."}
+
+Flow:
+  1. Validate via ping_anthropic_api(new_api_key) (reuse SP04-AUTH-01 helper)
+  2. If status == "active" (não rotation in-flight):
+     a. UPDATE tenant_api_keys SET
+          status = 'pending_rotation',
+          pending_encrypted_key = pgp_sym_encrypt(new_api_key, master_key),
+          pending_fingerprint = truncate(new_api_key),
+          rotation_started_at = NOW()
+     b. Audit event byok_key_rotation_started (key_fingerprint old + new)
+     c. Response 202 Accepted: {"rotation_started_at": ..., "complete_at": +24h}
+  3. If status == "pending_rotation" AND rotation_started_at + 24h ≤ NOW():
+     a. Atomic UPDATE: encrypted_key = pending_encrypted_key, fingerprint = pending_fingerprint,
+        status = 'active', pending_* = NULL, rotation_started_at = NULL
+     b. Audit event byok_key_rotation_completed
+     c. Response 200 OK: {"new_fingerprint": ...}
+  4. If status == "pending_rotation" AND < 24h: 409 Conflict "Rotation in progress, complete_at: ..."
+
+Background job (cron OR APScheduler):
+  - Every 1h: scan tenants with status='pending_rotation' AND rotation_started_at + 24h ≤ NOW()
+  - Auto-complete rotation (atomic UPDATE) + audit event
+```
+
+**Tested:** integration test rotation start (status pending) → wait 24h simulado (mock datetime) → auto-complete (status active + new fingerprint); concurrent rotation 409 conflict.
+
+### AC-06 — Endpoint `POST /api/tenant/byok/revoke` (FR-API-KEY-04)
+
+Self-service revocation:
+
+```
+Request body: {"reason": "suspected_compromise" | "off_boarding" | "other"}
+
+Flow:
+  1. UPDATE tenant_api_keys SET
+       encrypted_key = NULL,            -- LGPD purge
+       pending_encrypted_key = NULL,
+       status = 'revoked',
+       rotation_started_at = NULL
+     WHERE tenant_id = current_user.tenant_id
+  2. UPDATE tenants SET status = 'suspended_byok' (force re-onboarding step2)
+  3. Audit event byok_key_revoked with payload {tenant_id, user_id, reason, timestamp, key_fingerprint_truncated}
+  4. Response 204 No Content
+
+Subsequent inference attempts:
+  - get_anthropic_client → 403 Forbidden "BYOK não configurado ou revogado"
+  - User must re-execute onboarding step2 (re-validar nova api_key) para reativar tenant
+```
+
+**Tested:** integration test revoke → status='revoked' + tenant.status='suspended_byok' + subsequent get_anthropic_client retorna 403 + audit event recorded.
+
+### AC-07 — Endpoint `GET /api/tenant/byok/status` (Settings UI consumer)
+
+Read-only status para Settings panel:
+
+```
+Response 200 OK:
+{
+  "status": "active" | "pending_rotation" | "revoked",
+  "key_fingerprint": "sk-ant-...XYZ",
+  "created_at": "2026-05-08T...",
+  "last_used_at": "2026-05-08T..." | null,
+  "rotation": {                            // null se não em rotation
+    "pending_fingerprint": "sk-ant-...ABC",
+    "started_at": "2026-05-08T...",
+    "complete_at": "2026-05-09T..."
+  } | null
+}
+```
+
+**Tested:** integration test status active/pending/revoked + valida fingerprint truncated (NUNCA full key).
+
+### AC-08 — Test coverage ≥ 80% + audit chain integrity
+
+**Unit tests (Pytest):**
+- `test_byok_encryption.py` — encrypt/decrypt roundtrip + fingerprint truncation + master_key validation
+- `test_byok_state_machine.py` — rotation state transitions (active → pending_rotation → active) + concurrent rotation conflict
+
+**Integration tests (Pytest + PostgreSQL `_REQUIRES_POSTGRES`):**
+- `test_byok_lifecycle_e2e.py` — onboarding step2 → tenant_api_keys row present → first inference call decrypta + injeta SDK → rotate → revoke → re-onboarding cycle
+- `test_byok_rls_isolation.py` — tenant A não acessa tenant_api_keys de tenant B (mesmo com BYPASSRLS misuse → policy bloqueia)
+- `test_byok_audit_chain.py` — eventos set/used/rotated/revoked com tenant_id payload + integrity HMAC preservada (ADR-005) + key NUNCA full em audit log
+
+**Coverage targets:**
+- Unit `bloco_auth/byok_*.py`: 90%+ (foundation pure)
+- Integration: 80%+ (RLS + state machine critical paths)
+- Overall: ≥ 80% (NFR-PERF-01)
+
+---
+
+## 4. File List (Neo Phase 12.2+ implementation)
+
+### Novos arquivos
+
+- `bloco_auth/byok_encryption.py` — pgcrypto wrappers (encrypt/decrypt/truncate fingerprint) + master_key validation eager `@lru_cache`
+- `bloco_auth/byok_middleware.py` — FastAPI Depends `get_anthropic_client` runtime injection + cache request-scoped + graceful 503
+- `bloco_auth/byok_lifecycle.py` — state machine rotation (start_rotation, complete_rotation, revoke) + APScheduler/cron auto-complete 24h overlap
+- `bloco_auth/byok_api.py` — APIRouter `/api/tenant/byok` 3 endpoints (rotate, revoke, status)
+- `bloco_database/migrations/sp04_002_byok_keys.sql` — tabela `tenant_api_keys` + RLS policies + indexes + CHECK constraint rotation_consistency
+- `tests/unit/test_byok_encryption.py` (~10 tests)
+- `tests/unit/test_byok_state_machine.py` (~8 tests)
+- `tests/integration/test_byok_lifecycle_e2e.py` (~6 tests `_REQUIRES_POSTGRES`)
+- `tests/integration/test_byok_rls_isolation.py` (~4 tests `_REQUIRES_POSTGRES`)
+- `tests/integration/test_byok_audit_chain.py` (~5 tests `_REQUIRES_POSTGRES`)
+
+### Arquivos modificados
+
+- `bloco_auth/onboarding.py` — extend `complete_onboarding()` para quadruple insert (tenant + user + dpa_acceptance + **tenant_api_keys encrypted**); `OnboardingStep2Data.anthropic_api_key` flow continua mas chunk 4 SP04-AUTH-01 já valida via ping
+- `bloco_auth/api.py` — register byok_api router
+- `bloco_auth/models.py` — adicionar `TenantAPIKey` SQLAlchemy model (mirror migration SQL)
+- `bloco_interface/web/app.py` — register `bloco_auth/byok_api.py` router
+- `pyproject.toml` — adicionar `anthropic>=0.40.0` (Anthropic SDK Python oficial; verify version atual no pre-implement) + `apscheduler>=3.10.0` (rotation auto-complete cron OR alternativo via PostgreSQL pg_cron extension — Tank decide pre-implement)
+- `.env.example` — adicionar `MASTER_ENCRYPTION_KEY=` placeholder (32+ bytes; gerar com `openssl rand -hex 32`)
+
+### Pendências cross-domain (não implementação Neo)
+
+- **Sati panel `Configurações > BYOK` UI** (FR-API-KEY-01 settings tela) — pre-flight Sati opcional; Neo pode prosseguir com endpoints API + Settings UI brief separado se necessário
+- **Operator runbook `MASTER_ENCRYPTION_KEY` rotation** (Sprint 05+ — não bloqueia esta story; ADR-014 documenta dual-key support window pattern)
+
+---
+
+## 5. Pre-flight consultation
+
+### @data-engineer Tank (schema decision — RATIFY pre-implement)
+
+**Status:** Schema canônico já documentado em **ADR-014 §Decisão.Componentes 7** (tabela `tenant_api_keys`). River segue ADR sem desvio.
+
+**Decisões River vs ADR-014:**
+- ✅ Tabela separada `tenant_api_keys` (não coluna em `tenants`) — ADR-014 confirmado; River adiciona campos `pending_*` + `rotation_started_at` para dual-key state machine FR-API-KEY-03 (ADR-014 §Decisão.Componentes 5)
+- ✅ `pgcrypto.pgp_sym_encrypt` MVP (não AWS KMS) — ADR-014 §Decisão.Componentes 2 confirmado
+- ✅ ON DELETE CASCADE de `tenants` — alinhado com SP04-AUTH-01 pattern (LGPD purge cascade)
+- ⚠ **Pre-implement Tank ratifica:**
+  - Background job rotation auto-complete 24h: APScheduler vs pg_cron extension vs FastAPI BackgroundTasks (Tank decide arquitetura ops)
+  - Index seletivo `WHERE status != 'revoked'` partial index — Tank confirma performance impact
+  - CHECK constraint `rotation_consistency` (River drafted — Tank revisa para edge cases)
+
+### @architect Aria (ADR-020 BYOK Key Lifecycle — NÃO necessário)
+
+**Status:** ADR-014 cobre lifecycle completo (encryption + dual-key rotation + revoke + audit). River avaliou gap: NENHUM identificado. Aria pre-flight pode ser **skipped**.
+
+**Justificativa:** ADR-014 §Decisão.Componentes 5 documenta dual-key state machine 24h overlap explicitamente; ADR-014 §Razão documenta `MASTER_ENCRYPTION_KEY` rotation como debt explícito (não bloqueia esta story). Não há nova decisão arquitetural necessária.
+
+### @ux-design-expert Sati (panel `Configurações > BYOK` — OPCIONAL)
+
+**Status:** UX spec atual cobre wizard step2 (SP04-AUTH-01 entregue). FR-API-KEY-01 menciona "Tela de Settings escritório" mas wireframe específico Settings panel não foi entregue UX spec v2.0.0-DRAFT.
+
+**Sati pre-flight pode ser:**
+- **OPCIONAL pre-implement:** Neo entrega endpoints API + Settings UI placeholder; Sati wireframe Configurações>BYOK em story separada (parte do SP04-DASH-01 Settings ecosystem)
+- **MANDATORY se Eric prefere:** Sati brief wireframe Configurações>BYOK panel ANTES Neo `*develop`; adiciona ~1 day pre-implement
+
+**River recomenda:** OPCIONAL — endpoints API são MVP-críticos (desbloqueia OCR/PARSING/EXPORT runtime); Settings UI pode iterar paralelo SP04-DASH-01.
+
+---
+
+## 6. Risk Assessment
+
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| Decryption failure middleware → tenant sem inferência funcional | LOW | HIGH (tenant blocked) | Graceful 503 + audit `byok_decryption_failed` + alert operacional + revoke flow available |
+| `MASTER_ENCRYPTION_KEY` rotation breaking change todos encrypted blobs | LOW | CRITICAL | Dual-key support window (decrypt com old_key fallback + re-encrypt com new_key migration script) — ADR-014 documenta debt; Sprint 05+ runbook |
+| Anthropic API deprecation Sonnet 4.6 / Haiku 4.5 / API v1/models endpoint | LOW | HIGH (all tenants) | Ping validation periódico (cron daily) + alert tenants se ping fails + dashboard health check (Sprint 05+) |
+| Race condition rotation start vs concurrent set | LOW | MEDIUM (data inconsistency) | CHECK constraint `rotation_consistency` enforces atomic state; integration test concurrent 409 |
+| Audit chain swallow exceptions silencia BYOK events (CC.39 hardening pattern) | MEDIUM | MEDIUM (LGPD audit gap) | Pattern alinhado SP04-AUTH-01 TD-SP04-03 — adicionar structlog logger Sprint 05+ TECH-DEBT |
+| Anthropic SDK version drift breaking changes | LOW | MEDIUM (runtime fail) | Pin SDK version em pyproject.toml + Dependabot Sprint 05+ |
+| LGPD operador posture — Eric acessa key plain via decryption se compromised | LOW | HIGH (compliance) | `MASTER_ENCRYPTION_KEY` em filesystem permission 600 + Eric não logged em servidor produção rotineiro; ADR-017 LGPD operador documentado |
+
+---
+
+## 7. Implementation Plan (Path B chunks sugeridos — Neo refina)
+
+Pattern Path B SP04-AUTH-01 adaptado:
+
+1. **Chunk 1** — Setup environment: `pyproject.toml` deps (`anthropic>=0.40.0`, `apscheduler>=3.10.0`); `.env.example` `MASTER_ENCRYPTION_KEY`; verificar `bloco_auth/byok_*.py` package skeleton
+2. **Chunk 2** — Database foundation: migration `sp04_002_byok_keys.sql` (tabela + RLS + indexes + CHECK constraint); SQLAlchemy `TenantAPIKey` model
+3. **Chunk 3** — Encryption foundation: `byok_encryption.py` (encrypt/decrypt wrappers via pgcrypto + master_key eager validation + fingerprint truncate); 10 unit tests
+4. **Chunk 4** — Onboarding integration: extend `complete_onboarding()` para quadruple insert atomic; audit event `byok_key_set`; integration test E2E onboarding chunk 4 SP04-AUTH-01 + tenant_api_keys row
+5. **Chunk 5** — Runtime injection: `byok_middleware.py` FastAPI Depends `get_anthropic_client` + cache request-scoped + graceful 503; integration test mock SDK
+6. **Chunk 6** — Lifecycle endpoints: `byok_api.py` 3 endpoints (rotate state machine + revoke + status) + APScheduler/pg_cron rotation auto-complete 24h
+7. **Chunk 7** — RLS isolation + audit chain: integration tests RLS cross-tenant + audit chain HMAC eventos completos (set/used/rotated/revoked); coverage AC-08 verify
+8. **Chunk 8** — Story closure: DoD WAIVED format honest (similar AUTH-01) + Final File List Consolidado + status InReview + handoff @qa Oracle qa-gate G5
+
+**Estimativa River:** 3-5 days similar SP04-AUTH-01 — complexity equivalente (8 chunks Path B). Neo ajusta conforme pre-implement consultation Tank/Sati.
+
+**Branch creation:** `feat/sp04-byok-01` base `main` — criada por Operator OR Neo no início chunk 1. Quando SP04-AUTH-01 PR #4 merge, rebase trivial.
+
+---
+
+## 8. Definition of Done (template — Neo populates implementation)
+
+A definir empiricamente durante implementation Phase 12.2+ chunks 1-8. Template proposto:
+
+### Esperado VERIFIED (se chain Path B segue SP04-AUTH-01 padrão)
+
+- [ ] All 8 ACs implementadas + verified empíricamente
+- [ ] Migration SQL aplicada (PostgreSQL `sp04_002_byok_keys.sql`) + RLS policies funcionais
+- [ ] Unit tests pass (~18 tests bloco_auth/byok_*: encryption + state machine)
+- [ ] Story file File List Section 4 atualizada Neo Final File List Consolidado
+- [ ] Dev Agent Record Section 10 chunks 1-8 entries
+- [ ] Conventional commits chunks 1-8 + Story ID reference em cada
+- [ ] Handoff @qa Oracle qa-gate G5 emitted
+
+### Possível DEFERRED com WAIVED format (rule quality-gate-enforcement.md MANDATORY — 5 fields per item)
+
+Conforme padrão SP04-AUTH-01:
+- Integration tests `_REQUIRES_POSTGRES` skipped sem DB local (Docker daemon offline padrão sessão) → qa-gate G5 retest
+- Coverage condicional sem DB rodando → AC-08 condicional documentado em pyproject.toml comment
+- CodeRabbit DEFERRED (CLI ausente WSL bash padrão) → self-critique manual fallback
+- Sati panel `Configurações > BYOK` UI deferred → SP04-DASH-01 Settings ecosystem
+- `MASTER_ENCRYPTION_KEY` rotation runbook → Sprint 05+ TECH-DEBT
+- `last_used_at` background update strategy (per-request OR batch) → Tank pre-implement decide
+
+---
+
+## 9. QA Validation (vazio — preenchido @po validate-story-draft G3)
+
+> @po Keymaker `*validate-story-draft SP04-BYOK-01` — 10-point checklist preenche aqui pós-validate.
+
+---
+
+## 10. Dev Agent Record (vazio — preenchido @dev Neo durante implement)
+
+> @dev Neo `*develop SP04-BYOK-01` — chunks 1-8 entries preencham aqui durante Phase 12.2+ implementation.
+
+---
+
+## 11. QA Validation post-implementation (vazio — preenchido @qa Oracle qa-gate G5)
+
+> @qa Oracle `*review SP04-BYOK-01` qa-gate G5 — adversarial review verdict + findings preenchem aqui pós-implementation.
+
+---
+
+## 12. Change Log
+
+| Data | Author | Change |
+|------|--------|--------|
+| 2026-05-08 | @sm River | Story criada Draft Phase 12.1 — BYOK Anthropic key lifecycle. Foundation Sprint 04 P0 segunda story (após SP04-AUTH-01 done). Pre-leitura completa: PRD v2.0.0-DRAFT FR-API-KEY-01..04 + ADR-014 schema canônico + ADR-017 RLS BACKBONE + ADR-019 DPA pattern + bloco_auth/onboarding.py existente. 8 ACs estruturadas (schema migration + encryption + onboarding integration + runtime injection middleware + rotate dual-key 24h + revoke purge + status read-only + tests coverage). Schema decision Tank ratify pre-implement: River segue ADR-014 §Decisão.Componentes 7 sem desvio. Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle). Sati panel OPCIONAL pre-implement (endpoints API são MVP-críticos; Settings UI pode iterar paralelo SP04-DASH-01). Risk assessment 7 risks documentados. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01 estrutura). Branch sugerido feat/sp04-byok-01 base main (rebase trivial pós SP04-AUTH-01 merge). Estimativa 3-5 days. Cross-references: PRD Section BYOK lines 89-94 + ADRs 014/017/019/005 + smith-finding F-014 endereçado. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
+
+---
+
+— River, removendo obstáculos 🌊

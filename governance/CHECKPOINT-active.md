@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T14:30"
-active_story: "Sessão 91 Sprint 04 Phase 12 dispatch — Eric escolheu Opção 3 (paralelo) via 'Avance com o recomendado sempre pela Skill' = autorização implícita recomendação Morpheus primary SP04-BYOK-01. Morpheus consume advisory + dispatch @sm River Skill `LMAS:agents:sm` *draft SP04-BYOK-01 (Anthropic key management runtime — completa Cloud SaaS BYOK loop pós-AUTH-01). Brief River: pre-leitura PRD BYOK + ADRs 014/017/019 + bloco_auth/onboarding.py existente; story scope 5 entregáveis (encryption pgcrypto AES-256 + runtime injection middleware + lifecycle endpoints rotate/revoke + audit chain HMAC integration + LGPD compliance); 8 ACs sugeridas; pre-flight consultation @data-engineer Tank schema + @architect Aria possível ADR-020 + @ux-design-expert Sati panel BYOK; estimativa 3-5 days similar AUTH-01. Branch sugerido: feat/sp04-byok-01 (base main). SP04-AUTH-01 PR #4 continua aberto aguardando Eric merge (não-bloqueante paralelo). Story 2/14 Sprint 04 backlog. Handoff OUT: H-S04-P15-MOR2SM-DRAFT-BYOK-01-001. Próxima Skill: LMAS:agents:sm (@sm River) consume brief + execute *draft."
-status: sprint-04-phase12-morpheus-dispatch-sm-river-draft-byok-01-aguarda-river-execution
+last_updated: "2026-05-08T15:00"
+active_story: "Sessão 91 Sprint 04 Phase 12.1 EXECUTADA — @sm River *draft SP04-BYOK-01 done. Story file criado: governance/stories/sp04-byok-01-anthropic-key-lifecycle.md (~640 linhas, 12 sections completas estruturadas template SP04-AUTH-01). Frontmatter completo + cabeçalho River-style. 8 ACs estruturadas: AC-01 schema tenant_api_keys (ADR-014 canônico + RLS + dual-key state machine + CHECK constraint rotation_consistency); AC-02 encryption pgcrypto pgp_sym_encrypt + master_key validation; AC-03 onboarding extension quadruple insert atomic; AC-04 runtime injection middleware FastAPI Depends Anthropic SDK; AC-05 rotate state machine 24h overlap; AC-06 revoke purge LGPD; AC-07 status read-only fingerprint truncated; AC-08 test coverage ≥ 80%. 5 deliverables alinhados Morpheus brief. 7 risks + mitigations. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01). Pre-flight: Tank ratify pre-implement (River seguiu ADR-014 sem desvio); Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle); Sati OPCIONAL (Settings UI pode iterar paralelo SP04-DASH-01). Branch sugerido: feat/sp04-byok-01 base main. Estimativa 3-5 days. Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P15-SM2PO-VALIDATE-BYOK-01-001. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist)."
+status: sprint-04-phase12.1-river-draft-byok-01-DONE-aguarda-keymaker-validate-story-draft
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,36 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🌊 Sessão 91 Sprint 04 Phase 12.1 EXECUTADA — @sm River `*draft` SP04-BYOK-01 DONE** (@sm · River — 2026-05-08T15:00):
+  - **Trigger:** Morpheus dispatch H-S04-P15-MOR2SM (consumed via Skill `LMAS:agents:sm`)
+  - **Eric directive:** "Avance com o recomendado sempre pela Skill" — autonomia total cadeia draft → validate
+  - **Story file criado:** `governance/stories/sp04-byok-01-anthropic-key-lifecycle.md` (~640 linhas, 12 sections completas estruturadas template SP04-AUTH-01)
+  - **Pre-leitura completa (5 docs):** PRD v2.0.0-DRAFT FR-API-KEY-01..04 (lines 89-94) + SP04-AUTH-01 sections 1-3/10/11 template + bloco_auth/onboarding.py OnboardingStep2Data + ping_anthropic_api existente + ADR-014 (schema canônico tenant_api_keys + dual-key 24h overlap + pgcrypto) + ADR-017 (BACKBONE multi-tenant Pool+RLS LGPD operador) + ADR-019 (DPA pattern reusable)
+  - **8 ACs estruturadas:**
+    - AC-01: Schema PostgreSQL `tenant_api_keys` ADR-014 §Decisão.Componentes 7 + RLS policy + dual-key state machine + CHECK constraint rotation_consistency
+    - AC-02: Encryption at rest pgcrypto AES-256 (`pgp_sym_encrypt`/`pgp_sym_decrypt`) + master_key validation eager `@lru_cache` + fingerprint truncate `sk-ant-...XYZ`
+    - AC-03: Setter `set_api_key` integrado `complete_onboarding()` extension (quadruple insert atomic: tenant + user + dpa_acceptance + tenant_api_keys)
+    - AC-04: Runtime injection middleware FastAPI Depends `get_anthropic_client(tenant_id)` decrypta + Anthropic SDK + cache request-scoped + graceful 503
+    - AC-05: Endpoint `POST /api/tenant/byok/rotate` dual-key state machine 24h overlap + APScheduler/pg_cron auto-complete
+    - AC-06: Endpoint `POST /api/tenant/byok/revoke` purge encrypted + tenant.status='suspended_byok' + force re-onboarding
+    - AC-07: Endpoint `GET /api/tenant/byok/status` read-only fingerprint truncated + last_used_at
+    - AC-08: Test coverage ≥ 80% (unit `bloco_auth/byok_*` 90%+ + integration RLS + audit chain HMAC + lifecycle E2E)
+  - **5 deliverables alinhados Morpheus brief:** persistence layer + runtime injection + lifecycle endpoints + audit chain integration + LGPD compliance operador
+  - **Pre-flight consultation results:**
+    - **Tank (RATIFY pre-implement):** Schema canônico ADR-014 §Decisão.Componentes 7 — River segue sem desvio. Tank pre-implement ratifica: rotation auto-complete arquitetura (APScheduler vs pg_cron vs FastAPI BackgroundTasks); partial index seletivo `WHERE status != 'revoked'`; CHECK constraint `rotation_consistency` edge cases
+    - **Aria (NÃO necessário):** ADR-020 BYOK Key Lifecycle redundante — ADR-014 cobre lifecycle integral (encryption + dual-key rotation + revoke + audit)
+    - **Sati (OPCIONAL):** Panel `Configurações > BYOK` UI — iterar paralelo SP04-DASH-01 Settings ecosystem; endpoints API são MVP-críticos
+  - **7 risks documentados + mitigations:** decryption failure (graceful 503 + audit + revoke), MASTER_ENCRYPTION_KEY rotation (dual-key support window debt Sprint 05+), Anthropic deprecation (ping cron daily + alerts), race condition rotation (CHECK constraint), audit swallow (TD pattern AUTH-01), SDK drift (pin version + Dependabot), LGPD operador key access (filesystem permission 600)
+  - **Implementation Plan 8 chunks Path B sugeridos (Neo refina):** setup deps → migration SQL → encryption foundation → onboarding integration → runtime injection → lifecycle endpoints → RLS isolation+audit → story closure
+  - **Estimativa River:** 3-5 days (similar SP04-AUTH-01 — complexity equivalente)
+  - **Branch sugerido:** `feat/sp04-byok-01` base `main` (rebase trivial pós SP04-AUTH-01 PR #4 merge)
+  - **File List proposto (Section 4):** 5 novos arquivos código (`byok_encryption.py` + `byok_middleware.py` + `byok_lifecycle.py` + `byok_api.py` + migration `sp04_002_byok_keys.sql`) + 5 test files (unit + integration `_REQUIRES_POSTGRES`) + 5 modificados (`onboarding.py` extend complete_onboarding + `api.py` register router + `models.py` TenantAPIKey + `app.py` register + `pyproject.toml` deps `anthropic` + `apscheduler`) + `.env.example` `MASTER_ENCRYPTION_KEY` placeholder
+  - **Sprint 04 backlog tracking:** 1/14 done (SP04-AUTH-01 PR #4 await Eric merge) + 1/14 Draft (SP04-BYOK-01 — esta entry) = 2/14 ativas
+  - **Handoff IN consumed:** H-S04-P15-MOR2SM-DRAFT-BYOK-01-001
+  - **Handoff OUT emitted:** H-S04-P15-SM2PO-VALIDATE-BYOK-01-001
+  - **Conventional commit:** `docs(governance): create story SP04-BYOK-01 Draft — BYOK Anthropic key lifecycle [Story SP04-BYOK-01]` (NÃO push — PR #4 SP04-AUTH-01 limpo)
+  - **Próxima Skill:** `LMAS:agents:po` (@po Keymaker) consume brief + execute `*validate-story-draft SP04-BYOK-01` 10-point checklist → verdict GO (≥7/10) status Draft → Ready OR NO-GO retorna River fixes
 
 - **👑 Sessão 91 Sprint 04 Phase 12 dispatch — Morpheus → @sm River draft SP04-BYOK-01 paralelo** (@lmas-master · Morpheus — 2026-05-08T14:30):
   - **Trigger:** Eric "Avance com o recomendado sempre pela Skill" = autorização implícita Opção 3 advisory (recomendação Morpheus primary SP04-BYOK-01)
