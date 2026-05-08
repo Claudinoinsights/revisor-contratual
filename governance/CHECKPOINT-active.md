@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T15:30"
-active_story: "Sessão 91 Sprint 04 Phase 12.2 EXECUTADA — @po Keymaker *validate-story-draft SP04-BYOK-01 verdict ✅ GO score 10/10 G3. Status frontmatter Draft → Ready. 10-point PO master checklist TODOS PASS: frontmatter completo + sumário claro + As/I want/So that + 8 ACs testáveis + File List pre-implementation + pre-flight Section 5 justificada + 7 risks P/I/M + 8 chunks Path B + cross-references rastreáveis + dependencies/source_frs canônicos. Concerns River flagged 3 itens ACEITÁVEIS pós-Ready (DoD template Neo populates padrão SP04-AUTH-01; Tank ratify deferred move pre-Neo *develop chunk 2 MANDATORY; branch paralelo Eric autorizou). Concerns adicionais Keymaker 3 LOW non-bloqueantes (K-01 last_used_at strategy + K-02 tenant.status enum + K-03 coverage AC-08 condicional). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + Tank Skill consultation MANDATORY antes chunk 2 DB foundation → Neo *develop chunks 1-8 Path B (estimativa 3-5 days similar AUTH-01). Branch creation: Neo/Operator cria feat/sp04-byok-01 base main no início chunk 1. Sprint 04 backlog: 1/14 done + 1/14 Ready (SP04-BYOK-01 — esta entry) = 2/14 ativas. SP04-AUTH-01 PR #4 continua aguardando Eric merge (não-bloqueante). Handoff OUT: H-S04-P16-PO2DEV-DEVELOP-BYOK-01-001."
-status: sprint-04-phase12.2-keymaker-validate-byok-01-GO-Ready-aguarda-neo-develop
+last_updated: "2026-05-08T16:00"
+active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
+status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,37 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **📊 Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens** (@data-engineer · Tank — 2026-05-08T16:00):
+  - **Trigger:** Keymaker MANDATORY pre-Neo chunk 2 DB foundation — Tank intercepta cadeia (consume H-S04-P16-PO2DEV via redirect)
+  - **Eric directive:** "Avance com o recomendado sempre pela Skill" — autonomia total cadeia validate → ratify → develop
+  - **Pre-leitura completa (5 docs):** story Section 1-4 + ADR-014 §Decisão.Componentes 7 + ADR-017 BACKBONE + migration sp04_001_auth_multitenant.sql + Keymaker handoff seção MANDATORY (5 itens)
+  - **Deployment context detectado:** PostgreSQL 16 self-hosted/managed (DATABASE_URL `postgresql+asyncpg://...localhost:5432/`); sem Cloudflare D1/Workers runtime (wrangler.toml/jsonc ausente — apenas Cloudflare Pages preview deploy estático)
+  - **5 decisões formalizadas (vinculantes Neo chunks 1-8):**
+    1. **CHECK constraint refinado 3 constraints separados** (rotation_state_consistency com `pending_fingerprint NOT NULL` exigido — River omitiu + revoked_purge_consistency força LGPD purge invariante + byok_status_enum strict; encrypted_key agora NULLABLE — purge via constraint, não NOT NULL violation)
+    2. **Rotation auto-complete = pg_cron primary** — stored procedure `complete_pending_rotations()` PL/pgSQL + `cron.schedule('byok-rotation-complete', '0 * * * *', ...)` hourly job; multi-instance safe DB-side; APScheduler REMOVIDO `pyproject.toml` (fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable em deployment final)
+    3. **Partial indexes DROP ambos** — cardinality 1 row per tenant + scale MVP <500 rows justifica seq scan trivial; PRIMARY KEY index implícito suficiente; reavaliar 5K+ tenants TD-SP04-04
+    4. **tenants.status enum strict** ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — 4 valores é ponto inflexão typo prevention; ALTER TABLE trivial <50 rows; retrofit alinha governance Sprint 04+
+    5. **last_used_at inline per-request UPDATE** — volume MVP 0.005 writes/sec (50 tenants × 10 análises/dia = 500 writes/day); PostgreSQL row-level locking handle trivialmente; promotion threshold 50K writes/day TD-SP04-05
+  - **Schema ADR-014 alignment:** ✅ Tank confirma River sem desvio (`tenant_api_keys` tabela com `tenant_id PK`, encryption pgcrypto MVP, ON DELETE CASCADE LGPD)
+  - **Story file modifications:**
+    - **AC-01 SQL refinado integralmente:** 3 CHECK constraints + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos + encrypted_key NULLABLE
+    - **Section 4 File List:** `apscheduler` REMOVIDO (`pg_cron` é primary)
+    - **Section 5 Pre-flight:** nova subsection "Tank ratify decisions (2026-05-08 — Phase 12.3a)" com 5 decisões + justificativas + roadmap promotion
+    - **Section 12 Change Log:** entry @data-engineer Tank ratify pre-implement
+    - **Frontmatter:** mantém `status: Ready` (Tank ratify não muda lifecycle)
+  - **TECH-DEBT.md Sprint 06+ flagged:**
+    - TD-SP04-04: APScheduler fallback se pg_cron unavailable (deployment-specific) + reavaliar partial indexes em 5K+ tenants
+    - TD-SP04-05: last_used_at promotion para background batch quando 50K+ writes/day
+  - **Sprint 04 backlog:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 1/14 Ready Tank-ratified (SP04-BYOK-01 — esta entry; Neo *develop pronto)
+    - ⏸ 12/14 backlog (desbloqueadas pós-AUTH-01 merge)
+  - **Handoffs:**
+    - IN consumed (intercept): H-S04-P16-PO2DEV-DEVELOP-BYOK-01-001 (Keymaker original brief Neo — Tank intercepta pre-Neo)
+    - OUT emitted: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001 (Tank → Neo com decisões aplicadas)
+  - **Conventional commit:** `docs(governance): Tank ratify pre-implement SP04-BYOK-01 — 5 itens decisões [Story SP04-BYOK-01]` (NÃO push — PR #4 SP04-AUTH-01 limpo)
+  - **Próxima Skill:** `LMAS:agents:dev` (@dev Neo) consume Tank decisions formalizadas + execute chunks 1-8 Path B com schema final Tank-ratified (chunk 2 DB foundation usa AC-01 SQL atualizado)
 
 - **🎯 Sessão 91 Sprint 04 Phase 12.2 EXECUTADA — @po Keymaker `*validate-story-draft` SP04-BYOK-01 GO 10/10** (@po · Keymaker — 2026-05-08T15:30):
   - **Trigger:** River dispatch H-S04-P15-SM2PO-VALIDATE-BYOK-01-001 (consumed via Skill `LMAS:agents:po`)

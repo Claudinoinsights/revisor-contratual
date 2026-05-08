@@ -79,26 +79,46 @@ Story foundation Sprint 04 P0 — implementa o ciclo completo de gestão BYOK (B
 
 ## 3. Acceptance Criteria (8 ACs)
 
-### AC-01 — Schema PostgreSQL `tenant_api_keys` (ADR-014 §Decisão.Componentes 7)
+### AC-01 — Schema PostgreSQL `tenant_api_keys` (ADR-014 §Decisão.Componentes 7 — Tank-ratified Phase 12.3a)
 
-Migration SQL canônica conforme ADR-014 + ADR-017 RLS pattern:
+Migration SQL canônica conforme ADR-014 + ADR-017 RLS pattern + Tank decisões formalizadas (CHECK refinado, partial indexes removidos, enum strict tenants.status, pg_cron rotation auto-complete):
 
 ```sql
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- ─── Extensions (Tank decision: pg_cron primary, pgcrypto reuse AUTH-01) ─────
+CREATE EXTENSION IF NOT EXISTS pgcrypto;  -- já criada em AUTH-01 (idempotent)
+CREATE EXTENSION IF NOT EXISTS pg_cron;   -- Tank decision Item 2 — rotation auto-complete
 
+-- ─── Tabela: tenant_api_keys ────────────────────────────────────────────────
 CREATE TABLE tenant_api_keys (
   tenant_id UUID PRIMARY KEY REFERENCES tenants(id) ON DELETE CASCADE,
-  encrypted_key BYTEA NOT NULL,             -- pgp_sym_encrypt(key, master_key)
-  key_fingerprint VARCHAR(20) NOT NULL,     -- 'sk-ant-...XYZ' truncated for audit/UI
-  status VARCHAR(20) NOT NULL DEFAULT 'active',  -- active|pending_rotation|revoked
-  pending_encrypted_key BYTEA,              -- dual-key rotation overlap 24h (NULL when not rotating)
-  pending_fingerprint VARCHAR(20),
-  rotation_started_at TIMESTAMP WITH TIME ZONE,  -- NOW() when rotation begins; NULL outside rotation
+  encrypted_key BYTEA,                          -- pgp_sym_encrypt(key, master_key); NULL apenas em status='revoked'
+  key_fingerprint VARCHAR(20) NOT NULL,         -- 'sk-ant-...XYZ' truncated (audit/UI; NUNCA full key)
+  status VARCHAR(20) NOT NULL DEFAULT 'active', -- enum: active|pending_rotation|revoked
+  pending_encrypted_key BYTEA,                  -- dual-key rotation overlap 24h
+  pending_fingerprint VARCHAR(20),              -- truncated novo key durante rotation
+  rotation_started_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-  last_used_at TIMESTAMP WITH TIME ZONE,
-  CONSTRAINT rotation_consistency CHECK (
-    (status = 'pending_rotation' AND pending_encrypted_key IS NOT NULL AND rotation_started_at IS NOT NULL)
-    OR (status != 'pending_rotation' AND pending_encrypted_key IS NULL AND pending_fingerprint IS NULL AND rotation_started_at IS NULL)
+  last_used_at TIMESTAMP WITH TIME ZONE,        -- Tank decision Item 5: inline per-request UPDATE
+
+  -- Tank decision Item 1: 2 constraints separados (clearer audit + force purge invariant)
+  CONSTRAINT rotation_state_consistency CHECK (
+    (status = 'pending_rotation'
+      AND pending_encrypted_key IS NOT NULL
+      AND pending_fingerprint IS NOT NULL
+      AND rotation_started_at IS NOT NULL)
+    OR
+    (status IN ('active', 'revoked')
+      AND pending_encrypted_key IS NULL
+      AND pending_fingerprint IS NULL
+      AND rotation_started_at IS NULL)
+  ),
+  CONSTRAINT revoked_purge_consistency CHECK (
+    (status = 'revoked' AND encrypted_key IS NULL)
+    OR
+    (status != 'revoked' AND encrypted_key IS NOT NULL)
+  ),
+  CONSTRAINT byok_status_enum CHECK (
+    status IN ('active', 'pending_rotation', 'revoked')
   )
 );
 
@@ -107,15 +127,48 @@ ALTER TABLE tenant_api_keys ENABLE ROW LEVEL SECURITY;
 CREATE POLICY byok_tenant_isolation ON tenant_api_keys
   USING (tenant_id = current_setting('app.tenant_id', true)::uuid);
 
-CREATE INDEX idx_byok_status ON tenant_api_keys(status) WHERE status != 'revoked';
-CREATE INDEX idx_byok_rotation ON tenant_api_keys(rotation_started_at) WHERE status = 'pending_rotation';
+-- Tank decision Item 3: partial indexes REMOVIDOS — cardinality 1 row/tenant;
+-- PRIMARY KEY index implícito é suficiente para scale MVP (≤500 rows). Reavaliar 5K+ tenants.
+
+-- ─── Tank decision Item 4: enum strict tenants.status (retrofit) ───────────
+-- Adiciona 'suspended_byok' (FR-API-KEY-04 revoke flow) + força type safety
+-- (typo prevention) com 4 valores enum. ALTER TABLE trivial em <50 rows.
+ALTER TABLE tenants
+  ADD CONSTRAINT tenant_status_enum CHECK (
+    status IN ('active', 'suspended', 'dpa_pending', 'suspended_byok')
+  );
+
+-- ─── Rotation auto-complete cron (Tank decision Item 2: pg_cron primary) ────
+CREATE OR REPLACE PROCEDURE complete_pending_rotations()
+LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE tenant_api_keys
+     SET encrypted_key = pending_encrypted_key,
+         key_fingerprint = pending_fingerprint,
+         status = 'active',
+         pending_encrypted_key = NULL,
+         pending_fingerprint = NULL,
+         rotation_started_at = NULL
+   WHERE status = 'pending_rotation'
+     AND rotation_started_at + INTERVAL '24 hours' <= NOW();
+END;
+$$;
+
+SELECT cron.schedule(
+  'byok-rotation-complete',
+  '0 * * * *',  -- hourly
+  $$CALL complete_pending_rotations()$$
+);
 ```
 
 **Notas:**
-- `tenant_id` é PK (não FK adicional) — Quota Interna pattern ADR-014: 1 key/escritório
-- `pending_*` campos NULL quando não há rotation (CHECK constraint força consistency)
-- ON DELETE CASCADE de `tenants` — quando tenant é purged, key encrypted vai junto (LGPD compliance)
+- `tenant_id` PK (Quota Interna pattern ADR-014 — 1 key/escritório)
+- `encrypted_key` agora NULLABLE (Tank Item 1 — força revoke purge via constraint `revoked_purge_consistency`)
+- 3 CHECK constraints: rotation state + revoked purge + status enum strict (defense-in-depth)
+- ON DELETE CASCADE de `tenants` (LGPD purge cascade quando tenant off-boards)
 - RLS USING policy idêntico padrão SP04-AUTH-01 (consistent BACKBONE)
+- pg_cron job hourly verifica rotations com 24h+ overlap → auto-complete via stored procedure (multi-instance safe)
+- Fallback APScheduler se pg_cron unavailable em deployment final (TD-SP04-04 Sprint 06+)
 
 ### AC-02 — Encryption at rest pgcrypto AES-256
 
@@ -326,7 +379,7 @@ Response 200 OK:
 - `bloco_auth/api.py` — register byok_api router
 - `bloco_auth/models.py` — adicionar `TenantAPIKey` SQLAlchemy model (mirror migration SQL)
 - `bloco_interface/web/app.py` — register `bloco_auth/byok_api.py` router
-- `pyproject.toml` — adicionar `anthropic>=0.40.0` (Anthropic SDK Python oficial; verify version atual no pre-implement) + `apscheduler>=3.10.0` (rotation auto-complete cron OR alternativo via PostgreSQL pg_cron extension — Tank decide pre-implement)
+- `pyproject.toml` — adicionar `anthropic>=0.40.0` (Anthropic SDK Python oficial; verify version atual no pre-implement). **Tank decision Item 2:** `apscheduler` REMOVIDO (pg_cron extension PostgreSQL é primary rotation auto-complete arch); APScheduler reservado fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable em deployment final
 - `.env.example` — adicionar `MASTER_ENCRYPTION_KEY=` placeholder (32+ bytes; gerar com `openssl rand -hex 32`)
 
 ### Pendências cross-domain (não implementação Neo)
@@ -366,6 +419,161 @@ Response 200 OK:
 - **MANDATORY se Eric prefere:** Sati brief wireframe Configurações>BYOK panel ANTES Neo `*develop`; adiciona ~1 day pre-implement
 
 **River recomenda:** OPCIONAL — endpoints API são MVP-críticos (desbloqueia OCR/PARSING/EXPORT runtime); Settings UI pode iterar paralelo SP04-DASH-01.
+
+---
+
+### Tank ratify decisions (2026-05-08 — Phase 12.3a)
+
+> **Authority:** @data-engineer Tank — schema/arquitetura DB decisões formalizadas pre-Neo chunk 2 DB foundation. Decisões abaixo são **vinculantes** para Neo durante chunks 1-8 implementation.
+
+**Pre-leitura completa:** Tank validou story Section 1-4 + ADR-014 §Decisão.Componentes 7 + ADR-017 BACKBONE + migration AUTH-01 `sp04_001_auth_multitenant.sql` + deployment context (PostgreSQL 16 self-hosted/managed via DATABASE_URL `postgresql+asyncpg://...localhost:5432/`; sem Cloudflare D1/Workers runtime — wrangler.toml/jsonc ausente confirma).
+
+**Schema canônico ADR-014 §Decisão.Componentes 7:** ✅ Tank ratifica River alignment sem desvio (tabela `tenant_api_keys` com `tenant_id PK`, encryption pgcrypto MVP, ON DELETE CASCADE LGPD).
+
+**5 itens MANDATORY ratificados:**
+
+#### Item 1 — CHECK constraint refinement
+
+**Decisão Tank:** **Refinar 2 constraints separados** (em vez de single combined River draft):
+
+```sql
+CONSTRAINT rotation_state_consistency CHECK (
+  (status = 'pending_rotation'
+    AND pending_encrypted_key IS NOT NULL
+    AND pending_fingerprint IS NOT NULL  -- Tank addition (River omitiu)
+    AND rotation_started_at IS NOT NULL)
+  OR
+  (status IN ('active', 'revoked')
+    AND pending_encrypted_key IS NULL
+    AND pending_fingerprint IS NULL
+    AND rotation_started_at IS NULL)
+),
+CONSTRAINT revoked_purge_consistency CHECK (
+  (status = 'revoked' AND encrypted_key IS NULL)
+  OR
+  (status != 'revoked' AND encrypted_key IS NOT NULL)
+),
+CONSTRAINT byok_status_enum CHECK (
+  status IN ('active', 'pending_rotation', 'revoked')
+)
+```
+
+**Justificativa:**
+- 2 invariantes separados (rotation state + revoked purge) são mais auditáveis que combined boolean
+- `pending_fingerprint NOT NULL` durante rotation força UI/audit consistency (River draft omitiu)
+- `revoked_purge_consistency` força LGPD purge invariante (encrypted_key=NULL apenas em revoked)
+- `byok_status_enum` é defense-in-depth (mesmo padrão Item 4 tenants.status)
+- Clock skew em `rotation_started_at` futuro é tolerado (DBA monitora separado — não é responsabilidade da CHECK)
+- `encrypted_key` agora NULLABLE (era NOT NULL River draft) — força purge via constraint, não NOT NULL violation
+
+**Impacto AC-01 SQL migration:** atualizado em Section 3 acima.
+
+#### Item 2 — Rotation auto-complete arquitetura
+
+**Decisão Tank:** **pg_cron primary** + APScheduler fallback Sprint 06+ TD-SP04-04.
+
+**Justificativa:**
+- Deployment context é PostgreSQL 16 self-hosted/managed (não Cloudflare D1) — `pg_cron` IS supported (mesmo princípio que pgcrypto AUTH-01)
+- pg_cron é multi-instance safe (DB-side execution; reliable mesmo com Python down)
+- Stored procedure SQL nativo elimina deps Python adicional (`apscheduler` removido pyproject.toml)
+- Pattern alinhado com pgcrypto AUTH-01 (extensions PostgreSQL como first-class)
+- Job hourly (`'0 * * * *'`) verifica rotations com 24h+ overlap → auto-complete atomic UPDATE
+
+**Stored procedure + cron schedule:**
+
+```sql
+CREATE OR REPLACE PROCEDURE complete_pending_rotations()
+LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE tenant_api_keys
+     SET encrypted_key = pending_encrypted_key,
+         key_fingerprint = pending_fingerprint,
+         status = 'active',
+         pending_encrypted_key = NULL,
+         pending_fingerprint = NULL,
+         rotation_started_at = NULL
+   WHERE status = 'pending_rotation'
+     AND rotation_started_at + INTERVAL '24 hours' <= NOW();
+END;
+$$;
+
+SELECT cron.schedule('byok-rotation-complete', '0 * * * *', $$CALL complete_pending_rotations()$$);
+```
+
+**Fallback APScheduler:** Se deployment final (managed Postgres provider) NÃO suportar pg_cron, Operator runbook ops Sprint 06+ adiciona APScheduler async via FastAPI lifespan (TD-SP04-04). Por padrão Sprint 04 = pg_cron; mudança requer ADR-020 BYOK Lifecycle update.
+
+**Impacto:**
+- `pyproject.toml`: REMOVER `apscheduler>=3.10.0` (não-necessário)
+- Migration `sp04_002_byok_keys.sql`: ADICIONAR `CREATE EXTENSION IF NOT EXISTS pg_cron` + procedure + cron.schedule (atualizado AC-01 SQL acima)
+- Audit chain integration (chunk 7): event `byok_key_rotation_completed` precisa ser emitido pela stored procedure (Tank decide se trigger ON UPDATE OR audit dentro proc)
+
+#### Item 3 — Partial indexes performance
+
+**Decisão Tank:** **DROP ambos partial indexes** (manter apenas implicit PRIMARY KEY index em `tenant_id`).
+
+**Justificativa:**
+- Cardinality MVP: 1 row per tenant (Quota Interna pattern) → 50-500 rows total (Sprint 04 scale)
+- Sequential scan + filter em <500 rows é microseconds (PostgreSQL planner choosing seq scan over index é correto em low cardinality)
+- Partial indexes adicionam write overhead sem read benefit em scale MVP
+- PRIMARY KEY index implícito (`tenant_id`) já cobre lookups primary
+- Background job `complete_pending_rotations()` faz table scan trivial em <500 rows
+
+**Roadmap:** Quando MVP escalar para 5K+ tenants (Sprint 07+ estimativa), reavaliar com EXPLAIN ANALYZE. Tracked como **TD-SP04-04** TECH-DEBT.md.
+
+**Impacto migration:**
+- REMOVER `CREATE INDEX idx_byok_status WHERE status != 'revoked';`
+- REMOVER `CREATE INDEX idx_byok_rotation WHERE status = 'pending_rotation';`
+- (atualizado AC-01 SQL acima — indexes não-presentes)
+
+#### Item 4 — `tenants.status` enum strict
+
+**Decisão Tank:** **Opção B — adicionar CHECK constraint enum strict** em chunk 2 migration.
+
+**Justificativa:**
+- 4 valores distintos (`active`, `suspended`, `dpa_pending`, `suspended_byok`) é ponto inflexão typo (3 era tolerável; 4+ valoriza-se type safety)
+- ALTER TABLE ADD CONSTRAINT é trivial em <50 rows (~10ms execution)
+- Captura typos imediato em testes (`'suspendend'` rejeita migration time)
+- Migration AUTH-01 linha 35 explicitamente deferiu para "Sprint 05+ se proliferação justificar" — Sprint 04 BYOK é o trigger
+- Future-proof: futuras stories adicionam status via ALTER TABLE DROP CONSTRAINT + ADD CONSTRAINT (audit explícito)
+
+**ALTER TABLE snippet** (incluído em migration `sp04_002_byok_keys.sql`):
+
+```sql
+ALTER TABLE tenants
+  ADD CONSTRAINT tenant_status_enum CHECK (
+    status IN ('active', 'suspended', 'dpa_pending', 'suspended_byok')
+  );
+```
+
+**Impacto:** Zero migration risk (tabela com poucos rows). Retrofit alinha governance enum strict para todas as stories Sprint 04+.
+
+#### Item 5 — `last_used_at` update strategy
+
+**Decisão Tank:** **Opção A — Inline per-request UPDATE** (River draft atual).
+
+**Justificativa:**
+- Volume MVP (Sprint 04): 50 tenants × 10 análises/dia = 500 inference calls/day = **0.005 writes/sec average**
+- PostgreSQL row-level locking nativo handle write contention trivialmente neste volume
+- Eventual consistency (Opção B background batch) introduz complexidade sem benefit em scale MVP
+- Promoção para Opção B é trivial pós-Sprint quando scale exceed 5K writes/day (= 500 tenants × 100 análises/dia escala 10x)
+
+**Threshold promotion:** **50K writes/day** = trigger Opção B (background batch APScheduler async OR pg_cron dedicated procedure). Tracked como **TD-SP04-05** TECH-DEBT.md Sprint 06+ se scale exceed.
+
+**Implementação refinement (Neo aplicar chunk 5):**
+- AC-04 código `byok_middleware.py.get_anthropic_client()`: REMOVER comentário "background task — não bloqueia request" (inconsistência draft) — substituir por `# inline UPDATE per request (Tank decision Phase 12.3a Item 5; volume MVP 0.005 writes/sec justifica simplicidade)`
+- Implementação inline `await db_session.execute(update(...))` mantida (River draft já correto)
+
+---
+
+### Tank close-out
+
+✅ **5 itens ratificados:** CHECK refinado (3 constraints) + pg_cron primary + indexes drop + enum strict + last_used_at inline
+✅ **Schema ADR-014 alignment** confirmado sem desvio
+✅ **Decisões vinculantes** para Neo chunks 1-8 implementation
+✅ **TECH-DEBT.md Sprint 06+** flagged: TD-SP04-04 (partial indexes reavaliar 5K+ tenants), TD-SP04-05 (last_used_at promotion 50K writes/day), TD-SP04-06 (APScheduler fallback se pg_cron unavailable)
+⏳ **Próximo:** Neo *develop chunks 1-8 com Tank decisions aplicadas
+
+— Tank, carregando os dados 🗄️
 
 ---
 
@@ -498,7 +706,8 @@ Conforme padrão SP04-AUTH-01:
 |------|--------|--------|
 | 2026-05-08 | @sm River | Story criada Draft Phase 12.1 — BYOK Anthropic key lifecycle. Foundation Sprint 04 P0 segunda story (após SP04-AUTH-01 done). Pre-leitura completa: PRD v2.0.0-DRAFT FR-API-KEY-01..04 + ADR-014 schema canônico + ADR-017 RLS BACKBONE + ADR-019 DPA pattern + bloco_auth/onboarding.py existente. 8 ACs estruturadas (schema migration + encryption + onboarding integration + runtime injection middleware + rotate dual-key 24h + revoke purge + status read-only + tests coverage). Schema decision Tank ratify pre-implement: River segue ADR-014 §Decisão.Componentes 7 sem desvio. Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle). Sati panel OPCIONAL pre-implement (endpoints API são MVP-críticos; Settings UI pode iterar paralelo SP04-DASH-01). Risk assessment 7 risks documentados. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01 estrutura). Branch sugerido feat/sp04-byok-01 base main (rebase trivial pós SP04-AUTH-01 merge). Estimativa 3-5 days. Cross-references: PRD Section BYOK lines 89-94 + ADRs 014/017/019/005 + smith-finding F-014 endereçado. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
 | 2026-05-08 | @po Keymaker | Phase 12.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (todos PASS — paridade SP04-AUTH-01 + frontmatter completo + ACs testáveis com critérios "Tested:" explícitos + pre-flight Section 5 com justificativas + 7 risks tabelados + 8 chunks Path B + cross-references rastreáveis); concerns River flagged 3 itens TODOS aceitáveis pós-Ready (DoD template Neo populates é padrão validado AUTH-01; Tank ratify deferred move para pre-Neo *develop chunk 2 mas é MANDATORY no handoff Neo; branch paralelo Eric autorizou Opção 3); 3 concerns adicionais Keymaker LOW non-bloqueantes flagged Neo/Tank pre-implement (K-01 last_used_at strategy, K-02 tenant.status enum suspended_byok, K-03 coverage AC-08 condicional). Próximo step: Skill LMAS:agents:dev (@dev Neo) consume + Tank Skill consultation MANDATORY antes chunk 2 → Neo *develop chunks 1-8 Path B (3-5 days similar AUTH-01). Conventional commit `docs(governance): validate-story-draft SP04-BYOK-01 — verdict GO score 10/10 [Story SP04-BYOK-01]`. |
+| 2026-05-08 | @data-engineer Tank | Phase 12.3a — pre-implement ratify 5 itens schema/arquitetura executado. Pre-leitura: story Section 1-4 + ADR-014 §Decisão.Componentes 7 + ADR-017 BACKBONE + migration sp04_001_auth_multitenant.sql + deployment context (PostgreSQL 16 self-hosted/managed; sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente confirma). 5 decisões formalizadas: (1) CHECK refinado em 3 constraints separados — `rotation_state_consistency` com `pending_fingerprint NOT NULL` exigido (River omitiu) + `revoked_purge_consistency` força LGPD purge invariante + `byok_status_enum` strict; encrypted_key agora NULLABLE (forçado purge via constraint, não NOT NULL); (2) Rotation auto-complete = pg_cron primary com stored procedure `complete_pending_rotations()` + cron.schedule hourly; APScheduler removido pyproject.toml (fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable); (3) Partial indexes DROP ambos — cardinality 1 row/tenant + scale MVP <500 rows justifica seq scan; PRIMARY KEY index implícito suficiente; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — 4 valores é ponto inflexão typo prevention; ALTER TABLE trivial <50 rows; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec justifica simplicidade; promotion threshold 50K writes/day TD-SP04-05. Decisões vinculantes Neo chunks 1-8. Schema ADR-014 alignment confirmado sem desvio. Section 5 nova subsection "Tank ratify decisions" + AC-01 SQL refinado (3 CHECK constraints + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos). Section 4 File List atualizada (apscheduler removido). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + chunks 1-8 Path B com decisões aplicadas. Conventional commit `docs(governance): Tank ratify pre-implement SP04-BYOK-01 — 5 itens decisões [Story SP04-BYOK-01]`. |
 
 ---
 
-— Keymaker, equilibrando prioridades 🎯
+— Tank, carregando os dados 🗄️
