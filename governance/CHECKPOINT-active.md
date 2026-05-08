@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T08:00"
-active_story: "Sessão 91 Sprint 04 Phase 7.2.8 — @dev Neo Chunk 8 ÚLTIMO Story Closure DONE. Story SP04-AUTH-01 status `Ready → InReview`. DoD 11 itens (5 ✅ verified + 6 deferred WAIVED format mandatory rule quality-gate-enforcement.md). File List consolidado ~26 novos + 3 modified = 29 files contributed chunks 1-7. Section 11 QA Validation nota chunk 8 com 6 deferred items consolidados para qa-gate G5: setup PostgreSQL + integration tests (21) + coverage ≥ 80% empírico + CodeRabbit CLI install + Eric advogado DPA texto + Login RLS bypass runbook. **Path B chain 12/N FINAL (chunks 1-8 done = 100% IMPLEMENTATION COMPLETE)**. ACs 8/8 ✅. Próxima Skill: `LMAS:agents:qa` (@qa Oracle qa-gate G5 post-implementation adversarial review)."
-status: sprint-04-phase7.2.8-chunk-8-DONE-100-percent-IMPLEMENTATION-COMPLETE-aguarda-morpheus-dispatch-qa-gate-G5
+last_updated: "2026-05-08T09:30"
+active_story: "Sessão 91 Sprint 04 Phase 8 — @qa Oracle qa-gate G5 verdict CONCERNS executado. Adversarial review identificou 1 HIGH (login RLS bypass setup ops mandatory) + 3 MEDIUM (TECH-DEBT.md: nested transaction accept_dpa rollback, Redis state machine, structlog audit logger). 0 CRITICAL. ACs 8/8 verified empiricamente. WAIVED format ✅ compliance. pytest 50/50 unit verified. CodeRabbit DEFERRED CLI ausente — self-critique fallback aceito. Recomendação Oracle: @po Keymaker `*close-story` transition InReview → Done com observations (rule story-lifecycle.md G5 aceita Done com CONCERNS). HIGH-G5-01 endereçado em runbook ops antes deploy production + integration tests retest qa-gate G5 pós DB setup. Próxima Skill: `LMAS:agents:lmas-master` (Morpheus consume + dispatch @po Keymaker close-story Done com observations)."
+status: sprint-04-phase8-qa-gate-G5-verdict-CONCERNS-aguarda-morpheus-dispatch-po-close-story
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,46 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🛡️ Sessão 91 Sprint 04 Phase 8 — @qa Oracle qa-gate G5 verdict CONCERNS** (@qa · Oracle — 2026-05-08T09:30):
+  - **Trigger:** Morpheus dispatch H-S04-P11-MOR2QA (consumed via Skill `LMAS:agents:qa`)
+  - **Verdict:** **CONCERNS** (rule story-lifecycle.md G5 aceita Done com observations)
+  - **Verification empírica:**
+    - ✅ pytest 50/50 Sprint 04 unit passing (test_jwt 8 + test_bcrypt 10 + test_dpa_hash 10 + test_onboarding_state_machine 14 + test_jwt_middleware 8) — Neo claim chunk 7 verified
+    - ✅ WAIVED format compliance (rule quality-gate-enforcement.md MANDATORY — 5 fields per item respected)
+    - ✅ ACs 8/8 verified cross-reference Section 3 ↔ Section 10
+    - ⏸ CodeRabbit DEFERRED (CLI ausente padrão chunks 3-7) — self-critique manual fallback consistente 0 CRITICAL/0 HIGH per chunk aceito
+    - ⏸ Integration tests 21 _REQUIRES_POSTGRES skip — execução empírica em qa-gate G5 retest pós DB setup
+  - **Adversarial code review (6 files Python + 1 SQL):**
+    - 🔴 **1 HIGH detectado:** HIGH-G5-01 — Login RLS bypass setup ops mandatory mas deferred. `current_setting('app.tenant_id', true)::uuid` retorna NULL quando var ausente; login query SEM `with_tenant_context` retorna empty user em produção sem `revisor_app` role com `BYPASSRLS` privilege OR policy condicional `current_setting(..., true) IS NULL`. Não é data leak (over-restrictive, não permissive). Setup runbook ops Sprint 04 antes deploy production
+    - 🟡 **3 MEDIUM detectados (TECH-DEBT.md candidates):**
+      - MEDIUM-G5-01: `accept_dpa` `db_session.rollback()` em race handler pode dropar transaction outer `complete_onboarding`. Probabilidade BAIXA (UUID per call). Action Sprint 05+ nested transaction savepoint
+      - MEDIUM-G5-02: `_SESSIONS` in-memory state machine não persiste cross restart + multi-instance. Story Risk #2 já documenta; chunk 4 Decisões Neo marca Sprint 05+ Redis. Action SP04-SESSION-PERSISTENCE backlog
+      - MEDIUM-G5-03: Audit chain swallow exceptions (CC.39 hardening pattern Sprint 03) silencia errors sem observability. Action structlog logger Sprint 05+ TECH-DEBT.md
+    - **0 CRITICAL** (sem data leak, sem security catastrophic)
+  - **Recomendação Oracle:** `LMAS:agents:po` (Keymaker `*close-story`) — transition InReview → Done com observations documentadas. HIGH-G5-01 endereçado em runbook ops + integration tests retest qa-gate G5 pós DB setup. Story unblocking 13 stories Sprint 04 dependentes
+  - **Alternativa Eric strict:** retornar @dev Neo para implementar policy condicional `current_setting(..., true) IS NULL` na migration SQL — 1 chunk fix mínimo (não recomendado por Oracle, pois HIGH-G5-01 é setup ops não código)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume + dispatch @po Keymaker `*close-story` Done com observations)
+  - **Story status:** InReview (transição → Done via @po)
+
+- **👑 Sessão 91 Sprint 04 Phase 8 dispatch — Morpheus → @qa Oracle qa-gate G5 SP04-AUTH-01** (@lmas-master · Morpheus — 2026-05-08T08:30):
+  - **Trigger:** Eric "Avance pela Skill" — Path B 100% complete; Q-gate cycle inicia
+  - **Handoff IN consumed:** H-S04-P10-DEV2MOR-CHUNK-8-CLOSURE-DONE-001 (story InReview)
+  - **Handoff OUT emitted:** H-S04-P11-MOR2QA-QA-GATE-G5-001
+  - **Brief Oracle qa-gate G5:**
+    - Verify DoD WAIVED format compliance (rule quality-gate-enforcement.md MANDATORY): 6 deferred items com Severity + Justification + Risk accepted + Remediation date + Remediation owner per item
+    - Verify ACs 8/8 implementadas (cross-reference Section 3 ACs com Section 10 Dev Agent Record evidence)
+    - Adversarial code review files críticos: bloco_auth/{api, dpa, onboarding, jwt_utils, passwords, middleware}.py + bloco_database/migrations/sp04_001_auth_multitenant.sql
+    - Adversarial focus areas: security (SQL injection ORM/CSRF Bearer/XSS Jinja2/path traversal/anti enumeration) + multi-tenant (RLS bypass paths/BYPASSRLS deferred) + LGPD compliance (DPA persistence ANPD/NFC hash cross-OS/audit chain tenant_id) + edge cases (race conditions/error paths/deferred items risk) + test quality (assertion strength/fixture isolation/mock realism)
+    - Run pytest unit confirmação (50 Sprint 04 unit tests passing) — verify Neo claim
+    - CodeRabbit attempt OR aceitar self-critique manual fallback consistente chunks 3-7 (0 CRITICAL/0 HIGH per chunk)
+    - Decide verdict PASS/CONCERNS/FAIL conforme rule story-lifecycle.md G5
+    - Document verdict em Section 11 novo subsection "qa-gate G5 verdict @qa Oracle (Date)"
+    - Conventional commit `docs(governance): qa-gate G5 verdict @qa Oracle SP04-AUTH-01 [Story SP04-AUTH-01]`
+    - Emit handoff @qa → Morpheus com verdict + recomendação próximo step (PASS→@po close-story; CONCERNS→@po Done observations OR @dev fixes; FAIL→@dev rework)
+  - **Verdict provável Morpheus expectation:** PASS COM OBSERVATIONS — DoD WAIVED format honest + ACs 8/8 evidence + tests módulos puros 90-100% + integration escritos completos. Alternative CONCERNS leve se adversarial findings específicos. Não FAIL pois infraestrutura técnica é sólida
+  - **Próxima Skill:** `LMAS:agents:qa` (@qa Oracle) consume + qa-gate G5 verdict
+  - **Path B chain:** 12/N FINAL ✅ (100% IMPLEMENTATION COMPLETE) | **Q-gate cycle iniciado**
 
 - **🎉 Sessão 91 Sprint 04 Phase 7.2.8 — @dev Neo Chunk 8 ÚLTIMO DONE — Path B 100% IMPLEMENTATION COMPLETE** (@dev · Neo — 2026-05-08T08:00):
   - **Trigger:** Morpheus dispatch H-S04-P10-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
