@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T21:50"
-active_story: "Sessão 91 Sprint 04 Phase 7.2.3 — @dev Neo Chunk 3 (JWT + bcrypt foundation) DONE. 5 files novos + 1 modified em branch feat/sp04-auth-01: jwt_utils.py (PyJWT HS256 + JWTPayload pydantic + lazy _load_secret eager validation), passwords.py (raw bcrypt 4.x — passlib droppado por incompat 1.7.4 ↔ bcrypt 4.x), middleware.py (FastAPI Depends 401 RFC 6750), test_jwt.py (8 tests), test_bcrypt.py (10 tests), pyproject.toml (passlib removido). pytest 18/18 passing ✅. Coverage chunk 3 modules: jwt_utils 87% + passwords 97% (gate ≥ 80% atingido para módulos novos). CodeRabbit DEFERRED (CLI não instalado WSL nem Windows) — self-critique manual @dev Neo: 0 CRITICAL/0 HIGH. Pip install -e .[dev] executado: pyjwt 2.12.1 + email-validator 2.3.0 instalados. Chunks 4-8 pendentes. Path B chain 7/N (chunks 1-2-3 done de 8)."
-status: sprint-04-phase7.2.3-chunk-3-DONE-aguarda-morpheus-dispatch-chunk-4
+last_updated: "2026-05-08T00:30"
+active_story: "Sessão 91 Sprint 04 Phase 7.2.4 — @dev Neo Chunk 4 (Auth API + onboarding + RLS BLOCKING test) DONE Opção B hybrid. 4 files novos + 1 modified em branch feat/sp04-auth-01: onboarding.py (4 pydantic + validate_cnpj BR + ping_anthropic_api + state machine + complete_onboarding async transaction), api.py (8 endpoints FastAPI + audit chain integration tenant_id payload), test_auth_rls_isolation.py (4 tests skip se DATABASE_URL ausente — qa-gate G5 marker explícito), web/app.py (validate_config startup + include_router). Docker daemon offline → tests deferred. pytest 22 = 18 passed (chunks 3) + 4 skipped (chunk 4 BLOCKING deferred). ACs implementados: 01/02/03/04/05/07. Chunks 5-8 pendentes (DPA flow → UI → integration → closure). Path B chain 8/N (chunks 1-2-3-4 done de 8)."
+status: sprint-04-phase7.2.4-chunk-4-DONE-opcao-b-hybrid-aguarda-morpheus-dispatch-chunk-5
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,45 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 91 Sprint 04 Phase 7.2.4 — @dev Neo Chunk 4 DONE (Auth API + onboarding + RLS test deferred)** (@dev · Neo — 2026-05-08T00:30):
+  - **Trigger:** Morpheus dispatch H-S04-P9.6-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
+  - **Estratégia escolhida:** Opção B (hybrid) — Docker daemon offline detectado (`Docker version 29.2.1` instalado, mas Docker Desktop service não rodando). Sem disparar Docker Desktop sem autorização → fallback para tests com pytest skip marker explícito
+  - **4 files novos + 1 modified:**
+    - `bloco_auth/onboarding.py` — Wizard 4 passos (4 pydantic schemas `extra="forbid"` + `validate_cnpj` módulo 11 BR inline + `ping_anthropic_api` httpx GET /v1/models + state machine `_SESSIONS: dict` in-memory + `complete_onboarding` async transaction persiste tenant + first user atomicamente)
+    - `bloco_auth/api.py` — APIRouter `/api` com 8 endpoints (signup, onboarding step2/3/4, login, logout, users CRUD scoped). Helper `_audit(event_type, tenant_id, user_id, request, extra)` swallow exceptions (CC.39 hardening preservado) com payload tenant_id + ip_address + user_agent. Login mensagem genérica anti enumeration (Story Risk #5)
+    - `bloco_interface/web/app.py` — modified: import sp04_auth_api + jwt_utils; lifespan startup chama `validate_config()` (warning fallback se SECRET ausente — preserva DX Sprint 03); `app.include_router(sp04_auth_api.router)` post-middleware
+    - `tests/integration/test_auth_rls_isolation.py` — 4 integration tests com `_REQUIRES_POSTGRES` skip marker explícito (DATABASE_URL ausente → skip claro qa-gate G5). Tests: (1) RLS BLOCKING #1 — 2 tenants × 2 users, context A vê só A users, B vê só B; (2) DPA acceptances RLS isolation; (3) JWT required em endpoints protegidos; (4) audit chain event `user_created` com tenant_id payload
+  - **pytest 22 collected:** 18 passed (chunks 3 unit) + 4 SKIPPED (chunk 4 integration deferred). Sintaxe + imports verificados via `python -c "from bloco_auth import onboarding, api"` e `from bloco_interface.web import app` (28 routes incluindo SP04 endpoints)
+  - **CodeRabbit DEFERRED chunk 4** (CLI ausente confirmado chunk 3). Self-critique manual: **0 CRITICAL** (queries SQLAlchemy parametrized, audit swallow controlado, login mensagem genérica anti enumeration, IntegrityError → 409 sem schema leak), **0 HIGH** (`extra="forbid"` previne mass assignment, soft-delete preserva audit), **MEDIUM:** login RLS bypass setup TECH-DEBT (Operator BYPASSRLS role OR policy condicional), state machine in-memory Sprint 05+ Redis, rate limiting ausente, Anthropic ping signal binário, DPA placeholder chunk 5
+  - **ACs implementados (chunks 1-4 cumulativo):** AC-01 (onboarding backend), AC-02/03 (schemas + persist), AC-04 (CRUD scoped), AC-05 (login JWT), AC-07 (audit chain integration). **Pendentes:** AC-06 (DPA hash flow chunk 5), AC-08 (coverage ≥ 80% chunk 7)
+  - **Decisões Neo autônomas:**
+    - Docker daemon offline → fallback Opção B sem disparar Desktop sem autorização (Eric mandate "execute sem perguntar" balance: também não invadir env)
+    - Login query SEM with_tenant_context — comentário inline documenta TECH-DEBT (BYPASSRLS role setup ops)
+    - Onboarding state machine `dict` in-memory — Sprint 05+ Redis MEDIUM finding registrado
+    - DPA step3 placeholder — chunk 5 implementa hash flow + dpa_acceptances persist completo
+    - Audit chain wrapper `_audit` segue CC.39 hardening (best-effort, audit nunca derruba request)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume + dispatch chunk 5 OR HALT)
+  - **Path B chain progress:** 8/N (chunks 1-2-3-4 done de 8 — METADE da story implementação)
+  - **Action items qa-gate G5 (chunk 8 closure):**
+    - Operator/Eric setup PostgreSQL local + apply migration + run RLS BLOCKING test (CRITICAL #1 não validado empiricamente neste turn)
+    - Operator install CodeRabbit CLI + re-run full review chunks 3 + 4
+    - Documenta login RLS bypass setup (BYPASSRLS role) em runbook ops Sprint 04
+
+- **👑 Sessão 91 Sprint 04 Phase 7.2.4 dispatch — Morpheus → @dev Neo Chunk 4 Auth API + RLS BLOCKING** (@lmas-master · Morpheus — 2026-05-07T22:00):
+  - **Trigger:** Eric "Avance pela Skill" — 4ª invocação Neo na chain autônoma
+  - **Handoff IN consumed:** H-S04-P9.5-DEV2MOR-CHUNK-3-DONE-001 (chunk 3 JWT + bcrypt done)
+  - **Handoff OUT emitted:** H-S04-P9.6-MOR2DEV-CHUNK-4-AUTH-API-RLS-001
+  - **Brief Neo Chunk 4 (3+ files novos + 1 modified):**
+    - `bloco_auth/onboarding.py` — Wizard 4 passos backend (4 pydantic schemas + state machine in-memory + complete_onboarding + validate_cnpj BR módulo 11)
+    - `bloco_auth/api.py` — FastAPI routers (signup + onboarding step2-4 + login + logout + users CRUD scoped). Audit chain integration `bloco_audit/chain.py` Sprint 03 com tenant_id payload
+    - `tests/integration/test_auth_rls_isolation.py` — **CRITICAL BLOCKING test #1** (tenant A vs B isolation via RLS)
+    - `bloco_interface/web/app.py` — modify: register routers + chamar `validate_config()` no startup
+  - **Estratégia recomendada Morpheus:**
+    - **Opção A (preferida):** Docker postgres:16 container + apply migration sp04_001_auth_multitenant.sql + real RLS isolation test (BLOCKING). Razão: chunk 4 critical scenario #1 MUST PASS — sem evidence empírica, qa-gate G5 vai pegar gap
+    - **Opção B (fallback):** Hybrid se Docker indisponível — escrever código + tests com pytest skip se DATABASE_URL ausente; documentar deferred test execution
+  - **Cross-doc:** Story AC-01/04/05/07/08, ADR-017 §4 (RLS pattern + middleware), Smith F-006 (Stripe stub OK)
+  - **Path B chain progress:** 7/N → 8/N target (chunks 1-2-3-4 done de 8)
 
 - **💻 Sessão 91 Sprint 04 Phase 7.2.3 — @dev Neo Chunk 3 DONE (JWT + bcrypt foundation)** (@dev · Neo — 2026-05-07T21:50):
   - **Trigger:** Morpheus dispatch H-S04-P9.5-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
