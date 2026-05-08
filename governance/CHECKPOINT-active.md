@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T16:00"
+last_updated: "2026-05-08T18:00"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,39 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🛡️ Sessão 91 Sprint 04 Phase 12.4 EXECUTADA — @qa Oracle qa-gate G5 SP04-BYOK-01 verdict CONCERNS** (@qa · Oracle — 2026-05-08T18:00):
+  - **Trigger:** Neo dispatch H-S04-P17-DEV2QA (consumed via Skill `LMAS:agents:qa`)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill"
+  - **Verdict:** **CONCERNS** (alinhado AUTH-01 precedent — rule story-lifecycle.md G5 aceita Done com observations)
+  - **Verification empírica:**
+    - ✅ pytest 70/70 Sprint 04 unit passing in 3.17s (50 AUTH-01 + 12 BYOK encryption + 8 BYOK state machine — zero regression)
+    - ✅ WAIVED format compliance rule quality-gate-enforcement.md MANDATORY (6 items 5 fields each verified strict)
+    - ✅ ACs 8/8 verified cross-reference Section 3 ↔ Section 10 chunks 1-7
+    - ✅ Tank decisions vinculantes 5/5 aplicadas verify (CHECK 3 constraints + pg_cron primary + indexes drop + tenants.status enum + last_used_at inline)
+    - ⏸ CodeRabbit DEFERRED (CLI WSL bash ausente padrão chunks 3-7) — self-critique manual fallback aceito (precedent AUTH-01)
+    - ⏸ 15 integration tests `_REQUIRES_POSTGRES` skip — qa-gate G5 retest pós Operator setup
+  - **Adversarial findings (1 HIGH-derived + 4 MEDIUM + 4 LOW + 0 CRITICAL):**
+    - 🔴 HIGH-G5-BYOK-01 (HIGH-derived): herdado AUTH-01 HIGH-G5-01 — login RLS bypass setup ops Operator runbook conjunto (revisor_app BYPASSRLS role OR policy condicional). NÃO data leak, over-restrictive blocker funcional deploy
+    - 🟡 4 MEDIUM (TECH-DEBT.md Sprint 06+ candidates): middleware sessão própria não-Depends pattern + audit swallow CC.39 + integration tests stub-heavy 14/15 placeholders + pg_cron deployment-specific dependência
+    - ⚪ 4 LOW (defensive coding aceitável): lazy import anthropic cold start + created_at defensive coding + ping wasted call rotation conflict + start_rotation transaction implicit
+    - ⚪ 0 CRITICAL detectados (sem data leak, sem RLS bypass true, sem encryption broken)
+  - **Story file modifications:** Section 11 QA Validation post-implementation completa (verdict + verification + findings 1H+4M+4L+0C + ACs 8/8 + recommendations + próximo step) + Section 12 Change Log entry @qa Oracle
+  - **TECH-DEBT.md Sprint 06+ flagged (Tank + Oracle conjunto):**
+    - TD-SP04-04 Tank (já): APScheduler fallback se pg_cron unavailable + reavaliar partial indexes 5K+
+    - TD-SP04-05 Tank (já): last_used_at promotion background batch 50K+ writes/day
+    - TD-SP04-03 AUTH-01 (já): structlog logger audit chain swallow extension natural BYOK
+    - **TD-SP04-06 Oracle (novo):** Refatorar byok_middleware.py para Depends(get_db_session) compartilhar transaction
+    - **TD-SP04-07 Oracle (novo):** Implementar conteúdo real 14 integration test stubs OR criar story SP04-BYOK-INTEGRATION-COMPLETION
+  - **Sprint 04 backlog:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 1/14 InReview com CONCERNS verdict (SP04-BYOK-01 — esta entry; aguarda Keymaker close-story)
+    - ⏸ 12/14 backlog (desbloqueadas pós-AUTH-01 merge)
+  - **Handoffs:**
+    - IN consumed: H-S04-P17-DEV2QA-QA-GATE-G5-BYOK-01-001 (Neo brief)
+    - OUT emitted: H-S04-P17-QA2MOR-VERDICT-BYOK-01-001 (Oracle verdict + recomendação Keymaker close-story)
+  - **Conventional commit:** `docs(governance): qa-gate G5 verdict @qa Oracle SP04-BYOK-01 [Story SP04-BYOK-01]` (NÃO push — PR #4 SP04-AUTH-01 limpo)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus) consume verdict + dispatch `LMAS:agents:po` (@po Keymaker `*close-story`) status InReview → Done com observations CONCERNS documentadas
 
 - **📊 Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens** (@data-engineer · Tank — 2026-05-08T16:00):
   - **Trigger:** Keymaker MANDATORY pre-Neo chunk 2 DB foundation — Tank intercepta cadeia (consume H-S04-P16-PO2DEV via redirect)
