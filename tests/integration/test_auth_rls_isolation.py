@@ -121,7 +121,10 @@ async def _signup_full(
     step2 = onboarding.OnboardingStep2Data(anthropic_api_key="sk-test-1234567890")
     onboarding.store_step(session_id, 2, step2)
 
-    step3 = onboarding.OnboardingStep3Data(dpa_version="1.0.0", accepted=True)
+    step3 = onboarding.OnboardingStep3Data(
+        dpa_version="1.0.0", accepted=True,
+        tos_version="1.0.0", tos_accepted=True,
+    )
     onboarding.store_step(session_id, 3, step3)
 
     step4 = onboarding.OnboardingStep4Data(tier="Starter")

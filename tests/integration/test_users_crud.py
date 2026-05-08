@@ -72,7 +72,10 @@ async def _signup_full(cnpj: str, email: str, senha: str = "senha-forte-12345") 
     )
     sid = onboarding.start_session(step1)
     onboarding.store_step(sid, 2, onboarding.OnboardingStep2Data(anthropic_api_key="sk-test-1234567890"))
-    onboarding.store_step(sid, 3, onboarding.OnboardingStep3Data(dpa_version="1.0.0", accepted=True))
+    onboarding.store_step(sid, 3, onboarding.OnboardingStep3Data(
+        dpa_version="1.0.0", accepted=True,
+        tos_version="1.0.0", tos_accepted=True,
+    ))
     onboarding.store_step(sid, 4, onboarding.OnboardingStep4Data(tier="Starter"))
 
     sessionmaker = sp04_db.get_sessionmaker()

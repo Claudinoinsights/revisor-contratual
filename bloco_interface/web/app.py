@@ -40,9 +40,11 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
 from bloco_auth import api as sp04_auth_api
+from bloco_auth import audit_isolation as sp04_audit_isolation
 from bloco_auth import byok_api as sp04_byok_api
 from bloco_auth import dpa as sp04_dpa
 from bloco_auth import jwt_utils as sp04_jwt_utils
+from bloco_auth import tos as sp04_tos
 from bloco_backup.scheduler import create_scheduler
 from bloco_dataset import tema_1378_state
 from bloco_interface import ollama_manager
@@ -373,6 +375,12 @@ app.include_router(sp04_dpa.router)
 # Sprint 04 SP04-BYOK-01 — BYOK Anthropic key lifecycle (3 endpoints:
 # POST rotate, POST revoke, GET status). Tank-ratified Phase 12.3a.
 app.include_router(sp04_byok_api.router)
+# Sprint 04 SP04-LGPD-01 chunk 3 — TOS/EULA flow mirror DPA (3 endpoints:
+# GET text/{version}, POST accept, GET status). Tank-ratified LIGHT Phase 13.3a.
+app.include_router(sp04_tos.router)
+# Sprint 04 SP04-LGPD-01 chunk 5 — Audit isolation endpoint (FR-AUDIT-01).
+# 1 endpoint: GET /api/tenant/audit/isolation. Auth required + RLS scoped.
+app.include_router(sp04_audit_isolation.router)
 
 
 # CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos

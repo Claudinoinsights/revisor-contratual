@@ -91,7 +91,10 @@ def test_store_step_invalid_session_raises() -> None:
 def test_store_step_out_of_order_raises() -> None:
     """store_step pulando ordem (step3 sem step2) → OnboardingError."""
     sid = start_session(_valid_step1_data())
-    step3 = OnboardingStep3Data(dpa_version="1.0.0", accepted=True)
+    step3 = OnboardingStep3Data(
+        dpa_version="1.0.0", accepted=True,
+        tos_version="1.0.0", tos_accepted=True,
+    )
     with pytest.raises(OnboardingError, match="Step 2 não completado"):
         store_step(sid, 3, step3)
 
@@ -110,7 +113,10 @@ def test_store_step_sequential_succeeds() -> None:
     """store_step em ordem (2 → 3 → 4) sucesso."""
     sid = start_session(_valid_step1_data())
     store_step(sid, 2, OnboardingStep2Data(anthropic_api_key="sk-ant-test1234567890"))
-    store_step(sid, 3, OnboardingStep3Data(dpa_version="1.0.0", accepted=True))
+    store_step(sid, 3, OnboardingStep3Data(
+        dpa_version="1.0.0", accepted=True,
+        tos_version="1.0.0", tos_accepted=True,
+    ))
     store_step(sid, 4, OnboardingStep4Data(tier="Starter"))
 
     session = get_session(sid)

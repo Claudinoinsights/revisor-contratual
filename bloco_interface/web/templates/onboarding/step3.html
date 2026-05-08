@@ -1,13 +1,13 @@
 {% extends "onboarding/_wizard_base.html" %}
 
-{% block title %}Passo 3 de 4 · DPA — Acordo de Tratamento de Dados{% endblock %}
+{% block title %}Passo 3 de 4 · DPA + TOS — Acordos LGPD{% endblock %}
 
 {% block wizard_meta %}
 <nav class="wizard-progress" aria-label="Progresso do onboarding">
   <ol>
     <li class="step done"><span>✓</span> Escritório</li>
     <li class="step done"><span>✓</span> API Key</li>
-    <li class="step active" aria-current="step"><span>3</span> DPA</li>
+    <li class="step active" aria-current="step"><span>3</span> DPA + TOS</li>
     <li class="step"><span>4</span> Plano</li>
   </ol>
 </nav>
@@ -16,23 +16,43 @@
 {% block wizard %}
 <section class="wizard-step" aria-labelledby="step3-title">
   <p class="wizard-eyebrow">Passo 3 de 4</p>
-  <h1 id="step3-title" class="wizard-title">Aceite o <em>DPA</em></h1>
+  <h1 id="step3-title" class="wizard-title">Aceite o <em>DPA</em> e os <em>Termos de Uso</em></h1>
   <p class="wizard-subtitle">
-    Data Processing Agreement (Acordo de Tratamento de Dados) define a relação
-    LGPD entre o seu escritório (controlador) e Eric Claudino (operador).
-    Leia integralmente antes de aceitar — registramos hash SHA-256 + IP +
+    Dois documentos legais — ambos obrigatórios para uso da plataforma:
+  </p>
+  <ul class="wizard-bullets">
+    <li><strong>DPA</strong> (Data Processing Agreement) — define o tratamento
+      de dados pessoais conforme LGPD. Eric (operador) ↔ seu escritório
+      (controlador).</li>
+    <li><strong>TOS/EULA</strong> (Termos de Uso) — declara explicitamente a
+      posture <em>operador</em> Eric (Art. 5º LGPD), retenção e
+      subprocessadores.</li>
+  </ul>
+  <p class="wizard-subtitle">
+    Leia ambos integralmente antes de aceitar — registramos hash SHA-256 + IP +
     timestamp como evidência ANPD.
   </p>
 
   <article class="dpa-text"
            id="dpa-content"
-           hx-get="/api/tenant/dpa/text/v1.0.0"
+           hx-get="/api/tenant/dpa/text/1.0.0"
            hx-trigger="load"
            hx-swap="innerHTML"
            aria-labelledby="dpa-content-label"
            tabindex="0">
-    <p id="dpa-content-label" class="visually-hidden">Texto canônico do DPA versão 1.0.0</p>
+    <h2 id="dpa-content-label" class="dpa-section-title">DPA v1.0.0</h2>
     <p class="dpa-loading">Carregando texto canônico do DPA v1.0.0...</p>
+  </article>
+
+  <article class="dpa-text"
+           id="tos-content"
+           hx-get="/api/tenant/tos/text/1.0.0"
+           hx-trigger="load"
+           hx-swap="innerHTML"
+           aria-labelledby="tos-content-label"
+           tabindex="0">
+    <h2 id="tos-content-label" class="dpa-section-title">TOS/EULA v1.0.0</h2>
+    <p class="dpa-loading">Carregando texto canônico do TOS v1.0.0...</p>
   </article>
 
   <form class="wizard-form wizard-form-compact"
@@ -42,9 +62,10 @@
         hx-target="#wizard-container"
         hx-swap="outerHTML"
         hx-indicator="#loading-spinner"
-        hx-vals='{"dpa_version": "1.0.0", "accepted": true}'>
+        hx-vals='{"dpa_version": "1.0.0", "accepted": true, "tos_version": "1.0.0", "tos_accepted": true}'>
 
     <input type="hidden" name="dpa_version" value="1.0.0">
+    <input type="hidden" name="tos_version" value="1.0.0">
 
     <div class="form-field form-field-checkbox">
       <input id="dpa_accept"
@@ -55,20 +76,34 @@
              aria-required="true"
              aria-describedby="dpa-disclaimer">
       <label for="dpa_accept">
-        Eu li integralmente e aceito o DPA versão <strong>1.0.0</strong>
+        Eu li integralmente e aceito o <strong>DPA</strong> versão <strong>1.0.0</strong>
+      </label>
+    </div>
+
+    <div class="form-field form-field-checkbox">
+      <input id="tos_accept"
+             name="tos_accepted"
+             type="checkbox"
+             required
+             value="true"
+             aria-required="true"
+             aria-describedby="dpa-disclaimer">
+      <label for="tos_accept">
+        Eu li integralmente e aceito o <strong>TOS/EULA</strong> versão <strong>1.0.0</strong>
       </label>
     </div>
 
     <p id="dpa-disclaimer" class="wizard-disclaimer-strong">
-      ⚖️ Hash SHA-256 (NFC-normalized) deste texto será registrado junto com seu
-      <strong>IP</strong>, <strong>user-agent</strong> e <strong>timestamp UTC</strong>
-      em <code>dpa_acceptances</code> (ADR-019). Esta evidência é
+      ⚖️ Hash SHA-256 (NFC-normalized) de ambos os textos será registrado junto
+      com seu <strong>IP</strong>, <strong>user-agent</strong> e
+      <strong>timestamp UTC</strong> em <code>dpa_acceptances</code> e
+      <code>tos_acceptances</code> (ADR-019 + mirror). Esta evidência é
       <em>permanente</em> e ANPD-defensível conforme LGPD Art. 52.
     </p>
 
     <div class="form-actions">
       <button type="submit" class="btn-primary">
-        Aceitar e prosseguir →
+        Aceitar DPA + TOS e prosseguir →
       </button>
     </div>
   </form>
