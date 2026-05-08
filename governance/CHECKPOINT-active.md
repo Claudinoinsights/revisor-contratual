@@ -22,6 +22,32 @@ tags:
 
 ## Contexto Ativo
 
+- **💻 Sessão 91 Sprint 04 Phase 13.3 EXECUTADA — @dev Neo *develop SP04-LGPD-01 chunks 1-7 Path B COMPLETO** (@dev · Neo — 2026-05-08T22:30):
+  - **Trigger:** Keymaker GO 10/10 + Tank LIGHT 3 decisões vinculantes + Sati Opção B antecipada (River+Keymaker recommendation) + Eric advogado placeholder pattern (AUTH-01 chunk 5 precedent)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill" (continuação autonomous mandate)
+  - **Story status:** Ready → **InReview** (chunks 1-7 done; aguarda Oracle qa-gate G5)
+  - **Branch:** `feat/sp04-lgpd-01` base `feat/sp04-byok-01` HEAD provisional (rebase trivial pós Eric merge AUTH+BYOK PRs)
+  - **7 commits chunks 1-7 com Story ID reference:**
+    1. `b07f35b` chore(setup) — branch + 3 skeletons + TOS placeholder ~190 linhas
+    2. `68206d0` feat(db) — migration sp04_003 + Tank LIGHT 3 decisões aplicadas + TosAcceptance model
+    3. `7fce3e1` feat(tos) — bloco_auth/tos.py ~290 LOC mirror dpa.py + 11 unit tests test_tos_hash.py
+    4. `ff50c90` feat(onboarding) — quintuple insert atomic + Sati Opção B antecipada step3.html + audit_isolation.py impl antecipada + 4 tests existentes atualizados
+    5. `c74681b` test(audit) — test_audit_isolation_aggregation.py 11 unit tests Pydantic schemas + helpers
+    6. `pending` test(integration) — 9 stubs `_REQUIRES_POSTGRES` (5 TOS + 4 audit isolation)
+    7. `pending` docs(closure) — Section 4 Final File List 17 files + Section 8 DoD 8 VERIFIED + 4 WAIVED + Section 10 Dev Agent Record + handoff Oracle
+  - **Stats:** ~1100 LOC novo + ~80 LOC modificado + 22 unit novos (352/352 pass total) + 9 integration stubs
+  - **6 ACs:** 4 VERIFIED (AC-03 schema + AC-04 endpoints + AC-04 onboarding integration + AC-05 audit isolation) + 2 PARTIAL_WAIVED (AC-01 + AC-02 Eric advogado externo + AC-06 coverage condicional)
+  - **4 WAIVED format completo (5 fields per item):**
+    - WAIVED-LGPD-01 HIGH: Eric advogado texto canônico DPA+TOS substantivo ANPD-ready (TD-SP04-10, bloqueia Done)
+    - WAIVED-LGPD-02 MEDIUM: Integration tests _REQUIRES_POSTGRES retest mandatory qa-gate G5 (TD-SP04-09)
+    - WAIVED-LGPD-03 LOW: Sati wireframe ratify post-hoc (Neo aplicou Opção B antecipada)
+    - WAIVED-LGPD-04 LOW: CodeRabbit DEFERRED (CLI ausente WSL — padrão Sprint 04)
+  - **TECH-DEBT.md updates:** TD-SP04-08 LOW (Tank Phase 13.3a Item 3 reavaliar indexes 5K+ tenants) + TD-SP04-09 MEDIUM (integration retest) + TD-SP04-10 HIGH (Eric advogado texto)
+  - **Smith F-016 LGPD subprocessor argument:** endereçado via TOS Section 3 Subprocessadores Declarados (Anthropic BYOK escritório paga direto)
+  - **Estimativa River 2-3 days:** cumprida em 1 sessão Neo single-track Path B
+  - **Handoff OUT:** `H-S04-P21-DEV2QA-QA-GATE-G5-LGPD-01-001` em `.lmas/handoffs/handoff-dev-to-qa-2026-05-08-sp04-phase14-qa-gate-lgpd-01.yaml`
+  - **Próxima Skill:** `LMAS:agents:qa` (@qa Oracle *qa-gate G5 review verdict — PASS/CONCERNS/FAIL)
+
 - **📊 Sessão 91 Sprint 04 Phase 13.3a EXECUTADA — @data-engineer Tank ratify pre-implement LIGHT SP04-LGPD-01** (@data-engineer · Tank — 2026-05-08T20:45):
   - **Trigger:** Keymaker MANDATORY pre-Neo chunk 2 — Tank intercepta cadeia (consume H-S04-P20-PO2DEV via redirect)
   - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill"
