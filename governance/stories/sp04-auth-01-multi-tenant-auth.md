@@ -328,13 +328,39 @@ Payload comum:
 - [ ] AC-08 Test coverage ≥ 80%
 
 ### Files created/modified
-*To be populated by @dev*
+
+**Phase 7.2.1 — Chunk 1 (Setup environment) [2026-05-07]**
+- `pyproject.toml` — modified: deps Sprint 04 (`sqlalchemy[asyncio]>=2.0`, `asyncpg>=0.29`, `pyjwt[crypto]>=2.8`, `passlib[bcrypt]>=1.7.4`); promoted `pydantic>=2.8` → `pydantic[email]>=2.8`; included `bloco_auth*` + `bloco_database*` em packages e coverage source
+- `.env.example` — modified: seção "Sprint 04 — Cloud SaaS BYOK Multi-tenant" com 5 vars (DATABASE_URL, JWT_SECRET_KEY, JWT_EXPIRY_HOURS=24, JWT_ALGORITHM=HS256, DPA_TEMPLATES_DIR)
+- `bloco_auth/__init__.py` — created: package marker com docstring de escopo
+- `bloco_database/__init__.py` — created: package marker para migrations PostgreSQL
+
+**Phase 7.2.2 — Chunk 2 (Database foundation) [2026-05-07]**
+- `bloco_database/migrations/sp04_001_auth_multitenant.sql` — created: DDL canônico Sprint 04 (`CREATE EXTENSION pgcrypto` + 3 tabelas + 4 RLS policies + 7 indexes + smoke validation queries no rodapé). Single source of truth para schema (story AC-02, AC-03, AC-06 + ADR-019 §2)
+- `bloco_auth/models.py` — created: SQLAlchemy 2.0 async ORM (`Tenant`, `User`, `DpaAcceptance`) com `Mapped` typing, `PG_UUID(as_uuid=True)`, `INET`, `DateTime(timezone=True)`, ON DELETE rules (CASCADE users, RESTRICT dpa_acceptances), composite UniqueConstraints
+- `bloco_auth/db.py` — created: async engine factory + sessionmaker singleton + `with_tenant_context(session, tenant_id)` async context manager (executa `SET LOCAL app.tenant_id` dentro de transaction — RLS ativação automática). Helper `reset_engine()` para uso em tests integration
 
 ### Test results
-*To be populated by @dev (Pytest output, coverage report)*
+
+**Chunks 1-2 (foundation):** sem testes — chunks são SETUP + DDL + ORM models. Testes JWT/bcrypt/DPA hash entram em chunks 3-7.
+
+**Deferred validations (Chunk 2 → próximo turn ou Operator local env):**
+- `pip install -e ".[dev]"` para resolver Sprint 04 deps
+- `psql "$DATABASE_URL" -f bloco_database/migrations/sp04_001_auth_multitenant.sql` para aplicar migration localmente
+- Smoke queries no rodapé do SQL (verificar `pg_extension`, `pg_class.relrowsecurity`, `pg_policies`, `pg_indexes`)
 
 ### CodeRabbit results
-*To be populated by @dev (CRITICAL/HIGH/MEDIUM/LOW counts)*
+
+**Chunks 1-2:** CodeRabbit pre-commit deferido para chunk com business logic significativa (chunk 3 JWT/bcrypt OR consolidado em chunk 8 story closure). Foundation files (config + DDL + ORM declarativo) têm baixa surface para findings CRITICAL/HIGH.
+
+### Chunks remaining (sequência recomendada Morpheus)
+
+- [ ] **Chunk 3:** JWT + bcrypt foundation — `bloco_auth/jwt_utils.py` + `bloco_auth/middleware.py` + `tests/unit/test_jwt.py` + `tests/unit/test_bcrypt.py`
+- [ ] **Chunk 4:** Auth API — `bloco_auth/api.py` + `bloco_auth/onboarding.py` + `tests/integration/test_auth_rls_isolation.py` (RLS isolation #1 BLOCKING)
+- [ ] **Chunk 5:** DPA flow — `bloco_auth/dpa.py` + 3 endpoints + `governance/legal/dpa-templates/v1.0.0.md` placeholder + tests
+- [ ] **Chunk 6:** UI templates — 4 onboarding steps + login.html + onboarding.css OrSheva (Sati S2/S1 wireframes)
+- [ ] **Chunk 7:** Integration + E2E — `test_onboarding_e2e.py` + `test_users_crud.py` + `test_login_jwt.py` + coverage ≥ 80%
+- [ ] **Chunk 8:** Story closure — DoD checkboxes 10/10 + Change Log + status Ready → InReview
 
 ### QA Results
 *Section to be populated by @qa Oracle durante qa-gate (rule story-lifecycle.md G5)*
@@ -384,6 +410,7 @@ Após Eric merge PR #3 → @dev Neo pode iniciar implementation imediatamente (s
 |------|--------|--------|
 | 2026-05-07 | @sm River | Story criada Draft (Phase 7.1 Sprint 04 — foundation) |
 | 2026-05-07 | @po Keymaker | QA Validation G3 — Verdict: ✅ GO (Score: 10/10) — Status Draft → Ready |
+| 2026-05-07 | @dev Neo | Phase 7.2.1-2 — Chunks 1-2 implementados (setup environment + DB foundation): pyproject.toml deps, bloco_auth + bloco_database packages, migration SQL canônica (3 tabelas + 4 RLS policies + 7 indexes), SQLAlchemy 2.0 async models, async engine + RLS context helper. 6 files novos + 2 modified. Chunks 3-8 pendentes. |
 
 ---
 

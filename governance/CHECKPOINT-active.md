@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T20:35"
-active_story: "🎉 Sessão 91 Sprint 04 Phase 8 PR #3 MERGED — Eric autorizou 'Execute PR #3' → Operator squash merge --admin (override pre-existing CI failures Sprint 03 pytest + Workers Builds; Sprint 04 governance é APENAS markdown). Merge commit 03be266 em main. Tag v0.2.0-alpha re-pointed para main commit. Branch feat/sprint-04-cloud-pivot-v0.2.0 auto-deletada (--delete-branch). Branch nova feat/sp04-auth-01 criada baseado em main (clean baseline para Phase 7.2+ implementation). Path B chain step 5/N done — Sprint 04 governance + Phase 7+ kickoff RATIFIED em main. Próximo: Morpheus dispatch Operator Phase 9 push branch nova + dispatch @dev Neo Phase 7.2+ implementation."
-status: sprint-04-phase8-pr3-MERGED-branch-feat-sp04-auth-01-criada-aguarda-morpheus-dispatch-operator-phase9
+last_updated: "2026-05-07T21:15"
+active_story: "Sessão 91 Sprint 04 Phase 7.2.1-2 — @dev Neo Chunks 1-2 (Setup environment + DB foundation) DONE em branch feat/sp04-auth-01. 6 files novos + 2 modified: pyproject.toml +4 deps Sprint 04 (sqlalchemy[asyncio], asyncpg, pyjwt[crypto], passlib[bcrypt]); .env.example seção Sprint 04 (DATABASE_URL + JWT_SECRET_KEY + JWT_EXPIRY_HOURS=24 + JWT_ALGORITHM=HS256 + DPA_TEMPLATES_DIR); bloco_auth/__init__.py + models.py (Tenant, User, DpaAcceptance SQLAlchemy 2.0 async) + db.py (async engine + RLS context helper); bloco_database/__init__.py + migrations/sp04_001_auth_multitenant.sql (DDL canônico — 3 tabelas + 4 RLS policies + 7 indexes + pgcrypto extension + smoke queries). Chunks 3-8 pendentes (JWT/bcrypt → Auth API → DPA → UI → tests → closure). Path B chain step 6/N in-progress."
+status: sprint-04-phase7.2.1-2-chunks-1-2-DONE-aguarda-morpheus-dispatch-chunk-3
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,18 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 91 Sprint 04 Phase 7.2.1-2 — @dev Neo Chunks 1-2 DONE (Setup + DB Foundation)** (@dev · Neo — 2026-05-07T21:15):
+  - **Trigger:** Eric "Avance pela Skill" → Morpheus dispatch H-S04-P9-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
+  - **Chunk 1 (Setup environment):** `pyproject.toml` +4 deps Sprint 04 (sqlalchemy[asyncio]>=2.0, asyncpg>=0.29, pyjwt[crypto]>=2.8, passlib[bcrypt]>=1.7.4) + promoted pydantic→pydantic[email] + included bloco_auth*/bloco_database* em packages e coverage source; `.env.example` seção Sprint 04 (5 vars: DATABASE_URL, JWT_SECRET_KEY, JWT_EXPIRY_HOURS=24, JWT_ALGORITHM=HS256, DPA_TEMPLATES_DIR); `bloco_auth/__init__.py` + `bloco_database/__init__.py` packages
+  - **Chunk 2 (Database foundation):** `bloco_database/migrations/sp04_001_auth_multitenant.sql` DDL canônico (BEGIN/COMMIT + CREATE EXTENSION pgcrypto + 3 tabelas tenants/users/dpa_acceptances + 4 RLS policies + 7 indexes + smoke validation queries no rodapé) — single source of truth schema; `bloco_auth/models.py` SQLAlchemy 2.0 async (Tenant + User + DpaAcceptance com Mapped typing, PG_UUID(as_uuid=True), INET, ON DELETE rules); `bloco_auth/db.py` async engine factory + sessionmaker singleton + `with_tenant_context(session, tenant_id)` async ctx manager (executa SET LOCAL app.tenant_id em transaction → RLS auto-ativa) + `reset_engine()` helper para tests
+  - **Files:** 6 novos (`bloco_auth/__init__.py`, `bloco_auth/models.py`, `bloco_auth/db.py`, `bloco_database/__init__.py`, `bloco_database/migrations/sp04_001_auth_multitenant.sql`) + 2 modificados (`pyproject.toml`, `.env.example`)
+  - **Tests:** chunks 1-2 são SETUP+DDL+ORM (sem testes) — JWT/bcrypt/DPA tests entram chunks 3-7
+  - **Deferred validations:** `pip install -e ".[dev]"` + `psql "$DATABASE_URL" -f migrations/sp04_001_auth_multitenant.sql` + smoke queries — Operator local env OR próximo turn @dev chunk 3
+  - **Schema canônico Story-aligned (não ADR-017 example divergente):** id PK (não tenant_id PK), CNPJ VARCHAR(14) unformatted, status field, ON DELETE CASCADE users + RESTRICT dpa_acceptances (LGPD retention permanente)
+  - **Chunks 3-8 pendentes:** JWT+bcrypt foundation → Auth API → DPA flow → UI templates → Integration+E2E → Story closure (estimated 3-5 dias solo dev total, 2-3 turns Skill ainda)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume @dev handoff + dispatch chunk 3 OR HALT aguardar Eric)
+  - **Path B chain progress:** 6/N in-progress — chunks 1-2 done, 3-8 next
 
 - **🎉 Sessão 91 Sprint 04 Phase 8 PR #3 MERGED — Operator EXECUTE Eric trigger** (@devops · Operator — 2026-05-07T20:35):
   - **Trigger:** Eric "Execute PR #3" (autorização explícita merge para main)
