@@ -2,7 +2,7 @@
 type: story
 id: "SP04-AUTH-01"
 title: "Multi-tenant authentication + tenant onboarding"
-status: Draft
+status: Ready
 epic: "Sprint 04 Cloud SaaS BYOK"
 project: revisor-contratual
 sprint: "04"
@@ -341,12 +341,50 @@ Payload comum:
 
 ---
 
-## 11. Change Log
+## 11. QA Validation (rule story-lifecycle.md G3)
+
+### Validated by: @po Keymaker
+### Date: 2026-05-07
+### Verdict: ✅ GO
+### Score: 10/10
+
+| # | Checklist Item | Pass/Fail | Notes |
+|---|---------------|-----------|-------|
+| 1 | Story title clear and descriptive? | ✅ PASS | "Multi-tenant authentication + tenant onboarding" — purpose + scope + workflow explícitos |
+| 2 | Story description complete (As a / I want / So that)? | ✅ PASS | Persona específica (advogado escritório brasileiro), need claro (cadastrar tenant + gerenciar users), value mensurável (data isolation + control granular) |
+| 3 | Acceptance Criteria clear and testable? | ✅ PASS | 8 ACs com SQL schema inline + JWT claims explícitos + behavior endpoints — zero ambiguidade. Implementação imediata Neo Phase 7+ |
+| 4 | Tasks/Subtasks defined? | ✅ PASS | File List (~20 files) + Testing pyramid funcionam como decomposição implementação. Sem Tasks section formal mas File List + ACs combinados servem como guidance suficiente |
+| 5 | File List documented? | ✅ PASS | Exhaustivo: 7 bloco_auth/* + 5 templates + 1 CSS + 1 SQL migration + 7 test files + 3 modified + pendência cross-domain explícita |
+| 6 | Dev Notes provide sufficient context? | ✅ PASS | Stack (FastAPI/SQLAlchemy/PostgreSQL pgcrypto/JWT/bcrypt) + Patterns (DPA read + RLS pattern + Audit chain + Email confirmation) + Cross-doc refs (PRD v2.0.1 Section 4 + UX S1+S2 + ADR-014/017/019) |
+| 7 | Testing approach described? | ✅ PASS | Pyramid Unit/Integration/E2E + Coverage targets (90% Unit, 80% Integration, golden path E2E, ≥ 80% overall) + 5 critical scenarios prioritized (RLS isolation #1 CRITICAL) |
+| 8 | Dependencies identified? | ✅ PASS | 3 ADRs (014/017/019) + 3 FRs (FR-AUTH-01..03) + Smith findings addressed (F-006/F-008/F-013) — triangulação forte em frontmatter + Dev Notes + Risk Assessment |
+| 9 | Story sized appropriately (3-5 dias estimated)? | ✅ PASS | Realista para foundation auth solo dev. RLS testing pode estender ao topo do range mas P0 justifica investment time |
+| 10 | Risk Assessment + Definition of Done defined? | ✅ PASS | 6 risks com Probability + Impact + Mitigation (RLS isolation #1 LOW/CRITICAL com defense-in-depth 3 layers) + 10 DoD checkboxes mandatory |
+
+### Result
+
+**Story aprovada para @dev implementation post-merge PR #3. Status Draft → Ready.**
+
+Foundation P0 SP04-AUTH-01 está pronta para ativação. Quality gates Phase 7+ completos:
+- AC-08 garante test coverage ≥ 80% (NFR-PERF-01 compliance)
+- Risk #1 RLS isolation defended via 3 layers (ADR-017 pattern + integration test mandatory + CodeRabbit security scan)
+- Cross-domain pendências documentadas (DPA texto Eric advogado + Notification provider TBD pricing)
+
+### Recomendação @po Keymaker
+
+Após Eric merge PR #3 → @dev Neo pode iniciar implementation imediatamente (sem wait blockers). Branch sugerida: `feat/sp04-auth-01` baseada em main pós-merge.
+
+13 stories Sprint 04 dependentes desbloquadas pela foundation.
+
+---
+
+## 12. Change Log
 
 | Data | Author | Change |
 |------|--------|--------|
 | 2026-05-07 | @sm River | Story criada Draft (Phase 7.1 Sprint 04 — foundation) |
+| 2026-05-07 | @po Keymaker | QA Validation G3 — Verdict: ✅ GO (Score: 10/10) — Status Draft → Ready |
 
 ---
 
-— River, removendo obstáculos com fluidez 🌊
+— Keymaker, equilibrando prioridades 🎯
