@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T14:00"
-active_story: "Sessão 91 Sprint 04 Phase 11 SEALED — Morpheus consume Operator handoff + Q-gate cycle COMPLETO até agent flow alcança. PR #4 LIVE https://github.com/Claudinoinsights/revisor-contratual/pull/4 aguardando Eric review+merge (human-in-loop production gate único pendente). 3 opções Eric documentadas em handoff advisory H-S04-P14-MOR2ERIC-PHASE11-AWAIT-REVIEW-001: (1) Approve+Merge → trigger Morpheus dispatch Operator runbook ops (revisor_app BYPASSRLS + apply migration + integration tests com DB) + decisão release tag v0.3.0-sp04-auth-01-foundation; (2) Request changes → Morpheus dispatch agente fix loop conforme natureza (Neo code OR Keymaker governance OR Oracle test); (3) Continuar Sprint 04 paralelo → Morpheus dispatch @sm River draft próxima foundation P0 (recomendação Morpheus: SP04-BYOK-01 Anthropic key management runtime, completa Cloud SaaS BYOK loop). Foundation P0 Sprint 04 entregue → 13 stories dependentes desbloqueadas pós-merge. Sem próxima Skill agent automática — fluxo pausa aguardando Eric decisão."
-status: sprint-04-phase11-Q-gate-cycle-COMPLETO-aguarda-eric-decisao-merge-or-request-or-paralelo
+last_updated: "2026-05-08T14:30"
+active_story: "Sessão 91 Sprint 04 Phase 12 dispatch — Eric escolheu Opção 3 (paralelo) via 'Avance com o recomendado sempre pela Skill' = autorização implícita recomendação Morpheus primary SP04-BYOK-01. Morpheus consume advisory + dispatch @sm River Skill `LMAS:agents:sm` *draft SP04-BYOK-01 (Anthropic key management runtime — completa Cloud SaaS BYOK loop pós-AUTH-01). Brief River: pre-leitura PRD BYOK + ADRs 014/017/019 + bloco_auth/onboarding.py existente; story scope 5 entregáveis (encryption pgcrypto AES-256 + runtime injection middleware + lifecycle endpoints rotate/revoke + audit chain HMAC integration + LGPD compliance); 8 ACs sugeridas; pre-flight consultation @data-engineer Tank schema + @architect Aria possível ADR-020 + @ux-design-expert Sati panel BYOK; estimativa 3-5 days similar AUTH-01. Branch sugerido: feat/sp04-byok-01 (base main). SP04-AUTH-01 PR #4 continua aberto aguardando Eric merge (não-bloqueante paralelo). Story 2/14 Sprint 04 backlog. Handoff OUT: H-S04-P15-MOR2SM-DRAFT-BYOK-01-001. Próxima Skill: LMAS:agents:sm (@sm River) consume brief + execute *draft."
+status: sprint-04-phase12-morpheus-dispatch-sm-river-draft-byok-01-aguarda-river-execution
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,25 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **👑 Sessão 91 Sprint 04 Phase 12 dispatch — Morpheus → @sm River draft SP04-BYOK-01 paralelo** (@lmas-master · Morpheus — 2026-05-08T14:30):
+  - **Trigger:** Eric "Avance com o recomendado sempre pela Skill" = autorização implícita Opção 3 advisory (recomendação Morpheus primary SP04-BYOK-01)
+  - **Handoff IN consumed:** H-S04-P14-MOR2ERIC-PHASE11-AWAIT-REVIEW-001 (advisory Eric — 3 opções; Opção 3 escolhida via continuidade directive)
+  - **Handoff OUT emitted:** H-S04-P15-MOR2SM-DRAFT-BYOK-01-001
+  - **Story alvo:** **SP04-BYOK-01** — BYOK Anthropic key lifecycle (encryption + runtime injection + rotate/revoke)
+  - **Razão estratégica:** Completa Cloud SaaS BYOK loop pós-SP04-AUTH-01. Wizard step2 já coleta `api_key` validada via `ping_anthropic_api` (chunk 4 SP04-AUTH-01); SP04-BYOK-01 entrega 5 capabilities essenciais para runtime: encryption at rest (pgcrypto AES-256) + middleware FastAPI runtime injection + endpoints rotate/revoke + audit chain HMAC integration ADR-005 + LGPD purge compliance. Sem essa story, todas as doctype subsequentes (OCR/PARSING/EXPORT) ficam tecnicamente bloqueadas para inferência Anthropic.
+  - **Brief River (LMAS:agents:sm):**
+    - **Pre-leitura obrigatória:** `governance/prd/prd-v2.0.0-DRAFT.md` Section BYOK + `governance/stories/sp04-auth-01-multi-tenant-auth.md` Section 1-3 (template) + Section 10 Final File List + `bloco_auth/onboarding.py` Step2Data + ping_anthropic_api existente + ADRs 014 (BYOK Provider Abstraction), 017 (Multi-tenant Pool+RLS), 019 (DPA Storage Schema)
+    - **Story scope 5 entregáveis:** (1) Encryption at rest pgcrypto AES-256 — schema decisão Tank consult (coluna em `tenants` OR tabela `byok_keys` separada para multi-provider future); (2) Runtime injection middleware FastAPI Depends decrypta + injeta Anthropic SDK; (3) Lifecycle endpoints POST /api/tenant/byok/rotate (revalida + atualiza encrypted) + POST /api/tenant/byok/revoke (clear + force re-onboarding step2); (4) Audit chain events `byok_key_set/rotated/revoked` payload tenant_id ADR-005 HMAC; (5) LGPD compliance — direito esquecimento + retention permanent
+    - **8 ACs sugeridas (River refina):** AC-01 encryption at rest pgcrypto, AC-02 runtime injection middleware, AC-03 endpoint rotate, AC-04 endpoint revoke, AC-05 audit chain integration, AC-06 RLS isolation BYOK, AC-07 LGPD purge complete, AC-08 integration test E2E
+    - **Pre-flight consultation:** @data-engineer Tank (schema decision: coluna vs tabela separada), @architect Aria (possível ADR-020 BYOK Key Lifecycle se gap design), @ux-design-expert Sati (panel "Configurações > BYOK" se UX spec gap)
+    - **Risk assessment 3 risks:** (1) Decryption failure → graceful 503 + alert + revoke flow; (2) pgcrypto SECRET_KEY rotation → dual-key support window + ADR-020; (3) Anthropic API deprecation → ping validation periódico + alert tenants
+    - **Estimativa:** 3-5 days (similar SP04-AUTH-01 — complexity equivalente)
+    - **Branch sugerido:** `feat/sp04-byok-01` (base `main`); rebase trivial quando SP04-AUTH-01 PR #4 merge
+  - **SP04-AUTH-01 PR #4 status:** continua aberto aguardando Eric merge — NÃO-bloqueante para SP04-BYOK-01 paralelo (branches isolados; merge SP04-AUTH-01 dispara rebase trivial)
+  - **Sprint 04 backlog tracking:** 1/14 done (SP04-AUTH-01) + 1/14 in-progress draft (SP04-BYOK-01) = 2/14 ativas
+  - **Conventional commit:** `docs(governance): Phase 12 dispatch @sm River draft SP04-BYOK-01 — Eric escolheu Opção 3 paralelo [Story SP04-BYOK-01]` (NÃO push — PR #4 SP04-AUTH-01 ainda em fluxo Eric review)
+  - **Próxima Skill:** `LMAS:agents:sm` (@sm River) consume brief + execute `*draft` SP04-BYOK-01 → emit handoff DONE com story file path para @po Keymaker validate-story-draft
 
 - **👑 Sessão 91 Sprint 04 Phase 11 SEALED — Q-gate cycle SP04-AUTH-01 COMPLETO + aguardando Eric decisão** (@lmas-master · Morpheus — 2026-05-08T14:00):
   - **Trigger:** Eric "Avance pela Skill" — Operator push+PR done; agent flow alcançou limite natural (human-in-loop gate)
