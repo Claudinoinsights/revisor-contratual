@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T18:30"
+last_updated: "2026-05-08T19:00"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,41 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **⚡ Sessão 91 Sprint 04 Phase 12.6 EXECUTADA — @devops Operator push+PR Sprint 04 PR #5 SP04-BYOK-01 DONE** (@devops · Operator — 2026-05-08T19:00):
+  - **Trigger:** Keymaker dispatch H-S04-P18-PO2OPS-PUSH-PR-BYOK-001 (consumed via Skill `LMAS:agents:devops`)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill" — push+PR é último step Operator antes Eric review final
+  - **Pre-push quality gate 5/5 PASS:**
+    - ✅ Check 1 (Working tree): apenas `.tmp/` untracked (Sprint 03 artifact não-relacionado)
+    - ✅ Check 2 (Branch): `feat/sp04-byok-01`
+    - ✅ Check 3 (Commits main..HEAD): 30 commits (12 herdados AUTH-01 + 13 BYOK específicos chain + 5 governance interim)
+    - ✅ Check 4 (Last commit): `f930042 docs(governance): close story SP04-BYOK-01 Done com observations CONCERNS [Story SP04-BYOK-01]`
+    - ✅ Check 5 (pytest Sprint 04 unit sanity CRITICAL): **70/70 passed in 3.17s** — zero regression
+    - ⏸ CodeRabbit DEFERRED: WSL bash não-disponível (`/bin/sh: bash: not found`); self-critique fallback aceito (precedent AUTH-01 PR #4 + qa-gate G5 + chunks 3-7); documented em PR body Pre-PR review section
+  - **Push:** ✅ `git push -u origin feat/sp04-byok-01` success (new branch — first push); upstream tracking branch set
+  - **PR #5 criado:** **https://github.com/Claudinoinsights/revisor-contratual/pull/5**
+    - Title: `feat(sprint-04): SP04-BYOK-01 BYOK Anthropic key lifecycle [Story SP04-BYOK-01]`
+    - Base: `main` ← Head: `feat/sp04-byok-01`
+    - Body Markdown estruturada completa: Summary (foundation P0 BYOK + 13 commits + 8 ACs + DoD WAIVED + 12 stories desbloqueadas + nota AUTH-01 PR #4 base sequence) + 8 Implementation chunks Path B + Tank Phase 12.3a aplicação 5/5 + qa-gate G5 verdict CONCERNS Oracle + 12 forward action items consolidados pós-merge (6 Operator runbook + 1 Eric advogado DPA + 5 TECH-DEBT.md Sprint 06+) + Test plan checklist 7 itens Eric review + Pre-PR review section
+    - **State:** OPEN | **Mergeable:** ✅ MERGEABLE | **mergeStateStatus:** UNSTABLE (CI rodando)
+    - **Status checks:**
+      - ✅ Cloudflare Pages SUCCESS (preview deploy completed em 2026-05-08T17:14:39Z)
+      - 🔄 pytest (Python 3.11) QUEUED — `actions/runs/25569142444/job/75060119630`
+      - 🔄 pytest (Python 3.12) QUEUED — `actions/runs/25569142444/job/75060119406`
+      - 🔄 Workers Builds: revisor-contratual IN_PROGRESS — Cloudflare Workers `f1cb21a3-b796-441d-a30c-c6fc646684a6`
+  - **Handoffs:**
+    - IN consumed: `H-S04-P18-PO2OPS-PUSH-PR-BYOK-001` (Keymaker brief)
+    - OUT emitted: `H-S04-P18-OPS2MOR-PUSH-PR-BYOK-DONE-001` (`.lmas/handoffs/handoff-devops-to-morpheus-2026-05-08-sp04-phase12-push-pr-byok-done.yaml`)
+  - **Q-gate cycle Sprint 04 SP04-BYOK-01 (COMPLETO até agent flow alcança):**
+    - ✅ Tank Phase 12.3a ratify pre-implement (5 decisões vinculantes)
+    - ✅ Path B implementation chunks 1-8 + chunk 5.1 (100%)
+    - ✅ qa-gate G5 verdict CONCERNS Oracle (1 HIGH-derived AUTH-01 + 4 MEDIUM TECH-DEBT + 4 LOW + 0 CRITICAL)
+    - ✅ close-story Done com observations (Keymaker)
+    - ✅ push+PR Sprint 04 PR #5 (Operator — esta entry)
+    - ⏳ Eric review+merge PR #4 (AUTH-01) + PR #5 (BYOK) (human-in-loop production gate — único pendente final)
+  - **Sprint 04 Foundation P0 cycle COMPLETO:** AUTH-01 + BYOK-01 done; 12 stories Sprint 04 P1+ desbloqueadas pós-merge (OCR/DOCTYPE/PARSING particularmente desbloqueadas tecnicamente para inferência Anthropic via BYOK runtime injection)
+  - **Próximo step humano:** Eric review PR #4 + PR #5 → merge sequence (AUTH-01 primeiro recomendado pois BYOK base AUTH-01 HEAD; OR squash both em sequência) → trigger pós-merge runbook ops Operator (setup `revisor_app` BYPASSRLS + apply migrations + integration tests com DB)
+  - **Conventional commit:** `docs(governance): push+PR Sprint 04 PR #5 done [Story SP04-BYOK-01]` (NÃO push — PRs #4/#5 já em fluxo Eric review)
 
 - **🎯 Sessão 91 Sprint 04 Phase 12.5 EXECUTADA — @po Keymaker `*close-story` SP04-BYOK-01 Done com observations CONCERNS** (@po · Keymaker — 2026-05-08T18:30):
   - **Trigger:** Oracle dispatch H-S04-P17-QA2MOR (consumed via Skill `LMAS:agents:po` redirect implícito Morpheus orchestration — pattern AUTH-01 close-story precedent)
