@@ -37,7 +37,7 @@ dependencies = [
   "python-bcb>=0.3",  # PyPI max é 0.3.6; suite mocks via sgs_fetcher injection (nunca importa bcb real)
   "pyyaml>=6.0",
   # Modelos & util
-  "pydantic>=2.8",
+  "pydantic[email]>=2.8",  # Sprint 04: EmailStr para validação onboarding (SP04-AUTH-01 AC-01)
   "tenacity>=9.0",
   "diskcache>=5.6",
   "structlog>=24.4",
@@ -57,6 +57,11 @@ dependencies = [
   # MVP-LEAN-01 Task 8 — LGPD L4 encryption-at-rest + APScheduler backup
   "cryptography>=41",
   "apscheduler>=3.10",
+  # Sprint 04 Cloud SaaS BYOK — multi-tenant auth (SP04-AUTH-01 / ADR-017 BACKBONE + ADR-019 DPA)
+  "sqlalchemy[asyncio]>=2.0",  # ORM async para PostgreSQL multi-tenant
+  "asyncpg>=0.29",             # driver PostgreSQL async (SQLAlchemy 2.0 async engine)
+  "pyjwt[crypto]>=2.8",        # JWT HS256 — login token com tenant_id/user_id claims (FR-AUTH-03)
+  "passlib[bcrypt]>=1.7.4",    # CryptContext bcrypt cost 12 (Sprint 03 bcrypt já presente; passlib é wrapper idiomático)
 ]
 
 [project.optional-dependencies]
@@ -84,6 +89,8 @@ include = [
   "bloco_engine*",
   "bloco_audit*",
   "bloco_learning*",
+  "bloco_auth*",       # Sprint 04 SP04-AUTH-01: multi-tenant authentication + onboarding
+  "bloco_database*",   # Sprint 04: PostgreSQL migrations + connection pool
 ]
 exclude = ["tests*"]
 
@@ -117,6 +124,8 @@ source = [
   "bloco_engine",
   "bloco_audit",
   "bloco_learning",
+  "bloco_auth",       # Sprint 04 SP04-AUTH-01
+  "bloco_database",   # Sprint 04 PostgreSQL foundation
 ]
 omit = ["tests/*", "**/__init__.py"]
 
