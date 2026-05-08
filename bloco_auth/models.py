@@ -162,6 +162,63 @@ class DpaAcceptance(Base):
         )
 
 
+class TosAcceptance(Base):
+    """Evidence LGPD ANPD da aceitação do TOS/EULA por um user de um tenant
+    (mirror dpa_acceptances ADR-019, Sprint 04 SP04-LGPD-01 AC-03).
+
+    Diferença material vs DpaAcceptance: TOS declara **operador posture**
+    (Eric=operador per Art. 5º LGPD); DPA descreve **tratamento** dos dados.
+    Schema é mirror estrutural sem desvio (Tank Phase 13.3a Item 1).
+
+    Retention PERMANENT — FKs em ``ON DELETE RESTRICT`` impedem DELETE direto
+    mesmo após off-boarding do tenant. Pattern audit governance LGPD validado
+    em SP04-AUTH-01 chunk 5 + Oracle qa-gate G5.
+
+    Cross-references:
+        governance/stories/sp04-lgpd-01-compliance-flows-operador.md (AC-03)
+        bloco_database/migrations/sp04_003_lgpd_tos_audit.sql
+        governance/legal/tos-templates/v1.0.0.md
+    """
+
+    __tablename__ = "tos_acceptances"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "tos_version", name="unique_tenant_tos_version"),
+    )
+
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        server_default=func.gen_random_uuid(),
+    )
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    tos_version: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
+    tos_text_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    accepted_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    accepted_by_user_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    ip_address: Mapped[Optional[str]] = mapped_column(INET, nullable=True)
+    user_agent: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TosAcceptance id={self.id} tenant_id={self.tenant_id} "
+            f"version={self.tos_version}>"
+        )
+
+
 class TenantAPIKey(Base):
     """BYOK Anthropic API key persistence (SP04-BYOK-01 / ADR-014 §Decisão.Componentes 7).
 
@@ -216,4 +273,4 @@ class TenantAPIKey(Base):
         )
 
 
-__all__ = ["Base", "Tenant", "User", "DpaAcceptance", "TenantAPIKey"]
+__all__ = ["Base", "Tenant", "User", "DpaAcceptance", "TosAcceptance", "TenantAPIKey"]
