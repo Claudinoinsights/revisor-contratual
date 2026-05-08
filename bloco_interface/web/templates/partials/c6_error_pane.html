@@ -1,0 +1,55 @@
+{# MVP-LEAN-01 Task 6 — C6 Error pane (componente macro).
+
+Renderiza padrão SOP-003: Diagnóstico → Causa → Solução → Alternativa.
+Anti-pattern proibido: NUNCA mensagem genérica (ux-spec linha 752).
+
+Uso:
+  {% from "partials/c6_error_pane.html" import error_pane %}
+  {{ error_pane(titulo, diagnostico, causa, solucao, alternativa, acoes) }}
+#}
+
+{% macro error_pane(titulo, diagnostico, causa, solucao, alternativa, acoes) %}
+<section class="s7-error-container" aria-labelledby="c6-titulo">
+  <article class="c6-error-pane"
+           role="alert"
+           aria-live="assertive"
+           data-testid="c6-error-pane">
+    <h2 id="c6-titulo" class="c6-error-pane__title" data-testid="c6-titulo">
+      ⚠ {{ titulo|e }}
+    </h2>
+
+    <div class="c6-error-section c6-error-section--diagnostico" data-testid="c6-diagnostico">
+      <h3 class="c6-error-section__heading">Diagnóstico</h3>
+      <p>{{ diagnostico|e }}</p>
+    </div>
+
+    <div class="c6-error-section c6-error-section--causa" data-testid="c6-causa">
+      <h3 class="c6-error-section__heading">Causa</h3>
+      <p>{{ causa|e }}</p>
+    </div>
+
+    <div class="c6-error-section c6-error-section--solucao" data-testid="c6-solucao">
+      <h3 class="c6-error-section__heading">Solução</h3>
+      <p>{{ solucao|e }}</p>
+    </div>
+
+    <div class="c6-error-section c6-error-section--alternativa" data-testid="c6-alternativa">
+      <h3 class="c6-error-section__heading">Alternativa</h3>
+      <p>{{ alternativa|e }}</p>
+    </div>
+
+    {% if acoes %}
+    <div class="c6-error-actions" aria-label="Ações disponíveis">
+      {% for acao in acoes %}
+      <a class="c6-error-actions__btn"
+         href="{{ acao.href|e if acao.href else '#' }}"
+         data-action="{{ acao.action|e if acao.action else '' }}"
+         data-testid="c6-acao-{{ acao.action|e if acao.action else 'default' }}">
+        {{ acao.label|e }}
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </article>
+</section>
+{% endmacro %}

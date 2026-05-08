@@ -90,6 +90,29 @@
   --danger:        #B43D3D;
   --danger-soft:   #FBEAEA;
 
+  /* ── Tokens adicionados em CC.3 micro-PATCH α (2026-05-06) ──
+     Origem: governance/ux-spec-v1.1.2-MVP-LEAN.md §2.2 (Smith CC.3 F-CC3-03 + F-CC3-11).
+     Conceitos: warning (banner Tema 1378), disabled, focus-ring (WCAG 2.4.7), surface-hover.
+     Contraste --warning sobre --warning-soft: 5.49:1 ✓ AA normal — verificado WCAG 2.1
+     sRGB→linear independentemente por Sati e Aria (cálculo convergente 0.0 unit).
+     ============================================================ */
+
+  /* Banner Tema 1378 nível AMARELO — FR-MONITOR-01 / ADR-013 §2.5 */
+  --warning:       #8B5A0B;
+  --warning-soft:  #FFF6E5;
+
+  /* Estados disabled — S8 main desabilitado, drop-zone disabled, CTA pré-PDF */
+  --opacity-disabled: 0.4;
+  --cursor-disabled:  not-allowed;
+
+  /* Focus indicator — a11y obrigatório (WCAG 2.4.7 Focus Visible) */
+  --focus-ring-width:  2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-color:  var(--accent);
+
+  /* Surface hover — drop-zone S2→S3 transition, button hover, card lift */
+  --surface-hover: rgba(238, 107, 32, 0.05); /* --or-500 com 5% alpha */
+
   /* Tipografia */
   --f-ui:      "Manrope", "Inter", system-ui, sans-serif;
   --f-display: "Fraunces", Georgia, serif;

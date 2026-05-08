@@ -2,10 +2,12 @@
 type: adr
 id: "ADR-010"
 title: "Mitigação TD-LLM-SABIA-Q4-OUTPUT — fallback Qwen 7B com LLM_TIER configurable"
-status: accepted
+status: superseded
 date: "2026-05-05"
 accepted_by: "Eric (decisão sessão 86, Path C aprovado)"
 accepted_date: "2026-05-05"
+superseded_date: "2026-05-07"
+superseded_by: "ADR-014"
 adr_level: spec
 spec_coverage:
   - "Mudança default LLM_TIER em llm_factory.TIER_TO_MODEL_ADVOGADO"
@@ -34,7 +36,13 @@ tags:
   - personas
   - mitigation
   - sprint-02
+  - superseded
 ---
+
+> ⚠️ **SUPERSEDED** (2026-05-07) — Este ADR foi substituído por [ADR-014](adr-014-provider-abstraction-byok.md).
+> Razão: Sprint 04 pivot abandona LLM local (Sabia 7B + Qwen 7B/3B via Ollama) para cloud
+> (Anthropic API com BYOK por escritório). ADR-014 hardcoda Anthropic only — Sabia Q4 + Qwen
+> mitigation não se aplica. Mantido para contexto histórico do design local Sprint 02-03.
 
 # ADR-010 — Mitigação TD-LLM-SABIA-Q4-OUTPUT (fallback Qwen 7B + LLM_TIER configurable)
 

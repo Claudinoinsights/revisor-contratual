@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "partials/c6_error_pane.html" import error_pane %}
+
+{# MVP-LEAN-01 Task 6 — S7 Error pane (per ux-spec §3 S7 linhas 525-566).
+   S4 (validation upload fail) reusa via context parameter.
+   8 variantes catalogadas (catch-all infra_unknown + 7 específicas). #}
+
+{% block workspace %}
+{{ error_pane(
+  titulo=titulo,
+  diagnostico=diagnostico,
+  causa=causa,
+  solucao=solucao,
+  alternativa=alternativa,
+  acoes=acoes
+) }}
+{% endblock %}

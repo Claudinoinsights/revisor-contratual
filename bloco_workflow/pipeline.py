@@ -19,6 +19,8 @@ Decisões arquiteturais Morpheus (D-MOR-4.0-A..H):
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import sqlite3
 from datetime import date, datetime
 from decimal import Decimal
@@ -26,6 +28,8 @@ from pathlib import Path
 from typing import Any
 
 from bloco_audit.chain import append_audit_entry
+
+logger = logging.getLogger(__name__)
 from bloco_contratos.contrato import (
     BacenData,
     ContratoMetadata,
@@ -188,7 +192,12 @@ async def revisar_contrato(
 
     try:
         # ─── Step 1 — parsing PDF ───────────────────────────────────────
-        parsed: ParsedContract = parse_contract(
+        # CC.38 fix F-01: wrap sync parse_contract com asyncio.to_thread.
+        # parse_contract pode chamar marker_pdf OCR (CPU-bound, minutos para
+        # PDF imagem). Sem to_thread, bloqueia event loop FastAPI e impede
+        # heartbeat SSE (CC.35). Smith CC.37 finding F-01 CRITICAL.
+        parsed: ParsedContract = await asyncio.to_thread(
+            parse_contract,
             pdf_path,
             pdf_bytes=pdf_bytes,
             uf_override=uf_override,
@@ -204,7 +213,10 @@ async def revisar_contrato(
         }
 
         # ─── Step 2 — cálculo determinístico ────────────────────────────
-        calculo: ResultadoCalculo = _calcular_pipeline(parsed.metadata)
+        # CC.38 fix F-01: wrap sync para não bloquear event loop.
+        calculo: ResultadoCalculo = await asyncio.to_thread(
+            _calcular_pipeline, parsed.metadata
+        )
         audit_payload["calculo"] = {
             "pmt_composto": calculo.pmt_composto,
             "diferenca_anatocismo": calculo.diferenca_anatocismo,
@@ -213,10 +225,12 @@ async def revisar_contrato(
         }
 
         # ─── Step 3 — BACEN ─────────────────────────────────────────────
+        # CC.38 fix F-01: wrap sync network IO BACEN com asyncio.to_thread.
         bacen_client = BacenClient(cache_dir=bacen_cache_dir, sgs_fetcher=sgs_fetcher)
         try:
             mes_ref = parsed.metadata.data_assinatura.strftime("%Y-%m")
-            bacen_data: BacenData = bacen_client.fetch_taxa_modalidade(
+            bacen_data: BacenData = await asyncio.to_thread(
+                bacen_client.fetch_taxa_modalidade,
                 parsed.metadata.modalidade,
                 mes_ref=mes_ref,
             )
@@ -230,8 +244,10 @@ async def revisar_contrato(
         }
 
         # ─── Step 4 — vault busca híbrida ───────────────────────────────
+        # CC.38 fix F-01: wrap sync sqlite + embeddings com asyncio.to_thread.
         query = _build_vault_query(parsed.metadata, calculo)
-        busca_result = buscar_hibrida(
+        busca_result = await asyncio.to_thread(
+            buscar_hibrida,
             vault_conn,
             query,
             uf_contrato=parsed.metadata.uf_contrato,
@@ -272,7 +288,9 @@ async def revisar_contrato(
         }
 
         # ─── Step 6 — juiz Python puro ──────────────────────────────────
-        veredito: VeredictoJuiz = juiz_revisar(
+        # CC.38 fix F-01: wrap sync com asyncio.to_thread (consistência).
+        veredito: VeredictoJuiz = await asyncio.to_thread(
+            juiz_revisar,
             taxa_contratual_aa_decimal=Decimal(calculo.taxa_contratual_aa_decimal),
             bacen_data=bacen_data,
             tese=tese,
@@ -289,18 +307,26 @@ async def revisar_contrato(
         audit_payload["completed_at"] = datetime.now().isoformat()
 
     except Exception as exc:
-        # Audit registra TENTATIVA falha antes de propagar
+        # Audit registra TENTATIVA falha antes de propagar.
+        # CC.39 fix F-03: protege append_audit_entry para não perder exc original
+        # caso write do audit falhe (HMAC, IO, chain corrupted).
         audit_payload["status"] = "FAILED"
         audit_payload["error_type"] = type(exc).__name__
         audit_payload["error_msg"] = str(exc)[:500]
         audit_payload["completed_at"] = datetime.now().isoformat()
-        append_audit_entry(
-            "pipeline_revisar_contrato",
-            audit_payload,
-            audit_path=audit_path,
-            genesis_lock_path=genesis_lock_path,
-            secret_key=audit_secret_key,
-        )
+        try:
+            append_audit_entry(
+                "pipeline_revisar_contrato",
+                audit_payload,
+                audit_path=audit_path,
+                genesis_lock_path=genesis_lock_path,
+                secret_key=audit_secret_key,
+            )
+        except Exception as audit_exc:  # noqa: BLE001
+            logger.error(
+                "audit FAILED entry write failed: %s (original error: %s)",
+                audit_exc, exc,
+            )
         raise
 
     # ─── Step 7 — audit (sucesso) ───────────────────────────────────────

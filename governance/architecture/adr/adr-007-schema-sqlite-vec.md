@@ -2,12 +2,13 @@
 type: adr
 id: "ADR-007"
 title: "Schema sqlite-vec final + estratégia de índices"
-status: accepted
+status: superseded
 date: "2026-05-01"
+superseded_date: "2026-05-07"
 domain: "vault-rag"
 decision_makers: ["@architect (Aria)"]
 supersedes: null
-superseded_by: null
+superseded_by: "ADR-017"
 absorves: []
 references_dp:
   - "DP-08 (load test sqlite-vec obrigatório antes de release MVP)"
@@ -24,7 +25,14 @@ tags:
   - sqlite-vec
   - rag
   - vault
+  - superseded
 ---
+
+> ⚠️ **SUPERSEDED** (2026-05-07) — Este ADR foi substituído por [ADR-017](adr-017-multi-tenant-isolation-rls.md).
+> Razão: Sprint 04 pivot SaaS multi-tenant exige PostgreSQL + RLS + pgvector. SQLite single-tenant
+> é incompatível com isolamento entre escritórios cliente. Mantido para contexto histórico do
+> design Sprint 03 single-tenant local.
+
 
 # ADR-007 — Schema sqlite-vec final + estratégia de índices
 

@@ -10,8 +10,11 @@ ou aceitar limitação).
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Callable
+
+logger = logging.getLogger(__name__)
 
 from bloco_engine.parsing.pymupdf_parser import ParserError
 
@@ -31,14 +34,62 @@ def _is_marker_available() -> bool:
 
 
 def _default_marker_parser(pdf_path: Path) -> tuple[str, int]:
-    """Implementação real Marker (só chamada se Marker instalado)."""
-    # Lazy import — só importa se chamada de fato.
-    from marker.convert import convert_single_pdf  # type: ignore[import-not-found]
-    from marker.models import load_all_models  # type: ignore[import-not-found]
+    """Implementação real Marker — adaptado CC.34 para API marker-pdf 1.x.
 
-    models = load_all_models()
-    full_text, _images, out_meta = convert_single_pdf(str(pdf_path), models)
-    pages_count = int(out_meta.get("pages", 1))
+    Breaking change (TD-MARKER-API-BREAKING-CHANGE):
+    - marker 0.x: marker.convert.convert_single_pdf + load_all_models
+    - marker 1.x: marker.converters.pdf.PdfConverter + create_model_dict
+
+    CC.42 fix F-A1 (Smith CC.41 CRITICAL): RAM pre-flight check protege contra
+    OS SIGKILL silencioso. Marker + Surya + LLMs já carregados podem totalizar
+    >8GB; em hardware ~16GB com browser/IDE abertos, pressão crítica leva
+    OOM kill sem stack trace. Threshold 2.5GB available + 90% used dispara
+    erro estruturado em vez de OS kill (override via ALLOW_LOW_MEMORY=1).
+    """
+    # CC.42 fix F-A1: RAM pre-flight check antes de carregar modelos pesados.
+    import os as _os
+    try:
+        import psutil
+        mem = psutil.virtual_memory()
+        avail_gb = mem.available / (1024**3)
+        allow_low = _os.environ.get("ALLOW_LOW_MEMORY", "").lower() in ("1", "true", "yes")
+        if avail_gb < 2.5 and mem.percent > 90 and not allow_low:
+            raise RuntimeError(
+                f"Memória insuficiente para OCR: {avail_gb:.1f}GB disponível "
+                f"({mem.percent:.0f}% usado). Mínimo 2.5GB. Feche aplicações "
+                f"OR set ALLOW_LOW_MEMORY=1 para tentar mesmo assim (risco OOM)."
+            )
+        logger.info(
+            "OCR pre-flight: %.1fGB RAM disponível (%.0f%% usado)",
+            avail_gb, mem.percent,
+        )
+    except ImportError:
+        logger.warning("psutil não instalado — pulando RAM pre-flight check")
+
+    # Lazy import — só importa se chamada de fato.
+    from marker.converters.pdf import PdfConverter  # type: ignore[import-not-found]
+    from marker.models import create_model_dict  # type: ignore[import-not-found]
+
+    models = create_model_dict()
+    converter = PdfConverter(artifact_dict=models)
+    rendered = converter(str(pdf_path))
+    full_text = rendered.markdown
+    # CC.35 fix TD-PAGES-COUNT-LIST-VS-DICT: marker 1.x retorna page_stats como
+    # list[dict] (uma entry por página); CC.34 incorretamente assumiu dict.
+    page_stats = rendered.metadata.get("page_stats")
+    if isinstance(page_stats, list):
+        pages_count = len(page_stats)
+    elif isinstance(page_stats, dict):
+        pages_count = int(page_stats.get("page_count", 1))
+    else:
+        pages_count = int(rendered.metadata.get("pages") or 1)
+    # CC.40 fix F-10: warn se schema inesperado caiu no fallback silencioso
+    if pages_count == 1 and not page_stats and not rendered.metadata.get("pages"):
+        logger.warning(
+            "marker metadata sem 'page_stats' nem 'pages' — schema possivelmente "
+            "desconhecido. pages_count=1 fallback. Metadata keys: %s",
+            list(rendered.metadata.keys()) if rendered.metadata else "empty",
+        )
     return full_text, pages_count
 
 

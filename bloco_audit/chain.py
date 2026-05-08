@@ -18,7 +18,13 @@ from typing import Any
 
 from bloco_audit.genesis import get_genesis_hash
 
-DEFAULT_AUDIT_LOG = Path("bloco_audit/audit.jsonl")
+# CC.31 fix TD-AUDIT-PATH-MISMATCH: alinhado com cli.py + scheduler.py +
+# auto_trigger.py. Antes era Path("bloco_audit/audit.jsonl") relativo.
+# CC.40 fix F-12: respeita XDG_DATA_HOME para containers/serverless.
+_XDG_DATA_HOME = Path(
+    os.environ.get("XDG_DATA_HOME") or (Path.home() / ".local" / "share")
+)
+DEFAULT_AUDIT_LOG = _XDG_DATA_HOME / "revisor-contratual" / "audit.jsonl"
 
 
 # ──────────────────────────────────────────────────────────────────────────────

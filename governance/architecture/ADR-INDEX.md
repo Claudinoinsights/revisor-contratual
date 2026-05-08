@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-05"
+last_updated: "2026-05-07"
 status: active
-sprint: "02"
-etapa: "ARIA-SABIA-DECISION"
+sprint: "04"
+etapa: "Phase 5.3 — ADR-019 DPA Storage Schema (Smith F-012 CRITICAL fechado)"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -58,7 +58,7 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 | ADR | Título | Status | Data | Absorve |
 |-----|--------|--------|------|---------|
-| [ADR-007](adr/adr-007-schema-sqlite-vec.md) | Schema sqlite-vec final + estratégia de índices | ✅ Accepted | 2026-05-01 | DP-08 (load test) |
+| ~~[ADR-007](adr/adr-007-schema-sqlite-vec.md)~~ | ~~Schema sqlite-vec final + estratégia de índices~~ | 🔄 Superseded by ADR-017 | 2026-05-01 | DP-08 (load test) |
 
 ### Pipeline & Scraping
 
@@ -66,17 +66,62 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 |-----|--------|--------|------|---------|
 | [ADR-008](adr/adr-008-pipeline-scraping-multi-uf.md) | Pipeline scraping multi-UF + heartbeat semanal | ✅ Accepted | 2026-05-01 | R-NEW-SMITH-05 (false negative) |
 
-### LGPD & Backup
+### Legal Compliance & LGPD
 
 | ADR | Título | Status | Data | Absorve |
 |-----|--------|--------|------|---------|
-| [ADR-009](adr/adr-009-backup-dir-pseudonimizacao-lgpd.md) | BACKUP_DIR external path + pseudonimização HMAC LGPD | ✅ Accepted | 2026-05-01 | R-NEW-SMITH-01 + R-NEW-SMITH-07 |
+| [ADR-019](adr/adr-019-dpa-storage-schema.md) | DPA Storage Schema — Multi-Tenant Acceptance Tracking with Audit Evidence (level=spec) | ✅ Accepted | 2026-05-07 | Smith F-012 CRITICAL (ANPD audit defensible) |
+| ~~[ADR-009](adr/adr-009-backup-dir-pseudonimizacao-lgpd.md)~~ | ~~BACKUP_DIR external path + pseudonimização HMAC LGPD~~ | 🔄 Superseded by ADR-017 | 2026-05-01 | R-NEW-SMITH-01 + R-NEW-SMITH-07 |
+
+### Infra & Runtime (Sprint 03)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| ~~[ADR-011](adr/adr-011-auto-ollama-lifecycle.md)~~ | ~~Auto-Ollama Lifecycle Management — subprocess Python + detect-then-spawn~~ | 🔄 Superseded by ADR-014 | 2026-05-05 | Setup manual Eric + AC-9 smoke E2E real bloqueado v0.2.0 |
+
+### Data & Vault (Sprint 03)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-012](adr/adr-012-vault-data-bundling.md) | Vault Data Bundling Strategy — bundled dataset + optional refresh scrapers | ✅ Accepted | 2026-05-05 | STJ scraper fragility + STF SSL/anti-bot + AC-9 smoke E2E real bloqueado |
+
+### MVP Lean Strategy & Deployment (Sprint 03 course-correction)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| ~~[ADR-013](adr/adr-013-mvp-lean-strategy-deployment-path.md)~~ | ~~MVP Lean Strategy + Deployment Path — 5 decisões consolidadas~~ | 🔄 Superseded by ADR-015 (parcial — Vision OCR pivot) | 2026-05-06 | PRD v1.1.2.1 caminho híbrido + Smith re-review #2 PASS |
+
+### Multi-Tenant Architecture (Sprint 04 — BACKBONE)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-017](adr/adr-017-multi-tenant-isolation-rls.md) | Multi-Tenant Pool+RLS + LGPD Operador (BACKBONE) — supersedes ADR-007 + ADR-009 | ✅ Accepted | 2026-05-07 | Atlas v2 Section 2+4 + Smith CC.41 cloud pivot motivation |
+
+### Provider & LLM Stack (Sprint 04)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-014](adr/adr-014-provider-abstraction-byok.md) | Provider Abstraction Anthropic + BYOK + pgcrypto — supersedes ADR-010 + ADR-011 | ✅ Accepted | 2026-05-07 | Atlas v2 Section 1 + Eric A1 Anthropic only Phase 1.7 |
+| [ADR-015](adr/adr-015-vision-ocr-architecture.md) | Vision OCR Architecture — Sonnet 4.6 vision + caching SHA-256 (partial supersede ADR-013) | ✅ Accepted | 2026-05-07 | Atlas v1 vision OCR landscape + Smith CC.41 RAM constraint |
+| [ADR-016](adr/adr-016-multi-doctype-dispatcher.md) | Multi-Doctype Dispatcher Strategy — 4 doctypes (FIES/Veicular/Bancário/Imobiliário) | ✅ Accepted | 2026-05-07 | Eric escopo B Phase 1.7.1 + Atlas v2 doctype strategy |
+
+### SaaS Pricing & Billing (Sprint 04)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-018](adr/adr-018-saas-pricing-billing-event.md) | SaaS Pricing Hybrid + Billing State Machine — per-approval billing + Stripe webhook | ✅ Accepted | 2026-05-07 | Eric D-c per-approval Phase 1.7.1 + Atlas v2 Section 3 pricing ranges |
 
 ---
 
-## Arquivados
+## Arquivados (Superseded)
 
-*Nenhum ADR superseded até o momento.*
+| ADR | Motivo | Superseded By |
+|-----|--------|---------------|
+| ADR-007 | Migração SQLite → PostgreSQL multi-tenant | ADR-017 |
+| ADR-009 | Migração LGPD on-premise → LGPD operador SaaS | ADR-017 |
+| ADR-010 | Migração Sabia/Qwen local → Anthropic cloud | ADR-014 |
+| ADR-011 | Migração Ollama local → Anthropic API cloud (sem Ollama) | ADR-014 |
+| ADR-013 (parcial) | Substituição parcial OCR local → Vision OCR cloud | ADR-015 |
 
 ---
 
@@ -84,8 +129,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 | Item | Origem | Próxima ADR? |
 |------|--------|--------------|
-| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-011 (após decisão Eric) — re-numerada |
-| Política outcomes registry | PRD v1.0.2 | ADR-012 (após decisão Eric) — re-numerada |
+| Política retenção LGPD (DP-05) | PRD v1.0.2 | ADR-014+ (re-numerada — ADR-011/012/013 alocados Sprint 03) |
+| Política outcomes registry | PRD v1.0.2 | ADR-015+ (re-numerada) |
 | R-NEW Sati R-NEW-01..03 (UX) | qa/sati-ux-rereview | PATCH PRD v1.0.3 (não-arquitetural) |
 | R-NEW-SMITH-06 (HITL anti-bypass refinement) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
 | R-NEW-SMITH-08 (IP fingerprint UX mobilidade) | qa/smith-adversarial-rereview | PATCH PRD v1.0.3 |
@@ -95,13 +140,17 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas (accepted):** 10 (ADR-001..010)
+- **ADRs ativas (accepted):** 14 (ADR-001..006, 008, 012, 014..019)
 - **ADRs proposed (aguardando Eric):** 0
-- **ADRs deprecadas/superseded:** 0
-- **R-NEW absorvidas em ADRs:** 7 (Smith-01, -02, -03, -04, -05, -07, -10)
-- **Tech debts absorvidos em ADRs (Sprint 02):** 2 (TD-LLM-SABIA-Q4-OUTPUT + TD-LLM-FORMAT-JSON-ECONOMISTA via ADR-010)
-- **R-NEW diferidas para PATCH v1.0.3:** 6 (Sati R-NEW-01..03 + Smith-06, -08, -09 endossando)
-- **Decisões pendentes Eric:** 2 (DP-05 LGPD retenção, outcomes registry) — ADR-010 Path C aprovado sessão 86
+- **Sprint 03 Phase 0 ADRs:** 2 (ADR-012 Vault Data Bundling accepted; ADR-013 partial superseded por ADR-015)
+- **Sprint 04 ADRs novos:** 6 (ADR-014..019 — pivot SaaS BYOK cloud)
+- **ADRs deprecadas/superseded:** 5 (ADR-007 → ADR-017, ADR-009 → ADR-017, ADR-010 → ADR-014, ADR-011 → ADR-014, ADR-013 partial → ADR-015)
+- **R-NEW absorvidas em ADRs:** 7 (Smith-01, -02, -03, -04, -05, -07, -10) + 1 Smith F-012 (ADR-019 Sprint 04)
+- **Tech debts absorvidos em ADRs:** 2 Sprint 02 (TD-LLM-SABIA-Q4 + TD-LLM-FORMAT-JSON via ADR-010 superseded)
+- **Smith CRITICAL findings fechados via ADRs:** 1/4 (F-012 via ADR-019; F-003+F-007 via PRD v2.0.1; F-016 cross-domain Eric)
+- **R-NEW diferidas para PATCH v1.0.3:** 6 (Sati R-NEW-01..03 + Smith-06, -08, -09 endossando) — Sprint 03 anchor
+- **Decisões pendentes Eric:** 2 (DP-05 LGPD retenção, outcomes registry) — Sprint 06+
+- **Path A chain progress (Sprint 04 Phase 5):** 3/6 done (Operator commit Smith report ✅, Trinity PRD patches ✅, Aria ADR-019 ✅)
 
 ---
 
