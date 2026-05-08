@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T11:00"
-active_story: "Sessão 91 Sprint 04 Phase 10 dispatch — Morpheus → @devops Operator Skill `LMAS:agents:devops` *push + *create-pr Sprint 04 PR #4. Brief Operator: pre-push quality gate (working tree clean + 11 commits Sprint 04 + last hash 0440862 + pytest 50/50 sanity check + CodeRabbit if CLI available else self-critique fallback) → push branch feat/sp04-auth-01 -u origin → create PR title `feat(sprint-04): SP04-AUTH-01 multi-tenant authentication + tenant onboarding [Story SP04-AUTH-01]` body Markdown estruturada (Summary + 8 Implementation chunks + qa-gate G5 verdict CONCERNS + 8 forward action items consolidados pós-merge + Test plan) base main. Restrições Operator: APENAS push+create-pr (zero código/governance changes); NÃO merge (Eric approval EXCLUSIVO). Output esperado: 1 push + 1 PR URL + handoff H-S04-P13-OPS2MOR-PUSH-PR-DONE-001. Q-gate cycle último step: implementation 100% ✅ + qa-gate G5 CONCERNS ✅ + close-story Done ✅ + push+PR Sprint 04 PR #4 (em curso — Operator). Path B chain Sprint 04 SP04-AUTH-01 → COMPLETO após push+PR + Eric review/merge."
-status: sprint-04-phase10-morpheus-dispatch-devops-push-pr-aguarda-operator-execution
+last_updated: "2026-05-08T13:45"
+active_story: "Sessão 91 Sprint 04 Phase 10 EXECUTADA — @devops Operator push+PR Sprint 04 PR #4 done. Pre-push quality gate 5/5 PASS (working tree clean + branch feat/sp04-auth-01 + 13 commits main..HEAD = 1 contexto branch-creation 5685727 + 12 Path B + last hash 3e0fb06 + pytest 50/50 sanity passed in 4.55s); CodeRabbit DEFERRED (WSL bash não-disponível na máquina dev — self-critique fallback aceito precedent qa-gate G5). Push 5685727..3e0fb06 -u origin success. PR #4 criado https://github.com/Claudinoinsights/revisor-contratual/pull/4 — title `feat(sprint-04): SP04-AUTH-01 multi-tenant authentication + tenant onboarding [Story SP04-AUTH-01]` body Markdown estruturada completa (Summary + 8 Implementation chunks + qa-gate G5 verdict CONCERNS + 8 forward action items consolidados + Test plan + Pre-PR review) base main. PR state: OPEN, mergeable: MERGEABLE, mergeStateStatus: UNSTABLE (CI rodando — pytest Python 3.11 QUEUED + pytest Python 3.12 IN_PROGRESS + Workers Builds IN_PROGRESS; Cloudflare Pages ✅ SUCCESS preview deploy). Q-gate cycle COMPLETO: implementation 100% ✅ + qa-gate G5 CONCERNS ✅ + close-story Done ✅ + push+PR Sprint 04 PR #4 ✅. Path B chain Sprint 04 SP04-AUTH-01 → COMPLETO. Aguarda: Eric review+merge (human-in-loop production gate)."
+status: sprint-04-phase10-operator-push-pr-DONE-aguarda-eric-review-merge
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,40 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **⚡ Sessão 91 Sprint 04 Phase 10 EXECUTADA — @devops Operator push+PR Sprint 04 PR #4 DONE** (@devops · Operator — 2026-05-08T13:45):
+  - **Trigger:** Morpheus dispatch H-S04-P13-MOR2OPS-PUSH-PR-001 (consumed via Skill `LMAS:agents:devops`)
+  - **Eric directive:** "Avance com o recomendado sempre pela Skill" — autonomia total Operator push+PR (NÃO merge — Eric approval EXCLUSIVO)
+  - **Pre-push quality gate 5/5 PASS:**
+    - ✅ Check 1 (Working tree): apenas `.tmp/` untracked (Sprint 03 artifact não-relacionado)
+    - ✅ Check 2 (Branch): `feat/sp04-auth-01`
+    - ✅ Check 3 (Commits main..HEAD): 13 commits = 1 contexto branch-creation `5685727 docs(governance): CHECKPOINT entry Sprint 04 Phase 8 PR #3 MERGED + branch feat/sp04-auth-01 criada` + 12 Path B (chunks 1-8 + qa-gate G5 verdict + close-story Done + Phase 10 dispatch)
+    - ✅ Check 4 (Last commit): `3e0fb06 docs(governance): dispatch @devops Operator push+PR Sprint 04 PR #4 [Story SP04-AUTH-01]`
+    - ✅ Check 5 (pytest Sprint 04 unit sanity CRITICAL): 50/50 passed in 4.55s — test_jwt 8 + test_bcrypt 10 + test_dpa_hash 10 + test_onboarding_state_machine 14 + test_jwt_middleware 8
+    - ⏸ CodeRabbit DEFERRED: WSL bash não-disponível (`/bin/sh: bash: not found`); self-critique fallback aceito (precedent qa-gate G5 + chunks 3-7); documented em PR body Pre-PR review section
+  - **Remote validation:** ✅ origin = github.com/Claudinoinsights/revisor-contratual.git + gh auth ✅ logged in as Claudinoinsights
+  - **Push:** ✅ `git push -u origin feat/sp04-auth-01` success (range `5685727..3e0fb06`); upstream tracking branch set
+  - **PR #4 criado:** **https://github.com/Claudinoinsights/revisor-contratual/pull/4**
+    - Title: `feat(sprint-04): SP04-AUTH-01 multi-tenant authentication + tenant onboarding [Story SP04-AUTH-01]`
+    - Base: `main` ← Head: `feat/sp04-auth-01`
+    - Body Markdown estruturada completa: Summary (foundation P0 + 13 commits range + 8 ACs + DoD 11 itens + 13 stories desbloqueadas) + 8 Implementation chunks Path B Neo + qa-gate G5 verdict CONCERNS Oracle + 8 forward action items consolidados pós-merge (4 Operator runbook + 1 Eric advogado DPA + 3 TECH-DEBT.md Sprint 05+) + Test plan checklist Eric review (6 items) + Pre-PR review note (CodeRabbit DEFERRED + pytest sanity + working tree + conventional commits + branch hygiene)
+    - **State:** OPEN | **Mergeable:** ✅ MERGEABLE | **mergeStateStatus:** UNSTABLE (CI rodando)
+    - **Status checks:**
+      - ✅ Cloudflare Pages SUCCESS (preview deploy completed)
+      - 🔄 pytest (Python 3.11) QUEUED — `actions/runs/25559007315/job/75025350345`
+      - 🔄 pytest (Python 3.12) IN_PROGRESS — `actions/runs/25559007315/job/75025350317`
+      - 🔄 Workers Builds: revisor-contratual IN_PROGRESS — Cloudflare Workers `c7b10304-8edf-4dce-b73a-9fbd43624329`
+  - **Handoffs:**
+    - IN consumed: `H-S04-P13-MOR2OPS-PUSH-PR-001` (Morpheus brief)
+    - OUT emitted: `H-S04-P13-OPS2MOR-PUSH-PR-DONE-001` (`.lmas/handoffs/handoff-devops-to-morpheus-2026-05-08-sp04-phase10-push-pr-done.yaml`)
+  - **Q-gate cycle Sprint 04 SP04-AUTH-01 (COMPLETO):**
+    - ✅ Path B implementation chunks 1-8 (100%)
+    - ✅ qa-gate G5 verdict CONCERNS Oracle
+    - ✅ close-story Done com observations (Keymaker)
+    - ✅ push+PR Sprint 04 PR #4 (Operator — esta entry)
+    - ⏳ Eric review+merge (human-in-loop production gate — único pendente)
+  - **Próximo step:** Eric review PR #4 GitHub UI (verify Section 8 DoD + Section 11 close-story decision + CI status checks green pós-completion + pytest empírico) → Approve+Merge (squash merge per git-workflow.md feature) OR Request changes
+  - **Pós-merge:** Operator runbook ops (setup `revisor_app` BYPASSRLS role + apply migration `sp04_001_auth_multitenant.sql` + run integration tests com DB + verify coverage ≥ 80% empírico) + decide release tag `v0.3.0-sp04-auth-01-foundation` OR continuar Sprint 04 stories backlog (13 dependentes desbloqueadas)
 
 - **👑 Sessão 91 Sprint 04 Phase 10 dispatch — Morpheus → @devops Operator push+PR Sprint 04 PR #4** (@lmas-master · Morpheus — 2026-05-08T11:00):
   - **Trigger:** Eric "Avance pela Skill" — Q-gate cycle 3/4 complete (implementation + qa-gate G5 CONCERNS + close-story Done); push+PR último step para Operator entregar foundation P0 ao mundo
