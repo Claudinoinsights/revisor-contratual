@@ -2,7 +2,7 @@
 type: story
 id: "SP04-BYOK-01"
 title: "BYOK Anthropic key lifecycle — encryption + runtime injection + rotate/revoke"
-status: Draft
+status: Ready
 epic: "Sprint 04 Cloud SaaS BYOK"
 project: revisor-contratual
 sprint: "04"
@@ -428,9 +428,55 @@ Conforme padrão SP04-AUTH-01:
 
 ---
 
-## 9. QA Validation (vazio — preenchido @po validate-story-draft G3)
+## 9. QA Validation (@po Keymaker — *validate-story-draft G3)
 
-> @po Keymaker `*validate-story-draft SP04-BYOK-01` — 10-point checklist preenche aqui pós-validate.
+### Verdict @po Keymaker (2026-05-08)
+
+**Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Draft → **Ready**
+
+> Story tem qualidade técnica sólida, paridade estrutural completa com SP04-AUTH-01 (template validado), frontmatter completo, ACs testáveis com critérios "Tested:" explícitos por AC, pre-flight consultation com justificativas explícitas, risk assessment denso (7 risks > mínimo 3), implementation plan 8 chunks Path B alinhado com padrão validado AUTH-01. Concerns River flagged são todos aceitáveis pós-Ready (deferred para fase pre-implementation OR durante chunks).
+
+### 10-point PO Master Checklist (G3)
+
+| # | Ponto | Score | Evidência |
+|---|-------|-------|-----------|
+| 1 | Frontmatter completo (16+ campos) | ✅ 1/1 | type/id/title/status/epic/project/sprint/phase/priority/estimated_days/agent/branch/dependencies(5)/source_frs(4)/cross_references(5)/tags(9) — paridade SP04-AUTH-01 |
+| 2 | Sumário Section 1 claro | ✅ 1/1 | Contexto Cloud SaaS BYOK + 5 deliverables numerados explícitos + foundation impact (3 stories desbloqueadas: OCR/DOCTYPE/PARSING) + branch strategy paralelo |
+| 3 | As a / I want / So that Section 2 | ✅ 1/1 | Formato correto (advogado responsável / cadastrar+rotacionar+revogar / controle billing + segurança + audit) |
+| 4 | ACs estruturadas Section 3 (testable + 5+) | ✅ 1/1 | 8 ACs (excede mínimo 5) — cada uma com sub-section "Tested:" explícita + SQL/code blocks específicos por AC |
+| 5 | File List Section 4 pre-implementation contract | ✅ 1/1 | 5 novos código + 5 test files + 5 modificados + `.env.example` + 2 pendências cross-domain (Sati UI + Operator runbook) explícitas |
+| 6 | Pre-flight consultation Section 5 | ✅ 1/1 | Tank ratify (3 itens específicos: rotation arch + index + CHECK edges) + Aria skip (ADR-020 redundante justificado) + Sati OPCIONAL (endpoint-first justificado) |
+| 7 | Risk Assessment Section 6 (3+ risks com P/I/M) | ✅ 1/1 | 7 risks tabelados (decryption + master_key rotation + Anthropic deprecation + race rotation + audit swallow + SDK drift + LGPD operador) com Probability/Impact/Mitigation completos |
+| 8 | Implementation Plan Section 7 chunks | ✅ 1/1 | 8 chunks Path B detalhados (similar AUTH-01 pattern validado) + estimativa 3-5 days + branch creation timing |
+| 9 | Cross-references rastreáveis | ✅ 1/1 | PRD lines 89-94 + 4 ADRs (014/017/019/005) + UX spec + story predecessor SP04-AUTH-01 + Smith F-014 |
+| 10 | Frontmatter dependencies + source_frs canônicos | ✅ 1/1 | 5 dependencies (SP04-AUTH-01 + 4 ADRs) + 4 source_frs (FR-API-KEY-01..04) — links rastreáveis PRD canônico |
+| **TOTAL** | | **10/10** | **GO threshold ≥ 7/10 — exceeded by 3 pontos** |
+
+### Concerns River flagged — Keymaker decisão
+
+| Concern River | Decisão Keymaker | Justificativa |
+|---|---|---|
+| **DoD Section 8 template-only (Neo populates)** | ✅ ACEITÁVEL | Padrão SP04-AUTH-01 validado (DoD populated durante chunks 1-8 implementation com WAIVED format honest); template explícito Section 8 + lista de DEFERRED candidates já documentada antecipa quality gate Oracle G5 |
+| **AC-01 CHECK constraint complexo — Tank ratify deferred** | ✅ ACEITÁVEL | River documentou alignment ADR-014 + 3 pontos específicos Tank ratifica pre-implement (rotation arquitetura + partial index + CHECK edge cases); consultation deferred move para fase pre-Neo *develop não bloqueia Ready transition; Tank Skill consultation é MANDATORY antes Neo chunk 2 (DB foundation) — handoff Keymaker → Neo deve incluir esse requirement |
+| **Branch strategy paralelo (feat/sp04-byok-01 base main)** | ✅ ACEITÁVEL | Eric autorização explícita Opção 3 (Sprint 04 paralelo) via "Avance pelo recomendado"; branches isolados são pattern padrão git-workflow.md feature; rebase trivial pós AUTH-01 merge |
+
+### Concerns adicionais Keymaker (não-bloqueantes — flagged para Neo/Tank)
+
+| # | Concern | Severidade | Recomendação |
+|---|---------|-----------|--------------|
+| K-01 | **AC-04 `last_used_at` update strategy** | LOW | Section 8 DoD lista `last_used_at` background update strategy como Tank pre-implement decision. Keymaker confirma: comentário código AC-04 diz "background task" mas implementação inline (await db_session.execute). Tank decide per-request inline OR background batch (APScheduler) pre-implement. NÃO bloqueia Ready |
+| K-02 | **AC-06 revoke: tenant.status='suspended_byok' novo enum** | LOW | Migration SP04-AUTH-01 chunk 2 definiu `tenants.status VARCHAR(20) DEFAULT 'active'` sem CHECK constraint enum strict. Adicionar 'suspended_byok' é sem-migration (nullable VARCHAR aceita). Neo/Tank ratifica pre-implement se vale CHECK constraint enum strict para prevenir typo OR mantém VARCHAR free para flexibility |
+| K-03 | **AC-08 Coverage AC-08 condicional** | LOW | Padrão SP04-AUTH-01 já aceito (52% sem DB; 90%+ módulos puros). DoD Section 8 lista DEFERRED candidates explicitamente — Oracle qa-gate G5 endereça com BYPASSRLS role + DB rodando. Não-bloqueante Ready |
+
+### Próximo step
+
+**Recomendação Keymaker:** Skill `LMAS:agents:dev` (@dev Neo) consume + execute pre-implement Tank Skill consultation MANDATORY (`LMAS:agents:data-engineer`) antes chunk 2 DB foundation → Neo `*develop` chunks 1-8 Path B (similar SP04-AUTH-01 ritmo + estimativa 3-5 days).
+
+**Branch creation:** Neo (OR Operator) cria `feat/sp04-byok-01` base `main` no início chunk 1. Eric autorização paralelo explícita.
+
+**Cadeia próxima Skill:** Neo *develop → Oracle qa-gate G5 → Keymaker close-story → Operator push+PR Sprint 04 PR #5 (similar Path B AUTH-01).
+
+— Keymaker, equilibrando prioridades 🎯
 
 ---
 
@@ -451,7 +497,8 @@ Conforme padrão SP04-AUTH-01:
 | Data | Author | Change |
 |------|--------|--------|
 | 2026-05-08 | @sm River | Story criada Draft Phase 12.1 — BYOK Anthropic key lifecycle. Foundation Sprint 04 P0 segunda story (após SP04-AUTH-01 done). Pre-leitura completa: PRD v2.0.0-DRAFT FR-API-KEY-01..04 + ADR-014 schema canônico + ADR-017 RLS BACKBONE + ADR-019 DPA pattern + bloco_auth/onboarding.py existente. 8 ACs estruturadas (schema migration + encryption + onboarding integration + runtime injection middleware + rotate dual-key 24h + revoke purge + status read-only + tests coverage). Schema decision Tank ratify pre-implement: River segue ADR-014 §Decisão.Componentes 7 sem desvio. Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle). Sati panel OPCIONAL pre-implement (endpoints API são MVP-críticos; Settings UI pode iterar paralelo SP04-DASH-01). Risk assessment 7 risks documentados. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01 estrutura). Branch sugerido feat/sp04-byok-01 base main (rebase trivial pós SP04-AUTH-01 merge). Estimativa 3-5 days. Cross-references: PRD Section BYOK lines 89-94 + ADRs 014/017/019/005 + smith-finding F-014 endereçado. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
+| 2026-05-08 | @po Keymaker | Phase 12.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (todos PASS — paridade SP04-AUTH-01 + frontmatter completo + ACs testáveis com critérios "Tested:" explícitos + pre-flight Section 5 com justificativas + 7 risks tabelados + 8 chunks Path B + cross-references rastreáveis); concerns River flagged 3 itens TODOS aceitáveis pós-Ready (DoD template Neo populates é padrão validado AUTH-01; Tank ratify deferred move para pre-Neo *develop chunk 2 mas é MANDATORY no handoff Neo; branch paralelo Eric autorizou Opção 3); 3 concerns adicionais Keymaker LOW non-bloqueantes flagged Neo/Tank pre-implement (K-01 last_used_at strategy, K-02 tenant.status enum suspended_byok, K-03 coverage AC-08 condicional). Próximo step: Skill LMAS:agents:dev (@dev Neo) consume + Tank Skill consultation MANDATORY antes chunk 2 → Neo *develop chunks 1-8 Path B (3-5 days similar AUTH-01). Conventional commit `docs(governance): validate-story-draft SP04-BYOK-01 — verdict GO score 10/10 [Story SP04-BYOK-01]`. |
 
 ---
 
-— River, removendo obstáculos 🌊
+— Keymaker, equilibrando prioridades 🎯

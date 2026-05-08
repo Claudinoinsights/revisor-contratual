@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T15:00"
-active_story: "Sessão 91 Sprint 04 Phase 12.1 EXECUTADA — @sm River *draft SP04-BYOK-01 done. Story file criado: governance/stories/sp04-byok-01-anthropic-key-lifecycle.md (~640 linhas, 12 sections completas estruturadas template SP04-AUTH-01). Frontmatter completo + cabeçalho River-style. 8 ACs estruturadas: AC-01 schema tenant_api_keys (ADR-014 canônico + RLS + dual-key state machine + CHECK constraint rotation_consistency); AC-02 encryption pgcrypto pgp_sym_encrypt + master_key validation; AC-03 onboarding extension quadruple insert atomic; AC-04 runtime injection middleware FastAPI Depends Anthropic SDK; AC-05 rotate state machine 24h overlap; AC-06 revoke purge LGPD; AC-07 status read-only fingerprint truncated; AC-08 test coverage ≥ 80%. 5 deliverables alinhados Morpheus brief. 7 risks + mitigations. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01). Pre-flight: Tank ratify pre-implement (River seguiu ADR-014 sem desvio); Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle); Sati OPCIONAL (Settings UI pode iterar paralelo SP04-DASH-01). Branch sugerido: feat/sp04-byok-01 base main. Estimativa 3-5 days. Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P15-SM2PO-VALIDATE-BYOK-01-001. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist)."
-status: sprint-04-phase12.1-river-draft-byok-01-DONE-aguarda-keymaker-validate-story-draft
+last_updated: "2026-05-08T15:30"
+active_story: "Sessão 91 Sprint 04 Phase 12.2 EXECUTADA — @po Keymaker *validate-story-draft SP04-BYOK-01 verdict ✅ GO score 10/10 G3. Status frontmatter Draft → Ready. 10-point PO master checklist TODOS PASS: frontmatter completo + sumário claro + As/I want/So that + 8 ACs testáveis + File List pre-implementation + pre-flight Section 5 justificada + 7 risks P/I/M + 8 chunks Path B + cross-references rastreáveis + dependencies/source_frs canônicos. Concerns River flagged 3 itens ACEITÁVEIS pós-Ready (DoD template Neo populates padrão SP04-AUTH-01; Tank ratify deferred move pre-Neo *develop chunk 2 MANDATORY; branch paralelo Eric autorizou). Concerns adicionais Keymaker 3 LOW non-bloqueantes (K-01 last_used_at strategy + K-02 tenant.status enum + K-03 coverage AC-08 condicional). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + Tank Skill consultation MANDATORY antes chunk 2 DB foundation → Neo *develop chunks 1-8 Path B (estimativa 3-5 days similar AUTH-01). Branch creation: Neo/Operator cria feat/sp04-byok-01 base main no início chunk 1. Sprint 04 backlog: 1/14 done + 1/14 Ready (SP04-BYOK-01 — esta entry) = 2/14 ativas. SP04-AUTH-01 PR #4 continua aguardando Eric merge (não-bloqueante). Handoff OUT: H-S04-P16-PO2DEV-DEVELOP-BYOK-01-001."
+status: sprint-04-phase12.2-keymaker-validate-byok-01-GO-Ready-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,43 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🎯 Sessão 91 Sprint 04 Phase 12.2 EXECUTADA — @po Keymaker `*validate-story-draft` SP04-BYOK-01 GO 10/10** (@po · Keymaker — 2026-05-08T15:30):
+  - **Trigger:** River dispatch H-S04-P15-SM2PO-VALIDATE-BYOK-01-001 (consumed via Skill `LMAS:agents:po`)
+  - **Eric directive:** "Avance com o recomendado sempre pela Skill" — autonomia total cadeia validate → develop
+  - **Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Draft → **Ready**
+  - **10-point PO master checklist TODOS PASS:**
+    - ✅ #1 Frontmatter completo (16+ campos paridade SP04-AUTH-01)
+    - ✅ #2 Sumário Section 1 (5 deliverables + foundation impact 3 stories desbloqueadas)
+    - ✅ #3 As a / I want / So that válido
+    - ✅ #4 8 ACs testáveis com critérios "Tested:" explícitos por AC
+    - ✅ #5 File List pre-implementation (5 novos código + 5 tests + 5 modificados)
+    - ✅ #6 Pre-flight Section 5 com justificativas (Tank ratify + Aria skip + Sati opcional)
+    - ✅ #7 7 risks tabelados P/I/M (excede mínimo 3)
+    - ✅ #8 Implementation Plan 8 chunks Path B detalhados
+    - ✅ #9 Cross-references rastreáveis (PRD + 4 ADRs + UX + predecessor + Smith)
+    - ✅ #10 dependencies + source_frs canônicos (FR-API-KEY-01..04)
+  - **Concerns River flagged — Keymaker decisão (3 ACEITÁVEIS):**
+    - DoD Section 8 template Neo populates → padrão SP04-AUTH-01 validado
+    - Tank ratify CHECK constraint deferred → MANDATORY no handoff Neo (pre-chunk 2 DB foundation)
+    - Branch paralelo `feat/sp04-byok-01` base main → Eric autorização Opção 3 explícita
+  - **Concerns adicionais Keymaker (3 LOW non-bloqueantes flagged Neo/Tank pre-implement):**
+    - K-01: AC-04 `last_used_at` update strategy (per-request OR background batch — Tank pre-implement decide)
+    - K-02: AC-06 revoke `tenant.status='suspended_byok'` novo enum value (sem migration; Tank ratifica enum strict OR free VARCHAR)
+    - K-03: AC-08 coverage condicional sem DB (padrão AUTH-01 já aceito; Oracle qa-gate G5 endereça)
+  - **Story file modifications:**
+    - Frontmatter: `status: Draft → Ready`
+    - Section 9 QA Validation: completa com checklist + concerns + recomendação Keymaker
+    - Section 12 Change Log: entry @po Keymaker validate-story-draft GO
+  - **Handoffs:**
+    - IN consumed: H-S04-P15-SM2PO-VALIDATE-BYOK-01-001 (River brief)
+    - OUT emitted: H-S04-P16-PO2DEV-DEVELOP-BYOK-01-001 (Neo brief — Tank pre-implement MANDATORY + chunks 1-8 Path B)
+  - **Sprint 04 backlog tracking:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 1/14 Ready (SP04-BYOK-01 — esta entry; pronto para Neo *develop)
+    - ⏸ 12/14 backlog (desbloqueadas pós-AUTH-01 merge)
+  - **Conventional commit:** `docs(governance): validate-story-draft SP04-BYOK-01 — verdict GO score 10/10 [Story SP04-BYOK-01]` (NÃO push — PR #4 SP04-AUTH-01 limpo)
+  - **Próxima Skill:** `LMAS:agents:dev` (@dev Neo) consume brief + execute pre-implement Tank Skill consultation MANDATORY (`LMAS:agents:data-engineer`) antes chunk 2 DB foundation → Neo `*develop` chunks 1-8 Path B (estimativa 3-5 days similar AUTH-01)
 
 - **🌊 Sessão 91 Sprint 04 Phase 12.1 EXECUTADA — @sm River `*draft` SP04-BYOK-01 DONE** (@sm · River — 2026-05-08T15:00):
   - **Trigger:** Morpheus dispatch H-S04-P15-MOR2SM (consumed via Skill `LMAS:agents:sm`)
