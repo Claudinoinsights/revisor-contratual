@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T19:30"
+last_updated: "2026-05-08T20:00"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,43 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🌊 Sessão 91 Sprint 04 Phase 13.1 EXECUTADA — @sm River `*draft` SP04-LGPD-01 DONE com escopo PRD-aligned** (@sm · River — 2026-05-08T20:00):
+  - **Trigger:** Morpheus dispatch H-S04-P19-MOR2SM (consumed via Skill `LMAS:agents:sm`)
+  - **Eric directive:** "Avance com o recomendado até finalizar a Sprint. sempre pela Skill"
+  - **Story file criado:** `governance/stories/sp04-lgpd-01-compliance-flows-operador.md` (~390 linhas, 12 sections)
+  - **DIVERGÊNCIA REGISTRADA Morpheus brief vs PRD canônico:**
+    - Morpheus brief sugeriu **5 deliverables** (retention scheduler + forget Art. 18 + export Art. 18 + DPO admin dashboard + audit chain LGPD events)
+    - **PRD canônico v2.0.0-DRAFT lines 167-170 escopo restritivo:** FR-LGPD-01 DPA + FR-LGPD-02 TOS/EULA + FR-AUDIT-01 audit isolation endpoint
+    - **River decisão:** alinhar PRD canônico (3 deliverables) — Forget/Export/DPO admin = stories Sprint 05+ separadas (não neste story)
+    - Documentado em Section 1 Sumário "NOTA divergência" + Section 5 Pre-flight + Section 12 Change Log
+  - **Pre-leitura completa (7 docs):** PRD v2.0.0 + ADR-009/017/019/005 + AUTH-01/BYOK-01 templates + bloco_lgpd existing (encryption/headers/permissions Sprint 03)
+  - **6 ACs estruturadas:**
+    - AC-01: DPA texto v1.0.0.md substantivo (Eric advogado finalize — consolidação AUTH-01 chunk 5 placeholder)
+    - AC-02: TOS/EULA v1.0.0.md operador (Eric advogado redige NOVO — declara Eric=operador + escritório=controlador)
+    - AC-03: Schema PostgreSQL tos_acceptances (mirror dpa_acceptances ADR-019; RLS + retention permanent)
+    - AC-04: Endpoints TOS flow (text/{version} GET + accept POST + status GET — mirror DPA pattern)
+    - AC-05: Endpoint GET /api/tenant/audit/isolation (counts + RLS policies introspection + last_login per user — FR-AUDIT-01)
+    - AC-06: Test coverage condicional ≥ 80% bloco_auth/{tos,audit_isolation}
+  - **Pre-flight consultation:**
+    - **Tank (RATIFY pre-implement):** Schema tos_acceptances mirror dpa_acceptances ADR-019 sem desvio
+    - **Aria (NÃO necessário):** ADR-019 cobre DPA storage; TOS é mirror — sem nova decisão arquitetural
+    - **Sati (MANDATORY):** Wireframe TOS step — Opção A novo wizard 5 passos vs Opção B combine DPA+TOS step 3 (River recomenda B menor friction)
+    - **Eric advogado (MANDATORY pre-implement):** texto substantivo DPA v1.0.0.md + TOS v1.0.0.md ANPD-ready — bloqueia Neo *develop chunks
+  - **6 risks documentados:** Eric advogado timeline + Sati Opção A/B drop-off + TOS texto ANPD-defensável + audit isolation data leak + migration breaking + scope creep Morpheus brief reabertura
+  - **Implementation Plan 7 chunks Path B** (vs 8 BYOK — escopo menor): setup → DB foundation → TOS flow → onboarding integration → audit isolation endpoint → integration tests → closure
+  - **Estimativa River:** 2-3 days (escopo restritivo PRD vs Morpheus 4-6 days — diferença é Forget/Export/DPO scope creep removido)
+  - **Branch sugerido:** `feat/sp04-lgpd-01` (base main pós-AUTH+BYOK merge OR provisional rebase)
+  - **File List proposto (Section 4):** 8 novos (`bloco_auth/tos.py` + `audit_isolation.py` + migration sp04_003 + tos-templates v1.0.0.md placeholder + 4 test files) + 5 modificados (`dpa-templates/v1.0.0.md` Eric finalize + `onboarding.py` extend + `api.py` register + `app.py` register + onboarding template HTML)
+  - **Sprint 04 backlog tracking:**
+    - ✅ 1/14 done (SP04-AUTH-01 PR #4 await Eric merge)
+    - ✅ 2/14 done (SP04-BYOK-01 PR #5 await Eric merge)
+    - 📝 1/14 Draft (SP04-LGPD-01 — esta entry; PRD-aligned 3 deliverables)
+    - ⏸ 11/14 backlog
+  - **Handoff IN consumed:** H-S04-P19-MOR2SM-DRAFT-NEXT-001 (Morpheus brief)
+  - **Handoff OUT emitted:** H-S04-P19-SM2PO-VALIDATE-LGPD-01-001 (Keymaker validate-story-draft)
+  - **Conventional commit:** `docs(governance): create story SP04-LGPD-01 Draft — LGPD compliance flows operador [Story SP04-LGPD-01]` (NÃO push — PRs #4/#5 limpos)
+  - **Próxima Skill:** `LMAS:agents:po` (@po Keymaker) consume + execute `*validate-story-draft SP04-LGPD-01` 10-point checklist → verdict GO Ready OR NO-GO retorno River fixes
 
 - **👑 Sessão 91 Sprint 04 Phase 13 dispatch — Morpheus → @sm River draft SP04-LGPD-01 (próxima story P1 paralelo)** (@lmas-master · Morpheus — 2026-05-08T19:30):
   - **Trigger:** Eric "Avance com o recomendado até finalizar a Sprint. sempre pela Skill" — Foundation P0 cycle COMPLETO entregue (PRs #4/#5 await Eric merge não-bloqueante para próxima story P1 paralelo)
