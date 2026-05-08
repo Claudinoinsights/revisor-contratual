@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-07T18:30"
-active_story: "Sessão 91 Sprint 04 Phase 6 Operator PR + tag v0.2.0-alpha SHIPPED — Sprint 04 governance COMPLETE. Path A chain 6/6 ✅ done. Smith CRITICAL all closed (F-003+F-007+F-012 via spec + F-016 WAIVED Eric). PR #3 open: https://github.com/Claudinoinsights/revisor-contratual/pull/3. Tag v0.2.0-alpha pushed em branch feature. Sprint 04 history: 12 commits totais. Próximo: Eric merge PR (decisão Eric quando) → Phase 7+ implementation (~14 stories Neo)."
-status: sprint-04-phase6-operator-PR-tag-SHIPPED-sprint-04-governance-COMPLETE
+last_updated: "2026-05-07T19:10"
+active_story: "Sessão 91 Sprint 04 Phase 7.2 Operator commit story SP04-AUTH-01 Draft DONE — Commit f4888b6 (qa governance, 352 insertions, governance/stories/sp04-auth-01-multi-tenant-auth.md NOVO ~12KB) pushed em feat/sprint-04-cloud-pivot-v0.2.0. Sprint 04 history: 14 commits. PR #3 absorbe automaticamente. Path B chain step 2/N done. Próximo: Morpheus dispatch @po Phase 7.1.5 validate-story-draft 10-point checklist via Skill `LMAS:agents:po`."
+status: sprint-04-phase7.2-operator-commit-story-DONE-aguarda-Morpheus-dispatch-po-phase7.1.5
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -22,6 +22,141 @@ tags:
 
 ## Contexto Ativo
 
+- **Sessão 91 Sprint 04 Phase 7.2 Operator commit story SP04-AUTH-01 Draft DONE** (@devops · Operator — 2026-05-07T19:10):
+  - **Trigger:** Handoff Morpheus → Operator (token H-S04-P7.2-MOR2OP-COMMIT-STORY-001) story file Draft uncommitted. Eric mandate full autonomous standing.
+  - **Commit f4888b6 (qa governance):** `qa(governance): Sprint 04 Phase 7.1 — SP04-AUTH-01 Draft (foundation auth multi-tenant)`
+    - Files (1): governance/stories/sp04-auth-01-multi-tenant-auth.md (NOVO ~12KB story Draft)
+    - Stats: 352 insertions
+    - URL: https://github.com/Claudinoinsights/revisor-contratual/commit/f4888b6
+    - Push success: `4dea236..f4888b6 feat/sprint-04-cloud-pivot-v0.2.0 -> feat/sprint-04-cloud-pivot-v0.2.0`
+  - **PR #3 absorbe automaticamente** (mesma branch — sem ação adicional necessária)
+  - **Decisões Operator Phase 7.2:**
+    - **D-OP-SP04-P7.2-A:** Skip CodeRabbit gate consistente padrão Sprint 04 (story file = governance markdown, não código produto)
+    - **D-OP-SP04-P7.2-B:** Pre-push hooks rodaram normalmente sem --no-verify
+    - **D-OP-SP04-P7.2-C:** 2 commits separados padrão (qa governance + docs governance) preservado — commit checkpoint vai em STEP 6 (pos-push hash captured)
+  - **Path B chain progress (2/N done):**
+    - ✅ [1/N] @sm Phase 7.1 — SP04-AUTH-01 Draft DONE
+    - ✅ [2/N] Operator Phase 7.2 — commit story file ← AQUI (commit f4888b6 pushed)
+    - 🔜 [3/N] @po Phase 7.1.5 — validate-story-draft 10-point checklist
+    - ⏳ [4/N] Aguardar Eric merge PR #3 antes implementation
+    - ⏳ [5/N] @dev Phase 7.2+ — implementation branch feat/sp04-auth-01
+  - **Sprint 04 history (14 commits):** 14º commit f4888b6 acima de 4dea236 (Phase 6 SHIPPED checkpoint)
+  - **Handoffs:**
+    - Morpheus → Operator (H-S04-P7.2-MOR2OP-COMMIT-STORY-001): consumed:true ✓
+    - Operator → Morpheus (H-S04-P7.2-OP2MOR-COMMIT-STORY-DONE-001): emitido em `.lmas/handoffs/handoff-operator-to-morpheus-2026-05-07-sp04-phase7.2-commit-story-done.yaml` (após STEP 6 commit checkpoint docs governance)
+  - **Próximo:** Eric invoca Skill `LMAS:agents:lmas-master` (Morpheus) → consume Operator handoff + dispatch @po Phase 7.1.5 validate-story-draft via Skill `LMAS:agents:po`
+- **Sessão 91 Sprint 04 Phase 7.2 Morpheus dispatch Operator commit story SP04-AUTH-01** (@lmas-master · Morpheus — 2026-05-07T19:00):
+  - **Trigger:** Handoff @sm → Morpheus (token H-S04-P7.1-SM2MOR-FIRST-STORY-SP04-AUTH-01-DONE-001) story Draft criado uncommitted. Eric mandate full autonomous standing.
+  - **Decisão ORDEM 11:** Dispatch Operator Phase 7.2 single commit (não bundle 2 separados qa+docs governance) via Skill `LMAS:agents:devops`
+  - **Decisões Morpheus Phase 7.2:**
+    - **D-MOR-SP04-P7.2-A:** Single commit (não 2 separados qa+docs) — story file + checkpoint update são coerentes (checkpoint describes the story creation). Bundle separado seria overkill para 2 files.
+    - **D-MOR-SP04-P7.2-B:** Story Draft em PR #3 absorbido — branch atual `feat/sprint-04-cloud-pivot-v0.2.0` é working branch. PR #3 description já antecipa Phase 7+ kickoff (test plan menciona ~14 stories estimated).
+    - **D-MOR-SP04-P7.2-C:** Skip CodeRabbit gate consistente padrão Sprint 04 — story file é governance markdown, não código produto. Phases 2.2/3.2/4.1/5.1/5.4/6 todos skip CodeRabbit governance docs.
+  - **Brief Operator embedded:**
+    - 2 files commitar: governance/stories/sp04-auth-01-multi-tenant-auth.md (NOVO ~12KB) + governance/CHECKPOINT-active.md (modified)
+    - Single commit "qa governance: SP04-AUTH-01 Draft + checkpoint"
+    - Conventional commit message pré-redigida (Sprint 04 reference + tokens predecessor)
+    - Pre-push checks: branch verify + frontmatter validate + skip CodeRabbit + skip --no-verify
+    - Esperado: 1 commit pushed, Sprint 04 history 14 commits
+  - **Path B chain progress (2/N dispatched):**
+    - ✅ [1/N] @sm Phase 7.1 — SP04-AUTH-01 Draft DONE
+    - 🔄 [2/N] Operator Phase 7.2 — commit story file — DISPATCHED (aguarda Operator Skill)
+    - ⏳ [3/N] @po Phase 7.1.5 — validate-story-draft 10-point checklist
+    - ⏳ [4/N] Aguardar Eric merge PR #3 antes implementation
+    - ⏳ [5/N] @dev Phase 7.2+ — implementation branch feat/sp04-auth-01
+  - **Handoffs:**
+    - @sm → Morpheus (H-S04-P7.1-SM2MOR-FIRST-STORY-SP04-AUTH-01-DONE-001): consumed:true
+    - Morpheus → Operator (H-S04-P7.2-MOR2OP-COMMIT-STORY-001): emitido em `.lmas/handoffs/handoff-morpheus-to-operator-2026-05-07-sp04-phase7.2-commit-story.yaml`
+  - **NÃO commitado** — Operator Phase 7.2 commit na próxima Skill
+  - **Próximo:** Eric invoca Skill `LMAS:agents:devops` (Operator) → single commit + push em branch atual → handoff Operator → Morpheus → dispatch @po Phase 7.1.5 validate
+- **Sessão 91 Sprint 04 Phase 7.1 @sm criar SP04-AUTH-01 Draft DONE** (@sm · River — 2026-05-07T18:55):
+  - **Trigger:** Handoff Morpheus → @sm (token H-S04-P7.1-MOR2SM-FIRST-STORY-SP04-AUTH-01-001) — Eric mandate full autonomous "execute sempre pela skill correta"
+  - **Story file criado:** `governance/stories/sp04-auth-01-multi-tenant-auth.md` (~12KB)
+  - **Naming convention preservada:** `{ID}-{slug-description}.md` consistente com 7 stories Sprint 02-03 existing (DOCS-02, MVP-LEAN-01, OLLAMA-MGR-01, REV-INT-02, REV-LLM-01, UI-1, VAULT-FIX-01)
+  - **11 seções no story body:**
+    1. Sumário (foundation status)
+    2. As a / I want / So that
+    3. Acceptance Criteria (8 ACs detalhados)
+    4. File List (~20 files Neo Phase 7+ implementation)
+    5. Dev Notes (stack + patterns + cross-doc refs)
+    6. Testing (pyramid + coverage targets + 5 critical scenarios)
+    7. Risk Assessment (6 risks com mitigation)
+    8. Definition of Done (10 checkboxes)
+    9. CodeRabbit Integration (security/performance focus + self-healing)
+    10. Dev Agent Record (placeholder Neo)
+    11. Change Log
+  - **Frontmatter completo:** type=story + id=SP04-AUTH-01 + status=Draft + epic + project + sprint + phase + priority=P0 + estimated_days=3-5 + agent=@dev + branch (futura) + dependencies (3 ADRs) + source_frs (3) + cross_references (PRD/UX/ADRs) + smith_findings_addressed (F-006/F-008/F-013) + tags
+  - **Decisões @sm River:**
+    - **D-SM-SP04-P7.1-A:** Naming convention preservada per stories Sprint 02-03 existing. Slug "multi-tenant-auth" descriptivo preserva discoverability.
+    - **D-SM-SP04-P7.1-B:** 11 seções vs 8 do template básico — additions (Risk Assessment, CodeRabbit Integration, Dev Agent Record placeholder) seguem rule story-lifecycle.md best practices + auditoria Smith Phase 5 findings.
+    - **D-SM-SP04-P7.1-C:** Smith findings addressed em frontmatter (F-006/F-008/F-013 HIGH) — rastreabilidade direta entre story implementation + Smith adversarial findings remediation
+    - **D-SM-SP04-P7.1-D:** AC-08 Test coverage ≥ 80% (per NFR-PERF-01 PRD v2.0.1) — não negociável
+    - **D-SM-SP04-P7.1-E:** Risk Assessment 6 risks identificados — RLS isolation bug é #1 (LOW probability MAS CRITICAL impact se materialize). Integration test mandatory.
+  - **Restrições @sm respeitadas:**
+    - Apenas governance/stories/ modificado (não código produto) ✓
+    - Status inicial Draft (não Ready) ✓
+    - @sm NÃO commit (Operator Phase 7.2 commit) ✓
+    - @sm NÃO valida (Keymaker @po Phase 7.1.5 valida) ✓
+  - **Path B implementation chain progress:**
+    - ✅ [1/N] @sm Phase 7.1 — criar SP04-AUTH-01 Draft — DONE
+    - 🔜 [2/N] Operator Phase 7.2 — commit story file — NEXT
+    - ⏳ [3/N] @po Phase 7.1.5 — validate-story-draft 10-point checklist
+    - ⏳ [4/N] Aguardar Eric merge PR #3 antes implementation
+    - ⏳ [5/N] @dev Phase 7.2+ — implementation branch feat/sp04-auth-01
+  - **Handoffs:**
+    - Morpheus → @sm (H-S04-P7.1-MOR2SM-FIRST-STORY-SP04-AUTH-01-001): consumed:true ✓
+    - @sm → Morpheus (H-S04-P7.1-SM2MOR-FIRST-STORY-SP04-AUTH-01-DONE-001): emitido em `.lmas/handoffs/handoff-sm-to-morpheus-2026-05-07-sp04-phase7.1-first-story-done.yaml`
+  - **NÃO commitado** — Operator Phase 7.2 commit story file na próxima Skill
+  - **Próximo:** Eric invoca Skill `LMAS:agents:devops` (Operator) → commit + push story file via padrão Sprint 04 (qa governance) → handoff Operator → Morpheus → dispatch @po Phase 7.1.5 validate
+- **Sessão 91 Sprint 04 Phase 7.1 Morpheus dispatch @sm criar primeira story SP04-AUTH-01** (@lmas-master · Morpheus — 2026-05-07T18:45):
+  - **Trigger:** Handoff Operator → Morpheus (token H-S04-P6-OP2MOR-PR-TAG-DONE-001) Sprint 04 governance SHIPPED. Eric directive standing "Avance sempre pela skill" — mandate explícito autonomous chain progression.
+  - **🎉 Sprint 04 governance SHIPPED milestone celebrated:**
+    - Path A chain 6/6 ✅ COMPLETE
+    - Smith CRITICAL 4/4 ALL CLOSED (3 spec + 1 WAIVED)
+    - PR #3 open: https://github.com/Claudinoinsights/revisor-contratual/pull/3
+    - Tag v0.2.0-alpha pushed em branch feature
+    - 13 commits totais Sprint 04 (governance phase complete)
+  - **Decisão ORDEM 11 ULTRATHINK:** Dispatch @sm Phase 7.1 criar primeira story SP04-AUTH-01 Draft (não HALT)
+  - **Decisões Morpheus Phase 7.1:**
+    - **D-MOR-SP04-P7.1-A:** Dispatch @sm (não HALT) — Eric mandate "avance sempre pela skill" autoriza autonomous chain. HALT seria second-guessing Eric.
+    - **D-MOR-SP04-P7.1-B:** Story file em `governance/stories/sp04-auth-01.md` (não código produto) — foundation work safe pré-merge.
+    - **D-MOR-SP04-P7.1-C:** Status Draft inicial (rule story-lifecycle.md) — @po validate post-merge via *validate-story-draft 10-point checklist.
+    - **D-MOR-SP04-P7.1-D:** Branch atual absorbe story file commit (não branch nova) — squash merge PR #3 integra tudo em commit único limpo em main.
+    - **D-MOR-SP04-P7.1-E:** SP04-AUTH-01 primeira story (não SP04-LGPD-01 paralelo) — auth multi-tenant é foundation P0; 13 outras stories dependem. Cross-domain Eric advogado DPA continua paralelo.
+  - **Brief @sm embedded no handoff:**
+    - Story spec: SP04-AUTH-01 Multi-tenant authentication + tenant onboarding
+    - Source FRs: FR-AUTH-01, FR-AUTH-02, FR-AUTH-03 (PRD v2.0.1 Section 4)
+    - Estimated: 3-5 dias solo dev
+    - Priority: P0 (foundation Sprint 04)
+    - Dependencies: ADR-014 (BYOK) + ADR-017 (Multi-tenant BACKBONE) + ADR-019 (DPA Storage)
+    - 8 ACs sugeridos: tenant CRUD + RLS + JWT + onboarding wizard 4 passos + DPA acceptance + audit chain + test coverage 80%+
+    - File List esperada Neo Phase 7+ implementation: bloco_auth/* + bloco_database/migrations + tests/*
+    - Story file path: `governance/stories/sp04-auth-01.md`
+  - **Restrições @sm:**
+    - PATCH bump LMAS Story format (rule story-lifecycle.md)
+    - Status inicial: Draft
+    - Frontmatter type=story + id=SP04-AUTH-01 + epic=sprint-04 + project=revisor-contratual
+    - Apenas governance/stories/ modificado (não código produto)
+    - @sm NÃO commit (Operator Phase 7.2 commit story)
+    - @sm NÃO valida (Keymaker @po Phase 7.1.5 valida 10-point checklist)
+  - **Sprint 04 stories backlog (Trinity PRD v2.0.1 Section 10 — 14 stories sugeridas):**
+    - 🔄 SP04-AUTH-01 (foundation, 3-5 dias) ← AQUI
+    - ⏳ SP04-LGPD-01 (paralelo, 2-3 dias)
+    - ⏳ SP04-BYOK-01 (3-5 dias)
+    - ⏳ SP04-OCR-01 (5-7 dias)
+    - ⏳ SP04-DOCTYPE-DISPATCHER-01 (2-3 dias)
+    - ⏳ SP04-DOCTYPE-{VEICULAR/FIES/BANCARIO/IMOBILIARIO}-01 (4 stories, 12-20 dias)
+    - ⏳ SP04-PDF-OUTPUT-01 (4-6 dias)
+    - ⏳ SP04-APPROVE-01 (3-5 dias)
+    - ⏳ SP04-BILLING-01 (5-7 dias)
+    - ⏳ SP04-DASH-01 (4-6 dias)
+    - ⏳ SP04-ADMIN-01 (2-3 dias)
+    - **Total estimado:** 8-12 semanas solo dev
+  - **Handoffs:**
+    - Operator → Morpheus (H-S04-P6-OP2MOR-PR-TAG-DONE-001): consumed:true
+    - Morpheus → @sm (H-S04-P7.1-MOR2SM-FIRST-STORY-SP04-AUTH-01-001): emitido em `.lmas/handoffs/handoff-morpheus-to-sm-2026-05-07-sp04-phase7.1-first-story.yaml`
+  - **NÃO commitado** — @sm cria story file Draft, Operator Phase 7.2 commit
+  - **Próximo:** Eric invoca Skill `LMAS:agents:sm` (River) → criar SP04-AUTH-01 Draft em governance/stories/sp04-auth-01.md → handoff @sm → Morpheus → dispatch @po validate (Phase 7.1.5)
 - **Sessão 91 Sprint 04 Phase 6 Operator PR + tag v0.2.0-alpha SHIPPED — Sprint 04 governance COMPLETE** (@devops · Operator — 2026-05-07T18:30):
   - **9 ações Phase 6 executadas autonomously** (Eric directive "execute a fase completa sem me questionar"):
     - **Ação 6.1** ✅ TECH-DEBT.md Sprint 04 section appended (preservando Sprint 01 closure existente)
