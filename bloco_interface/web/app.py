@@ -40,6 +40,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
 from bloco_auth import api as sp04_auth_api
+from bloco_auth import dpa as sp04_dpa
 from bloco_auth import jwt_utils as sp04_jwt_utils
 from bloco_backup.scheduler import create_scheduler
 from bloco_dataset import tema_1378_state
@@ -365,6 +366,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 # single-user via auth.py) — Sprint 03 path é fallback durante transição;
 # deprecation TODO em story posterior Sprint 04 backlog.
 app.include_router(sp04_auth_api.router)
+# Sprint 04 chunk 5 — DPA flow ADR-019 (3 endpoints: GET text/{version},
+# POST accept, GET status). Fecha AC-06 do story SP04-AUTH-01.
+app.include_router(sp04_dpa.router)
 
 
 # CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos

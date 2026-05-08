@@ -286,7 +286,11 @@ async def onboarding_step4(
     sessionmaker = get_sessionmaker()
     async with sessionmaker() as db_session:
         try:
-            tenant, user = await complete_onboarding(session_id, db_session)
+            # Chunk 5: triple insert atomic (tenant + user + dpa_acceptance)
+            # — request passado para capture IP + user_agent no DPA accept
+            tenant, user = await complete_onboarding(
+                session_id, db_session, request=request
+            )
         except OnboardingError as exc:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)

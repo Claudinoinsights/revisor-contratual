@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T00:30"
-active_story: "Sessão 91 Sprint 04 Phase 7.2.4 — @dev Neo Chunk 4 (Auth API + onboarding + RLS BLOCKING test) DONE Opção B hybrid. 4 files novos + 1 modified em branch feat/sp04-auth-01: onboarding.py (4 pydantic + validate_cnpj BR + ping_anthropic_api + state machine + complete_onboarding async transaction), api.py (8 endpoints FastAPI + audit chain integration tenant_id payload), test_auth_rls_isolation.py (4 tests skip se DATABASE_URL ausente — qa-gate G5 marker explícito), web/app.py (validate_config startup + include_router). Docker daemon offline → tests deferred. pytest 22 = 18 passed (chunks 3) + 4 skipped (chunk 4 BLOCKING deferred). ACs implementados: 01/02/03/04/05/07. Chunks 5-8 pendentes (DPA flow → UI → integration → closure). Path B chain 8/N (chunks 1-2-3-4 done de 8)."
-status: sprint-04-phase7.2.4-chunk-4-DONE-opcao-b-hybrid-aguarda-morpheus-dispatch-chunk-5
+last_updated: "2026-05-08T02:00"
+active_story: "Sessão 91 Sprint 04 Phase 7.2.5 — @dev Neo Chunk 5 (DPA flow ADR-019) DONE em branch feat/sp04-auth-01. 3 files novos + 3 modified: bloco_auth/dpa.py (3 endpoints + compute_dpa_hash NFC + get_dpa_text cache TTL 5min + accept_dpa idempotent transaction-aware), governance/legal/dpa-templates/v1.0.0.md (placeholder estrutural 9 seções LGPD), tests/unit/test_dpa_hash.py (10 tests). Modify: complete_onboarding triple insert atomic (tenant+user+dpa_acceptance), api.py passa request, web/app.py include_router. AC-06 ✅. pytest 28 passed (chunks 3+4+5 unit) + 4 skipped (chunk 4 integration deferred). 31 routes (28 prev + 3 DPA). ACs 6/8 done (01/02/03/04/05/06/07). AC-08 pendente (chunk 7 coverage). Path B chain 9/N (chunks 1-2-3-4-5 done de 8)."
+status: sprint-04-phase7.2.5-chunk-5-DONE-AC-06-fechado-aguarda-morpheus-dispatch-chunk-6
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,54 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 91 Sprint 04 Phase 7.2.5 — @dev Neo Chunk 5 DONE (DPA flow ADR-019 — fecha AC-06)** (@dev · Neo — 2026-05-08T02:00):
+  - **Trigger:** Morpheus dispatch H-S04-P9.7-MOR2DEV (consumed via Skill `LMAS:agents:dev`)
+  - **3 files novos + 3 modified:**
+    - `bloco_auth/dpa.py` — APIRouter `/api/tenant/dpa` com 3 endpoints (`GET /text/{version}` SEM auth + `POST /accept` Depends + `GET /status` Depends). Helpers `compute_dpa_hash` (NFC normalization + SHA-256 64 chars hex), `get_dpa_text` (cache TTL 5min + path-traversal mitigation `_SEMVER_RE`), `accept_dpa` transaction-aware idempotent (UNIQUE conflict pre-lookup OR rollback+re-fetch). Audit "dpa_accepted" best-effort
+    - `governance/legal/dpa-templates/v1.0.0.md` — placeholder estrutural com 9 seções LGPD operador (Atlas v2 Section 4): Definições, Escopo, Base Legal Art. 7º, Subprocessadores Anthropic, Retenção (PII zero / logs 12m), Direitos Titular Art. 18, Notificação Incidente 24-72h, Responsabilidades, Vigência+Revisão. Marcadores `[ERIC ADVOGADO PREENCHE]` em cada seção. Frontmatter `legal_review_status: PENDING`
+    - `tests/unit/test_dpa_hash.py` — 10 tests (deterministic, NFC normalization "contratação" NFD vs NFC, format 64 hex, different texts different hashes, existing/missing/invalid version, cached hit single read, separate cache per version, clear forces re-read)
+    - `bloco_auth/onboarding.py` — modified: `complete_onboarding` triple insert atomic (tenant + user + dpa_acceptance via `dpa.accept_dpa`) em single transaction. Nova signature aceita `request` parameter. Falha qualquer step rollback completo (compliance LGPD)
+    - `bloco_auth/api.py` — modified: onboarding step4 endpoint passa `request` ao `complete_onboarding`
+    - `bloco_interface/web/app.py` — modified: import `bloco_auth.dpa` + `app.include_router(sp04_dpa.router)` — 31 routes total (28 prev + 3 DPA)
+  - **pytest 28 PASSED + 4 skipped:** test_jwt 8 + test_bcrypt 10 + test_dpa_hash 10 (chunk 5 unit) | 4 SKIPPED test_auth_rls_isolation (chunk 4 integration deferred)
+  - **CodeRabbit DEFERRED** padrão. Self-critique: **0 CRITICAL** (path traversal mitigation explícito, audit swallow controlado, ORM parametrized, idempotent rollback graceful), **0 HIGH** (NFC consistente, cache TTL com clear helper, transaction atomicity preservada, DPA texto endpoint público limitado a info pública). MEDIUM: DPA placeholder Eric advogado redige (cross-domain), cache filesystem sem lock teórica race, accept_dpa pre-lookup overhead em alta concorrência
+  - **Decisões Neo autônomas:**
+    - NFC normalization antes hash (consistência cross-OS Mac NFD vs Linux NFC)
+    - Cache TTL 5min via dict manual (ao invés `@lru_cache`) — permite `clear_dpa_cache()` programático para tests
+    - Idempotency em `accept_dpa` — pré-lookup SELECT antes INSERT; race condition rollback + re-fetch existing
+    - Path traversal mitigation `_SEMVER_RE = ^\d+\.\d+\.\d+$` ANTES de Path construction
+    - DPA texto endpoint `GET /text/{version}` SEM auth — info pública (escritório lê antes de aceitar — privacy paradox se exigir login)
+    - Triple insert atomic em `complete_onboarding` — falha qualquer step rollback completo (tenant órfão sem DPA = compliance gap inválido)
+  - **AC-06 ✅ fechado** (DPA acceptance flow completo). ACs implementados (cumulativo): **6/8** — 01/02/03/04/05/06/07. AC-08 pendente (chunk 7 coverage ≥ 80%)
+  - **Próxima Skill:** `LMAS:agents:lmas-master` (Morpheus consume + dispatch chunk 6 OR HALT)
+  - **Path B chain progress:** 9/N (chunks 1-2-3-4-5 done de 8 — 5/8 = 62.5%)
+  - **Action items qa-gate G5 (chunk 8 closure):**
+    - Eric advogado redige texto substantivo `governance/legal/dpa-templates/v1.0.0.md` (cross-domain Eric LGPD operador)
+    - DPA acceptance E2E test com PostgreSQL real (parte do chunk 7 integration)
+
+- **👑 Sessão 91 Sprint 04 Phase 7.2.5 dispatch — Morpheus → @dev Neo Chunk 5 DPA flow ADR-019** (@lmas-master · Morpheus — 2026-05-08T01:00):
+  - **Trigger:** Eric "Avance pela Skill" — 5ª invocação Neo na chain autônoma
+  - **Handoff IN consumed:** H-S04-P9.6-DEV2MOR-CHUNK-4-DONE-001 (Auth API + onboarding + RLS test deferred)
+  - **Handoff OUT emitted:** H-S04-P9.7-MOR2DEV-CHUNK-5-DPA-FLOW-001
+  - **Brief Neo Chunk 5 (4 files novos + 2 modified):**
+    - `bloco_auth/dpa.py` — 3 endpoints (GET /tenant/dpa/text/{version} sem auth + POST /tenant/dpa/accept Depends + GET /tenant/dpa/status Depends) + helpers compute_dpa_hash NFC normalized + get_dpa_text cache 5min
+    - `governance/legal/dpa-templates/v1.0.0.md` — texto placeholder estrutural 9 seções LGPD operador (Atlas v2 Section 4) com marcadores `[ERIC ADVOGADO PREENCHE]`
+    - `tests/unit/test_dpa_hash.py` — 6 tests sem DB (deterministic, NFC, 64 hex, version exists/missing, cached)
+    - `bloco_auth/onboarding.py` — modified: complete_onboarding triple insert atomic (tenant + user + dpa_acceptance) em single transaction
+    - `bloco_auth/api.py` — modified: import dpa.router OR registro em web/app.py
+    - `bloco_interface/web/app.py` — modified: include_router dpa
+  - **Decisões Morpheus:**
+    - Server-side hash compute (não trust client) — cliente envia version+accepted, server lê texto + computa SHA-256
+    - Unicode NFC normalization antes hash (consistência cross-OS)
+    - UNIQUE(tenant_id, dpa_version) idempotent — segundo accept retorna acceptance existente sem erro
+    - DPA texto v1.0.0.md = placeholder estrutural; Eric advogado redige conteúdo substantivo cross-domain paralelo
+    - Wizard step3 + complete_onboarding separados — step3 valida flag, complete_onboarding orquestra triple insert
+    - DPA texto endpoint público (sem auth) — escritório lê antes de aceitar
+  - **Pre-requisito:** sem DB necessário (test_dpa_hash unit-only). DPA acceptance persistence requer DB rodando — segue padrão chunks anteriores (deferred via skip se sem DATABASE_URL)
+  - **Cross-doc:** Story SP04-AUTH-01 AC-06 (fecha após chunk 5), ADR-019 §2-7 (schema + retention permanent + versioning protocol semver)
+  - **Path B chain progress:** 8/N → 9/N target (chunks 1-2-3-4-5 de 8)
+  - **Eric directive standing:** "execute sem perguntar" — Neo decide detalhes implementação autonomamente
 
 - **💻 Sessão 91 Sprint 04 Phase 7.2.4 — @dev Neo Chunk 4 DONE (Auth API + onboarding + RLS test deferred)** (@dev · Neo — 2026-05-08T00:30):
   - **Trigger:** Morpheus dispatch H-S04-P9.6-MOR2DEV (consumed via Skill `LMAS:agents:dev`)

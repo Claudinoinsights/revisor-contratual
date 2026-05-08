@@ -23,6 +23,7 @@ import uuid
 from typing import Any, Literal
 
 import httpx
+from fastapi import Request
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -214,26 +215,42 @@ def reset_sessions() -> None:
 
 
 async def complete_onboarding(
-    session_id: str, db_session: AsyncSession
+    session_id: str,
+    db_session: AsyncSession,
+    request: Request | None = None,
 ) -> tuple[Tenant, User]:
-    """Persiste tenant + first user (advogado responsável) atomicamente.
+    """Persiste tenant + first user + dpa_acceptance atomicamente (triple insert).
 
     Pre-requisitos: todos 4 steps completos no state machine. Caller é
     responsável por verificar antes de chamar (rota POST /api/onboarding/step4
     valida).
 
+    Triple insert em single transaction (chunk 5 — fecha AC-06):
+      1. Tenant
+      2. User (advogado responsável)
+      3. DpaAcceptance (via dpa.accept_dpa) com IP + user_agent capture
+
+    Falha em qualquer passo rollback completo — tenant órfão sem user OR
+    sem DPA acceptance é estado inválido (compliance LGPD).
+
     Args:
         session_id: UUID da sessão de onboarding.
         db_session: AsyncSession SQLAlchemy (sem RLS context — tenant ainda
             não existe; criação inicial usa role com BYPASSRLS OR superuser).
+        request: FastAPI Request (opcional — capture IP/user_agent no DPA
+            acceptance). Quando ``None``, campos ficam null no audit DPA.
 
     Returns:
         ``(tenant, user)`` recém-criados.
 
     Raises:
         OnboardingError: sessão incompleta OR violação UNIQUE (CNPJ/email já
-            cadastrados).
+            cadastrados) OR DPA texto canônico ausente.
     """
+    # Import lazy para evitar ciclo (dpa.py importa onboarding indiretamente
+    # via api.py routing? não — mas mantemos defensive). Função interna.
+    from bloco_auth import dpa as _dpa
+
     session = _SESSIONS.get(session_id)
     if session is None:
         raise OnboardingError(f"Sessão {session_id} não encontrada")
@@ -246,7 +263,7 @@ async def complete_onboarding(
     if not step3.accepted:
         raise OnboardingError("DPA não aceita — onboarding bloqueado")
 
-    # Persistência atômica via transaction
+    # Triple insert atomic — single transaction
     async with db_session.begin():
         tenant = Tenant(
             cnpj=step1.cnpj,
@@ -267,6 +284,22 @@ async def complete_onboarding(
         )
         db_session.add(user)
         await db_session.flush()  # gera user.id sem commit
+
+        # Triple insert step 3 — DPA acceptance (chunk 5 / AC-06)
+        # Falha aqui (texto inexistente, hash compute error) rollback completo.
+        try:
+            await _dpa.accept_dpa(
+                tenant_id=tenant.id,
+                user_id=user.id,
+                version=step3.dpa_version,
+                request=request,
+                db_session=db_session,
+            )
+        except FileNotFoundError as exc:
+            raise OnboardingError(
+                f"DPA texto canônico v{step3.dpa_version} não encontrado — "
+                f"onboarding bloqueado. Detalhe: {exc}"
+            ) from exc
 
     # Sessão finalizada — limpa
     _SESSIONS.pop(session_id, None)

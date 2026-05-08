@@ -323,7 +323,7 @@ Payload comum:
 - [x] AC-03 Schema users (chunk 2 migration + chunk 4 CRUD)
 - [x] AC-04 CRUD users APIs (chunk 4 — RLS scoped)
 - [x] AC-05 Login JWT (chunks 3-4 — JWT foundation + login endpoint)
-- [ ] AC-06 DPA acceptance flow (chunk 4 placeholder; chunk 5 hash flow + persist)
+- [x] AC-06 DPA acceptance flow (chunk 5 — texto canônico filesystem + SHA-256 NFC + persist dpa_acceptances + audit dpa_accepted + triple insert atomic)
 - [x] AC-07 Audit chain integration (chunk 4 — `_audit` helper com tenant_id payload)
 - [ ] AC-08 Test coverage ≥ 80% (chunks 3-4 unit tests done; integration tests deferred até DB; chunk 7 fecha gap)
 
@@ -347,6 +347,21 @@ Payload comum:
 - `tests/unit/test_jwt.py` — created: 8 tests (encode/decode roundtrip, expiry 24h Smith F-008, expired rejection, tampered payload, missing claim, secret < 32 bytes, secret missing, validate_config eager)
 - `tests/unit/test_bcrypt.py` — created: 10 tests (hash/verify roundtrip, wrong password, cost 12 prefix `$2b$12$`, cost < 12 rejection via raw bcrypt forge, salt único, password too long, cost insuficiente em hash_password, invalid format, malformed hash defensive False)
 - `pyproject.toml` — modified: removido `passlib[bcrypt]` (incompat documentada inline), comentário de razão técnica preservado
+
+**Phase 7.2.5 — Chunk 5 (DPA flow ADR-019 — fecha AC-06) [2026-05-08]**
+- `bloco_auth/dpa.py` — created: APIRouter `/api/tenant/dpa` com 3 endpoints (`GET /text/{version}` SEM auth + `POST /accept` Depends + `GET /status` Depends). Helpers públicos `compute_dpa_hash` (NFC normalization + SHA-256 64 chars hex), `get_dpa_text` (cache TTL 5min + path-traversal mitigation via regex semver), `accept_dpa` (transaction-aware idempotent — UNIQUE conflict retorna existing). Audit "dpa_accepted" best-effort
+- `governance/legal/dpa-templates/v1.0.0.md` — created: placeholder estrutural com 9 seções LGPD operador (Atlas v2 Section 4) — Definições, Escopo Tratamento, Base Legal Art. 7º, Subprocessadores (Anthropic), Retenção (PII zero / logs 12m), Direitos Titular Art. 18, Notificação Incidente 24-72h, Responsabilidades Operador vs Controlador, Vigência+Revisão. Marcadores `[ERIC ADVOGADO PREENCHE TEXTO SUBSTANTIVO]` em cada seção (estrutura técnica funcional, conteúdo legal paralelo)
+- `tests/unit/test_dpa_hash.py` — created: 10 tests (deterministic, NFC normalization "contratação", format 64 hex, different texts, existing version, missing version, invalid format path-traversal, cached, different versions separate cache, clear_dpa_cache forces re-read)
+- `bloco_auth/onboarding.py` — modified: `complete_onboarding` agora triple insert atomic (tenant + user + dpa_acceptance via `dpa.accept_dpa`) em single transaction. Nova signature aceita `request` parameter para IP/user_agent capture. Falha em qualquer step rollback completo
+- `bloco_auth/api.py` — modified: onboarding step4 endpoint passa `request` ao `complete_onboarding`
+- `bloco_interface/web/app.py` — modified: import `bloco_auth.dpa` + `app.include_router(sp04_dpa.router)` — 31 routes registradas (28 prev + 3 DPA)
+
+**Decisões Neo autônomas Phase 7.2.5:**
+- **NFC normalization** antes do hash — consistência cross-OS (Mac NFD vs Linux NFC) para que mesmo texto perceptível produza mesmo hash independente de filesystem origem
+- **Cache TTL 5min via dict manual** ao invés de `@lru_cache` — permite `clear_dpa_cache()` programático para tests + invalidação por TTL natural sem dependência de hot-reload server
+- **Idempotency em accept_dpa** — pré-lookup SELECT antes do INSERT; em race condition (IntegrityError), rollback + re-fetch existing. UNIQUE(tenant_id, dpa_version) preserva integridade sem UX hostil
+- **Path traversal mitigation** — `_SEMVER_RE = ^\d+\.\d+\.\d+$` em `get_dpa_text` ANTES de construir Path. Bloqueia `../../../etc/passwd` e variantes
+- **DPA texto endpoint público** — escritório lê antes de criar conta (privacy paradox se exigir login para ler termo)
 
 **Phase 7.2.4 — Chunk 4 (Auth API + onboarding + RLS isolation E2E test #1 BLOCKING) [2026-05-08]**
 - `bloco_auth/onboarding.py` — created: Wizard 4 passos backend logic (4 pydantic schemas com `extra="forbid"`, validators CNPJ módulo 11 inline, EmailStr, senha min 8); `validate_cnpj` algoritmo BR módulo 11; `ping_anthropic_api` via httpx (`GET /v1/models` com `x-api-key` + `anthropic-version`); state machine in-memory `_SESSIONS: dict` (Sprint 05+ Redis); `complete_onboarding` async transaction persiste tenant + first user atomicamente
@@ -379,6 +394,16 @@ tests/unit/test_bcrypt.py ..........  10 passed
 ======== 18 passed in 2.31s ========
 ```
 Coverage chunk 3 modules: `bloco_auth/jwt_utils.py` 87%, `bloco_auth/passwords.py` 97%. `bloco_auth/middleware.py`, `models.py`, `db.py` 0% (esperado — tests entram chunks 4+ via integration). Coverage global 44% (gate ≥ 80% é em chunk 8 closure conforme Story AC-08).
+
+**Chunk 5 — pytest 28 passed (chunks 3+4 unit + 5 unit) + 4 skipped (chunk 4 integration):**
+```
+tests/unit/test_jwt.py ........        8 passed
+tests/unit/test_bcrypt.py ..........  10 passed
+tests/unit/test_dpa_hash.py ..........  10 passed
+tests/integration/test_auth_rls_isolation.py ssss  4 SKIPPED (DATABASE_URL ausente)
+======== 28 passed, 4 skipped in 3.05s ========
+```
+DPA endpoints registrados em `bloco_interface/web/app.py` — 31 routes total (28 prev + 3 DPA). Sintaxe + imports verificados. Triple insert atomic em `complete_onboarding` (tenant + user + dpa_acceptance) requer DB para validação E2E — segue padrão deferred até qa-gate G5.
 
 **Chunk 4 — pytest 22 collected: 18 passed (chunks 3) + 4 SKIPPED (chunk 4 deferred):**
 ```
@@ -420,6 +445,16 @@ Ainda assim, sintaxe + imports validados via `python -c "from bloco_auth import 
     - `_get_algorithm()` lê `JWT_ALGORITHM` env sem whitelist explícito; PyJWT default rejeita `"none"` algorithm — defesa adequada via biblioteca, mas explícito seria mais robusto
 - **Action item:** Operator/CC.43 follow-up para instalar CodeRabbit CLI (TECH-DEBT.md entry) + re-run full review em chunk 8 story closure
 
+**Chunk 5 — DEFERRED (CodeRabbit CLI ausente padrão) + Self-critique manual:**
+- **0 CRITICAL detectados** — path traversal mitigation explícito (`_SEMVER_RE` ANTES de Path construction); audit chain swallow controlado (CC.39 hardening); query SQLAlchemy parametrized ORM; idempotent IntegrityError handling rollback graceful; pydantic `extra="forbid"` previne mass assignment
+- **0 HIGH detectados** — NFC normalization aplicada consistentemente; cache TTL com clear helper para tests; transaction atomicity preservada no triple insert; DPA texto endpoint sem auth limitado a info pública (não vaza tenant data)
+- **MEDIUM observations (TECH-DEBT.md candidates):**
+  - DPA texto v1.0.0.md é placeholder — Eric advogado redige conteúdo substantivo cross-domain paralelo (tracking: governance/legal/dpa-templates/v1.0.0.md `legal_review_status: PENDING`)
+  - Cache filesystem read sem lock — race condition teórica em cold start (Sprint 05+ pode introduzir asyncio.Lock se múltiplos workers)
+  - `accept_dpa` idempotent via pre-lookup + retry — em alta concorrência pode ter 2 reads + 1 INSERT falhado (não-CRITICAL, é safe — apenas overhead)
+  - GET /text/{version} cache global compartilhado entre tenants (não problema — texto é público)
+- **Action item:** Eric advogado redige texto substantivo v1.0.0 (cross-domain Eric responsabilidade LGPD operador)
+
 **Chunk 4 — DEFERRED (CodeRabbit CLI ausente confirmado chunk 3) + Self-critique manual:**
 - **0 CRITICAL detectados** — todas queries via SQLAlchemy ORM (parametrized — anti SQL injection); audit chain swallow exceptions controlado (CC.39 hardening pattern preservado); login mensagem genérica "Email ou senha inválidos" anti enumeration (Story Risk #5); IntegrityError → 409 Conflict graceful sem vazar schema details
 - **0 HIGH detectados** — `_audit` helper isola best-effort pattern; FastAPI `Depends(get_current_user)` reusado consistente; soft-delete preserva audit history; `extra="forbid"` em pydantic schemas previne mass assignment
@@ -436,7 +471,7 @@ Ainda assim, sintaxe + imports validados via `python -c "from bloco_auth import 
 
 - [x] **Chunk 3:** JWT + bcrypt foundation — `bloco_auth/jwt_utils.py` + `bloco_auth/passwords.py` + `bloco_auth/middleware.py` + `tests/unit/test_jwt.py` + `tests/unit/test_bcrypt.py` ✅ DONE 18/18 tests passing
 - [x] **Chunk 4:** Auth API + onboarding + RLS test — `bloco_auth/onboarding.py` + `bloco_auth/api.py` + `tests/integration/test_auth_rls_isolation.py` + `bloco_interface/web/app.py` modify ✅ DONE (Opção B hybrid — code committed, RLS BLOCKING test deferred until DB disponível para qa-gate G5)
-- [ ] **Chunk 5:** DPA flow — `bloco_auth/dpa.py` + 3 endpoints + `governance/legal/dpa-templates/v1.0.0.md` placeholder + tests
+- [x] **Chunk 5:** DPA flow ADR-019 — `bloco_auth/dpa.py` + 3 endpoints + `governance/legal/dpa-templates/v1.0.0.md` placeholder + `tests/unit/test_dpa_hash.py` + `complete_onboarding` triple insert atomic ✅ DONE 10/10 unit tests passing (Eric advogado redige texto substantivo paralelo)
 - [ ] **Chunk 6:** UI templates — 4 onboarding steps + login.html + onboarding.css OrSheva (Sati S2/S1 wireframes)
 - [ ] **Chunk 7:** Integration + E2E — `test_onboarding_e2e.py` + `test_users_crud.py` + `test_login_jwt.py` + coverage ≥ 80%
 - [ ] **Chunk 8:** Story closure — DoD checkboxes 10/10 + Change Log + status Ready → InReview
@@ -492,6 +527,7 @@ Após Eric merge PR #3 → @dev Neo pode iniciar implementation imediatamente (s
 | 2026-05-07 | @dev Neo | Phase 7.2.1-2 — Chunks 1-2 implementados (setup environment + DB foundation): pyproject.toml deps, bloco_auth + bloco_database packages, migration SQL canônica (3 tabelas + 4 RLS policies + 7 indexes), SQLAlchemy 2.0 async models, async engine + RLS context helper. 6 files novos + 2 modified. Chunks 3-8 pendentes. |
 | 2026-05-07 | @dev Neo | Phase 7.2.3 — Chunk 3 (JWT + bcrypt foundation) implementado: jwt_utils.py (PyJWT HS256 + JWTPayload pydantic + ConfigError eager validation), passwords.py (raw bcrypt 4.x — passlib droppado por incompat), middleware.py (FastAPI Depends 401 RFC 6750), test_jwt.py 8 tests + test_bcrypt.py 10 tests = 18/18 passing. Coverage local jwt_utils 87% + passwords 97%. CodeRabbit deferred (CLI não instalado) — self-critique manual: 0 CRITICAL/0 HIGH. 5 files novos + 1 modified (pyproject.toml). |
 | 2026-05-08 | @dev Neo | Phase 7.2.4 — Chunk 4 (Auth API + onboarding + RLS test) implementado: onboarding.py (4 pydantic schemas + validate_cnpj módulo 11 + ping_anthropic_api httpx + state machine in-memory + complete_onboarding async transaction), api.py (8 endpoints FastAPI + audit chain `_audit` helper com tenant_id payload), bloco_interface/web/app.py modify (lifespan validate_config + include_router), tests/integration/test_auth_rls_isolation.py 4 tests (RLS BLOCKING #1 + DPA isolation + JWT required + audit event). Docker daemon offline → Opção B hybrid: tests skipped explicitly com marker para qa-gate G5. pytest 22 collected = 18 passed (chunks 3) + 4 skipped (chunk 4 deferred). 4 files novos + 1 modified (web/app.py). ACs implementados: AC-01/02/03/04/05/07. AC-06 + AC-08 pendentes (chunks 5/7). |
+| 2026-05-08 | @dev Neo | Phase 7.2.5 — Chunk 5 (DPA flow ADR-019 — fecha AC-06) implementado: dpa.py (3 endpoints + compute_dpa_hash NFC + get_dpa_text cache TTL 5min + accept_dpa idempotent transaction-aware), governance/legal/dpa-templates/v1.0.0.md (placeholder estrutural 9 seções LGPD operador — Eric advogado redige paralelo), tests/unit/test_dpa_hash.py 10 tests (deterministic + NFC + format + cache + path traversal). Modify complete_onboarding triple insert atomic (tenant + user + dpa_acceptance). 31 routes registradas (28 prev + 3 DPA). pytest 28 passed (3+4+5 unit) + 4 skipped (chunk 4 integration). 3 files novos + 3 modified. AC-06 ✅. AC-08 pendente (chunk 7). |
 
 ---
 
