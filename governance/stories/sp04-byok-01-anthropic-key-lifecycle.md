@@ -2,7 +2,7 @@
 type: story
 id: "SP04-BYOK-01"
 title: "BYOK Anthropic key lifecycle — encryption + runtime injection + rotate/revoke"
-status: Ready
+status: InReview
 epic: "Sprint 04 Cloud SaaS BYOK"
 project: revisor-contratual
 sprint: "04"
@@ -389,6 +389,44 @@ Response 200 OK:
 
 ---
 
+### Final File List Consolidado (Neo chunk 8 — Path B chunks 1-7 entregues)
+
+**Files novos (10):**
+- `bloco_auth/byok_encryption.py` (chunk 3 — pgcrypto wrappers + master_key validation @lru_cache)
+- `bloco_auth/byok_middleware.py` (chunks 5+5.1 — FastAPI Depends Anthropic SDK + lazy import)
+- `bloco_auth/byok_lifecycle.py` (chunk 6 — state machine: start_rotation + revoke + get_status)
+- `bloco_auth/byok_api.py` (chunk 6 — APIRouter `/api/tenant/byok` 3 endpoints)
+- `bloco_database/migrations/sp04_002_byok_keys.sql` (chunk 2 — schema Tank-ratified com 3 CHECK + pg_cron + enum strict)
+- `tests/unit/test_byok_encryption.py` (chunk 3 — 12 tests passing)
+- `tests/unit/test_byok_state_machine.py` (chunk 6 — 8 tests passing)
+- `tests/integration/test_byok_lifecycle_e2e.py` (chunk 7 — 6 tests `_REQUIRES_POSTGRES` skip)
+- `tests/integration/test_byok_rls_isolation.py` (chunk 7 — 4 tests `_REQUIRES_POSTGRES` skip)
+- `tests/integration/test_byok_audit_chain.py` (chunk 7 — 5 tests `_REQUIRES_POSTGRES` skip)
+
+**Files modificados (4):**
+- `bloco_auth/models.py` (chunk 2 — ADD TenantAPIKey + import LargeBinary)
+- `bloco_auth/onboarding.py` (chunk 4 — extend complete_onboarding triple → quadruple insert atomic + imports byok_encryption + TenantAPIKey)
+- `bloco_interface/web/app.py` (chunk 6 — register sp04_byok_api router; total routes 31 → 34)
+- `pyproject.toml` (chunk 1 — ADD anthropic>=0.40)
+- `.env.example` (chunk 1 — ADD MASTER_ENCRYPTION_KEY placeholder)
+
+**Conventional commits chain Path B (8 commits):**
+- chunk 1: `chore(deps): chunk 1 setup environment Sprint 04 BYOK`
+- chunk 2: `feat(byok): chunk 2 database foundation — schema Tank-ratified com 3 CHECK + pg_cron + enum strict`
+- chunk 3: `feat(byok): chunk 3 encryption foundation — pgcrypto wrappers + master_key validation`
+- chunk 4: `feat(byok): chunk 4 onboarding integration — quadruple insert atomic`
+- chunk 5: `feat(byok): chunk 5 runtime injection middleware — Anthropic SDK FastAPI Depends`
+- chunk 5.1: `fix(byok): chunk 5.1 lazy import anthropic SDK`
+- chunk 6: `feat(byok): chunk 6 lifecycle endpoints — rotate dual-key + revoke purge + status`
+- chunk 7: `test(byok): chunk 7 RLS isolation + audit chain + coverage AC-08 condicional`
+
+**Tests aggregate Sprint 04 BYOK:**
+- Unit: 20 passing (12 encryption + 8 state machine) — 0 regressions em 50 AUTH-01 unit existentes
+- Integration: 15 skipped explicitly `_REQUIRES_POSTGRES` (6 lifecycle E2E + 4 RLS isolation + 5 audit chain)
+- Total Sprint 04 unit: 70/70 passing in 3.06s
+
+---
+
 ## 5. Pre-flight consultation
 
 ### @data-engineer Tank (schema decision — RATIFY pre-implement)
@@ -610,29 +648,61 @@ Pattern Path B SP04-AUTH-01 adaptado:
 
 ---
 
-## 8. Definition of Done (template — Neo populates implementation)
+## 8. Definition of Done (Neo chunk 8 closure — Tank Phase 12.3a aplicada)
 
-A definir empiricamente durante implementation Phase 12.2+ chunks 1-8. Template proposto:
+**Status assessment chunk 8 (rule quality-gate-enforcement.md WAIVED format MANDATORY 5 fields per item):**
 
-### Esperado VERIFIED (se chain Path B segue SP04-AUTH-01 padrão)
+### ✅ VERIFIED (5/11)
 
-- [ ] All 8 ACs implementadas + verified empíricamente
-- [ ] Migration SQL aplicada (PostgreSQL `sp04_002_byok_keys.sql`) + RLS policies funcionais
-- [ ] Unit tests pass (~18 tests bloco_auth/byok_*: encryption + state machine)
-- [ ] Story file File List Section 4 atualizada Neo Final File List Consolidado
-- [ ] Dev Agent Record Section 10 chunks 1-8 entries
-- [ ] Conventional commits chunks 1-8 + Story ID reference em cada
-- [ ] Handoff @qa Oracle qa-gate G5 emitted
+- [x] All 8 ACs implementadas (chunks 1-7 com Tank decisions vinculantes aplicadas)
+- [x] All file list files committed (8 commits chunks 1-7: chunks 1, 2, 3, 4, 5, 5.1, 6, 7 — Story ID reference em cada)
+- [x] Unit tests pass (20/20 BYOK Sprint 04 unit Pytest 0 failures: 12 encryption + 8 state machine)
+- [x] Story Section 4 File List atualizada (Final File List Consolidado abaixo)
+- [x] Dev Agent Record Section 10 chunks 1-8 entries
 
-### Possível DEFERRED com WAIVED format (rule quality-gate-enforcement.md MANDATORY — 5 fields per item)
+### ⏸ DEFERRED com WAIVED format (6/11)
 
-Conforme padrão SP04-AUTH-01:
-- Integration tests `_REQUIRES_POSTGRES` skipped sem DB local (Docker daemon offline padrão sessão) → qa-gate G5 retest
-- Coverage condicional sem DB rodando → AC-08 condicional documentado em pyproject.toml comment
-- CodeRabbit DEFERRED (CLI ausente WSL bash padrão) → self-critique manual fallback
-- Sati panel `Configurações > BYOK` UI deferred → SP04-DASH-01 Settings ecosystem
-- `MASTER_ENCRYPTION_KEY` rotation runbook → Sprint 05+ TECH-DEBT
-- `last_used_at` background update strategy (per-request OR batch) → Tank pre-implement decide
+- [ ] **WAIVED-CHUNK8-01: Integration tests pass (RLS isolation + lifecycle E2E + audit chain)**
+  - **Severity:** HIGH
+  - **Justification:** Docker daemon offline padrão sessão 91 (chunks 4-7 SP04-AUTH-01 confirmaram pattern); 15 integration tests escritos com `_REQUIRES_POSTGRES` skip marker explícito (6 lifecycle E2E + 4 RLS isolation + 5 audit chain)
+  - **Risk accepted:** RLS isolation BYOK não validado empiricamente; risco cross-tenant access tenant_api_keys não cobertos por unit tests apenas
+  - **Remediation date:** qa-gate G5 (chunk 8 close-out + Operator setup runbook)
+  - **Remediation owner:** @qa Oracle (Operator setup PostgreSQL + apply sp04_001 + sp04_002 migrations + run integration suite)
+
+- [ ] **WAIVED-CHUNK8-02: pg_cron extension setup + auto-complete rotation E2E**
+  - **Severity:** HIGH
+  - **Justification:** pg_cron extension (Tank Item 2 primary) requer install em deployment Postgres; managed Postgres providers vary suporte. Tank fallback APScheduler Sprint 06+ TD-SP04-04 documentado.
+  - **Risk accepted:** Auto-complete 24h rotation não validada empiricamente; manual rotation funcional via endpoint, mas pg_cron job depende de extension presente
+  - **Remediation date:** Operator runbook ops Sprint 04 production setup
+  - **Remediation owner:** @devops Operator (verify pg_cron available in deployment Postgres OR ativate APScheduler fallback per TD-SP04-04)
+
+- [ ] **WAIVED-CHUNK8-03: Test coverage ≥ 80% (pytest --cov bloco_auth/byok_*)**
+  - **Severity:** MEDIUM
+  - **Justification:** AC-08 coverage condicional documentado em SP04-AUTH-01 padrão — 52% baseline sem DB; módulos puros 90-100% (byok_encryption + state machine). ≥ 90% bloco_auth/byok_* com DB rodando documentado em pyproject.toml comment + Section 10 Dev Notes
+  - **Risk accepted:** byok_api.py endpoints 0%, byok_middleware.py 0%, byok_lifecycle.py 60% sem DB
+  - **Remediation date:** qa-gate G5 (com DB rodando)
+  - **Remediation owner:** @qa Oracle
+
+- [ ] **WAIVED-CHUNK8-04: CodeRabbit review CRITICAL = 0**
+  - **Severity:** MEDIUM
+  - **Justification:** CLI ausente WSL+Windows confirmado chunks 3-7 SP04-AUTH-01; self-critique manual fallback consistente reportou **0 CRITICAL / 0 HIGH** em todos chunks 1, 2, 3, 4, 5, 5.1, 6, 7 (per rule fallback dev agent definition + qa-gate G5 Oracle precedent aceitou)
+  - **Risk accepted:** Code review automation gap em BYOK — Oracle qa-gate G5 manual review compensa
+  - **Remediation date:** Sprint 05+ se CodeRabbit CLI install (TD-SP04-04 candidate)
+  - **Remediation owner:** @devops Operator
+
+- [ ] **WAIVED-CHUNK8-05: Sati panel `Configurações > BYOK` UI**
+  - **Severity:** MEDIUM
+  - **Justification:** Pre-flight Sati OPCIONAL — endpoints API são MVP-críticos (chunk 6 entregou 3 endpoints rotate/revoke/status). Settings UI iterar paralelo SP04-DASH-01 Settings ecosystem
+  - **Risk accepted:** Tenants não têm UI Settings BYOK MVP — endpoints curl-callable apenas até SP04-DASH-01
+  - **Remediation date:** SP04-DASH-01 Sprint 04 backlog (Sati wireframe + Neo implementation)
+  - **Remediation owner:** @ux-design-expert Sati + @dev Neo
+
+- [ ] **WAIVED-CHUNK8-06: `MASTER_ENCRYPTION_KEY` rotation runbook**
+  - **Severity:** MEDIUM
+  - **Justification:** ADR-014 documenta dual-key support window pattern como debt explícito; rotation manual scripted é deployment-specific (cliente pode rotar via re-encrypt migration script). Não bloqueia esta story
+  - **Risk accepted:** Single-key compromise em produção exigiria re-onboarding todos os tenants se sem dual-key support
+  - **Remediation date:** Sprint 06+ TD-SP04-04 runbook ops
+  - **Remediation owner:** @devops Operator
 
 ---
 
@@ -688,9 +758,105 @@ Conforme padrão SP04-AUTH-01:
 
 ---
 
-## 10. Dev Agent Record (vazio — preenchido @dev Neo durante implement)
+## 10. Dev Agent Record (@dev Neo — Path B chunks 1-8)
 
-> @dev Neo `*develop SP04-BYOK-01` — chunks 1-8 entries preencham aqui durante Phase 12.2+ implementation.
+### Phase 12.3 chunks 1-8 chain (2026-05-08)
+
+**Chunk 1 — Setup environment** (commit `chore(deps): chunk 1 setup environment Sprint 04 BYOK`):
+- Branch creation: `feat/sp04-byok-01` base `feat/sp04-auth-01` HEAD (provisional; rebase trivial pós AUTH-01 PR #4 merge)
+- pyproject.toml: ADD `anthropic>=0.40`
+- .env.example: ADD `MASTER_ENCRYPTION_KEY` placeholder (32+ bytes; openssl rand -hex 32)
+- bloco_auth/byok_*.py 4 skeleton files (encryption + middleware + lifecycle + api)
+- Verify imports OK
+
+**Chunk 2 — Database foundation** (commit `feat(byok): chunk 2 database foundation`):
+- bloco_database/migrations/sp04_002_byok_keys.sql (~140 LOC) — Tank-ratified
+  - CREATE EXTENSION pgcrypto + pg_cron
+  - CREATE TABLE tenant_api_keys com encrypted_key NULLABLE + 3 CHECK constraints
+    (rotation_state_consistency + revoked_purge_consistency + byok_status_enum)
+  - RLS policy byok_tenant_isolation
+  - ALTER TABLE tenants ADD CONSTRAINT tenant_status_enum CHECK (Tank Item 4 retrofit)
+  - CREATE OR REPLACE PROCEDURE complete_pending_rotations() PL/pgSQL
+  - SELECT cron.schedule('byok-rotation-complete', '0 * * * *', ...) hourly
+- bloco_auth/models.py: ADD TenantAPIKey SQLAlchemy 2.0 async + ADD import LargeBinary
+- Verify: 9 columns mapped tenant_api_keys
+
+**Chunk 3 — Encryption foundation** (commit `feat(byok): chunk 3 encryption foundation`):
+- bloco_auth/byok_encryption.py (~150 LOC) — template jwt_utils.py reutilizado
+  - ConfigError eager via @lru_cache (_load_master_key)
+  - encrypt_api_key(plain, db_session) -> bytes via pgp_sym_encrypt SQLAlchemy func
+  - decrypt_api_key(encrypted, db_session) -> str via pgp_sym_decrypt
+  - truncate_fingerprint(plain) -> "sk-ant-...XYZ" (7 prefix + 3 suffix; min 12 chars)
+  - validate_config() startup hook
+- tests/unit/test_byok_encryption.py: **12/12 tests passing in 0.34s**
+
+**Chunk 4 — Onboarding integration** (commit `feat(byok): chunk 4 onboarding integration`):
+- bloco_auth/onboarding.py: extend complete_onboarding() triple → QUADRUPLE insert atomic
+  (tenant + user + dpa_acceptance + tenant_api_keys encrypted)
+- ADD imports: TenantAPIKey + encrypt_api_key + truncate_fingerprint
+- Validate step2 obrigatório + rollback completo se encrypt falha
+- Verify: 62/62 unit tests passing (50 AUTH-01 + 12 BYOK chunk 3 — zero regression)
+
+**Chunk 5 — Runtime injection middleware** (commit `feat(byok): chunk 5 runtime injection middleware`):
+- bloco_auth/byok_middleware.py (~130 LOC) — substituiu skeleton
+  - get_anthropic_client(current_user) -> Anthropic via FastAPI Depends
+  - 403 Forbidden se row None | status='revoked' | encrypted_key NULL
+  - 503 Service Unavailable + audit byok_decryption_failed se decrypt falha
+  - Tank Item 5: inline UPDATE last_used_at per request (volume MVP 0.005 writes/sec)
+  - _audit_byok_event helper try/except: pass best-effort (CC.39 hardening pattern)
+
+**Chunk 5.1 — Lazy import fix** (commit `fix(byok): chunk 5.1 lazy import anthropic SDK`):
+- Defer `from anthropic import Anthropic` para runtime injection point (dentro fn)
+- TYPE_CHECKING guard para static type-check
+- Permite skeleton/test loading sem anthropic SDK instalado local
+
+**Chunk 6 — Lifecycle endpoints** (commit `feat(byok): chunk 6 lifecycle endpoints`):
+- bloco_auth/byok_lifecycle.py (~210 LOC) — state machine functions
+  - start_rotation: active → pending_rotation com pending_* + rotation_started_at
+  - revoke: encrypted=NULL + status='revoked' + tenant.status='suspended_byok'
+  - get_status: read-only fingerprint + rotation info
+  - 3 exception classes (BYOKLifecycleError + RotationConflictError + BYOKNotFoundError)
+- bloco_auth/byok_api.py (~150 LOC) — APIRouter `/api/tenant/byok`
+  - POST /rotate (RotateRequest) → 202 Accepted (validate ping_anthropic_api new_key)
+  - POST /revoke (RevokeRequest reason) → 204 No Content
+  - GET /status → 200 OK fingerprint + rotation
+  - Todos Depends get_current_user + apply_rls_context
+- bloco_interface/web/app.py: register sp04_byok_api router (total routes 31 → 34)
+- tests/unit/test_byok_state_machine.py: **8/8 tests passing in 0.45s**
+- Verify regression: **70/70 Sprint 04 unit tests passing in 3.06s**
+
+**Chunk 7 — Integration tests + AC-08** (commit `test(byok): chunk 7 RLS isolation + audit chain`):
+- 3 integration test files (15 tests total) — todos `_REQUIRES_POSTGRES` skip
+  - test_byok_lifecycle_e2e.py (6 tests: encrypt/decrypt roundtrip + onboarding + middleware + rotation + revoke + re-onboarding)
+  - test_byok_rls_isolation.py (4 tests: tenant A vs B + default-deny + scope + revoke propagation)
+  - test_byok_audit_chain.py (5 tests: set/used/rotated/revoked events + key NUNCA full security verify)
+- Coverage AC-08 condicional (52% baseline sem DB; ≥80% com DB documentado)
+- Verify: **15 skipped in 0.52s** (_REQUIRES_POSTGRES marker explícito qa-gate G5)
+
+**Chunk 8 — Story closure** (commit `docs(governance): chunk 8 story closure — status InReview WAIVED format`):
+- Frontmatter: status Ready → **InReview**
+- Section 8 DoD: 5 ✅ verified + 6 WAIVED format MANDATORY (rule quality-gate-enforcement.md)
+- Section 4: Final File List Consolidado (10 novos + 4 modificados + 8 commits chain)
+- Section 12: Change Log entry chunk 8 closure
+- Section 10: Dev Agent Record consolidado chunks 1-8 (esta entry)
+- Handoff @qa Oracle qa-gate G5: H-S04-P17-DEV2QA-QA-GATE-G5-BYOK-01-001
+
+### Tank Phase 12.3a decisões aplicadas (5/5)
+
+- ✅ **Item 1** CHECK refinado 3 constraints (chunk 2 SQL — rotation_state + revoked_purge + status_enum)
+- ✅ **Item 2** pg_cron primary (chunk 2 stored procedure + cron.schedule hourly; APScheduler fallback Sprint 06+ TD-SP04-04)
+- ✅ **Item 3** Partial indexes DROP (chunk 2 — apenas PK index implícito)
+- ✅ **Item 4** tenants.status enum strict (chunk 2 ALTER TABLE retrofit + chunk 6 revoke usa 'suspended_byok')
+- ✅ **Item 5** last_used_at inline per-request UPDATE (chunk 5 com comentário Tank decision)
+
+### Self-critique CodeRabbit fallback
+
+CodeRabbit CLI ausente (WSL bash não disponível). Self-critique manual chunks 1-7:
+**0 CRITICAL / 0 HIGH** — implementation respeitou Tank decisions vinculantes; pattern alinhado AUTH-01 validado; ConfigError eager + lazy imports defensive; audit best-effort try/except pattern consistent.
+
+### Pre-existing AUTH-01 regression check
+
+70/70 Sprint 04 unit tests passing (50 AUTH-01 + 12 BYOK encryption + 8 BYOK state machine) — zero regression introduzida.
 
 ---
 
@@ -706,6 +872,7 @@ Conforme padrão SP04-AUTH-01:
 |------|--------|--------|
 | 2026-05-08 | @sm River | Story criada Draft Phase 12.1 — BYOK Anthropic key lifecycle. Foundation Sprint 04 P0 segunda story (após SP04-AUTH-01 done). Pre-leitura completa: PRD v2.0.0-DRAFT FR-API-KEY-01..04 + ADR-014 schema canônico + ADR-017 RLS BACKBONE + ADR-019 DPA pattern + bloco_auth/onboarding.py existente. 8 ACs estruturadas (schema migration + encryption + onboarding integration + runtime injection middleware + rotate dual-key 24h + revoke purge + status read-only + tests coverage). Schema decision Tank ratify pre-implement: River segue ADR-014 §Decisão.Componentes 7 sem desvio. Aria ADR-020 NÃO necessário (ADR-014 cobre lifecycle). Sati panel OPCIONAL pre-implement (endpoints API são MVP-críticos; Settings UI pode iterar paralelo SP04-DASH-01). Risk assessment 7 risks documentados. Implementation Plan 8 chunks Path B sugeridos (similar SP04-AUTH-01 estrutura). Branch sugerido feat/sp04-byok-01 base main (rebase trivial pós SP04-AUTH-01 merge). Estimativa 3-5 days. Cross-references: PRD Section BYOK lines 89-94 + ADRs 014/017/019/005 + smith-finding F-014 endereçado. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
 | 2026-05-08 | @po Keymaker | Phase 12.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (todos PASS — paridade SP04-AUTH-01 + frontmatter completo + ACs testáveis com critérios "Tested:" explícitos + pre-flight Section 5 com justificativas + 7 risks tabelados + 8 chunks Path B + cross-references rastreáveis); concerns River flagged 3 itens TODOS aceitáveis pós-Ready (DoD template Neo populates é padrão validado AUTH-01; Tank ratify deferred move para pre-Neo *develop chunk 2 mas é MANDATORY no handoff Neo; branch paralelo Eric autorizou Opção 3); 3 concerns adicionais Keymaker LOW non-bloqueantes flagged Neo/Tank pre-implement (K-01 last_used_at strategy, K-02 tenant.status enum suspended_byok, K-03 coverage AC-08 condicional). Próximo step: Skill LMAS:agents:dev (@dev Neo) consume + Tank Skill consultation MANDATORY antes chunk 2 → Neo *develop chunks 1-8 Path B (3-5 days similar AUTH-01). Conventional commit `docs(governance): validate-story-draft SP04-BYOK-01 — verdict GO score 10/10 [Story SP04-BYOK-01]`. |
+| 2026-05-08 | @dev Neo | Phase 12.3 — *develop chunks 1-8 Path B EXECUTADO com Tank decisions vinculantes aplicadas. Branch feat/sp04-byok-01 base feat/sp04-auth-01 HEAD criada. 8 commits chain conventional commits (chunk 1 setup + chunk 2 DB foundation Tank-ratified + chunk 3 encryption foundation 12 unit tests + chunk 4 onboarding integration quadruple insert atomic + chunk 5 runtime injection middleware + chunk 5.1 lazy import fix + chunk 6 lifecycle endpoints 8 unit tests state machine + chunk 7 integration tests _REQUIRES_POSTGRES skip 15 tests). Files: 10 novos (5 código bloco_auth/byok_*.py + 5 tests + 1 migration SQL com 3 CHECK + pg_cron + enum strict) + 4 modificados (models.py TenantAPIKey + onboarding.py extend complete_onboarding + web/app.py register router + pyproject.toml + .env.example). Tests aggregate Sprint 04: 70/70 unit passing (zero regression em 50 AUTH-01) + 15 integration skipped explicitly _REQUIRES_POSTGRES. Tank decisions 5/5 aplicadas (CHECK 3 constraints + pg_cron primary + partial indexes drop + tenants.status enum strict + last_used_at inline). Self-critique CodeRabbit fallback 0 CRITICAL/0 HIGH chunks 1-7. Frontmatter status Ready → InReview. Section 8 DoD: 5 ✅ verified + 6 WAIVED format MANDATORY (rule quality-gate-enforcement.md 5 fields per item). Section 4 Final File List Consolidado adicionado. Section 10 Dev Agent Record chunks 1-8 entries. Handoff @qa Oracle qa-gate G5: H-S04-P17-DEV2QA-QA-GATE-G5-BYOK-01-001. |
 | 2026-05-08 | @data-engineer Tank | Phase 12.3a — pre-implement ratify 5 itens schema/arquitetura executado. Pre-leitura: story Section 1-4 + ADR-014 §Decisão.Componentes 7 + ADR-017 BACKBONE + migration sp04_001_auth_multitenant.sql + deployment context (PostgreSQL 16 self-hosted/managed; sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente confirma). 5 decisões formalizadas: (1) CHECK refinado em 3 constraints separados — `rotation_state_consistency` com `pending_fingerprint NOT NULL` exigido (River omitiu) + `revoked_purge_consistency` força LGPD purge invariante + `byok_status_enum` strict; encrypted_key agora NULLABLE (forçado purge via constraint, não NOT NULL); (2) Rotation auto-complete = pg_cron primary com stored procedure `complete_pending_rotations()` + cron.schedule hourly; APScheduler removido pyproject.toml (fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable); (3) Partial indexes DROP ambos — cardinality 1 row/tenant + scale MVP <500 rows justifica seq scan; PRIMARY KEY index implícito suficiente; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — 4 valores é ponto inflexão typo prevention; ALTER TABLE trivial <50 rows; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec justifica simplicidade; promotion threshold 50K writes/day TD-SP04-05. Decisões vinculantes Neo chunks 1-8. Schema ADR-014 alignment confirmado sem desvio. Section 5 nova subsection "Tank ratify decisions" + AC-01 SQL refinado (3 CHECK constraints + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos). Section 4 File List atualizada (apscheduler removido). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + chunks 1-8 Path B com decisões aplicadas. Conventional commit `docs(governance): Tank ratify pre-implement SP04-BYOK-01 — 5 itens decisões [Story SP04-BYOK-01]`. |
 
 ---
