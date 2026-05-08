@@ -26,10 +26,14 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from uuid import UUID
 
-from anthropic import Anthropic
+from typing import TYPE_CHECKING
+
 from fastapi import Depends, HTTPException, status
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+if TYPE_CHECKING:
+    from anthropic import Anthropic  # type-only import (lazy runtime)
 
 from bloco_auth.byok_encryption import decrypt_api_key
 from bloco_auth.middleware import get_current_user
@@ -71,7 +75,7 @@ async def _audit_byok_event(
 
 async def get_anthropic_client(
     current_user: tuple[UUID, UUID] = Depends(get_current_user),
-) -> Anthropic:
+) -> "Anthropic":
     """FastAPI Depends — decrypta api_key tenant ativo + retorna Anthropic SDK instance.
 
     **Não** recebe ``db_session`` via Depends pois isto criaria deps cycle no
@@ -137,6 +141,10 @@ async def get_anthropic_client(
         )
 
         await db_session.commit()
+
+    # Lazy import — anthropic SDK só requer instalado em runtime quando inference
+    # call ocorre. Permite skeleton/test loading sem deps instalados.
+    from anthropic import Anthropic  # noqa: PLC0415
 
     return Anthropic(api_key=plain_key)
 
