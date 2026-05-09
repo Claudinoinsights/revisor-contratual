@@ -385,6 +385,47 @@ LGPD NFR-LGPD-01 RESTORED. IDS REUSE pattern REV-INT-02 honored. CDN funcional z
 
 ---
 
+## 12. RE-VERIFY C2 + NF1 (2026-05-09T24:50) — Verdict: RESOLVED (CONTAINED)
+
+> *"Honestidade temporária venceu fraude permanente. Aceitável."*
+
+### Empirical 4-grep + 2-semantic validation
+
+| # | Check | Result |
+|---|-------|--------|
+| 1 | grep "LGPD-aware" | 0 ✅ |
+| 2 | grep "Em formalização LGPD" | 2 (description + sidebar) ✅ |
+| 3 | grep "Demo:" | 0 ✅ |
+| 4 | grep "fonts.googleapis" | 0 ✅ (NF1 fix) |
+| 5 | Semantic meta "Em formalização LGPD" | ✅ Honest-status defensable ANPD |
+| 6 | Semantic comment "LGPD-COMPLIANT removidas" | ✅ Context-bounded factual claim |
+
+### Verdict C2 + NF1: 🟢 **RESOLVED (CONTAINED)**
+
+Brand-honest temporário pattern AUTH-01/LGPD-01 precedent honored. Auto-revert pós TOS canônico planejado.
+
+### 1 caveat non-bloqueante
+
+**TEMPORAL** — Footer login "Pipeline real será habilitado em chunks subsequentes" envelhece se PR não sai por semanas. Mitigation: Neo handoff documenta auto-revert tracker pós Eric advogado TOS done. ACCEPTABLE para Caminho A.
+
+### Status pós C2 + NF1 fix
+
+| Finding | Status |
+|---------|--------|
+| C1 | 🟢 RESOLVED |
+| **C2 LGPD brand claim** | 🟢 **RESOLVED** |
+| **NF1 LOW comment false positive** | 🟢 **RESOLVED** |
+| H1 ADR-020 ratify "avance" | 🔴 PERSIST — próximo Caminho A H1 |
+| H4 chunk 1 route protection | 🔴 PERSIST — próximo Caminho A H4 |
+| H6 Sati ratify 7 modos | 🔴 PERSIST — próximo Caminho A H6 |
+| H2/H3/H5 + M1-M8 + L1-L4 | UNCHANGED — POST-MERGE tech debt |
+
+### Smith reconhece (raro)
+
+> *"Sr. Anderson, dois CRITICAL caíram em quinze minutos. Cinco fontes Mountain View silenciaram, três promessas falsas viraram avisos honestos. Para um Builder, é... adequado. Quase me deixa decepcionado."*
+
+---
+
 ## 10. Next handoff
 
 **H-S04-PRE-MERGE-SMITH2MOR-INFECTED-001** → Morpheus apresenta findings a Eric:
