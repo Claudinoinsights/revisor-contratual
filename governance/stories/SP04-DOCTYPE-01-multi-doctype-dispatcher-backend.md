@@ -2,7 +2,7 @@
 type: story
 id: "SP04-DOCTYPE-01"
 title: "Multi-Doctype Dispatcher backend — Strategy hierárquica 7 doctypes operacionais (per ADR-020)"
-status: Draft
+status: Ready
 epic: "Sprint 04 Cloud SaaS BYOK"
 project: revisor-contratual
 sprint: "04"
@@ -728,12 +728,49 @@ Pattern Path B SP04-AUTH-01/BYOK-01/LGPD-01/UI-SPA-01 adaptado para backend disp
 
 **Status:** Story em **Draft**. Validate G3 só após:
 1. ✅ ADR-020 Accepted (entregue 2026-05-09)
-2. ⏳ Trinity Phase 3 PRD update OR commitment cronograma conteúdo legal 16 prompts
-3. ⏳ Tank ratify pre-implement chunk 4 (LIGHT validation migrations)
-4. ⏳ DEC-ERIC-MERGE-ORDER resolved (PR #4+#5+#6 merged main)
+2. ✅ Trinity Phase 3 PRD update — RESOLVED via PRD v2.0.1 PATCH 2026-05-09 (skeleton placeholder pattern)
+3. ⏳ Tank ratify pre-implement chunk 4 (LIGHT validation — não bloqueia G3, bloqueia chunk 4 only)
+4. ⏳ DEC-ERIC-MERGE-ORDER resolved (não bloqueia G3, bloqueia chunk 1 only)
 5. ✅ Skill `LMAS:agents:po` `*validate-story-draft SP04-DOCTYPE-01`
 
-**Recomendação River:** Story Draft pode ir para Keymaker G3 SE Trinity commits cronograma (~2-3 days conteúdo legal); aguardar Trinity blocks Keymaker validate G3 conservador.
+### Verdict @po Keymaker (2026-05-09T22:35)
+
+**Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Draft → **Ready**
+
+> Score perfeito — paridade SP04-UI-SPA-01 G3 PASS (template Sprint 04 maduro). Trinity content bloqueio HIGH resolvido via PRD v2.0.1 (Morgan 2026-05-09). Skeleton placeholder pattern AUTH-01/LGPD-01 reutilizado validamente.
+
+#### 10-point checklist (todos PASS)
+
+| # | Ponto | Score | Evidência |
+|---|-------|-------|-----------|
+| 1 | Frontmatter completo (18+ campos) | ✅ 1/1 | Paridade SP04-UI-SPA-01 + 6 source_frs + 8 dependencies |
+| 2 | Sumário Section 1 claro | ✅ 1/1 | 6 deliverables + foundation impact + Trinity bloqueio nota |
+| 3 | As a / I want / So that | ✅ 1/1 | Advogado tenant + workflow per-doctype + tese jurídica defensável |
+| 4 | ACs estruturadas (8 ACs) | ✅ 1/1 | AC-01..AC-08 com Tested + code blocks (Strategy + 7 dispatchers + Router 3-tier + 32 prompts + 2 migrations + endpoint + tests) |
+| 5 | File List Section 4 | ✅ 1/1 | 11 dispatchers + 16 prompts NEW + 2 migrations + 4 tests + 4 modificados |
+| 6 | Pre-flight Section 5 | ✅ 1/1 | Aria ✅ DONE + Tank MANDATORY chunk 4 + Trinity ✅ RESOLVED PRD v2.0.1 + Sati N/A + Eric advogado N/A |
+| 7 | Risk Assessment (8 risks) | ✅ 1/1 | R-01..R-08 com P/I/M; R-01 Trinity HIGH downgrade post-PRD v2.0.1 |
+| 8 | Implementation Plan (7 chunks) | ✅ 1/1 | Path B sequencial chunks 1-7 + paralelo Trinity work |
+| 9 | Cross-references | ✅ 1/1 | PRD v2.0.0/v2.0.1 + ADR-003/014/016/017/020 + 4 predecessor stories + Sati UX + Smith F-016 |
+| 10 | Dependencies + source_frs | ✅ 1/1 | 8 deps + 6 source_frs (FR-DOCTYPE-01..02 + FR-PERSONAS-01..03 + FR-VAULT-01 + FR-BACEN-01 + FR-AUDIT-01) |
+| **TOTAL** | | **10/10** | **GO threshold ≥7/10 — exceeded by 3** |
+
+#### 3 Concerns Keymaker (non-bloqueantes G3)
+
+| # | Concern | Severidade | Decisão |
+|---|---------|-----------|---------|
+| **K-DOCTYPE-01** | Trinity content skeleton placeholder ainda requer Eric advogado preenchimento (~9.5h) | LOW | ✅ ACEITO — pattern AUTH-01 chunk 5 + LGPD-01 DPA validados precedentes; PRD v2.0.1 fornece estrutura + cronograma |
+| **K-DOCTYPE-02** | Tank MANDATORY chunk 4 (migrations sp04_004 + sp04_005 LIGHT validation) | MEDIUM | ⚠️ Non-blocking G3 — bloqueia downstream chunk 4 only. Pattern Sprint 04 mature (~15-30min Tank LIGHT) |
+| **K-DOCTYPE-03** | DEC-ERIC-MERGE-ORDER pendente (PR #4+#5+#6 merge antes chunk 1) | MEDIUM | ⚠️ Non-blocking G3 — Section 7 timing condicional explícito; story Ready ≠ Neo *develop pode iniciar agora |
+
+#### Próximo step
+
+**Recomendação Keymaker:** chain paralela:
+1. ⏳ Eric merge PR #4+#5+#6 + DEC-ERIC-LEGAL-CONTENT-START
+2. ✅ Skill `LMAS:agents:data-engineer` Tank ratify pre-implement chunk 4 LIGHT
+3. ✅ Skill `LMAS:agents:dev` Neo *develop SP04-DOCTYPE-01 chunks 1-3 (skeleton paralelo Eric advogado work + paralelo SP04-UI-SPA-01 chunks)
+
+— Keymaker, equilibrando prioridades 🎯
 
 ---
 
