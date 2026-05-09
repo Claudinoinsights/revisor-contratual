@@ -5,7 +5,7 @@ project: revisor-contratual
 last_updated: "2026-05-09"
 status: active
 sprint: "04"
-etapa: "Phase 14.1 — ADR-020 Multi-Doctype Dispatcher v2 (DEC-ERIC-DIV-01 Opção A — supersedes ADR-016)"
+etapa: "Phase 14.1 — ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED (DEC-ERIC-DIV-01 + RATIFY Opção A formalizada — supersedes ADR-016)"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -104,7 +104,7 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 | [ADR-014](adr/adr-014-provider-abstraction-byok.md) | Provider Abstraction Anthropic + BYOK + pgcrypto — supersedes ADR-010 + ADR-011 | ✅ Accepted | 2026-05-07 | Atlas v2 Section 1 + Eric A1 Anthropic only Phase 1.7 |
 | [ADR-015](adr/adr-015-vision-ocr-architecture.md) | Vision OCR Architecture — Sonnet 4.6 vision + caching SHA-256 (partial supersede ADR-013) | ✅ Accepted | 2026-05-07 | Atlas v1 vision OCR landscape + Smith CC.41 RAM constraint |
 | ~~[ADR-016](adr/adr-016-multi-doctype-dispatcher.md)~~ | ~~Multi-Doctype Dispatcher Strategy — 4 doctypes (FIES/Veicular/Bancário/Imobiliário)~~ | 🔄 Superseded by ADR-020 | 2026-05-07 | Eric escopo B Phase 1.7.1 + Atlas v2 doctype strategy |
-| [ADR-020](adr/adr-020-multi-doctype-dispatcher-v2.md) | Multi-Doctype Dispatcher v2 — Strategy hierárquica 7 doctypes (CCB/Veículo/Consignado/Cartão/Imobiliário/FIES/Geral) com BancarioBaseStrategy + GeralDispatcher catch-all (level=spec) | 🟡 Proposed | 2026-05-09 | Eric SPA OrSheva 7 (DEC-ERIC-DIV-01 Opção A) — supersedes ADR-016 |
+| [ADR-020](adr/adr-020-multi-doctype-dispatcher-v2.md) | Multi-Doctype Dispatcher v2 — Strategy hierárquica 7 doctypes (CCB/Veículo/Consignado/Cartão/Imobiliário/FIES/Geral) com BancarioBaseStrategy + GeralDispatcher catch-all (level=spec) | ✅ Accepted | 2026-05-09 | Eric SPA OrSheva 7 (DEC-ERIC-DIV-01 + RATIFY Opção A) — supersedes ADR-016 |
 
 ### SaaS Pricing & Billing (Sprint 04)
 
@@ -142,8 +142,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas (accepted):** 14 (ADR-001..006, 008, 012, 014..015, 017..019) — ADR-016 superseded por ADR-020 em 2026-05-09
-- **ADRs proposed (aguardando Eric):** 1 (ADR-020 Multi-Doctype v2 — DEC-ERIC-DIV-01 Opção A formalização)
+- **ADRs ativas (accepted):** 15 (ADR-001..006, 008, 012, 014..015, 017..020) — ADR-016 superseded por ADR-020 em 2026-05-09 + ADR-020 ratify Accepted Eric (avance implícito 2026-05-09)
+- **ADRs proposed (aguardando Eric):** 0
 - **Sprint 03 Phase 0 ADRs:** 2 (ADR-012 Vault Data Bundling accepted; ADR-013 partial superseded por ADR-015)
 - **Sprint 04 ADRs novos:** 7 (ADR-014..019 + ADR-020 — pivot SaaS BYOK cloud + 7 doctypes UX)
 - **ADRs deprecadas/superseded:** 6 (ADR-007 → ADR-017, ADR-009 → ADR-017, ADR-010 → ADR-014, ADR-011 → ADR-014, ADR-013 partial → ADR-015, ADR-016 → ADR-020)

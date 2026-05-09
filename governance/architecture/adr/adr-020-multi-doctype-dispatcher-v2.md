@@ -2,13 +2,15 @@
 type: adr
 id: "ADR-020"
 title: "Multi-Doctype Dispatcher v2 — Strategy hierárquica com 7 doctypes operacionais (supersedes ADR-016)"
-status: proposed
+status: accepted
 date: "2026-05-09"
+accepted_by: "Eric Claudino (avance ratify implícito sessão 2026-05-09)"
+accepted_date: "2026-05-09"
 domain: software-dev/legaltech
 adr_level: spec
 decision_makers:
   - "@architect (Aria) — design"
-  - "Eric Claudino — autorização sidebar 7 modos UX (DEC-ERIC-DIV-01 = Opção A)"
+  - "Eric Claudino — autorização sidebar 7 modos UX (DEC-ERIC-DIV-01 = Opção A) + RATIFY Accepted (avance implícito 2026-05-09)"
 supersedes: "ADR-016"
 superseded_by: ""
 related_to:

@@ -6861,3 +6861,42 @@ R-01 (refactor backend BAIXA) + R-02 (vault gaps MÉDIA) + R-03 (cognitive load 
 PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-020 progress.
 
 — Aria, arquitetando o futuro 🏗️
+
+---
+
+## Sessão 2026-05-09 — Aria flip ADR-020 ACCEPTED (Eric ratify avance implícito)
+
+> Eric instrução: "avance com o recomendado sempre pela skill" → ratify implícito DEC-ERIC-ADR020-RATIFY (formalização Opção A já decidida em DEC-ERIC-DIV-01).
+
+### Flip executado
+
+- ✅ ADR-020 frontmatter: status proposed → **accepted**
+- ✅ Adicionados: `accepted_by: "Eric Claudino (avance ratify implícito sessão 2026-05-09)"` + `accepted_date: "2026-05-09"`
+- ✅ ADR-INDEX.md: linha ADR-020 🟡 Proposed → ✅ Accepted
+- ✅ Estatísticas: ADRs ativas 14 → **15** (ADR-020 added) + ADRs proposed 1 → **0**
+- ✅ Etapa: Phase 14.1 ACCEPTED status
+
+### Files
+
+- MOD `governance/architecture/adr/adr-020-multi-doctype-dispatcher-v2.md` (status flip + accepted fields)
+- MOD `governance/architecture/ADR-INDEX.md` (linha + estatísticas + etapa)
+- ADD `.lmas/handoffs/handoff-architect-to-sm-2026-05-09-adr-020-accepted-unblock-sp04-ui-spa-01.yaml`
+- MOD `.lmas/handoffs/handoff-architect-to-mor-2026-05-09-adr-020-proposed.yaml` (consumed: true)
+
+### Desbloqueios
+
+| Bloqueado por DIV-01 | Status pós-ADR-020 Accepted |
+|---------------------|------------------------------|
+| SP04-UI-SPA-01 AC-12 | ✅ DESBLOQUEADO — River patch + status Draft → Ready |
+| SP04-DOCTYPE-01 NEW (a draftar) | ✅ DESBLOQUEADO — River pode draftar paralelo |
+| Sati S4 wireframe 7 doctype variants | ✅ DESBLOQUEADO — post-hoc ratify acceptable |
+| Trinity Phase 3 PRD update conteúdo legal D3 | ✅ DESBLOQUEADO — paralelo cross-domain |
+
+### Próximo handoff
+
+**H-S04-ADR020-ARI2RIV-UNBLOCK-001** → @sm River:
+1. *patch-story SP04-UI-SPA-01 (5 sections edit ~10min) → status Draft → Ready
+2. Skill Keymaker validate G3 next
+3. (Opcional paralelo) *draft SP04-DOCTYPE-01 NEW Strategy refactor backend
+
+— Aria, arquitetando o futuro 🏗️
