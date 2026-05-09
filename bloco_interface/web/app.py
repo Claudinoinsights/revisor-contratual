@@ -480,11 +480,16 @@ async def global_exception_handler(request: Request, exc: Exception) -> HTMLResp
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    """SP04-UI-SPA-01 chunk 1 MINIMAL — serve SPA OrSheva 7 estático.
+    """SP04-UI-SPA-01 chunk 1 + chunk 1.7 H4 — SPA OrSheva 7 com dual-protection.
 
-    SPA decide login flow client-side (screen-login OR screen-app conforme cookie/state).
+    Preserva MVP-LEAN-01 Task 2 redirect /login (defense-in-depth) E serve SPA static.
+    SPA decide screen-login OR screen-app client-side conforme cookie/state.
     Templates Jinja2 antigos preserved como .legacy para rollback (SP04-UI-CLEANUP-01).
+    Pós SP04-AUTH-01 chunks 4 done (JWT cookie httpOnly), session check pode ser dropped.
     """
+    # MVP-LEAN-01 Task 2 — AC-MVP-01: route protection (sem session válida → /login)
+    if not request.session.get("user"):
+        return RedirectResponse("/login", status_code=303)
     spa_path = STATIC_DIR / "index.html"
     return HTMLResponse(content=spa_path.read_text(encoding="utf-8"))
 
