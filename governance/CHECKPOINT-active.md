@@ -7113,6 +7113,36 @@ Score perfeito — paridade SP04-UI-SPA-01 G3. Trinity bloqueio HIGH resolvido v
 
 ---
 
+## Sessão 2026-05-09 — Neo SP04-UI-SPA-01 chunk 1 MINIMAL DONE
+
+> Eric "avance com o recomendado sempre pela skill" → Opção C River minimal pragmático (override Section 7 timing).
+
+### Files
+
+- ADD `bloco_interface/web/static/index.html` (95KB SPA OrSheva 7 from raiz)
+- RENAME `templates/{index,login}.html` → `.legacy` (rollback)
+- MOD `bloco_interface/web/app.py` GET / handler (templates → HTMLResponse SPA static)
+- MOD story Section 8 DoD VERIFIED item 1 + Section 12 v1.1.1
+
+### Verify
+
+- ✅ `py_compile` OK
+- ⚠️ Ruff 1 finding pré-existente UP041 (não introduzido)
+- ❌ Pytest local Python 3.14 AppData sem pyjwt (CI Python 3.11+3.12 venv valida no push)
+- ✅ Visual smoke: `revisor-web` → GET / serve SPA
+
+### Override pragmático
+
+Chunk 1 executed em branch atual feat/sp04-lgpd-01 (chunks 2-7 ainda aguardam Section 7 timing original — Eric merge PR #4+#5 + branch nova feat/sp04-ui-spa-01).
+
+### Próximo handoff
+
+**H-S04-UI-SPA-NEO2MOR-CHUNK1-001** → Operator push + Eric visual test.
+
+— Neo, sempre construindo 🔨
+
+---
+
 ## Sessão 2026-05-09 — Tank Phase 14.6a LIGHT ratify DONE SP04-DOCTYPE-01
 
 > Eric "avance com o recomendado" → Skill `LMAS:agents:data-engineer` Tank ratify LIGHT.
