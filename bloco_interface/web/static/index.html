@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Revisor Contratual · OrSheva 7</title>
+<meta name="description" content="Análise revisional de contratos bancários com IA — diagnóstico iluminado, estrutura jurídica, consolidação revisional. BYOK · LGPD-aware · Validação humana obrigatória.">
+<meta name="theme-color" content="#EE6B20">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ===================== TOKENS (herdados do brandbook OrSheva 7) ===================== */
+:root{
+  --or-50:#FFF4EC; --or-100:#FFE3CF; --or-200:#FFC79E; --or-300:#FFA66B;
+  --or-400:#FF8A4C; --or-500:#EE6B20; --or-600:#D45710; --or-700:#AC4408;
+  --or-800:#7E3206; --or-900:#4F1F03;
+  --sh-50:#EEF2F8; --sh-100:#D6DEEC; --sh-200:#A8B7D0; --sh-300:#7990B4;
+  --sh-400:#4D6A93; --sh-500:#2C5380; --sh-600:#1A3A5C; --sh-700:#142E49;
+  --sh-800:#0E2138; --sh-900:#07142A;
+  --pearl:#F8F4ED; --bone:#E9E0D0; --stone:#B6AC9B; --ink:#0F0E0C;
+
+  --success-50:#E8F5EE; --success-500:#2F8F5C; --success-700:#1F6B42;
+  --danger-50:#FBE9EC; --danger-500:#C5384B; --danger-700:#931E2E;
+  --warn-50:#FFF6E0; --warn-500:#E8A53D;
+
+  --bg:var(--pearl); --bg-elev:#FFFFFF; --bg-sunk:#F2EBDD;
+  --fg:var(--ink); --fg-muted:#5C5246; --fg-soft:#7E7567;
+  --line:#E0D7C5; --line-soft:#EDE5D2; --line-strong:var(--ink);
+  --accent:var(--or-500); --accent-soft:var(--or-100);
+
+  --f-display:"Fraunces", Georgia, serif;
+  --f-body:"Manrope", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, monospace;
+  --f-hebrew:"Frank Ruhl Libre", serif;
+
+  --ease:cubic-bezier(0.16,1,0.3,1);
+  --dur:560ms;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:999px;
+  --shadow-sm:0 1px 2px rgba(15,14,12,.04), 0 1px 1px rgba(15,14,12,.02);
+  --shadow-md:0 8px 24px rgba(15,14,12,.06), 0 2px 6px rgba(15,14,12,.04);
+  --shadow-lg:0 24px 48px rgba(15,14,12,.10);
+  --shadow-glow:0 12px 32px rgba(238,107,32,.28);
+
+  --sidebar-w:280px;
+  --topbar-h:64px;
+}
+[data-theme="dark"]{
+  --bg:var(--sh-900); --bg-elev:var(--sh-800); --bg-sunk:#050E1F;
+  --fg:var(--pearl); --fg-muted:#B6AC9B; --fg-soft:#8A8275;
+  --line:#233456; --line-soft:#1A2A47; --line-strong:var(--pearl);
+  --accent-soft:rgba(238,107,32,.18);
+  --shadow-md:0 8px 24px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+  --shadow-lg:0 24px 48px rgba(0,0,0,.55);
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html, body{ height:100%; }
+html{ scroll-behavior:smooth; }
+body{
+  font-family:var(--f-body); background:var(--bg); color:var(--fg);
+  font-size:15px; line-height:1.55; font-weight:400;
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--dur) var(--ease), color var(--dur) var(--ease);
+  overflow:hidden;
+}
+::selection{ background:var(--or-500); color:var(--pearl); }
+button{ font-family:inherit; cursor:pointer; }
+input, select, textarea{ font-family:inherit; color:inherit; }
+a{ color:var(--accent); text-decoration:none; }
+
+/* Grain texture (subtle) */
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+  opacity:0.025; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+[data-theme="dark"] body::before{ opacity:0.06; mix-blend-mode:screen; }
+
+/* ===================== SCREENS (SPA Router) ===================== */
+.screen{ display:none; height:100vh; width:100vw; position:relative; z-index:2; }
+.screen.active{ display:block; }
+.app-shell.active{ display:grid; }
+
+/* ===================== LOGIN SCREEN ===================== */
+#screen-login{
+  display:none; align-items:center; justify-content:center;
+  padding:24px; overflow:auto; min-height:100vh;
+  background:
+    radial-gradient(ellipse at top right, rgba(238,107,32,.10), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(44,83,128,.08), transparent 60%),
+    var(--bg);
+}
+#screen-login.active{ display:flex; }
+.login-grid{
+  width:100%; max-width:1180px; display:grid; grid-template-columns:1fr;
+  gap:48px; align-items:center;
+}
+@media(min-width:960px){ .login-grid{ grid-template-columns:1.1fr 1fr; gap:80px; } }
+
+.login-aside{ position:relative; display:flex; flex-direction:column; gap:24px; }
+.login-meta{
+  display:flex; align-items:center; gap:14px;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.login-meta::before{ content:""; width:32px; height:1px; background:var(--accent); }
+
+.login-title{
+  font-family:var(--f-display); font-weight:300;
+  font-size:clamp(44px, 7vw, 88px); line-height:0.96; letter-spacing:-0.035em;
+  font-variation-settings: "SOFT" 30, "opsz" 144;
+}
+.login-title em{ font-style:italic; color:var(--accent); font-weight:400; }
+.login-title sup{
+  font-size:0.4em; font-weight:600; vertical-align:super;
+  opacity:0.7; letter-spacing:0; color:var(--accent);
+}
+
+.login-lead{
+  font-size:clamp(15px,1.4vw,18px); line-height:1.65; max-width:520px;
+  color:var(--fg-muted);
+}
+
+.login-pillars{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:8px;
+}
+.pillar{
+  padding:14px 14px; border:1px solid var(--line); border-radius:var(--r-md);
+  background:var(--bg-elev);
+}
+.pillar-num{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.18em;
+  color:var(--accent); margin-bottom:4px;
+}
+.pillar-name{
+  font-family:var(--f-display); font-size:18px; font-weight:400; letter-spacing:-0.01em;
+}
+
+.deco-seven-login{
+  position:absolute; right:-30px; bottom:-30px;
+  font-family:var(--f-display); font-weight:300;
+  font-size:clamp(180px, 26vw, 360px); line-height:0.78;
+  color:var(--accent); letter-spacing:-0.06em;
+  font-style:italic; opacity:0.05;
+  font-variation-settings:"SOFT" 100, "opsz" 144;
+  pointer-events:none; user-select:none; z-index:0;
+}
+.deco-seven-login::after{
+  content:"אור שבע"; position:absolute; bottom:14%; right:8%;
+  font-family:var(--f-hebrew); font-size:0.075em; color:var(--fg);
+  opacity:0.35; letter-spacing:0.05em; font-style:normal; font-weight:400;
+}
+@media(min-width:960px){
+  .deco-seven-login{ right:-12%; bottom:-18%; opacity:0.06; }
+}
+
+.login-card{
+  background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--r-xl);
+  padding:48px 40px; box-shadow:var(--shadow-md); position:relative; overflow:hidden;
+}
+.login-card::before{
+  content:""; position:absolute; inset:0 0 auto 0; height:3px; background:var(--accent);
+}
+.login-card-head{ margin-bottom:32px; }
+.login-card-eyebrow{
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px;
+}
+.login-card-title{
+  font-family:var(--f-display); font-size:32px; font-weight:400;
+  line-height:1.15; letter-spacing:-0.02em;
+}
+.login-card-title em{ color:var(--accent); font-style:italic; }
+.login-card-sub{ font-size:14px; color:var(--fg-muted); margin-top:8px; }
+
+.field{ display:flex; flex-direction:column; gap:6px; margin-bottom:18px; }
+.field-label{
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.16em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.input{
+  appearance:none; -webkit-appearance:none;
+  background:var(--bg); border:1px solid var(--line); border-radius:var(--r-md);
+  padding:13px 14px; font-size:15px; color:var(--fg);
+  transition:border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+  width:100%;
+}
+.input:hover{ border-color:var(--stone); }
+.input:focus{
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(238,107,32,.15);
+}
+.input.error{ border-color:var(--danger-500); box-shadow:0 0 0 3px rgba(197,56,75,.12); }
+.input-wrap{ position:relative; }
+.input-wrap .input{ padding-right:44px; }
+.input-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  background:transparent; border:none; padding:8px; border-radius:var(--r-sm);
+  color:var(--fg-muted); display:flex; align-items:center; justify-content:center;
+}
+.input-toggle:hover{ color:var(--accent); background:var(--bg-sunk); }
+
+.form-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin:6px 0 24px; flex-wrap:wrap; }
+.checkbox-line{ display:flex; align-items:center; gap:8px; font-size:13px; color:var(--fg-muted); }
+.checkbox-line input[type=checkbox]{ accent-color:var(--accent); width:16px; height:16px; }
+.link-soft{ font-size:13px; color:var(--fg-muted); border-bottom:1px dashed var(--line); }
+.link-soft:hover{ color:var(--accent); border-color:var(--accent); }
+
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:13px 24px; border-radius:var(--r-pill);
+  font-family:var(--f-body); font-weight:600; font-size:14px; letter-spacing:0.02em;
+  border:1px solid transparent; cursor:pointer;
+  transition:all .25s var(--ease); text-decoration:none;
+  white-space:nowrap;
+}
+.btn[disabled]{ opacity:0.5; cursor:not-allowed; }
+.btn-primary{ background:var(--or-500); color:#fff; box-shadow:var(--shadow-glow); }
+.btn-primary:hover:not([disabled]){ background:var(--or-600); transform:translateY(-2px); box-shadow:0 18px 42px rgba(238,107,32,.36); }
+.btn-ghost{ background:transparent; color:var(--fg); border-color:var(--line-strong); }
+.btn-ghost:hover:not([disabled]){ background:var(--fg); color:var(--bg); }
+.btn-soft{ background:var(--bg-sunk); color:var(--fg); border-color:var(--line); }
+.btn-soft:hover:not([disabled]){ border-color:var(--accent); color:var(--accent); }
+.btn-success{ background:var(--success-500); color:#fff; }
+.btn-success:hover:not([disabled]){ background:var(--success-700); }
+.btn-block{ width:100%; }
+.btn-sm{ padding:8px 14px; font-size:12px; }
+.btn-lg{ padding:16px 28px; font-size:15px; }
+
+.login-foot{
+  text-align:center; margin-top:24px;
+  font-size:12px; color:var(--fg-soft);
+}
+.login-foot strong{ color:var(--fg-muted); }
+
+.error-banner{
+  margin-bottom:16px; padding:12px 14px;
+  background:var(--danger-50); border:1px solid var(--danger-500);
+  border-radius:var(--r-md); color:var(--danger-700);
+  font-size:13px; display:none; align-items:center; gap:10px;
+}
+[data-theme="dark"] .error-banner{ background:rgba(197,56,75,.10); }
+.error-banner.show{ display:flex; }
+.error-banner svg{ flex-shrink:0; }
+
+.login-corner{
+  margin-top:auto; padding-top:32px;
+  display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--fg-soft);
+}
+.login-corner span{ display:block; }
+
+/* ===================== APP SHELL ===================== */
+.app-shell{
+  display:none;
+  grid-template-columns:var(--sidebar-w) 1fr;
+  height:100vh; width:100vw;
+}
+.app-shell.active{ display:grid; }
+@media(max-width:768px){
+  .app-shell{ grid-template-columns:1fr; }
+}
+
+/* ===================== SIDEBAR ===================== */
+.sidebar{
+  background:var(--bg-elev); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; height:100vh;
+  position:relative; z-index:30;
+  transition:transform var(--dur) var(--ease);
+}
+@media(max-width:768px){
+  .sidebar{
+    position:fixed; left:0; top:0; bottom:0;
+    width:var(--sidebar-w); transform:translateX(-100%);
+    box-shadow:var(--shadow-lg);
+  }
+  .sidebar.open{ transform:translateX(0); }
+}
+
+.sidebar-head{
+  padding:18px 20px; display:flex; align-items:center; gap:10px;
+  border-bottom:1px solid var(--line);
+}
+.sidebar-mark{ width:28px; height:28px; flex-shrink:0; }
+.sidebar-brand{
+  font-family:var(--f-display); font-size:18px; font-weight:500;
+  letter-spacing:-0.02em; line-height:1.1;
+}
+.sidebar-brand b{ color:var(--accent); font-weight:600; }
+.sidebar-brand .sub{
+  display:block; font-family:var(--f-mono); font-size:9px;
+  letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--fg-muted); margin-top:2px; font-weight:400;
+}
+
+.sidebar-scroll{ flex:1; overflow-y:auto; padding:18px 12px; }
+.sidebar-scroll::-webkit-scrollbar{ width:6px; }
+.sidebar-scroll::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px; }
+
+.nav-group{ margin-bottom:24px; }
+.nav-group-label{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--fg-soft);
+  padding:0 12px 8px; margin-bottom:4px;
+  border-bottom:1px solid var(--line-soft);
+}
+
+.nav-item{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 12px; border-radius:var(--r-md);
+  color:var(--fg); font-size:14px; font-weight:500;
+  border:1px solid transparent; cursor:pointer; width:100%;
+  background:transparent; text-align:left;
+  transition:all .2s var(--ease); margin-bottom:2px;
+}
+.nav-item:hover{ background:var(--bg-sunk); color:var(--accent); }
+.nav-item.active{
+  background:var(--accent-soft); color:var(--accent);
+  border-color:rgba(238,107,32,.20);
+}
+.nav-item svg{ flex-shrink:0; opacity:0.85; }
+.nav-item.active svg{ opacity:1; }
+.nav-item-num{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.05em;
+  color:var(--fg-soft); margin-left:auto;
+}
+.nav-item.active .nav-item-num{ color:var(--accent); }
+
+.sidebar-foot{
+  padding:14px 20px; border-top:1px solid var(--line);
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-soft);
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+/* ===================== MAIN ===================== */
+.main{
+  display:flex; flex-direction:column; height:100vh; overflow:hidden;
+  background:var(--bg);
+}
+
+/* ===================== TOPBAR ===================== */
+.topbar{
+  height:var(--topbar-h);
+  border-bottom:1px solid var(--line);
+  background:var(--bg-elev);
+  display:flex; align-items:center; padding:0 24px; gap:16px;
+  position:relative; z-index:20;
+}
+.topbar-left{ display:flex; align-items:center; gap:14px; flex:1; min-width:0; }
+.menu-toggle{
+  display:none; width:40px; height:40px; border:1px solid var(--line);
+  border-radius:var(--r-pill); background:transparent; color:var(--fg);
+  align-items:center; justify-content:center;
+}
+@media(max-width:768px){ .menu-toggle{ display:flex; } }
+.menu-toggle:hover{ border-color:var(--accent); color:var(--accent); }
+
+.crumb{
+  display:flex; align-items:center; gap:10px; min-width:0;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.16em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.crumb-sep{ color:var(--line-strong); opacity:.4; }
+.crumb-current{ color:var(--accent); font-weight:500; }
+@media(max-width:600px){ .crumb-trail{ display:none; } }
+
+.topbar-right{ display:flex; align-items:center; gap:8px; }
+
+/* User menu */
+.user-menu{ position:relative; }
+.user-trigger{
+  display:flex; align-items:center; gap:10px; padding:6px 12px 6px 6px;
+  border:1px solid var(--line); border-radius:var(--r-pill);
+  background:transparent; color:var(--fg); font-weight:500; font-size:13px;
+  transition:all .2s var(--ease);
+}
+.user-trigger:hover{ border-color:var(--accent); }
+.user-avatar{
+  width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(135deg, var(--or-400), var(--or-700));
+  color:#fff; display:flex; align-items:center; justify-content:center;
+  font-family:var(--f-display); font-weight:500; font-size:14px;
+  letter-spacing:0; flex-shrink:0;
+}
+.user-name{ max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:600px){ .user-name, .user-caret{ display:none; } }
+
+.user-dropdown{
+  position:absolute; right:0; top:calc(100% + 8px);
+  min-width:240px; padding:8px;
+  background:var(--bg-elev); border:1px solid var(--line);
+  border-radius:var(--r-md); box-shadow:var(--shadow-lg);
+  display:none; z-index:50;
+}
+.user-dropdown.open{ display:block; animation:popIn 0.18s var(--ease); }
+@keyframes popIn{ from{opacity:0; transform:translateY(-4px) scale(.98);} to{opacity:1; transform:none;} }
+
+.user-dropdown-head{
+  padding:10px 12px 14px; border-bottom:1px solid var(--line-soft);
+  margin-bottom:6px;
+}
+.user-dropdown-head .name{
+  font-family:var(--f-display); font-size:16px; font-weight:500; letter-spacing:-0.01em;
+}
+.user-dropdown-head .email{
+  font-family:var(--f-mono); font-size:11px; color:var(--fg-muted); margin-top:2px;
+}
+
+.dropdown-item{
+  display:flex; align-items:center; gap:12px; width:100%;
+  padding:10px 12px; border-radius:var(--r-sm);
+  background:transparent; border:none; color:var(--fg);
+  font-size:13px; text-align:left;
+}
+.dropdown-item:hover{ background:var(--bg-sunk); color:var(--accent); }
+.dropdown-item.danger:hover{ color:var(--danger-500); }
+.dropdown-item svg{ opacity:0.7; flex-shrink:0; }
+.dropdown-item:hover svg{ opacity:1; }
+.dropdown-divider{ height:1px; background:var(--line-soft); margin:6px 4px; }
+
+.theme-segments{
+  display:grid; grid-template-columns:1fr 1fr; gap:4px;
+  padding:4px; background:var(--bg-sunk); border-radius:var(--r-md); margin:4px 0 8px;
+}
+.theme-seg{
+  padding:8px; border-radius:var(--r-sm); border:1px solid transparent;
+  background:transparent; color:var(--fg-muted); font-size:12px; font-weight:500;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.theme-seg.active{ background:var(--bg-elev); color:var(--fg); border-color:var(--line); }
+.theme-seg:hover:not(.active){ color:var(--accent); }
+
+/* ===================== VIEWPORT ===================== */
+.viewport{ flex:1; overflow-y:auto; padding:32px 32px 64px; position:relative; }
+@media(max-width:600px){ .viewport{ padding:20px 16px 40px; } }
+
+.view{ display:none; max-width:1100px; margin:0 auto; animation:rise .5s var(--ease) both; }
+.view.active{ display:block; }
+
+@keyframes rise{
+  from{ opacity:0; transform:translateY(16px); }
+  to  { opacity:1; transform:translateY(0); }
+}
+@media (prefers-reduced-motion:reduce){
+  *{ animation:none !important; transition:none !important; }
+}
+
+/* ===================== WELCOME / ONBOARDING VIEW ===================== */
+.view-eyebrow{
+  display:flex; align-items:center; gap:14px; margin-bottom:18px;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.view-eyebrow::before{ content:""; width:32px; height:1px; background:var(--accent); }
+.view-eyebrow .num{ color:var(--accent); font-weight:500; }
+
+.view-title{
+  font-family:var(--f-display); font-weight:300;
+  font-size:clamp(34px, 5.2vw, 64px); line-height:1.04;
+  letter-spacing:-0.025em; margin-bottom:18px;
+  font-variation-settings:"opsz" 144;
+}
+.view-title em{ color:var(--accent); font-style:italic; }
+.view-lead{
+  font-size:clamp(15px,1.3vw,18px); line-height:1.65; color:var(--fg-muted);
+  max-width:720px; margin-bottom:48px;
+}
+
+/* Phases timeline */
+.phases{ margin-top:32px; display:flex; flex-direction:column; gap:0; }
+.phase{
+  display:grid; grid-template-columns:64px 1fr; gap:24px;
+  padding:24px 0; border-top:1px solid var(--line);
+  align-items:start;
+}
+.phase:last-child{ border-bottom:1px solid var(--line); }
+.phase-num{
+  font-family:var(--f-display); font-style:italic; font-weight:300;
+  font-size:48px; line-height:0.85; color:var(--accent);
+  letter-spacing:-0.04em;
+}
+.phase-content h3{
+  font-family:var(--f-display); font-size:24px; font-weight:400;
+  line-height:1.15; letter-spacing:-0.02em; margin-bottom:6px;
+}
+.phase-tag{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:12px; display:inline-block;
+}
+.phase-content p{ color:var(--fg-muted); font-size:15px; line-height:1.65; max-width:640px; }
+
+/* Tríade cards */
+.triade-cards{
+  display:grid; grid-template-columns:1fr; gap:16px; margin-top:24px;
+}
+@media(min-width:768px){ .triade-cards{ grid-template-columns:repeat(3,1fr); } }
+.triade-card{
+  padding:32px 24px; background:var(--bg-elev); border:1px solid var(--line);
+  border-radius:var(--r-lg); position:relative; overflow:hidden;
+  transition:all .35s var(--ease);
+}
+.triade-card:hover{ transform:translateY(-4px); border-color:var(--accent); box-shadow:var(--shadow-md); }
+.triade-card .num{
+  font-family:var(--f-display); font-style:italic; font-weight:300;
+  font-size:64px; line-height:0.85; color:var(--accent);
+  margin-bottom:16px; letter-spacing:-0.04em;
+}
+.triade-card .name{
+  font-family:var(--f-display); font-size:24px; font-weight:400;
+  letter-spacing:-0.02em; margin-bottom:6px;
+}
+.triade-card .tag{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.2em;
+  text-transform:uppercase; color:var(--fg-muted); margin-bottom:14px; display:block;
+}
+.triade-card .text{ font-size:13.5px; color:var(--fg-muted); line-height:1.6; }
+
+/* Disclaimer card */
+.disclaimer{
+  margin-top:48px; padding:28px 32px;
+  background:var(--sh-900); color:var(--pearl);
+  border-radius:var(--r-lg); position:relative; overflow:hidden;
+}
+.disclaimer::before{
+  content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--accent);
+}
+.disclaimer-eyebrow{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.22em;
+  text-transform:uppercase; color:var(--or-300); margin-bottom:12px;
+  display:flex; align-items:center; gap:10px;
+}
+.disclaimer-title{
+  font-family:var(--f-display); font-size:clamp(22px,2.6vw,32px);
+  font-weight:300; font-style:italic; line-height:1.2;
+  letter-spacing:-0.02em; margin-bottom:14px; color:var(--pearl);
+}
+.disclaimer-title strong{ color:var(--or-400); font-style:normal; font-weight:600; }
+.disclaimer-text{ font-size:15px; color:var(--bone); line-height:1.65; max-width:780px; }
+
+.cta-row{ margin-top:40px; display:flex; flex-wrap:wrap; gap:14px; }
+
+/* ===================== ANALYSIS VIEW ===================== */
+.analysis-head{
+  display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:32px;
+}
+.analysis-summary{
+  margin-top:18px; display:flex; align-items:center; flex-wrap:wrap; gap:12px;
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.14em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.summary-chip{
+  padding:6px 12px; border:1px solid var(--line); border-radius:var(--r-pill);
+  background:var(--bg-elev);
+}
+.summary-chip strong{ color:var(--accent); }
+
+.analysis-grid{
+  display:grid; grid-template-columns:1fr; gap:24px; margin-top:8px;
+}
+@media(min-width:1080px){ .analysis-grid{ grid-template-columns:1.2fr 1fr; } }
+
+.panel{
+  background:var(--bg-elev); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:28px; box-shadow:var(--shadow-sm);
+}
+.panel-head{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap; }
+.panel-title{
+  font-family:var(--f-display); font-size:22px; font-weight:400;
+  letter-spacing:-0.02em;
+}
+.panel-meta{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+
+/* File drop zone */
+.dropzone{
+  border:2px dashed var(--line);
+  border-radius:var(--r-lg); padding:36px 20px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:14px; background:var(--bg-sunk); transition:all .2s var(--ease);
+  text-align:center; cursor:pointer; position:relative;
+}
+.dropzone:hover, .dropzone.drag{
+  border-color:var(--accent); background:var(--accent-soft);
+}
+.dropzone-icon{
+  width:56px; height:56px; border-radius:50%;
+  background:var(--bg-elev); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--accent);
+}
+.dropzone-title{
+  font-family:var(--f-display); font-size:18px; font-weight:500;
+  letter-spacing:-0.01em;
+}
+.dropzone-sub{ font-size:13px; color:var(--fg-muted); }
+.dropzone-sub strong{ color:var(--accent); cursor:pointer; }
+.dropzone input[type=file]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+/* File list */
+.file-list{ display:flex; flex-direction:column; gap:8px; margin-top:18px; }
+.file-row{
+  display:flex; align-items:center; gap:12px; padding:12px 14px;
+  background:var(--bg-sunk); border:1px solid var(--line-soft);
+  border-radius:var(--r-md);
+}
+.file-icon{
+  width:36px; height:36px; border-radius:var(--r-sm);
+  background:var(--accent-soft); color:var(--accent);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.file-info{ flex:1; min-width:0; }
+.file-name{
+  font-size:13px; font-weight:500; color:var(--fg);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.file-size{ font-family:var(--f-mono); font-size:10px; color:var(--fg-muted); letter-spacing:0.05em; }
+.file-remove{
+  background:transparent; border:none; color:var(--fg-muted);
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+}
+.file-remove:hover{ background:var(--danger-50); color:var(--danger-500); }
+[data-theme="dark"] .file-remove:hover{ background:rgba(197,56,75,.15); }
+
+.analysis-actions{
+  display:flex; gap:10px; margin-top:24px; flex-wrap:wrap;
+  padding-top:24px; border-top:1px solid var(--line-soft);
+}
+
+/* Progress panel */
+.progress-list{ display:flex; flex-direction:column; gap:0; }
+.progress-step{
+  display:grid; grid-template-columns:32px 1fr auto; gap:14px;
+  padding:14px 0; border-bottom:1px solid var(--line-soft);
+  align-items:center; transition:opacity .25s var(--ease);
+}
+.progress-step:last-child{ border-bottom:none; }
+.progress-step.idle{ opacity:0.45; }
+.progress-step.active .step-dot{ background:var(--accent); color:#fff; box-shadow:0 0 0 4px var(--accent-soft); }
+.progress-step.done  .step-dot{ background:var(--success-500); color:#fff; }
+.step-dot{
+  width:28px; height:28px; border-radius:50%;
+  background:var(--bg-sunk); border:1px solid var(--line);
+  display:flex; align-items:center; justify-content:center;
+  font-family:var(--f-mono); font-size:11px; font-weight:600; color:var(--fg-muted);
+  transition:all .3s var(--ease);
+}
+.step-info .name{
+  font-size:14px; font-weight:500; line-height:1.2;
+}
+.step-info .desc{
+  font-size:12px; color:var(--fg-muted); margin-top:2px;
+}
+.step-status{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.progress-step.active .step-status{ color:var(--accent); }
+.progress-step.done .step-status{ color:var(--success-500); }
+
+.progress-bar{
+  margin-top:18px; height:6px; background:var(--bg-sunk);
+  border-radius:var(--r-pill); overflow:hidden;
+}
+.progress-bar-fill{
+  height:100%; width:0%; background:linear-gradient(90deg, var(--or-500), var(--or-300));
+  border-radius:var(--r-pill); transition:width .3s var(--ease);
+}
+
+/* Result panel */
+.result{ display:none; margin-top:24px; }
+.result.show{ display:block; animation:rise .5s var(--ease) both; }
+
+.verdict{
+  padding:24px 28px; border-radius:var(--r-lg);
+  display:flex; gap:18px; align-items:center; margin-bottom:24px;
+}
+.verdict.pass{
+  background:var(--success-50); border:1px solid var(--success-500); color:var(--success-700);
+}
+[data-theme="dark"] .verdict.pass{ background:rgba(47,143,92,.10); }
+.verdict.fail{
+  background:var(--danger-50); border:1px solid var(--danger-500); color:var(--danger-700);
+}
+[data-theme="dark"] .verdict.fail{ background:rgba(197,56,75,.10); }
+.verdict-icon{
+  width:48px; height:48px; border-radius:50%;
+  background:rgba(255,255,255,.6); display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+[data-theme="dark"] .verdict-icon{ background:rgba(255,255,255,.10); }
+.verdict.pass .verdict-icon{ color:var(--success-500); }
+.verdict.fail .verdict-icon{ color:var(--danger-500); }
+.verdict-text .label{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.22em;
+  text-transform:uppercase; opacity:0.8; margin-bottom:4px;
+}
+.verdict-text .title{
+  font-family:var(--f-display); font-size:24px; font-weight:400;
+  line-height:1.15; letter-spacing:-0.02em;
+}
+
+.probability{
+  padding:20px 24px; background:var(--bg-sunk);
+  border:1px solid var(--line); border-radius:var(--r-lg); margin-bottom:24px;
+}
+.probability-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+.probability-label{
+  font-family:var(--f-mono); font-size:11px; letter-spacing:0.18em;
+  text-transform:uppercase; color:var(--fg-muted);
+}
+.probability-value{
+  font-family:var(--f-display); font-size:48px; font-weight:300;
+  letter-spacing:-0.03em; line-height:1; color:var(--accent);
+}
+.probability-value sup{ font-size:0.4em; font-weight:600; vertical-align:super; opacity:0.7; }
+.probability-bar{
+  height:10px; background:var(--bg-elev); border:1px solid var(--line);
+  border-radius:var(--r-pill); overflow:hidden;
+}
+.probability-bar-fill{
+  height:100%; background:linear-gradient(90deg, var(--or-300), var(--or-600));
+  border-radius:var(--r-pill); width:0; transition:width 1.2s var(--ease);
+}
+.probability-context{
+  margin-top:12px; font-size:13px; color:var(--fg-muted); line-height:1.6;
+}
+
+.findings{ margin-bottom:24px; }
+.findings-title{
+  font-family:var(--f-display); font-size:18px; font-weight:500; margin-bottom:14px;
+}
+.finding{
+  display:grid; grid-template-columns:auto 1fr; gap:12px;
+  padding:14px 0; border-top:1px solid var(--line-soft);
+}
+.finding:last-child{ border-bottom:1px solid var(--line-soft); }
+.finding-tag{
+  font-family:var(--f-mono); font-size:10px; letter-spacing:0.16em;
+  text-transform:uppercase; padding:4px 10px; border-radius:var(--r-pill);
+  align-self:start; white-space:nowrap;
+}
+.finding-tag.critical{ background:var(--danger-50); color:var(--danger-700); }
+.finding-tag.high{ background:rgba(232,165,61,.15); color:#9C6810; }
+.finding-tag.medium{ background:var(--accent-soft); color:var(--accent); }
+[data-theme="dark"] .finding-tag.critical{ background:rgba(197,56,75,.18); color:#FF8E9C; }
+[data-theme="dark"] .finding-tag.high{ background:rgba(232,165,61,.18); color:#FFCB7A; }
+.finding-text{ font-size:14px; line-height:1.6; }
+.finding-text strong{ color:var(--fg); }
+.finding-text .ref{
+  display:block; font-family:var(--f-mono); font-size:11px;
+  color:var(--fg-muted); margin-top:4px; letter-spacing:0.04em;
+}
+
+.confirmation{
+  margin-top:24px; padding:20px 24px;
+  background:var(--bg-sunk); border:1px solid var(--line);
+  border-radius:var(--r-lg);
+}
+.confirmation-title{ font-weight:600; margin-bottom:8px; font-size:14px; }
+.confirmation-sub{ font-size:13px; color:var(--fg-muted); margin-bottom:14px; line-height:1.6; }
+.checkbox-row{ display:flex; align-items:flex-start; gap:10px; font-size:13px; line-height:1.5; cursor:pointer; }
+.checkbox-row input[type=checkbox]{ accent-color:var(--accent); width:18px; height:18px; flex-shrink:0; margin-top:1px; }
+
+.result-actions{ display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+
+/* ===================== API KEY VIEW ===================== */
+.apikey-card{
+  max-width:680px;
+  background:var(--bg-elev); border:1px solid var(--line);
+  border-radius:var(--r-lg); padding:36px 32px; margin-top:24px;
+}
+.apikey-status{
+  display:inline-flex; align-items:center; gap:8px; padding:6px 14px;
+  border-radius:var(--r-pill); font-family:var(--f-mono);
+  font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+  margin-bottom:24px;
+}
+.apikey-status.set{ background:var(--success-50); color:var(--success-700); }
+.apikey-status.unset{ background:var(--warn-50); color:#9C6810; }
+[data-theme="dark"] .apikey-status.set{ background:rgba(47,143,92,.18); color:#7AD9A2; }
+[data-theme="dark"] .apikey-status.unset{ background:rgba(232,165,61,.20); color:#FFCB7A; }
+.apikey-status::before{
+  content:""; width:8px; height:8px; border-radius:50%; background:currentColor;
+}
+
+.apikey-help{
+  font-size:13px; color:var(--fg-muted); line-height:1.7; margin-bottom:18px;
+  padding:16px 18px; background:var(--bg-sunk); border-radius:var(--r-md);
+  border-left:3px solid var(--accent);
+}
+.apikey-help code{
+  font-family:var(--f-mono); font-size:12px; padding:1px 6px;
+  background:var(--bg-elev); border-radius:4px; color:var(--accent);
+}
+
+/* ===================== PROBABILITY HALO ===================== */
+@keyframes pulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(238,107,32,.30); }
+  50%   { box-shadow:0 0 0 14px rgba(238,107,32,0); }
+}
+
+/* ===================== UTILS ===================== */
+.spacer{ height:24px; }
+.text-mono{ font-family:var(--f-mono); }
+.text-sm{ font-size:13px; }
+.muted{ color:var(--fg-muted); }
+.hidden{ display:none !important; }
+.row{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+============================================================ -->
+<div id="screen-login" class="screen active">
+  <div class="login-grid">
+
+    <!-- Aside: brand & narrative -->
+    <aside class="login-aside">
+      <div class="login-meta">Plataforma de Análise · BYOK · v0.1.0</div>
+      <h1 class="login-title">
+        Revisor<br>
+        <em>Contratual</em><sup>7</sup>
+      </h1>
+      <p class="login-lead">
+        Não auditamos contratos. <strong style="color:var(--fg); font-weight:500;">Conduzimos análises revisionais.</strong>
+        Cada cláusula passa pela tríade Or שבע — a luz que revela, o domínio que estrutura,
+        a plenitude que consolida.
+      </p>
+      <div class="login-pillars">
+        <div class="pillar"><div class="pillar-num">01</div><div class="pillar-name">Iluminar</div></div>
+        <div class="pillar"><div class="pillar-num">02</div><div class="pillar-name">Estruturar</div></div>
+        <div class="pillar"><div class="pillar-num">03</div><div class="pillar-name">Consolidar</div></div>
+      </div>
+      <blockquote style="margin-top:24px; padding-left:20px; border-left:2px solid var(--accent); font-family:var(--f-display); font-style:italic; font-weight:300; font-size:clamp(16px,1.4vw,19px); line-height:1.4; color:var(--fg-muted); letter-spacing:-0.01em;">
+        Análise revisional não nasce de intuição.<br>
+        É um sistema que se <span style="color:var(--accent); font-style:normal; font-weight:500;">ilumina, estrutura e consolida</span>.
+      </blockquote>
+      <div class="login-corner">
+        <span>אור · Or — Luz</span>
+        <span>שבע · Sheva — Plenitude</span>
+      </div>
+      <div class="deco-seven-login">7</div>
+    </aside>
+
+    <!-- Card: login form -->
+    <section class="login-card" aria-labelledby="login-title">
+      <div class="login-card-head">
+        <div class="login-card-eyebrow">Acesso · Escritório</div>
+        <h2 id="login-title" class="login-card-title">Entrar na <em>plataforma</em></h2>
+        <p class="login-card-sub">Use as credenciais do seu escritório. A chave da Anthropic é configurada após o login.</p>
+      </div>
+
+      <div id="loginError" class="error-banner" role="alert">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+        <span id="loginErrorText">E-mail ou senha incorretos.</span>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label class="field-label" for="email">E-mail</label>
+          <input class="input" type="email" id="email" name="email" placeholder="advogado@escritorio.com.br" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label class="field-label" for="password">Senha</label>
+          <div class="input-wrap">
+            <input class="input" type="password" id="password" name="password" placeholder="••••••••" autocomplete="current-password" required>
+            <button type="button" class="input-toggle" id="togglePassword" aria-label="Mostrar senha">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="checkbox-line">
+            <input type="checkbox" id="remember" checked> Manter conectado
+          </label>
+          <a href="#" class="link-soft" onclick="event.preventDefault();alert('Use o painel administrativo do seu escritório para redefinir a senha.');">Esqueci a senha</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">
+          Entrar →
+        </button>
+      </form>
+
+      <div class="login-foot">
+        <strong>Demo:</strong> qualquer e-mail válido entra. A análise é simulada — nenhum documento é enviado para servidor.
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL (sidebar + main)
+============================================================ -->
+<div id="screen-app" class="screen app-shell">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar" aria-label="Menu lateral">
+    <div class="sidebar-head">
+      <svg class="sidebar-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 850" preserveAspectRatio="xMidYMid meet" role="img" aria-hidden="true">
+        <g transform="translate(0,850) scale(0.1,-0.1)" fill="#EE6B20" fill-rule="evenodd">
+          <path d="M9134 6497 c-114 -120 -326 -346 -379 -406 -76 -85 -222 -238 -294 -307 -64 -62 -79 -102 -36 -97 19 3 321 30 585 53 69 6 186 17 260 25 74 8 189 19 255 25 66 5 172 14 236 20 139 12 309 13 309 2 0 -5 -21 -15 -47 -23 -46 -14 -48 -15 -70 -81 -84 -255 -154 -772 -157 -1158 0 -118 -4 -214 -8 -212 -5 1 -12 2 -16 2 -4 0 -41 53 -81 118 -40 64 -104 167 -142 227 -38 61 -110 178 -161 260 -125 205 -126 205 -139 33 -20 -280 -9 -589 27 -768 32 -158 136 -504 155 -515 5 -4 9 -13 9 -21 0 -12 143 -374 197 -497 31 -72 38 -26 15 92 -31 153 -52 370 -52 547 0 161 9 198 42 172 15 -12 131 -187 293 -441 62 -99 88 -128 101 -115 2 3 9 56 14 119 6 63 14 141 20 174 5 33 16 107 25 165 95 612 289 1219 558 1745 40 77 75 142 78 145 3 3 34 52 69 110 74 123 234 364 266 400 58 64 114 135 114 141 0 14 -74 29 -147 29 -40 0 -139 4 -220 10 -82 5 -231 14 -333 20 -102 6 -239 15 -305 20 -158 13 -905 60 -942 60 -24 0 -44 -15 -99 -73z"/>
+          <path d="M6246 3892 c-2 -4 -14 -62 -25 -128 -76 -448 -106 -606 -124 -641 -16 -31 -8 -25 -756 -522 -266 -176 -487 -321 -492 -321 -5 0 -9 -4 -9 -9 0 -14 49 -29 150 -46 52 -9 129 -23 170 -31 149 -29 238 -44 390 -69 85 -14 180 -30 210 -36 30 -5 82 -14 115 -20 108 -17 168 -34 178 -50 8 -13 -12 -64 -93 -230 -56 -118 -127 -270 -157 -339 -30 -69 -61 -138 -68 -155 -50 -115 -119 -284 -145 -360 -18 -49 -38 -105 -46 -122 -37 -83 -44 -113 -28 -120 20 -7 41 4 149 82 118 86 222 155 265 178 19 11 42 25 51 33 8 8 20 14 26 14 5 0 27 13 49 30 21 16 45 30 53 30 8 0 45 18 83 40 39 22 74 40 79 40 5 0 20 6 32 14 12 8 76 38 142 66 66 29 134 58 150 65 47 21 396 138 435 146 19 4 107 25 195 47 163 41 284 66 365 77 25 3 65 10 90 15 209 43 919 53 1193 16 233 -31 536 -88 647 -121 25 -7 83 -23 130 -35 74 -19 202 -62 265 -89 11 -5 85 -35 165 -67 142 -57 334 -151 455 -222 124 -73 272 -168 328 -212 33 -25 69 -52 80 -60 12 -8 51 -38 86 -67 112 -91 128 -68 56 84 -25 52 -45 96 -45 98 0 4 -52 117 -139 300 -160 336 -383 763 -465 890 -18 28 -55 86 -81 130 -172 283 -403 573 -585 735 -68 60 -68 60 -93 40 -25 -20 -353 -187 -462 -235 -265 -118 -483 -189 -730 -241 -925 -191 -1625 217 -2150 1254 -64 124 -77 143 -89 124z m172 -1630 c-4 -147 -4 -147 -66 -281 -112 -242 -201 -499 -252 -732 -23 -106 -23 -106 -129 -173 -110 -70 -200 -131 -262 -179 -92 -70 -78 -12 78 313 33 69 77 161 97 205 41 87 130 265 182 360 18 33 43 78 55 100 11 22 46 79 75 126 64 102 63 116 -9 123 -164 18 -626 67 -704 75 -51 6 -103 15 -115 22 -23 12 -23 12 6 20 36 10 546 29 774 29 199 0 212 5 226 89 4 24 12 53 18 64 21 40 29 -10 26 -161z"/>
+          <path d="M5698 3608 c-12 -30 -82 -687 -74 -696 3 -3 6 4 6 16 0 23 16 39 22 22 2 -6 21 3 43 19 22 17 43 31 48 31 4 0 26 14 49 30 45 33 68 39 47 13 -13 -15 -12 -15 8 -5 27 15 41 34 17 25 -38 -14 -5 23 52 58 47 29 59 41 57 61 -1 24 -53 117 -85 152 -10 11 -18 24 -18 28 0 8 -97 155 -110 168 -3 3 -11 18 -18 33 -7 15 -16 26 -21 22 -5 -3 -11 5 -13 17 -3 19 -4 20 -10 6z"/>
+          <path d="M9395 1336 c20 -15 20 -15 -5 -16 -24 -1 -24 -2 10 -28 19 -15 67 -55 107 -89 48 -42 81 -63 98 -63 14 0 25 -4 25 -10 0 -5 -8 -7 -17 -4 -19 6 13 -26 86 -86 50 -41 74 -52 47 -21 -17 18 -17 21 -3 15 16 -6 20 -14 19 -39 0 -5 36 -40 81 -78 45 -37 102 -85 127 -107 37 -33 46 -37 51 -23 4 12 8 13 13 5 4 -7 17 -17 29 -23 21 -12 21 -11 5 8 -10 11 -18 23 -18 28 0 4 -12 32 -26 62 -38 82 -22 88 19 8 53 -103 45 -72 -14 52 -103 218 -124 258 -137 255 -8 -1 -11 1 -8 6 18 29 -88 73 -309 126 -145 36 -206 43 -180 22z"/>
+          <path d="M6945 1288 c-16 -6 -70 -24 -120 -40 -157 -52 -253 -104 -276 -150 -28 -54 -140 -379 -136 -392 2 -6 16 26 32 69 26 74 57 132 40 76 -4 -13 -8 -29 -9 -35 -2 -6 -9 -23 -16 -39 -21 -42 -3 -45 36 -4 41 42 61 48 43 15 -11 -21 -11 -22 5 -9 9 8 15 20 12 26 -2 7 0 18 4 25 15 25 243 251 247 246 3 -3 -8 -17 -23 -33 -16 -16 -35 -37 -43 -48 -8 -11 16 9 53 45 65 64 119 132 67 86 -18 -17 -21 -17 -15 -3 6 15 17 21 36 18 14 -2 80 68 73 79 -4 6 -3 9 2 8 13 -4 50 20 57 37 4 13 2 14 -14 5 -25 -13 -27 5 -2 19 23 14 -10 13 -53 -1z"/>
+        </g>
+      </svg>
+      <div class="sidebar-brand">
+        Revisor<b>Contratual</b>
+        <span class="sub">OrSheva 7</span>
+      </div>
+    </div>
+
+    <div class="sidebar-scroll">
+      <div class="nav-group">
+        <div class="nav-group-label">Início</div>
+        <button class="nav-item active" data-view="welcome" data-crumb="Início">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+          <span>Visão geral</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Modos de Análise</div>
+        <button class="nav-item" data-view="analysis" data-mode="ccb" data-crumb="CCB Bancária">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+          <span>CCB Bancária</span>
+          <span class="nav-item-num">01</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="veiculo" data-crumb="Financiamento de Veículo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14l-1.5-6h-11L5 17z"/><circle cx="8" cy="18.5" r="1.5"/><circle cx="16" cy="18.5" r="1.5"/></svg>
+          <span>Financiamento Veículo</span>
+          <span class="nav-item-num">02</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="consignado" data-crumb="Empréstimo Consignado">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6h20v12H2z"/><path d="M2 10h20"/><circle cx="7" cy="14" r="1.5"/></svg>
+          <span>Empréstimo Consignado</span>
+          <span class="nav-item-num">03</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="cartao" data-crumb="Cartão de Crédito">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 11h20M6 16h4"/></svg>
+          <span>Cartão de Crédito</span>
+          <span class="nav-item-num">04</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="imobiliario" data-crumb="Contrato Imobiliário">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 21v-6h6v6"/></svg>
+          <span>Imobiliário (SFH/SFI)</span>
+          <span class="nav-item-num">05</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="fies" data-crumb="FIES — Financiamento Estudantil">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M22 10v6"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+          <span>FIES (Estudantil)</span>
+          <span class="nav-item-num">06</span>
+        </button>
+        <button class="nav-item" data-view="analysis" data-mode="geral" data-crumb="Análise Geral">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span>Análise Geral</span>
+          <span class="nav-item-num">07</span>
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Configurações</div>
+        <button class="nav-item" data-view="apikey" data-crumb="API Key">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="4"/><path d="M10.5 12.5L19 4M16 7l3 3M14 9l3 3"/></svg>
+          <span>API Key (Claude)</span>
+          <span id="apikeyDot" class="nav-item-num">∅</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <span>v0.1.0</span>
+      <span>BYOK</span>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+
+    <!-- ===================== TOPBAR ===================== -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <nav class="crumb" aria-label="Navegação">
+          <span class="crumb-trail">Revisor</span>
+          <span class="crumb-trail crumb-sep">/</span>
+          <span id="crumbCurrent" class="crumb-current">Início</span>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="user-menu">
+          <button class="user-trigger" id="userTrigger" aria-haspopup="menu" aria-expanded="false">
+            <span class="user-avatar" id="userAvatar">·</span>
+            <span class="user-name" id="userName">Usuário</span>
+            <svg class="user-caret" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+          <div class="user-dropdown" id="userDropdown" role="menu">
+            <div class="user-dropdown-head">
+              <div class="name" id="userNameFull">Usuário</div>
+              <div class="email" id="userEmailFull">—</div>
+            </div>
+
+            <div style="padding:6px 12px 0;">
+              <div style="font-family:var(--f-mono); font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--fg-muted);">Tema</div>
+              <div class="theme-segments" role="tablist">
+                <button class="theme-seg" data-theme-set="light" role="tab">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                  Claro
+                </button>
+                <button class="theme-seg" data-theme-set="dark" role="tab">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  Escuro
+                </button>
+              </div>
+            </div>
+
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item" id="goApiKey">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="4"/><path d="M10.5 12.5L19 4M16 7l3 3"/></svg>
+              Configurar API Key
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" id="logoutBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+              Sair
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== VIEWPORT ===================== -->
+    <div class="viewport">
+
+      <!-- ============== WELCOME / ONBOARDING VIEW ============== -->
+      <section class="view active" id="view-welcome">
+        <div class="view-eyebrow"><span class="num">00</span> · Bem-vindo(a), advogado(a)</div>
+        <h1 class="view-title">Eu li seu contrato. <em>Aqui está o que vi.</em></h1>
+        <p class="view-lead">
+          Sabemos que cada peça revisional carrega o peso da responsabilidade técnica — e
+          que ninguém deveria abrir um caso sozinho. <strong style="color:var(--fg); font-weight:500;">Você não
+          está só nessa leitura.</strong> Conduzimos a análise por seis fases ordenadas,
+          devolvemos uma síntese rastreável, e devolvemos a palavra final a quem
+          pertence: <strong style="color:var(--accent); font-weight:500;">você</strong>.
+        </p>
+
+        <!-- Tríade -->
+        <div class="triade-cards">
+          <div class="triade-card">
+            <div class="num">01</div>
+            <span class="tag">Or — Luz</span>
+            <h3 class="name">Iluminar</h3>
+            <p class="text">A IA lê o contrato linha a linha, identifica o tipo, extrai cláusulas relevantes e expõe o cenário real — sem maquiagem, sem suposição.</p>
+          </div>
+          <div class="triade-card">
+            <div class="num">02</div>
+            <span class="tag">7 — Pilares</span>
+            <h3 class="name">Estruturar</h3>
+            <p class="text">Cada cláusula é confrontada com Súmulas do STJ, jurisprudência consolidada e cálculos financeiros (anatocismo, comissão de permanência, capitalização).</p>
+          </div>
+          <div class="triade-card">
+            <div class="num">03</div>
+            <span class="tag">Sheva — Plenitude</span>
+            <h3 class="name">Consolidar</h3>
+            <p class="text">A síntese chega a você como um relatório PDF com verdict, probabilidade de causa ganha e fundamentos prontos para a peça inicial revisional.</p>
+          </div>
+        </div>
+
+        <div class="spacer"></div>
+        <div class="spacer"></div>
+
+        <h2 style="font-family:var(--f-display); font-size:32px; font-weight:300; letter-spacing:-0.02em; line-height:1.1; margin-bottom:8px;">As <em style="color:var(--accent); font-style:italic;">seis fases</em> da análise</h2>
+        <p class="muted" style="margin-bottom:8px;">Cada fase é necessária. Pular qualquer uma compromete a qualidade da peça final.</p>
+
+        <div class="phases">
+          <div class="phase">
+            <div class="phase-num">01</div>
+            <div class="phase-content">
+              <span class="phase-tag">Ingestão</span>
+              <h3>Leitura e extração</h3>
+              <p>Os documentos enviados (PDF, DOCX, imagem digitalizada) são lidos integralmente. Texto, tabelas e cláusulas numeradas são estruturados em formato analisável. Documentos ilegíveis ou parciais são sinalizados.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-num">02</div>
+            <div class="phase-content">
+              <span class="phase-tag">Identificação</span>
+              <h3>Classificação contratual</h3>
+              <p>O Revisor identifica o tipo do contrato (CCB, CDC veicular, consignado, cartão, imobiliário) e os atores envolvidos (banco, cliente, garantias). Tipos divergentes em documentos do mesmo lote são apontados.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-num">03</div>
+            <div class="phase-content">
+              <span class="phase-tag">Cláusulas</span>
+              <h3>Extração de cláusulas-chave</h3>
+              <p>Taxas (CET, juros remuneratórios, mora), capitalização, comissão de permanência, IOF, seguros casados, encargos por inadimplência e cláusulas de eleição de foro são localizados e isolados para análise.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-num">04</div>
+            <div class="phase-content">
+              <span class="phase-tag">Verificação</span>
+              <h3>Cotejo jurídico</h3>
+              <p>Cada cláusula é confrontada com o entendimento consolidado: Súmulas 297/STJ (CDC bancário), 379/STJ (capitalização), 472/STJ (comissão de permanência), Tema 246/STJ e jurisprudência subsequente.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-num">05</div>
+            <div class="phase-content">
+              <span class="phase-tag">Cálculo</span>
+              <h3>Recálculo financeiro</h3>
+              <p>Quando há indício de abusividade, é gerado um demonstrativo de recálculo: saldo devedor real <em>vs.</em> saldo cobrado, com a métrica do impacto financeiro estimado da revisão.</p>
+            </div>
+          </div>
+          <div class="phase">
+            <div class="phase-num">06</div>
+            <div class="phase-content">
+              <span class="phase-tag">Síntese</span>
+              <h3>Relatório revisional</h3>
+              <p>Verdict (passou / não passou no <em>screening</em> revisional), probabilidade calibrada de procedência, lista de findings ranqueados por severidade e minuta-base para a peça inicial. Tudo exportável em PDF.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Disclaimer dark -->
+        <div class="disclaimer">
+          <div class="disclaimer-eyebrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01"/><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            Validação humana é obrigatória
+          </div>
+          <h3 class="disclaimer-title">
+            Eu <strong>conduzo a leitura.</strong><br>
+            Você <strong>conduz a peça.</strong>
+          </h3>
+          <p class="disclaimer-text">
+            O que eu entrego é <strong>insumo técnico-jurídico</strong> — claro,
+            rastreável, fundamentado em Súmulas e jurisprudência. Mas a peça
+            que vai a juízo carrega <strong>seu nome, sua OAB e sua responsabilidade
+            técnica</strong>. Antes de protocolar, leia o relatório integralmente.
+            Confronte com o contrato original. Decida com a estratégia que só
+            você tem para esse cliente. Eu <em>ilumino</em> o caminho — você trilha.
+          </p>
+        </div>
+
+        <div class="cta-row">
+          <button class="btn btn-primary" data-view-go="analysis" data-mode="ccb" data-crumb="CCB Bancária">Iniciar uma análise →</button>
+          <button class="btn btn-soft" data-view-go="apikey" data-crumb="API Key">Configurar API Key</button>
+        </div>
+      </section>
+
+      <!-- ============== ANALYSIS VIEW ============== -->
+      <section class="view" id="view-analysis">
+        <div class="view-eyebrow"><span class="num" id="modeNum">01</span> · <span id="modeTag">Modo de análise</span></div>
+        <h1 class="view-title" id="modeTitle">Análise <em>contratual</em></h1>
+        <p class="view-lead" id="modeLead">Selecione um ou mais documentos do mesmo contrato e inicie a análise.</p>
+
+        <div class="analysis-summary">
+          <div class="summary-chip">Modo: <strong id="modeChip">CCB</strong></div>
+          <div class="summary-chip">Documentos: <strong id="filesChip">0</strong></div>
+          <div class="summary-chip">Fase atual: <strong id="phaseChip">aguardando</strong></div>
+          <div class="summary-chip">API Key: <strong id="apikeyChip">não configurada</strong></div>
+        </div>
+
+        <div class="analysis-grid">
+
+          <!-- Upload + actions panel -->
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Documentos do contrato</div>
+                <div class="panel-meta">PDF · DOCX · JPG/PNG (digitalização) — máx. 25 MB cada</div>
+              </div>
+            </div>
+
+            <label class="dropzone" id="dropzone">
+              <div class="dropzone-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+              </div>
+              <div>
+                <div class="dropzone-title">Arraste os arquivos ou <strong>clique para selecionar</strong></div>
+                <div class="dropzone-sub">Anexe todas as peças do mesmo contrato — frente/verso, anexos e aditivos.</div>
+              </div>
+              <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg">
+            </label>
+
+            <div class="file-list" id="fileList"></div>
+
+            <div class="analysis-actions">
+              <button class="btn btn-primary" id="btnAnalyze" disabled>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                Analisar contrato
+              </button>
+              <button class="btn btn-ghost" id="btnReset">Limpar</button>
+            </div>
+          </div>
+
+          <!-- Progress + result panel -->
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Avanço da análise</div>
+                <div class="panel-meta" id="progressMeta">Aguardando início</div>
+              </div>
+            </div>
+
+            <div class="progress-list" id="progressList">
+              <div class="progress-step idle" data-step="0">
+                <div class="step-dot">01</div>
+                <div class="step-info"><div class="name">Ingestão</div><div class="desc">Leitura e extração de texto</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+              <div class="progress-step idle" data-step="1">
+                <div class="step-dot">02</div>
+                <div class="step-info"><div class="name">Identificação</div><div class="desc">Classificação do contrato</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+              <div class="progress-step idle" data-step="2">
+                <div class="step-dot">03</div>
+                <div class="step-info"><div class="name">Cláusulas</div><div class="desc">Extração de cláusulas-chave</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+              <div class="progress-step idle" data-step="3">
+                <div class="step-dot">04</div>
+                <div class="step-info"><div class="name">Verificação</div><div class="desc">Cotejo jurisprudencial</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+              <div class="progress-step idle" data-step="4">
+                <div class="step-dot">05</div>
+                <div class="step-info"><div class="name">Cálculo</div><div class="desc">Recálculo financeiro</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+              <div class="progress-step idle" data-step="5">
+                <div class="step-dot">06</div>
+                <div class="step-info"><div class="name">Síntese</div><div class="desc">Relatório revisional</div></div>
+                <div class="step-status">aguardando</div>
+              </div>
+            </div>
+            <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+
+            <!-- Result -->
+            <div class="result" id="result">
+              <div class="verdict" id="verdict">
+                <div class="verdict-icon" id="verdictIcon"></div>
+                <div class="verdict-text">
+                  <div class="label">Verdict revisional</div>
+                  <div class="title" id="verdictTitle">—</div>
+                </div>
+              </div>
+
+              <div class="probability">
+                <div class="probability-head">
+                  <div class="probability-label">Probabilidade de procedência</div>
+                  <div class="probability-value"><span id="probValue">0</span><sup>%</sup></div>
+                </div>
+                <div class="probability-bar"><div class="probability-bar-fill" id="probFill"></div></div>
+                <div class="probability-context" id="probContext">—</div>
+              </div>
+
+              <div class="findings">
+                <div class="findings-title">Findings principais</div>
+                <div id="findingsList"></div>
+              </div>
+
+              <div class="confirmation">
+                <div class="confirmation-title">Confirmação obrigatória</div>
+                <div class="confirmation-sub">
+                  Antes de gerar o PDF revisional, confirme que <strong>você</strong>
+                  (advogado(a) habilitado(a)) revisará a peça e validará os fundamentos
+                  contra o contrato original. A IA não substitui sua análise jurídica.
+                </div>
+                <label class="checkbox-row">
+                  <input type="checkbox" id="confirmCheckbox">
+                  <span>Confirmo que sou advogado(a) habilitado(a) e validarei o relatório integralmente antes de qualquer protocolo judicial. Assumo a responsabilidade técnica pela peça final.</span>
+                </label>
+              </div>
+
+              <div class="result-actions">
+                <button class="btn btn-success" id="btnDownload" disabled>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+                  Download do PDF
+                </button>
+                <button class="btn btn-ghost" id="btnNew">Nova análise</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== API KEY VIEW ============== -->
+      <section class="view" id="view-apikey">
+        <div class="view-eyebrow"><span class="num">⚙</span> · Configurações</div>
+        <h1 class="view-title">API Key da <em>Anthropic</em></h1>
+        <p class="view-lead">
+          O Revisor opera no modelo <strong>BYOK (Bring Your Own Key)</strong>: cada escritório
+          configura sua própria chave da Anthropic. A chave fica armazenada apenas neste
+          navegador (<code style="font-family:var(--f-mono); font-size:13px; color:var(--accent);">localStorage</code>),
+          nunca é enviada a um servidor intermediário.
+        </p>
+
+        <div class="apikey-card">
+          <div class="apikey-status unset" id="apikeyStatus">
+            <span id="apikeyStatusText">Nenhuma chave configurada</span>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="apikeyInput">Chave da Anthropic</label>
+            <div class="input-wrap">
+              <input class="input" type="password" id="apikeyInput" placeholder="sk-ant-..." spellcheck="false" autocomplete="off">
+              <button type="button" class="input-toggle" id="apikeyToggle" aria-label="Mostrar chave">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="apikey-help">
+            A chave deve começar com <code>sk-ant-</code> e pode ser obtida em
+            <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
+            Os custos das análises são cobrados <strong>diretamente</strong> na conta do
+            escritório pela Anthropic — o Revisor não intermedia faturamento.
+          </div>
+
+          <div class="row" style="margin-top:14px;">
+            <button class="btn btn-primary" id="apikeySave">Salvar chave</button>
+            <button class="btn btn-ghost" id="apikeyClear">Remover chave</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============================================================
+     SCRIPTS — SPA logic (vanilla JS)
+============================================================ -->
+<script>
+(function(){
+  'use strict';
+
+  // ============ STORAGE ============
+  const KEY_THEME    = 'rc.theme';
+  const KEY_USER     = 'rc.user';
+  const KEY_APIKEY   = 'rc.apikey';
+  const KEY_REMEMBER = 'rc.remember';
+
+  // ============ THEME ============
+  function applyTheme(theme){
+    const t = (theme === 'dark') ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    document.querySelectorAll('[data-theme-set]').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-theme-set') === t);
+    });
+    localStorage.setItem(KEY_THEME, t);
+  }
+  applyTheme(localStorage.getItem(KEY_THEME) || 'light');
+  document.querySelectorAll('[data-theme-set]').forEach(b => {
+    b.addEventListener('click', () => applyTheme(b.getAttribute('data-theme-set')));
+  });
+
+  // ============ AUTH (mock) ============
+  const screenLogin = document.getElementById('screen-login');
+  const screenApp   = document.getElementById('screen-app');
+  function showLogin(){ screenLogin.classList.add('active'); screenApp.classList.remove('active'); document.body.style.overflow='auto'; }
+  function showApp(){ screenLogin.classList.remove('active'); screenApp.classList.add('active'); document.body.style.overflow='hidden'; }
+
+  function bootstrapSession(){
+    const saved = localStorage.getItem(KEY_USER);
+    if (saved){
+      try{
+        const u = JSON.parse(saved);
+        applyUser(u);
+        showApp();
+        return;
+      }catch(e){}
+    }
+    showLogin();
+  }
+
+  function applyUser(u){
+    document.getElementById('userName').textContent      = u.name || u.email.split('@')[0];
+    document.getElementById('userNameFull').textContent  = u.name || u.email.split('@')[0];
+    document.getElementById('userEmailFull').textContent = u.email;
+    document.getElementById('userAvatar').textContent    = (u.email || '·')[0].toUpperCase();
+  }
+
+  // Login form
+  const loginForm    = document.getElementById('loginForm');
+  const errBanner    = document.getElementById('loginError');
+  const errText      = document.getElementById('loginErrorText');
+  const togglePass   = document.getElementById('togglePassword');
+  togglePass.addEventListener('click', () => {
+    const inp = document.getElementById('password');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
+
+  loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    errBanner.classList.remove('show');
+    const email = document.getElementById('email').value.trim();
+    const pass  = document.getElementById('password').value;
+    const remember = document.getElementById('remember').checked;
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+      errText.textContent = 'Informe um e-mail válido.';
+      errBanner.classList.add('show');
+      document.getElementById('email').classList.add('error');
+      return;
+    }
+    if (pass.length < 4){
+      errText.textContent = 'A senha precisa ter pelo menos 4 caracteres.';
+      errBanner.classList.add('show');
+      document.getElementById('password').classList.add('error');
+      return;
+    }
+    document.getElementById('email').classList.remove('error');
+    document.getElementById('password').classList.remove('error');
+
+    const user = { email, name: email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
+    if (remember){
+      localStorage.setItem(KEY_USER, JSON.stringify(user));
+    } else {
+      sessionStorage.setItem(KEY_USER, JSON.stringify(user));
+    }
+    applyUser(user);
+    showApp();
+    refreshApiKeyStatus();
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem(KEY_USER);
+    sessionStorage.removeItem(KEY_USER);
+    document.getElementById('userDropdown').classList.remove('open');
+    showLogin();
+  });
+
+  // ============ USER MENU ============
+  const userTrigger  = document.getElementById('userTrigger');
+  const userDropdown = document.getElementById('userDropdown');
+  userTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = userDropdown.classList.toggle('open');
+    userTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', (e) => {
+    if (!userDropdown.contains(e.target) && !userTrigger.contains(e.target)){
+      userDropdown.classList.remove('open');
+      userTrigger.setAttribute('aria-expanded', 'false');
+    }
+  });
+  document.getElementById('goApiKey').addEventListener('click', () => {
+    userDropdown.classList.remove('open');
+    setView({ view:'apikey', crumb:'API Key' });
+  });
+
+  // ============ MOBILE MENU ============
+  const sidebar = document.getElementById('sidebar');
+  document.getElementById('menuToggle').addEventListener('click', () => sidebar.classList.toggle('open'));
+  document.querySelectorAll('.nav-item').forEach(b => {
+    b.addEventListener('click', () => sidebar.classList.remove('open'));
+  });
+
+  // ============ ROUTER (views) ============
+  const MODE_INFO = {
+    ccb:        { num:'01', tag:'CCB Bancária',           title:'Cédula de Crédito <em>Bancário</em>',         lead:'Análise revisional de Cédula de Crédito Bancário (Lei 10.931/2004) — encargos, capitalização, comissão de permanência e cláusulas resolutivas.' },
+    veiculo:    { num:'02', tag:'Financiamento de Veículo', title:'Financiamento de <em>Veículo</em> (CDC)',     lead:'Análise revisional de contrato de financiamento veicular — anatocismo, alienação fiduciária, IOF, seguros casados e mora.' },
+    consignado: { num:'03', tag:'Empréstimo Consignado',  title:'Empréstimo <em>Consignado</em>',               lead:'Análise revisional de empréstimo consignado em folha — limite de margem, refinanciamento, juros remuneratórios e portabilidade.' },
+    cartao:     { num:'04', tag:'Cartão de Crédito',      title:'Contrato de <em>Cartão de Crédito</em>',       lead:'Análise revisional de contrato de cartão — rotativo, juros do crédito, anuidade, tarifas e cláusulas de eleição de foro.' },
+    imobiliario:{ num:'05', tag:'Contrato Imobiliário',   title:'Financiamento <em>Imobiliário</em> (SFH/SFI)', lead:'Análise revisional de financiamento imobiliário — Tabela Price, capitalização, seguros MIP/DFI e amortização.' },
+    fies:       { num:'06', tag:'FIES · Financiamento Estudantil', title:'Financiamento <em>Estudantil</em> (FIES)',     lead:'Análise revisional de contrato FIES (Lei 10.260/2001) — taxa de juros (CESH ou Selic + spread), FGEDUC, coobrigação de fiador (regimes pré e pós Lei 13.530/2017), capitalização durante carência e tarifas administrativas.' },
+    geral:      { num:'07', tag:'Análise Geral',          title:'Análise Contratual <em>Geral</em>',            lead:'Varredura ampla de contrato bancário sem tipo pré-definido. O Revisor identifica o tipo, extrai cláusulas e aplica o cotejo jurisprudencial pertinente.' },
+  };
+
+  let currentMode = 'ccb';
+
+  function setView(opts){
+    const view = opts.view;
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    const target = document.getElementById('view-' + view);
+    if (target) target.classList.add('active');
+
+    // mark sidebar item
+    const navMatch = Array.from(document.querySelectorAll('.nav-item')).find(b => {
+      if (b.getAttribute('data-view') !== view) return false;
+      if (view === 'analysis' && opts.mode){ return b.getAttribute('data-mode') === opts.mode; }
+      return true;
+    });
+    if (navMatch) navMatch.classList.add('active');
+
+    // crumb
+    document.getElementById('crumbCurrent').textContent = opts.crumb || (view.charAt(0).toUpperCase() + view.slice(1));
+
+    // mode-specific
+    if (view === 'analysis'){
+      const mode = opts.mode || currentMode;
+      currentMode = mode;
+      const info = MODE_INFO[mode] || MODE_INFO.ccb;
+      document.getElementById('modeNum').textContent  = info.num;
+      document.getElementById('modeTag').textContent  = info.tag;
+      document.getElementById('modeTitle').innerHTML  = 'Análise — ' + info.title;
+      document.getElementById('modeLead').textContent = info.lead;
+      document.getElementById('modeChip').textContent = info.tag;
+      resetAnalysis(); // limpar estado entre modos
+    }
+
+    // scroll to top
+    document.querySelector('.viewport').scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  // wire nav items + welcome CTAs
+  document.querySelectorAll('[data-view]').forEach(b => {
+    b.addEventListener('click', () => {
+      setView({
+        view: b.getAttribute('data-view'),
+        mode: b.getAttribute('data-mode'),
+        crumb: b.getAttribute('data-crumb')
+      });
+    });
+  });
+  document.querySelectorAll('[data-view-go]').forEach(b => {
+    b.addEventListener('click', () => {
+      setView({
+        view: b.getAttribute('data-view-go'),
+        mode: b.getAttribute('data-mode'),
+        crumb: b.getAttribute('data-crumb')
+      });
+    });
+  });
+
+  // ============ FILE UPLOAD ============
+  const dropzone = document.getElementById('dropzone');
+  const fileInput= document.getElementById('fileInput');
+  const fileList = document.getElementById('fileList');
+  const filesChip= document.getElementById('filesChip');
+  const btnAnalyze = document.getElementById('btnAnalyze');
+  const btnReset = document.getElementById('btnReset');
+  let files = [];
+
+  function fmtSize(b){
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(2) + ' MB';
+  }
+
+  function renderFiles(){
+    fileList.innerHTML = '';
+    files.forEach((f, idx) => {
+      const ext = (f.name.split('.').pop() || '').toUpperCase();
+      const row = document.createElement('div');
+      row.className = 'file-row';
+      row.innerHTML = `
+        <div class="file-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        </div>
+        <div class="file-info">
+          <div class="file-name">${escapeHtml(f.name)}</div>
+          <div class="file-size">${ext} · ${fmtSize(f.size)}</div>
+        </div>
+        <button class="file-remove" aria-label="Remover" data-idx="${idx}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      `;
+      fileList.appendChild(row);
+    });
+    fileList.querySelectorAll('.file-remove').forEach(b => {
+      b.addEventListener('click', () => {
+        const i = +b.getAttribute('data-idx');
+        files.splice(i,1);
+        renderFiles();
+        updateAnalyzeBtn();
+      });
+    });
+    filesChip.textContent = files.length;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function updateAnalyzeBtn(){
+    btnAnalyze.disabled = files.length === 0;
+  }
+
+  function addFiles(list){
+    Array.from(list).forEach(f => {
+      if (f.size > 25 * 1048576){
+        alert(`Arquivo "${f.name}" excede 25 MB e foi ignorado.`);
+        return;
+      }
+      files.push(f);
+    });
+    renderFiles();
+    updateAnalyzeBtn();
+  }
+
+  fileInput.addEventListener('change', (e) => addFiles(e.target.files));
+  ;['dragenter','dragover'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropzone.classList.add('drag');
+  }));
+  ;['dragleave','drop'].forEach(ev => dropzone.addEventListener(ev, (e) => {
+    e.preventDefault(); dropzone.classList.remove('drag');
+  }));
+  dropzone.addEventListener('drop', (e) => addFiles(e.dataTransfer.files));
+
+  btnReset.addEventListener('click', () => {
+    files = [];
+    fileInput.value = '';
+    renderFiles();
+    updateAnalyzeBtn();
+    resetAnalysis(true);
+  });
+
+  // ============ ANALYSIS ENGINE (mock) ============
+  const STEP_NAMES = ['Ingestão', 'Identificação', 'Cláusulas', 'Verificação', 'Cálculo', 'Síntese'];
+  let analysisRunning = false;
+
+  function resetAnalysis(keepFiles){
+    analysisRunning = false;
+    document.querySelectorAll('.progress-step').forEach(s => {
+      s.classList.remove('active','done'); s.classList.add('idle');
+      s.querySelector('.step-status').textContent = 'aguardando';
+    });
+    document.getElementById('progressFill').style.width = '0%';
+    document.getElementById('progressMeta').textContent = 'Aguardando início';
+    document.getElementById('phaseChip').textContent = 'aguardando';
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('confirmCheckbox').checked = false;
+    document.getElementById('btnDownload').disabled = true;
+    if (!keepFiles && false){ /* preservamos arquivos por padrão */ }
+  }
+
+  document.getElementById('btnAnalyze').addEventListener('click', () => {
+    if (analysisRunning) return;
+    if (files.length === 0) return;
+    runAnalysis();
+  });
+
+  function setStep(i, status){
+    const el = document.querySelector(`.progress-step[data-step="${i}"]`);
+    if (!el) return;
+    el.classList.remove('idle','active','done');
+    if (status === 'active'){
+      el.classList.add('active');
+      el.querySelector('.step-status').textContent = 'em andamento';
+    } else if (status === 'done'){
+      el.classList.add('done');
+      el.querySelector('.step-status').textContent = 'concluído';
+    } else {
+      el.classList.add('idle');
+      el.querySelector('.step-status').textContent = 'aguardando';
+    }
+  }
+
+  function runAnalysis(){
+    analysisRunning = true;
+    document.getElementById('result').classList.remove('show');
+    document.getElementById('btnAnalyze').disabled = true;
+    document.getElementById('progressMeta').textContent = 'Análise em andamento';
+    // reset
+    for (let i=0;i<6;i++) setStep(i,'idle');
+
+    let i = 0;
+    const total = 6;
+    const tickStep = () => {
+      if (i >= total){
+        // concluído
+        document.getElementById('progressMeta').textContent = 'Análise concluída';
+        document.getElementById('phaseChip').textContent = 'concluído';
+        document.getElementById('progressFill').style.width = '100%';
+        analysisRunning = false;
+        document.getElementById('btnAnalyze').disabled = files.length === 0;
+        showResult();
+        return;
+      }
+      // marca anterior como done
+      if (i > 0) setStep(i-1,'done');
+      setStep(i,'active');
+      document.getElementById('phaseChip').textContent = STEP_NAMES[i];
+      const pct = Math.round(((i+0.5)/total)*100);
+      document.getElementById('progressFill').style.width = pct + '%';
+      i++;
+      // tempo variável por fase (1.0s a 1.8s)
+      setTimeout(tickStep, 900 + Math.random()*900);
+    };
+    tickStep();
+  }
+
+  // ============ RESULT GENERATION (mock plausível) ============
+  function pseudoRandom(seed){
+    // simple seeded PRNG (mulberry32)
+    let t = seed | 0;
+    return function(){
+      t = (t + 0x6D2B79F5) | 0;
+      let r = Math.imul(t ^ (t >>> 15), 1 | t);
+      r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
+      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  const FINDINGS_BY_MODE = {
+    ccb: [
+      { sev:'critical', text:'<strong>Capitalização mensal de juros</strong> sem pactuação expressa contraria a Súmula 539/STJ.', ref:'Cláusula 4.2 · Súmula 539/STJ' },
+      { sev:'high',     text:'<strong>Comissão de permanência cumulada</strong> com correção monetária e multa moratória.',     ref:'Cláusula 7.1 · Súmula 472/STJ' },
+      { sev:'high',     text:'<strong>CET divulgado divergente</strong> do CET efetivamente cobrado nas parcelas.',              ref:'Quadro de Encargos · Resol. 3.517/CMN' },
+      { sev:'medium',   text:'<strong>Tarifa de cadastro</strong> cobrada em renovação contratual — vedação reiterada.',          ref:'Cláusula 9.3 · Tema 618/STJ' },
+    ],
+    veiculo: [
+      { sev:'critical', text:'<strong>Anatocismo</strong> identificado em parcelas — Tabela Price com capitalização.',           ref:'Cláusula 5.1 · Tema 246/STJ' },
+      { sev:'high',     text:'<strong>Seguro de proteção financeira casado</strong> sem opção de não-contratação.',               ref:'Cláusula 12 · Súmula 473/STJ' },
+      { sev:'medium',   text:'<strong>Tarifa de avaliação do bem</strong> sem comprovação de prestação efetiva.',                 ref:'Cláusula 8.4 · Tema 958/STJ' },
+    ],
+    consignado: [
+      { sev:'critical', text:'<strong>Margem consignável</strong> excedida em consolidação contratual (>35%).',                  ref:'Cláusula 3 · Lei 10.820/2003' },
+      { sev:'high',     text:'<strong>Refinanciamento sem nova manifestação de vontade</strong> documentada.',                    ref:'Aditivos · CDC art. 6º' },
+      { sev:'medium',   text:'<strong>Juros remuneratórios acima da média BCB</strong> para a modalidade.',                       ref:'Cláusula 4 · Súmula 297/STJ' },
+    ],
+    cartao: [
+      { sev:'critical', text:'<strong>Juros do rotativo</strong> em patamar abusivo (>12x média de mercado).',                    ref:'Cláusula 6 · Resol. 4.549/BCB' },
+      { sev:'high',     text:'<strong>Cláusula mandato</strong> autorizando emissão de cártula em nome do cliente.',              ref:'Cláusula 14 · Súmula 60/STJ' },
+      { sev:'medium',   text:'<strong>Eleição de foro</strong> em desfavor do consumidor.',                                       ref:'Cláusula 22 · CDC art. 51' },
+    ],
+    imobiliario: [
+      { sev:'high',     text:'<strong>Tabela Price</strong> aplicada com capitalização sem expressa pactuação.',                  ref:'Cláusula 5 · Súmula 539/STJ' },
+      { sev:'high',     text:'<strong>Seguros MIP/DFI</strong> com prestadora vinculada ao banco — restrição à livre escolha.',   ref:'Cláusula 11 · Lei 4.380/64' },
+      { sev:'medium',   text:'<strong>Atualização monetária mensal</strong> com índice mais oneroso ao mutuário.',                ref:'Cláusula 8 · Súmula 295/STJ' },
+    ],
+    fies: [
+      { sev:'critical', text:'<strong>Capitalização mensal de juros durante a carência</strong> aplicada sem cláusula expressa — incidência sobre o saldo durante o curso amplifica o débito final.', ref:'Cláusula de Carência · Súmula 539/STJ · Lei 11.552/2007' },
+      { sev:'high',     text:'<strong>FGEDUC</strong> cobrado em até 5,63% sobre o valor financiado sem demonstração da prestação proporcional do fundo garantidor — onerosidade sem contrapartida verificada.', ref:'Cláusula de Garantia · Tema 958/STJ · Resol. CMN' },
+      { sev:'high',     text:'<strong>Coobrigação de fiador com renda 2× a parcela</strong> em contrato pré-Lei 13.530/2017 — desproporcionalidade da garantia em contrato de adesão estudantil.', ref:'Cláusula de Garantia · Lei 13.530/2017 · CDC art. 51' },
+      { sev:'medium',   text:'<strong>Taxa de juros aplicada</strong> (CESH ou Selic + spread) divergente do parâmetro regulamentar do FNDE para o período contratado.', ref:'Cláusula 4 · Portaria MEC/FNDE · Lei 10.260/2001' },
+    ],
+    geral: [
+      { sev:'high',     text:'<strong>Cláusula de eleição de foro</strong> potencialmente abusiva — verificação CDC.',           ref:'Cláusula 18 · CDC art. 51, IV' },
+      { sev:'high',     text:'<strong>Encargos por inadimplência</strong> cumulados além do permitido (multa + mora + comissão).', ref:'Cláusulas 7-9 · Súmula 472/STJ' },
+      { sev:'medium',   text:'<strong>Tarifa não justificada</strong> identificada — análise de prestação efetiva pendente.',     ref:'Quadro de Tarifas · Tema 958/STJ' },
+    ],
+  };
+
+  let lastResult = null;
+
+  function showResult(){
+    const seed = (currentMode + files.length + (files[0]?.name || '')).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    const rng = pseudoRandom(seed);
+    const probability = Math.round(58 + rng()*36); // 58–94
+    const passed = probability >= 65;
+
+    const findings = (FINDINGS_BY_MODE[currentMode] || FINDINGS_BY_MODE.geral).slice();
+    // shuffle leve
+    findings.sort(() => rng() - 0.5);
+
+    const verdictEl = document.getElementById('verdict');
+    verdictEl.classList.remove('pass','fail');
+    verdictEl.classList.add(passed ? 'pass' : 'fail');
+    document.getElementById('verdictIcon').innerHTML = passed
+      ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>'
+      : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
+    document.getElementById('verdictTitle').textContent = passed
+      ? 'Indícios suficientes para revisional'
+      : 'Indícios insuficientes — revisão manual recomendada';
+
+    document.getElementById('probValue').textContent = probability;
+    document.getElementById('probFill').style.width = probability + '%';
+    document.getElementById('probContext').innerHTML = passed
+      ? `Com base no cotejo das ${findings.length} cláusulas analisadas, o Revisor estima <strong>${probability}%</strong> de probabilidade de procedência total ou parcial em ação revisional. Esta estimativa <strong>não substitui</strong> a análise estratégica do(a) advogado(a).`
+      : `O resultado preliminar é abaixo do limiar recomendado (65%). Recomenda-se <strong>revisão manual atenta</strong> antes de qualquer decisão de protocolar ação revisional.`;
+
+    const list = document.getElementById('findingsList');
+    list.innerHTML = '';
+    findings.forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'finding';
+      const sevLabel = f.sev === 'critical' ? 'crítico' : f.sev === 'high' ? 'alto' : 'médio';
+      div.innerHTML = `
+        <span class="finding-tag ${f.sev}">${sevLabel}</span>
+        <div class="finding-text">${f.text}<span class="ref">${f.ref}</span></div>
+      `;
+      list.appendChild(div);
+    });
+
+    lastResult = { mode: currentMode, modeName: MODE_INFO[currentMode].tag, probability, passed, findings, files: files.map(f=>({name:f.name,size:f.size})) };
+
+    document.getElementById('result').classList.add('show');
+    document.getElementById('btnDownload').disabled = !document.getElementById('confirmCheckbox').checked;
+  }
+
+  document.getElementById('confirmCheckbox').addEventListener('change', (e) => {
+    document.getElementById('btnDownload').disabled = !e.target.checked || !lastResult;
+  });
+
+  document.getElementById('btnNew').addEventListener('click', () => {
+    files = [];
+    fileInput.value = '';
+    renderFiles();
+    updateAnalyzeBtn();
+    resetAnalysis();
+    lastResult = null;
+  });
+
+  // ============ PDF DOWNLOAD (mock — text blob com header PDF mínimo) ============
+  document.getElementById('btnDownload').addEventListener('click', () => {
+    if (!lastResult) return;
+    const r = lastResult;
+    const dt = new Date();
+    const stamp = dt.toLocaleString('pt-BR');
+    const lines = [];
+    lines.push('REVISOR CONTRATUAL · OrSheva 7');
+    lines.push('Relatório de Análise Revisional');
+    lines.push('=================================================');
+    lines.push('');
+    lines.push(`Data: ${stamp}`);
+    lines.push(`Modo: ${r.modeName}`);
+    lines.push(`Documentos: ${r.files.length}`);
+    r.files.forEach((f,i) => lines.push(`  ${i+1}. ${f.name} (${(f.size/1024).toFixed(1)} KB)`));
+    lines.push('');
+    lines.push(`VERDICT: ${r.passed ? 'INDÍCIOS SUFICIENTES PARA REVISIONAL' : 'INDÍCIOS INSUFICIENTES — REVISÃO MANUAL'}`);
+    lines.push(`Probabilidade de procedência: ${r.probability}%`);
+    lines.push('');
+    lines.push('FINDINGS:');
+    r.findings.forEach((f, i) => {
+      const sev = f.sev === 'critical' ? 'CRÍTICO' : f.sev === 'high' ? 'ALTO' : 'MÉDIO';
+      lines.push(`  ${i+1}. [${sev}] ${stripHtml(f.text)}`);
+      lines.push(`     ref: ${f.ref}`);
+    });
+    lines.push('');
+    lines.push('---');
+    lines.push('AVISO: Este relatório é insumo técnico-jurídico para análise por advogado(a)');
+    lines.push('habilitado(a). A IA não substitui validação humana e responsabilidade técnica');
+    lines.push('na peça final levada a juízo.');
+
+    // Build a tiny valid PDF (one page) embedding the lines as text
+    const pdf = buildPdf(lines);
+    const blob = new Blob([pdf], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `revisor_${r.mode}_${dt.toISOString().slice(0,10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 800);
+  });
+
+  function stripHtml(s){ return s.replace(/<[^>]*>/g,''); }
+
+  // Mini PDF builder — gera PDF válido single-page com o texto
+  function buildPdf(lines){
+    // limit & escape
+    const wrapped = [];
+    lines.forEach(l => {
+      const txt = l.toString();
+      // wrap a 95 chars
+      for (let i=0; i<txt.length; i += 95) wrapped.push(txt.slice(i, i+95));
+      if (txt === '') wrapped.push('');
+    });
+    const pageHeight = 792;
+    const lineHeight = 13;
+    const startY = pageHeight - 50;
+    const escape = s => s.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+
+    const pages = [];
+    for (let i=0; i<wrapped.length; i += 55){
+      pages.push(wrapped.slice(i, i+55));
+    }
+    if (pages.length === 0) pages.push([]);
+
+    // Build content streams
+    const streams = pages.map(linesPage => {
+      let stream = 'BT\n/F1 10 Tf\n';
+      stream += `1 0 0 1 50 ${startY} Tm\n`;
+      linesPage.forEach((l, idx) => {
+        if (idx === 0) stream += `(${escape(l)}) Tj\n`;
+        else stream += `0 -${lineHeight} Td\n(${escape(l)}) Tj\n`;
+      });
+      stream += 'ET';
+      return stream;
+    });
+
+    // Object generation
+    const objects = [];
+    objects.push(null); // 1-indexed
+
+    // 1: Catalog
+    objects.push('<< /Type /Catalog /Pages 2 0 R >>');
+    // 2: Pages
+    const pageObjStart = 3;
+    const pageObjs = pages.map((_, i) => `${pageObjStart + i*2} 0 R`).join(' ');
+    objects.push(`<< /Type /Pages /Kids [${pageObjs}] /Count ${pages.length} >>`);
+    // pages and contents
+    pages.forEach((_, i) => {
+      const pageObjId = pageObjStart + i*2;
+      const contentObjId = pageObjId + 1;
+      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${pageObjStart + pages.length*2} 0 R >> >> /Contents ${contentObjId} 0 R >>`);
+      const stream = streams[i];
+      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
+    });
+    // Font object (last)
+    const fontObjId = pageObjStart + pages.length*2;
+    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+
+    // Serialize
+    let pdf = '%PDF-1.4\n%âãÏÓ\n';
+    const offsets = [0];
+    for (let i = 1; i < objects.length; i++){
+      offsets.push(pdf.length);
+      pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
+    }
+    const xrefOffset = pdf.length;
+    pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+    for (let i=1; i<objects.length; i++){
+      pdf += offsets[i].toString().padStart(10,'0') + ' 00000 n \n';
+    }
+    pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+    return pdf;
+  }
+
+  // ============ API KEY ============
+  function refreshApiKeyStatus(){
+    const v = localStorage.getItem(KEY_APIKEY);
+    const has = !!v && v.length > 8;
+    const status = document.getElementById('apikeyStatus');
+    const text   = document.getElementById('apikeyStatusText');
+    const dot    = document.getElementById('apikeyDot');
+    const chip   = document.getElementById('apikeyChip');
+    if (has){
+      status.classList.remove('unset'); status.classList.add('set');
+      text.textContent = 'Chave configurada · ' + maskKey(v);
+      dot.textContent = '✓';
+      dot.style.color = 'var(--success-500)';
+      chip.textContent = 'configurada';
+      document.getElementById('apikeyInput').value = v;
+    } else {
+      status.classList.remove('set'); status.classList.add('unset');
+      text.textContent = 'Nenhuma chave configurada';
+      dot.textContent = '∅';
+      dot.style.color = '';
+      chip.textContent = 'não configurada';
+    }
+  }
+
+  function maskKey(v){
+    if (!v) return '';
+    if (v.length <= 12) return '••••••••';
+    return v.slice(0,7) + '••••••••' + v.slice(-4);
+  }
+
+  document.getElementById('apikeyToggle').addEventListener('click', () => {
+    const i = document.getElementById('apikeyInput');
+    i.type = i.type === 'password' ? 'text' : 'password';
+  });
+  document.getElementById('apikeySave').addEventListener('click', () => {
+    const v = document.getElementById('apikeyInput').value.trim();
+    if (!v){
+      alert('Informe uma chave válida.');
+      return;
+    }
+    if (!/^sk-ant-/.test(v)){
+      if (!confirm('A chave não começa com "sk-ant-". Salvar mesmo assim?')) return;
+    }
+    localStorage.setItem(KEY_APIKEY, v);
+    refreshApiKeyStatus();
+  });
+  document.getElementById('apikeyClear').addEventListener('click', () => {
+    if (!confirm('Remover a chave armazenada neste navegador?')) return;
+    localStorage.removeItem(KEY_APIKEY);
+    document.getElementById('apikeyInput').value = '';
+    refreshApiKeyStatus();
+  });
+
+  // ============ INIT ============
+  refreshApiKeyStatus();
+  bootstrapSession();
+  // se sessão iniciou no welcome
+  setView({ view:'welcome', crumb:'Início' });
+
+})();
+</script>
+
+</body>
+</html>

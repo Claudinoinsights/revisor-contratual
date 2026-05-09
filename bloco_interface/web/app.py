@@ -480,17 +480,13 @@ async def global_exception_handler(request: Request, exc: Exception) -> HTMLResp
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    # MVP-LEAN-01 Task 2 — AC-MVP-01: route protection (sem session válida → /login)
-    if not request.session.get("user"):
-        return RedirectResponse("/login", status_code=303)
-    # MVP-LEAN-01 Task 3 — AC-MVP-02: renderiza S2 Pré-upload (substitui index.html legacy)
-    context: dict[str, Any] = {}
-    context.update(_layout_context(request))  # topbar + banner + footer (Task 1)
-    return templates.TemplateResponse(
-        request=request,
-        name="s2_pre_upload.html",
-        context=context,
-    )
+    """SP04-UI-SPA-01 chunk 1 MINIMAL — serve SPA OrSheva 7 estático.
+
+    SPA decide login flow client-side (screen-login OR screen-app conforme cookie/state).
+    Templates Jinja2 antigos preserved como .legacy para rollback (SP04-UI-CLEANUP-01).
+    """
+    spa_path = STATIC_DIR / "index.html"
+    return HTMLResponse(content=spa_path.read_text(encoding="utf-8"))
 
 
 # MVP-LEAN-01 Task 2 — AC-MVP-01: S1 Login + C1 Login form
