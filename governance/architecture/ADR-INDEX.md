@@ -142,7 +142,7 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas (accepted):** 15 (ADR-001..006, 008, 012, 014..015, 017..020) — ADR-016 superseded por ADR-020 em 2026-05-09 + ADR-020 ratify Accepted Eric (avance implícito 2026-05-09)
+- **ADRs ativas (accepted):** 15 (ADR-001..006, 008, 012, 014..015, 017..020) — ADR-016 superseded por ADR-020 em 2026-05-09 + ADR-020 ratify Accepted Eric quote literal 2026-05-09 (post-Smith H1 flip)
 - **ADRs proposed (aguardando Eric):** 0
 - **Sprint 03 Phase 0 ADRs:** 2 (ADR-012 Vault Data Bundling accepted; ADR-013 partial superseded por ADR-015)
 - **Sprint 04 ADRs novos:** 7 (ADR-014..019 + ADR-020 — pivot SaaS BYOK cloud + 7 doctypes UX)

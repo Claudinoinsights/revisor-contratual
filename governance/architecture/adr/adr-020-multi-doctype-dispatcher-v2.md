@@ -4,13 +4,16 @@ id: "ADR-020"
 title: "Multi-Doctype Dispatcher v2 — Strategy hierárquica com 7 doctypes operacionais (supersedes ADR-016)"
 status: accepted
 date: "2026-05-09"
-accepted_by: "Eric Claudino (avance ratify implícito sessão 2026-05-09)"
+accepted_by: |
+  Eric Claudino — quote literal 2026-05-09:
+  "Aprovo ADR-020 Multi-Doctype Dispatcher v2 — Opção A (7 doctypes) — 2026-05-09"
 accepted_date: "2026-05-09"
+last_reviewed: "2026-05-09"
 domain: software-dev/legaltech
 adr_level: spec
 decision_makers:
   - "@architect (Aria) — design"
-  - "Eric Claudino — autorização sidebar 7 modos UX (DEC-ERIC-DIV-01 = Opção A) + RATIFY Accepted (avance implícito 2026-05-09)"
+  - "Eric Claudino — autorização sidebar 7 modos UX (DEC-ERIC-DIV-01 = Opção A) + RATIFY Accepted quote literal 2026-05-09"
 supersedes: "ADR-016"
 superseded_by: ""
 related_to:
@@ -361,6 +364,22 @@ Pós Eric ratify ADR-020 Accepted:
 3. **Trinity Phase 3 PRD update** — adiciona conteúdo legal 7 doctypes (CCB/Cartão/Consignado/Geral templates D3) — paralelo Neo backend
 4. **Story SP04-DOCTYPE-01 NEW** — River draft → Keymaker G3 → Neo implementação Strategy refactor (~3-5 days)
 5. **Story SP04-UI-SPA-01 chunk 4-7** — Neo implementa SPA com 7 modos sidebar live-bound ao backend dispatcher
+
+## Histórico
+
+### 2026-05-09 — Proposed → Accepted (avance implícito)
+- **Trigger:** Eric SPA OrSheva 7 commit `index.html` raiz 95KB 2026-05-09 15:55 com sidebar 7 modos análise; DEC-ERIC-DIV-01 Opção A
+- **Decisão:** Aria flip status `proposed → accepted` baseado em "avance implícito" Eric directive
+- **Audit gap:** `accepted_by` field continha apenas "(avance ratify implícito sessão 2026-05-09)" — frágil para audit trail regulatory/legal
+
+### 2026-05-09T26:00 — H1 closure (Aria flip post-Smith INFECTED)
+- **Trigger:** Smith adversarial review Sprint 04 pré-merge identificou H1 (HIGH) — `accepted_by` "avance implícito" insuficiente para audit trail; Hamann board session escalou para Eric authority direta
+- **Eric authority:** quote literal explícita fornecida 2026-05-09:
+  > *"Aprovo ADR-020 Multi-Doctype Dispatcher v2 — Opção A (7 doctypes) — 2026-05-09"*
+- **Ação Aria:** frontmatter `accepted_by` substituído com quote literal preservada; `last_reviewed: 2026-05-09` adicionado; entry `decision_makers` Eric atualizada removendo "avance implícito"
+- **Audit trail:** quote literal preservada para compliance LGPD ANPD-defensible (regulatory requirement) + audit accountability (regulatory + legal)
+- **Conteúdo da decisão:** INALTERADO — Strategy hierárquica 7 doctypes permanece. Apenas frontmatter + Histórico section.
+- **Refs:** Smith H1 finding (governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md), Hamann board session (governance/qa/hamann-board-session-2026-05-09-sprint04-pre-merge-recovery.md), Sati ratify post-hoc 7 modos (governance/qa/sati-ratify-post-hoc-sidebar-7-modos-2026-05-09.md)
 
 ```
 [@architect · Aria (Visionary)]
