@@ -624,6 +624,42 @@ Aria pre-flight CONCLUÍDO via ADR-020. Sem nova decisão arquitetural necessár
 
 **River expectativa:** Tank ratify LIGHT — pattern consistente migrations Sprint 04 anteriores. Estimate ~15-30min.
 
+#### Tank Phase 14.6a LIGHT ratify (2026-05-09T22:50)
+
+**Status:** ✅ **3 itens RATIFY LIGHT confirmed** — pattern Sprint 04 mature (paridade Phase 12.3a BYOK + Phase 13.3a LGPD).
+
+##### Item 1 — Backfill strategy sp04_004 ✅ CONFIRMED sem desvio
+
+- DROP CONSTRAINT IF EXISTS + CHECK constraint 8 valores: pattern idempotente standard
+- UPDATE backfill `bancario` → `bancario_cross`: **zero data loss** (entries permanecem queryable + Sprint 06+ refinement granular via TD-SP04-12)
+- Rollback SQL documentado em comments inline (DROP CONSTRAINT + restore old enum + reverse UPDATE)
+- **River draft mantido sem refinement** — backfill conservador é estratégia correta
+
+##### Item 2 — BACEN series IDs canonical ✅ CONFIRMED via python-bcb + BACEN SGS docs
+
+- **CDI 4391** = "Taxa de juros - Certificado de Depósito Interbancário (CDI) over" — confirmed via `python-bcb sgs.get(4391)` retorna série diária (BACEN SGS canonical ID)
+- **Modalidade 218** = "Operações de crédito do SFN com pessoas físicas - Aquisição de outros bens" — confirmed via BACEN docs taxonomy modalidades CDC PF (217=veículos, 218=outros bens, 419=consignado privado, 432=consignado público)
+- INSERT ON CONFLICT DO NOTHING: idempotência preserved (re-run migration zero side effects)
+- **River draft mantido sem refinement** — IDs corretos, ON CONFLICT pattern standard
+
+##### Item 3 — Pattern consistency Sprint 04 BACKBONE ✅ CONFIRMED
+
+- ALTER TABLE jurisprudencia DROP CONSTRAINT + ADD CONSTRAINT: alinhado pattern sp04_001 (tenants.status) + sp04_002 (tenant_api_keys.status enum) + sp04_003 (tos_acceptances UNIQUE constraint)
+- BEGIN ... COMMIT explicit transactions: standard pattern Sprint 04
+- DO $$ BEGIN ... RAISE NOTICE ... END $$ blocks para audit migration: pattern útil (sp04_004 inclui count migrated entries)
+- Smoke validation comments inline (queryable via psql `\d+ jurisprudencia` + `\d+ bacen_series_cache`): pattern padronizado Sprint 04
+- **River draft mantido sem refinement** — pattern fidelity ao BACKBONE Sprint 04
+
+##### Tank close-out LIGHT
+
+- ✅ **3 itens ratificados sem refinement** — River draft é canônico
+- ✅ **Schema ADR-020 alignment** confirmado (2 migrations fidelity §1.6 + §1.7)
+- ✅ **Decisões vinculantes** Neo chunks 4 implementation
+- 🆕 **TD-SP04-12 + TD-SP04-13** flagged TECH-DEBT.md (Sprint 06+ vault re-classify granular + vault gaps Cartão/Consignado curadoria)
+- ⏳ **Próximo:** Neo *develop chunks 1-3 (skeleton + dispatchers + router) paralelo Eric advogado work; Neo chunk 4 (migrations) com Tank decisions LIGHT aplicadas
+
+— Tank, carregando os dados 🗄️
+
 ### @pm Trinity (MANDATORY pre-implement chunks 5-6 — cross-domain bloqueio)
 
 **Status:** ⏳ Trinity Phase 3 PRD update **MANDATORY** pre-implement chunks 5-6:
