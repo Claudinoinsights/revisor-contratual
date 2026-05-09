@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-07T09:30"
+last_updated: "2026-05-09T26:50"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -890,3 +890,92 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 **Total Sprint 04 acumulado (AUTH-01 + BYOK + LGPD-01):** 1 HIGH + 8 MEDIUM + 1 LOW = ~55h Sprint 05+/06+ effort.
 
 *Sprint 04 close-story Story SP04-BYOK-01 — Keymaker (sessão 91, 2026-05-08) · Path B chunks 1-8 + chunk 5.1 · Q-gate cycle BYOK complete (implementation 100% + qa-gate G5 CONCERNS + close-story Done) · **Foundation P0 Cloud SaaS BYOK COMPLETO** (AUTH-01 + BYOK-01 done; 12 stories dependentes desbloqueadas pós-merge).*
+
+---
+
+## Sprint 04 — Pre-merge Recovery findings (2026-05-09 sessão 92, Ordem 17)
+
+> **Origem:** Hamann recovery chain Caminho A executado pós Smith adversarial review INFECTED (20 findings, 2 CRITICAL + 6 HIGH bloqueando merge).
+> **Source docs:**
+>   - `governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md` (review N=1 INFECTED)
+>   - `governance/qa/hamann-board-session-2026-05-09-sprint04-pre-merge-recovery.md` (8 advisors, Caminho A)
+>   - `governance/qa/sati-ratify-post-hoc-sidebar-7-modos-2026-05-09.md` (commit 2bffbb9)
+>   - `governance/qa/smith-h6-reverify-sprint-04-pre-merge-2026-05-09.md` (review N=3 CONTAINED + 3 NEW)
+>   - `governance/qa/smith-final-pre-merge-consolidated-sprint-04-2026-05-09.md` (review N=4 CONTAINED + GREENLIGHT)
+> **Decision:** 5/5 pre-merge blockers RESOLVED commits f08fd5b → 0051ffb. 18 findings post-merge promovidos para tracking Sprint 5+/6+.
+
+### NEW debt — Sati ratify post-hoc 7 modos (5 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-04-ANALYTICS** | Sati ratify Eixo 5 (MANDATORY) | MEDIUM | Tracking 5 métricas pós-deploy obrigatório validar Miller's law upper bound 7±2 cognitive load: drop-off rate por doctype (≤15%), tempo médio seleção→submissão (≤90s), % uso "Geral" como primeira escolha (≤10%), % reclassificação manual (≤5%), distribuição uso 7 modos (Pareto top-3 ≥60%). Localização: novo módulo `bloco_interface/web/analytics/sidebar_metrics.py`. | 8h | @dev+@ux-design-expert | 5 | 2026-05-09 |
+| **TD-SP04-S4-V1** | Sati ratify Eixo 4 | MEDIUM | Wireframe variant Imobiliário (SFH/SFI) — campos específicos: matrícula RGI, valor avaliação, garantia (alienação fiduciária vs hipoteca), índice (TR/IPCA/IGP-M). Atualmente template unificado bancário não cobre. Disclaimer "Modo Avançado em desenvolvimento" cobre interim. Localização: `bloco_interface/web/static/index.html` form variant + backend strategy. | 12h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-S4-V2** | Sati ratify Eixo 4 | MEDIUM | Wireframe variant FIES (Lei 10.260/2001) — campos específicos: ano matrícula, instituição ensino, fase (utilização vs amortização), coparticipação. Localização: idem TD-SP04-S4-V1. | 12h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-S4-V3** | Sati ratify Eixo 6 | LOW | Geral catch-all UX (Tier 3 fallback) — helper text + confirmation prompt anti-premature-defaulting: quando usuário escolhe Geral, mostrar "Não encontrou seu tipo? OK. Se for um dos modos acima, recomendamos voltar — análise específica é mais precisa." Localização: SPA Geral form. | 4h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-15** | Sati ratify Eixo 1+2 | LOW | Tooltips por modo na sidebar (escopo + exemplos contratuais) para reduzir hesitação cognitive load borderline. Ex.: tooltip "Cartão" → "Resolução BACEN 4.949 + Resolução 96 — fatura, juros rotativos, anuidade, IOF". 7 tooltips × ~80 chars cada. Localização: SPA sidebar `<button>` data-tooltip + tooltip helper. | 3h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+
+### NEW debt — Smith H6 reverify (3 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-16** | Smith H6 reverify F-3 | LOW | Disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos (Imobiliário/FIES/Geral) enquanto S4 não tem variants. Bloqueia release público v0.3.0 NÃO bloqueia merge interno. Pattern: badge laranja `--or-300` próximo ao breadcrumb. Localização: `bloco_interface/web/static/index.html` form headers dos 3 modos. | 2h | @dev | 5 (pré v0.3.0 público) | 2026-05-09 |
+| **TD-PROCESS-01** | Smith H6 reverify F-1 | LOW | Process gap framework — ADR governance precisa hook obrigatório "ADRs com impacto UX-visible (sidebar/navegação/IA/layout) requerem consulta pré-flip Accepted ao @ux-design-expert". Adicionar cláusula em `.claude/rules/adr-governance.md` ou `adr-scope.md` (framework repo, NÃO project). Localização: framework `the_matrix/.claude/rules/`. | 2h | @lmas-master | framework | 2026-05-09 |
+| **TD-SP04-17-AUTO** | Smith H6 reverify F-2 | LOW | Tech debt registry trigger não explicitado em verdicts Sati/Smith — auto-resolve via Morpheus consolidação protocol (este registro). Sem ação requerida — protocolo cumprido. | 0h | @lmas-master | DONE 2026-05-09 | 2026-05-09 |
+
+### Status original Smith review N=1 (10 itens — referência cross-doc)
+
+> Referenciados em `governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md`:
+
+| Finding original | Sev | Status post-merge | Action delegada |
+|------------------|:---:|-------------------|-----------------|
+| **H2** PR #6 over-scope crescente | HIGH | POST-MERGE acceptable | Future story SP04-UI-CLEANUP-01 (PR scope rebalance) |
+| **H3** PRD v2.0.1 conta inconsistente "16 vs 20 prompts" | HIGH | POST-MERGE acceptable | Trinity PATCH 1.1 doc (sem code change) |
+| **H5** ADR-020 §1.5 multi-tenant LLM classifier ambiguidade | HIGH | POST-MERGE acceptable | Aria PATCH §1.5 spec (clarification) |
+| **M1-M8** (8 MEDIUM tech debt) | MED | POST-MERGE trackable | Smith review original Section 5 — escopo distribuído @dev/@architect/@data-engineer Sprint 5+ |
+| **L1-L4** (4 LOW cosmético) | LOW | POST-MERGE optional | Smith review original Section 6 — escopo cosmético Sprint 6+ |
+
+### Resolved Sprint 04 pre-merge recovery
+
+| ID | Resolution | Date |
+|----|-----------|------|
+| **C1** LGPD CDN regression | Chunk 1.5 self-host fonts (REV-INT-02 pattern reuse) — commit `d7f61e7` + verify `be5ef57` | 2026-05-09 |
+| **C2 + NF1** brand claim ANPD | Chunk 1.6 brand-honest "Em formalização LGPD" — commit `a206c2a` + verify `5e01581` | 2026-05-09 |
+| **H4** route protection MVP-LEAN-01 | Chunk 1.7 dual-protection session check + RedirectResponse — commit `f08fd5b` + verify `331eaa5` | 2026-05-09 |
+| **H6** Sati ratify post-hoc 7 modos | RATIFY WITH CHANGES verdict — commit `2bffbb9` + Smith verify `f7ee64f` | 2026-05-09 |
+| **H1** Eric ratify ADR-020 audit trail | Quote literal preservada frontmatter — commit `78f92ed` | 2026-05-09 |
+| **WAIVED-LGPD-03** | Sati ratify post-hoc cumprida (acima H6) | 2026-05-09 |
+
+### Retrospective Sprint 04 Recovery
+
+**O que funcionou:**
+- **Hamann board Caminho A** (sequential fix) preferido sobre paralelo — preveniu race conditions inter-Skills
+- **Smith adversarial chain** (4 reviews: 1 original + 3 verifies + 1 FINAL) — capturou regressão silenciosa potencial 0
+- **Skill workflow strict** — Eric "avance com o recomendado sempre pela skill" enforçado consistentemente, zero atalhos via Bash/Edit raw em código produto
+- **IDS REUSE pattern** — chunk 1.5 reusou REV-INT-02 self-host fonts pattern Sprint 02 ao invés de re-criar
+- **Eric quote literal** (H1 closure) — fortaleceu audit trail LGPD ANPD-defensible vs "avance implícito"
+
+**O que não funcionou (process gaps):**
+- ADR-020 flipped Accepted sem consulta UX expert pré-flip → process gap → **TD-PROCESS-01**
+- Sprint 04 quality gates anteriores (Keymaker G3 10/10 + Oracle G5 PASS + Tank LIGHT) NÃO capturaram C1 (Google Fonts CDN regression) nem C2 (brand claim sem TOS) — Smith adversarial detectou. **Insight:** quality gates formais ≠ adversarial review.
+- 14 commits ahead origin antes do push (recovery + sessão anterior) indicam push deferido demais — **future:** push intermediário antes de sprint review formal.
+
+**Lessons learned:**
+1. **Adversarial chain pré-merge previne regression silent** — 4 Smith reviews capturou 5/5 blockers + 3 NEW findings minor
+2. **Brand-honest temporário > brand-claim aspiracional** quando ANPD/LGPD compliance pendente — Eric advogado externo finaliza TOS canônico (TD-SP04-10 HIGH)
+3. **Post-hoc ratify legítimo** quando trabalho Skill subsequente prova qualidade (Sati 6 eixos UX defensáveis), MAS process gap (TD-PROCESS-01) deve ser fechado para evitar repetição
+4. **Quote literal > avance implícito** para audit trail regulatory — Eric authority direta substitui inferência
+
+---
+
+## Total Sprint 04 acumulado atualizado (2026-05-09 sessão 92)
+
+| Categoria | Quantidade | Effort estimado |
+|-----------|:----------:|:---------------:|
+| HIGH ativos (TD-SP04-10 advogado + H2/H3/H5 originais) | 4 | ~16h + cross-doc actions |
+| MEDIUM novos Sprint 04 recovery (Sati 4 + Smith 0) | 4 | ~36h |
+| LOW novos Sprint 04 recovery (Sati 1 + Smith 2) | 3 | ~7h |
+| MEDIUM originais (M1-M8) | 8 | trackable Sprint 5+ |
+| LOW originais (L1-L4) | 4 | trackable Sprint 6+ |
+| **Total cumulativo Sprint 04** | **23** | **~95h Sprint 05+/06+ effort** |
+
+*Sprint 04 pre-merge recovery — Morpheus (sessão 92, 2026-05-09) · Hamann board Caminho A 100% executado · 5/5 pre-merge blockers RESOLVED · review chain INFECTED → CONTAINED → GREENLIGHT · 6 commits recovery pushed origin · aguarda Eric merge PR #4+#5+#6 (autoridade exclusiva).*

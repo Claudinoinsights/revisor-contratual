@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-09T26:45"
+last_updated: "2026-05-09T26:55"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,21 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **👑 Sessão 92 Sprint 04 Pre-merge Recovery CLOSURE — @lmas-master Morpheus Ordem 17 EXECUTADA** (@lmas-master · Morpheus — 2026-05-09T26:55):
+  - **Trigger:** Cadeia Skills 100% executada (Hamann/Neo/Smith×3/Sati/Aria/Operator) — consolidação final docs + tech debt + sessão closure
+  - **TECH-DEBT.md atualizado:** Append section "Sprint 04 — Pre-merge Recovery findings (2026-05-09 sessão 92)" com 8 NEW (Sati 5 + Smith H6 3) + 10 originais cross-referenced + 6 RESOLVED + Retrospective + Process Insights
+  - **Total cumulativo Sprint 04:** **23 tech debt itens / ~95h Sprint 05+/06+ effort**
+  - **Ordem 17 closure:** `governance/qa/morpheus-fechamento-sessao-92-ordem-17.md` — 9 sections (trigger + 8 Skills cadeia + 5 findings RESOLVED + 5 decisões + 6 commits + tech debt + próximos passos + 5 process insights + closing)
+  - **5 process insights documentados Sprint 05+:**
+    1. Adversarial chain previne regression silenciosa — invocar Smith review pré-merge formal mesmo após Oracle PASS
+    2. ADR governance hook UX expert (TD-PROCESS-01) — fechar process gap ADR-020 flip sem consulta UX
+    3. Brand-honest temporário > aspirational (pattern AUTH-01 chunk 5 + LGPD-01 chunk 5 reusable)
+    4. Quote literal > avance implícito para Eric authority audit trail regulatory
+    5. Push intermediário preferível a 14+ commits ahead origin
+  - **Files emitidos:** `governance/TECH-DEBT.md` (append) + `governance/qa/morpheus-fechamento-sessao-92-ordem-17.md` + `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-09-sprint04-recovery-closure.yaml`
+  - **Status Sprint 04 recovery:** **🟢 100% EXECUTADA** — aguarda Eric authority exclusiva merge PR #4+#5+#6
+  - **Próxima ação Eric:** Merge PR #4 → #5 → #6 (ordem técnica recomendada) → após merge: 4 Skills post-merge não-bloqueantes + Eric advogado TOS canônico ANPD
 
 - **⚡ Sessão Sprint 04 pré-merge recovery — @devops Operator PUSH DONE** (@devops · Operator — 2026-05-09T26:45):
   - **Trigger:** Hamann recovery chain Step 5 — Smith FINAL re-gate GREENLIGHT (commit 0051ffb)
