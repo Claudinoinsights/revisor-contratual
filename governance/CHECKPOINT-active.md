@@ -6694,3 +6694,43 @@ CodeRabbit DEFERRED CLI ausente WSL → Oracle G5 catched 9 ruff findings → Ne
 **H-S04-LGPD-NEO2ORC-CHUNK8-001** → @qa Oracle re-gate G5 (expected PASS clean)
 
 — Neo, sempre construindo 🔨
+
+---
+
+## Sessão 2026-05-09 — Oracle RE-GATE G5 SP04-LGPD-01 PASS
+
+> Eric instrução: "avance com o recomendado sempre pela skill" → Oracle re-gate via Skill `LMAS:agents:qa`.
+
+### Verificações empíricas re-gate
+
+- ✅ `ruff check bloco_auth/tos.py bloco_auth/audit_isolation.py` → **All checks passed!** (0 errors)
+- ✅ `pytest tests/unit/ -q` → **352 passed in 61.47s** (zero regression vs gate inicial)
+- ✅ Branch HEAD: `7bc0cd4` (chunk 1→8 com governance closure completa, 10 commits total)
+
+### Delta CONCERNS → PASS
+
+| Aspecto | 16:50 (gate inicial) | 17:25 (re-gate) |
+|---------|----------------------|-----------------|
+| Check 4 Code quality (ruff) | ⚠️ CONCERNS (9 findings) | 🟢 **PASS (0 findings)** |
+| Outros 6 checks | ✅ PASS | ✅ PASS (mantidos) |
+
+### 🟢 RE-GATE VERDICT: PASS (clean)
+
+Story SP04-LGPD-01 pronta para merge. 3 waivers permanecem (LGPD-01 HIGH + LGPD-02 MEDIUM + LGPD-03 LOW) com 5-fields format honored — não bloqueiam Done. WAIVED-LGPD-04 LOW **RESOLVED** (compensação cumprida).
+
+### Files
+
+- MOD `governance/qa/sp04-lgpd-01-qa-gate-g5.md` (Section 10 RE-GATE PASS appended + frontmatter verdict_history)
+- MOD `governance/stories/sp04-lgpd-01-compliance-flows-operador.md` (QA Results section RE-GATE appended)
+- ADD `.lmas/handoffs/handoff-qa-to-ops-2026-05-09-sp04-lgpd-01-push-pr6.yaml`
+- MOD `.lmas/handoffs/handoff-dev-to-qa-2026-05-09-sp04-lgpd-01-chunk8-fix-ruff.yaml` (consumed: true)
+
+### Recommended next status
+
+**InReview → Done** (flip por Operator durante push OR Eric durante merge)
+
+### Próximo handoff
+
+**H-S04-LGPD-ORC2OPS-PUSH-PR6-001** → @devops Operator `*push + *create-pr SP04-LGPD-01` → PR #6 base main
+
+— Oracle, guardião da qualidade 🛡️

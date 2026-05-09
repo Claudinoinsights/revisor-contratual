@@ -673,3 +673,37 @@ Pattern Path B SP04-AUTH-01/BYOK-01 adaptado:
 - Caminho B → após WAIVED-LGPD-05 documentado → status `Done` (com débito tracking)
 
 — Oracle, guardião da qualidade 🛡️
+
+---
+
+### RE-GATE 2026-05-09T17:25 — Verdict **PASS** (CONCERNS resolvido)
+
+Eric escolheu Caminho A. Neo executou chunk 8 (`c63d8be` + `7bc0cd4`) em ~12min. Re-gate verifica transição CONCERNS → PASS:
+
+**Verificações empíricas:**
+- ✅ `ruff check bloco_auth/tos.py bloco_auth/audit_isolation.py` → **All checks passed!** (0 errors)
+- ✅ `pytest tests/unit/ -q` → **352 passed in 61.47s** (zero regression)
+
+**7 Quality Checks RE-GATE:**
+
+| # | Check | Verdict |
+|---|-------|---------|
+| 1 | AC coverage (6/6) | ✅ PASS |
+| 2 | Test coverage | ✅ PASS |
+| 3 | Schema migration | ✅ PASS |
+| 4 | **Code quality (ruff)** | 🟢 **PASS** (CONCERNS resolvido — 9 findings → 0) |
+| 5 | Security | ✅ PASS |
+| 6 | Documentation | ✅ PASS (DoD 9/9 VERIFIED) |
+| 7 | Constitutional (No Invention) | ✅ PASS |
+
+**Waivers post re-gate:**
+- WAIVED-LGPD-01 HIGH — REMAIN (fix-by 2026-05-22 Eric advogado)
+- WAIVED-LGPD-02 MEDIUM — REMAIN (fix-by 2026-05-22 Postgres setup)
+- WAIVED-LGPD-03 LOW — REMAIN
+- WAIVED-LGPD-04 LOW — 🟢 **RESOLVED** (compensação cumprida via Oracle G5 + Neo chunk 8)
+
+**🟢 Recommended status: InReview → Done** — Operator authorized para push + PR #6 base main.
+
+**Gate doc:** [`sp04-lgpd-01-qa-gate-g5.md`](../qa/sp04-lgpd-01-qa-gate-g5.md) Section 10 RE-GATE.
+
+— Oracle, guardião da qualidade 🛡️
