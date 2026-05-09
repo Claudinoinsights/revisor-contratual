@@ -6544,3 +6544,153 @@ ADR-010 ARIA-SABIA-DECISION fechada (story Done). Próxima story: **REV-LLM-01**
 **H-S02-LLM01-dev2qa** → @qa (Oracle) gate review
 
 — Neo, sempre construindo 🔨
+
+---
+
+## Sessão 2026-05-09 — Morpheus + River: SP04-UI-SPA-01 Draft (BLOCKED DEC-ERIC-DIV-01)
+
+> ⚠️ **Gap CHECKPOINT-active.md sessões 87..N (2026-05-06..2026-05-08) — body desatualizado** vs frontmatter (Sprint 03 Phase 0 closure + Sprint 04 SP04-AUTH-01 + SP04-BYOK-01 + SP04-LGPD-01 InReview). Esta entry retoma append direto na sessão atual sem retroactivar gap (per `checkpoint-protocol.md` regra 9 stale detection — flag aceito). Eric pode invocar `*update-checkpoint-retroactive` se quiser reconstruir sessões intermediárias.
+
+### Trigger
+
+Eric carregou `index.html` na raiz do repo (95580 bytes, 2026-05-09 15:55) — SPA single-file standalone aplicando Sati UX Spec v2.0.0 OrSheva 7 (Phase 4). Eric instruiu: "faça o que tem que ser feito. Ajuste a fricção para se adaptar a esse html atual."
+
+### Morpheus dispatch (orquestração)
+
+- **Read-only investigation:** mapeou `index.html` raiz (mockup client-side puro, zero fetch/htmx/api), `bloco_interface/web/templates/{index,base,login,s1..7,onboarding/step1..4}.html` (Jinja2 legacy), endpoints SP04 já entregues (`/api/auth/*` + `/api/onboarding/step2..4` + `/api/tenant/byok/*` + `/api/tenant/{dpa,tos,audit/isolation}`)
+- **Decisão D-MOR-SP04-UI-001..003:** Story SP04-UI-SPA-01 P0 foundation pós-merge SP04-AUTH+BYOK+LGPD; estratégia incremental (SPA absorve GET / + JS chama endpoints REST JSON; templates Jinja2 preservados como `.legacy`); DEC-ERIC-DIV-01 (sidebar 7 vs ADR-016 4 doctypes) escalada
+- **Handoff Morpheus → River:** `.lmas/handoffs/handoff-mor2sm-2026-05-09-sp04-ui-spa-integration.yaml` (escopo + 12 ACs preliminares + 4 risks + Sati S2..S7 telas)
+
+### River draft (Skill `LMAS:agents:sm` `*draft SP04-UI-SPA-01`)
+
+**Files:**
+- ADD `governance/stories/SP04-UI-SPA-01-frontend-orsheva-integration.md` (Status: Draft, ~38KB, 12 sections, 12 ACs, 7 chunks Path B, 8 risks)
+- MOD `.lmas/handoffs/handoff-mor2sm-2026-05-09-sp04-ui-spa-integration.yaml` (consumed: true)
+- ADD `.lmas/handoffs/handoff-sm-to-mor-2026-05-09-sp04-ui-spa-01-drafted.yaml`
+
+**Decisões River D-RIV-S04-UI-A..F:**
+- **A** — Asset extraction MANDATORY (R-01 mitigation: JS+CSS inline 95KB → `static/spa.{css,js}`)
+- **B** — JWT cookie httpOnly + SameSite=Strict + Secure (R-04 security; NÃO localStorage)
+- **C** — Content negotiation `/revisar`+`/pipeline-stream`+`/verdict` (Accept: application/json) — R-05 cleanest path
+- **D** — Templates Jinja2 antigos PRESERVADOS como `.legacy` (defer cleanup → SP04-UI-CLEANUP-01 futura)
+- **E** — Vanilla ES modules OR IIFE (zero-build LEAN; sem webpack/vite/rollup)
+- **F** — Sati pre-flight CONDITIONAL apenas se DEC-ERIC-DIV-01 = Opção A (S4 7 variants); B/C → post-hoc ratify
+
+### BLOCKERS escalados a Eric
+
+| ID | Pergunta | Opções | Impacto |
+|----|----------|--------|---------|
+| **DEC-ERIC-DIV-01** | Sidebar SPA 7 modos vs ADR-016 4 doctypes | A (River recommended): manter 7 + Aria patch ADR / B: reduzir 4 (1h) / C: 7 visual + 4 backend (4h) | Story Draft → Ready aguarda |
+| **DEC-ERIC-MERGE-ORDER** | Autorizar Operator merge PR #4 (AUTH) + #5 (BYOK) + #6 futuro (LGPD) antes de chunk 1? | A: merge agora (esperado clean base) / B: adiar + base feat/sp04-lgpd-01 (rebase) | Chunk 1 aguarda |
+
+### Próximas ações
+
+1. Morpheus apresenta SP04-UI-SPA-01 + DEC-ERIC-DIV-01 a Eric
+2. Eric resolve DIV-01 + autoriza ordem merge
+3. Pós decisão → River patch story + status Draft → Ready
+4. Pós-Ready → Skill `LMAS:agents:po` `*validate-story-draft SP04-UI-SPA-01` (G3)
+5. Pós-G3 PASS + PR merges → Skill `LMAS:agents:dev` `*develop-yolo SP04-UI-SPA-01` (Path B chunks 1-7)
+
+### Próximo handoff
+
+**H-S04-UI-SPA-SM2MOR-001** → @lmas-master Morpheus consolida + apresenta a Eric
+
+— River, removendo obstáculos 🌊
+
+---
+
+## Sessão 2026-05-09 — Oracle qa-gate G5 SP04-LGPD-01 CONCERNS
+
+> Eric instrução: "avance sempre pela skill" → Morpheus despachou Oracle via Skill paralelamente à pendência DEC-ERIC-DIV-01 (não bloqueante para SP04-LGPD-01 close).
+
+### Auditoria empírica Oracle
+
+- ✅ **Suite total:** 352 unit tests PASS in 77.68s (zero regression)
+- ✅ **22 novos tests chunks 3+5** (test_tos_hash 11 + test_audit_isolation_aggregation 11) PASS
+- ✅ **Schema sp04_003** Tank Phase 13.3a items 1+2+3 confirmados (mirror dpa_acceptances + UNIQUE COMMENT inline + 2 indexes seletivos)
+- ✅ **bloco_auth/tos.py + audit_isolation.py** estrutura mirror dpa.py confirmada (router prefix + Pydantic strict + audit chain HMAC + ON DELETE RESTRICT)
+- ⚠️ **Ruff: 9 findings** (5 autofix I001/F401/UP017 + 4 ANN001 missing `db_session: AsyncSession` annotation em audit_isolation.py helpers)
+
+### Verdict
+
+**CONCERNS (MEDIUM)** — funcional/tests/security/docs/constitutional PASS; code quality lint débito menor.
+
+### 7 Quality Checks
+
+| # | Check | Verdict |
+|---|-------|---------|
+| 1 | AC coverage (6/6) | ✅ PASS |
+| 2 | Test coverage | ✅ PASS |
+| 3 | Schema migration | ✅ PASS |
+| 4 | **Code quality ruff** | ⚠️ **CONCERNS** |
+| 5 | Security | ✅ PASS |
+| 6 | Documentation | ✅ PASS |
+| 7 | Constitutional (No Invention) | ✅ PASS |
+
+### Waivers re-validated
+
+WAIVED-LGPD-01..04 todos APROVADOS (HIGH Eric advogado texto + MEDIUM integration retest + LOW Sati ratify + LOW CodeRabbit DEFERRED — Oracle G5 catching ruff foi a compensação prometida).
+
+### Files
+
+- ADD `governance/qa/sp04-lgpd-01-qa-gate-g5.md` (~18KB, 9 sections)
+- MOD `governance/stories/sp04-lgpd-01-compliance-flows-operador.md` (Section "QA Results" appended)
+- ADD `.lmas/handoffs/handoff-qa-to-mor-2026-05-09-sp04-lgpd-01-gate-g5-concerns.yaml`
+
+### BLOCKER escalado a Eric
+
+**DEC-ERIC-LGPD-PATH** — qual caminho fechar SP04-LGPD-01?
+- **A (Oracle recommended)** — Neo fix loop ~15min (ruff --fix + manual ANN001) + re-gate PASS + push PR #6 [Código clean]
+- **B** — WAIVED-LGPD-05 LOW expansion + push PR #6 agora + Neo follow-up pós-merge [Acelera ~30min, débito 4 dias]
+
+### Próximo handoff
+
+**H-S04-LGPD-ORC2MOR-G5-CONCERNS-001** → @lmas-master Morpheus apresenta a Eric
+
+— Oracle, guardião da qualidade 🛡️
+
+---
+
+## Sessão 2026-05-09 — Neo chunk 8 ruff cleanup DONE
+
+> Eric instrução: "avance com o recomendado" → Caminho A (Oracle recommended) executado autonomamente.
+
+### Execução chunk 8
+
+- ✅ **Autofix:** 7 findings resolvidos por `ruff check --fix` (5 estimados + 2 extras descobertos)
+- ✅ **Manual ANN001:** 4 helpers anotados em audit_isolation.py
+  - `_aggregate_counts(db_session: AsyncSession, tenant_id: UUID)`
+  - `_list_rls_policies(db_session: AsyncSession)`
+  - `_last_login_per_user(db_session: AsyncSession)`
+  - `_check_rls_session_var(db_session: AsyncSession, tenant_id: UUID)`
+- ✅ Import adicionado: `from sqlalchemy.ext.asyncio import AsyncSession`
+
+### Verificações empíricas pós-fix
+
+- ✅ `ruff check bloco_auth/tos.py bloco_auth/audit_isolation.py` → **All checks passed!** (0 errors)
+- ✅ `pytest tests/unit/ -q` → **352 passed in 63.81s** (zero regression)
+
+### Commit
+
+`c63d8be` — `fix(lgpd): chunk 8 ruff lint cleanup — 9 findings resolved [Story SP04-LGPD-01]`
+- 2 files changed, +10/-11 (bloco_auth/tos.py + bloco_auth/audit_isolation.py)
+
+### Story updates
+
+- Section 8 DoD VERIFIED: 8 → 9 items (added: "Ruff lint 0 findings")
+- Section 12 Change Log: entry 2026-05-09 @dev Neo Phase 13.5 detailing chunk 8
+
+### Métricas
+
+- Estimativa Oracle: 15min
+- Tempo real: ~12min (20% mais rápido — autofix capturou 7 findings vs 5 estimados)
+
+### Compensação WAIVED-LGPD-04 cumprida
+
+CodeRabbit DEFERRED CLI ausente WSL → Oracle G5 catched 9 ruff findings → Neo chunk 8 fixed all → débito zerado.
+
+### Próximo handoff
+
+**H-S04-LGPD-NEO2ORC-CHUNK8-001** → @qa Oracle re-gate G5 (expected PASS clean)
+
+— Neo, sempre construindo 🔨

@@ -393,7 +393,7 @@ Pattern Path B SP04-AUTH-01/BYOK-01 adaptado:
 
 ## 8. Definition of Done (Neo Phase 13.3 — populated empíricamente chunks 1-7)
 
-### VERIFIED (8 items)
+### VERIFIED (9 items)
 
 - [x] **AC-03 schema tos_acceptances mirror dpa_acceptances ADR-019** — Tank Phase 13.3a Item 1 confirmed sem desvio (UUID PK + tenant_id FK RESTRICT + version + hash + accepted_at + user_id FK + IP + user_agent) — chunk 2 commit 68206d0
 - [x] **AC-03 UNIQUE constraint + COMMENT ON CONSTRAINT inline** — Tank Phase 13.3a Item 2 aplicado (multi-version audit semantic documented em pg_constraint metadata) — chunk 2 commit 68206d0
@@ -403,6 +403,7 @@ Pattern Path B SP04-AUTH-01/BYOK-01 adaptado:
 - [x] **AC-05 endpoint /api/tenant/audit/isolation** — IsolationResponse com counts + RLS policies + last_login_per_user + versões DPA/TOS atuais + audit chain event audit_isolation_queried — chunk 4+5 commit ff50c90
 - [x] **AC-06 unit tests coverage** — 22 unit tests novos pass (11 test_tos_hash + 11 test_audit_isolation_aggregation); 352/352 unit total Sprint 04 acumulado, zero regression — chunks 3+5 commits 7fce3e1 + c74681b
 - [x] **Final File List Section 4 + Dev Agent Record + Handoff Oracle** — chunk 7 closure
+- [x] **Ruff lint 0 findings** — chunk 8 commit c63d8be (5 autofix I001/F401/UP017 + 4 manual ANN001 db_session: AsyncSession em audit_isolation.py helpers _aggregate_counts/_list_rls_policies/_last_login_per_user/_check_rls_session_var). Compensação WAIVED-LGPD-04 CodeRabbit DEFERRED cumprida via Oracle G5 audit. Suite 352/352 verde pós-fix (zero regression).
 
 ### WAIVED (rule quality-gate-enforcement.md MANDATORY — 5 fields per item)
 
@@ -613,8 +614,62 @@ Pattern Path B SP04-AUTH-01/BYOK-01 adaptado:
 | 2026-05-08 | @data-engineer Tank | Phase 13.3a — Tank ratify pre-implement LIGHT executado (vs Phase 12.3a SP04-BYOK-01 5 itens vinculantes — esta é ratify mais simples). Pre-leitura: story Section 1-4 + ADR-019 DPA Storage spec + migration AUTH-01 sp04_001 (referência pattern dpa_acceptances). 3 decisões formalizadas: (1) Schema mirror dpa_acceptances confirmado SEM DESVIO — River seguiu ADR-019 risca-a-risca; (2) UNIQUE constraint (tenant_id, tos_version) confirmado + COMMENT ON CONSTRAINT inline migration adicionado documentando multi-version audit trail semantic (re-aceite mesma version = 409 Conflict idempotent); (3) Indexes ambos seletivos mantidos (tenant_id high seletividade "minha aceitação"; tos_version high seletividade "quantos aceitaram vN" DPO admin metrics futuro) — overhead writes negligível em tabela append-only ON DELETE RESTRICT; consistency dpa_acceptances pattern. Decisões vinculantes Neo chunks 1-7. Schema ADR-019 alignment confirmado. Section 5 nova subsection "Tank ratify decisions LIGHT" + AC-03 SQL refinement (COMMENT ON CONSTRAINT inline). TECH-DEBT.md Sprint 06+ flagged: TD-SP04-08 (reavaliar indexes em 5K+ tenants — pattern para todas tabelas audit acceptance: dpa + tos). Próximo step Skill `LMAS:agents:dev` (@dev Neo) consume + chunks 1-7 Path B com decisões LIGHT aplicadas (estimativa 2-3 days). Conventional commit `docs(governance): Tank ratify pre-implement SP04-LGPD-01 LIGHT — 3 itens decisões [Story SP04-LGPD-01]`. |
 | 2026-05-08 | @po Keymaker | Phase 13.2 — *validate-story-draft G3 verdict ✅ GO score 10/10 executado: status frontmatter Draft → Ready; Section 9 QA Validation preenchida com 10-point checklist completo (TODOS PASS — paridade SP04-BYOK-01 + escopo PRD-aligned + ACs testáveis "Tested:" explícitas + pre-flight Section 5 com justificativas + 6 risks tabelados + 7 chunks Path B + cross-references rastreáveis); **Validação especial divergência Morpheus brief vs PRD canônico:** River-decision PROCEDIMENTO CORRETO confirmado por Keymaker invocando LMAS rule "No Invention" (`quality-gate-enforcement.md`) — PRD é canônico (3 deliverables); Morpheus brief é preliminar (5 deliverables); Forget/Export/DPO/retention scheduler movidos para Sprint 05+ stories separadas (audit trail). Concerns River flagged 2 ACEITÁVEIS pós-Ready (Eric advogado MANDATORY pre-implement análogo AUTH-01 chunk 5 placeholder pattern; DPA texto pendência consolidada via AC-01); 3 concerns adicionais Keymaker LOW non-bloqueantes (K-LGPD-01 Sati Opção A vs B + K-LGPD-02 TOS qualidade ANPD + K-LGPD-03 branch base provisional). Próximo step: cadeia Eric advogado paralelo + Sati Skill wireframe + Tank ratify (light) + Neo *develop chunks 1-7 Path B (estimativa 2-3 days). Conventional commit `docs(governance): validate-story-draft SP04-LGPD-01 — verdict GO score 10/10 [Story SP04-LGPD-01]`. |
 | 2026-05-08 | @dev Neo | Phase 13.3 — *develop SP04-LGPD-01 chunks 1-7 Path B execução completa: status InReview. Chunk 1 setup (commit b07f35b: branch feat/sp04-lgpd-01 + 3 skeletons + TOS placeholder ~190 linhas Eric advogado tags). Chunk 2 DB foundation (commit 68206d0: migration sp04_003_lgpd_tos_audit.sql + Tank LIGHT 3 decisões aplicadas — mirror sem desvio + UNIQUE COMMENT inline + 2 indexes ambos; SQLAlchemy TosAcceptance model + __all__ export). Chunk 3 TOS flow (commit 7fce3e1: bloco_auth/tos.py ~290 LOC mirror dpa.py + 11 unit tests paridade test_dpa_hash.py + cross-distinction TOS/DPA hash). Chunk 4 onboarding integration (commit ff50c90: Sati Opção B antecipada combine DPA+TOS step 3 + quintuple insert atomic + step3.html 2 articles HTMX + audit_isolation.py impl antecipada para evitar app startup break + 4 tests existentes atualizados OnboardingStep3Data signatura nova). Chunk 5 tests audit isolation (commit c74681b: test_audit_isolation_aggregation.py 11 unit tests Pydantic schemas + helpers graceful fallback). Chunk 6 integration stubs (commit current: 9 stubs _REQUIRES_POSTGRES skip sem DB; pattern AUTH-01/BYOK-01). Chunk 7 closure (commit current: Section 4 Final File List Consolidado 17 files + Section 8 DoD 8 VERIFIED + 4 WAIVED format completo 5 fields + Section 10 Dev Agent Record chunks 1-7 entries + TECH-DEBT TD-SP04-08/09/10 + handoff Oracle qa-gate G5 + CHECKPOINT-active.md inline). Estatísticas: 22 unit tests novos (352/352 pass total Sprint 04 cumulative, zero regression) + 9 integration stubs skip + 7 conventional commits + ~1100 LOC novo + ~80 LOC modificado. Estimativa River 2-3 days cumprida em 1 sessão single-track Path B. WAIVED-LGPD-01 HIGH (Eric advogado texto) bloqueia close-story Done; WAIVED-LGPD-02 MEDIUM (integration retest); WAIVED-LGPD-03 LOW (Sati ratify); WAIVED-LGPD-04 LOW (CodeRabbit deferred). Próximo: Skill `LMAS:agents:qa` (@qa Oracle *qa-gate G5 review verdict). |
+| 2026-05-09 | @dev Neo | Phase 13.5 — *develop SP04-LGPD-01 chunk 8 ruff lint cleanup execução completa: 9 ruff findings resolvidos (5 autofix I001/F401/UP017 + 4 manual ANN001). Autofix `ruff check --fix bloco_auth/tos.py bloco_auth/audit_isolation.py` removeu 7 findings (mais que estimados 5 — havia oportunidades extras). Manual edits: adicionado import `from sqlalchemy.ext.asyncio import AsyncSession` em audit_isolation.py + 4 helpers anotados (_aggregate_counts, _list_rls_policies, _last_login_per_user, _check_rls_session_var) com `db_session: AsyncSession`. Verificação empírica pós-fix: `python -m ruff check bloco_auth/tos.py bloco_auth/audit_isolation.py` → "All checks passed!" (0 errors); `python -m pytest tests/unit/ -q` → 352 passed in 63.81s (zero regression vs sessão Oracle G5). Commit c63d8be conventional `fix(lgpd): chunk 8 ruff lint cleanup — 9 findings resolved [Story SP04-LGPD-01]` (2 files changed, +10/-11). Section 8 DoD VERIFIED expandido para 9 items (item 9 "Ruff lint 0 findings"); compensação WAIVED-LGPD-04 (CodeRabbit DEFERRED CLI ausente WSL) cumprida via Oracle G5 catching ruff findings + Neo chunk 8 fix. Estimativa Oracle 15min cumprida (~12min real efetivo). Story status InReview → Ready for re-gate Oracle G5 (expected PASS clean). Próximo: handoff Oracle re-gate via `.lmas/handoffs/handoff-dev-to-qa-2026-05-09-sp04-lgpd-01-chunk8-fix-ruff.yaml`. |
 | 2026-05-08 | @sm River | Story criada Draft Phase 13.1 — LGPD compliance flows operador posture. **Foundation legal P1** Sprint 04 (após Foundation P0 cycle COMPLETO AUTH-01 + BYOK-01). Pre-leitura: PRD v2.0.0-DRAFT FR-LGPD-01..02 + FR-AUDIT-01 (lines 167-170) + ADR-017 BACKBONE LGPD operador + ADR-019 DPA Storage + ADR-005 Audit chain + bloco_lgpd/ existing (encryption + headers + permissions Sprint 03 — verify reusability Neo pre-implement). **River decisão crítica: alinhar PRD canônico (3 deliverables) — Morpheus brief sugeriu 5 deliverables (forget/export/DPO admin/retention scheduler), mas escopo PRD restritivo a FR-LGPD-01 DPA + FR-LGPD-02 TOS/EULA + FR-AUDIT-01 audit isolation endpoint.** Forget/Export/DPO admin = stories Sprint 05+ separadas (não neste story). 6 ACs estruturadas (DPA texto v1.0.0 finalize + TOS texto v1.0.0 novo + schema tos_acceptances mirror dpa_acceptances + endpoints TOS flow mirror DPA + endpoint audit isolation FR-AUDIT-01 + coverage condicional bloco_lgpd). Pre-flight consultation: Tank ratify schema (mandatory pre-implement); Aria skip (ADR-019 mirror — sem nova decisão); Sati wireframe MANDATORY (Opção A novo wizard step 5 vs Opção B combine DPA+TOS step 3 — River recomenda B menor friction); **Eric advogado MANDATORY pre-implement** — bloqueia Neo *develop sem texto substantivo DPA v1.0.0.md ANPD-ready + TOS v1.0.0.md operador posture redigido. 6 risks documentados (Eric advogado timeline, Sati Opção A/B drop-off, TOS texto ANPD-defensável, audit isolation data leak, migration breaking, scope creep Morpheus brief reabertura). Implementation Plan 7 chunks Path B sugeridos. Estimativa 2-3 days (escopo restritivo PRD vs Morpheus 4-6 days — Eric advogado loop paralelo). Branch sugerido: feat/sp04-lgpd-01 base main pós-AUTH+BYOK merge OR provisional. Próxima Skill: LMAS:agents:po (@po Keymaker *validate-story-draft G3 10-point checklist). |
 
 ---
 
 — River, alinhando PRD canônico sobre brief preliminar 🌊
+
+---
+
+## QA Results (Oracle Gate G5)
+
+### Verdict: **CONCERNS** (MEDIUM) · 2026-05-09 · @qa Oracle (Guardian)
+
+**Gate doc:** [`governance/qa/sp04-lgpd-01-qa-gate-g5.md`](../qa/sp04-lgpd-01-qa-gate-g5.md)
+
+#### 7 Quality Checks
+
+| # | Check | Verdict | Evidência |
+|---|-------|---------|-----------|
+| 1 | AC coverage (6/6) | ✅ PASS | 4 ACs PASS + 2 ACs WAIVED herdados (LGPD-01 HIGH + LGPD-02 MEDIUM pre-aprovados) |
+| 2 | Test coverage | ✅ PASS | 22/22 novos unit tests + 352/352 suite total (zero regression) |
+| 3 | Schema migration sp04_003 | ✅ PASS | Tank Phase 13.3a items 1+2+3 todos aplicados (mirror sem desvio + COMMENT inline + 2 indexes seletivos) |
+| 4 | **Code quality (ruff lint)** | ⚠️ **CONCERNS** | **9 findings** (5 autofix I001/F401/UP017 + 4 ANN001 missing AsyncSession type annotation em audit_isolation.py helpers) |
+| 5 | Security (RLS + auth) | ✅ PASS | RLS isolation + auth Depends + audit chain HMAC + Pydantic strict (extra='forbid') + ON DELETE RESTRICT |
+| 6 | Documentation | ✅ PASS | DoD VERIFIED 8 + WAIVED 4 (5-fields format) + Final File List 17 + ADR cross-refs + Tank ratify documentado |
+| 7 | Constitutional (No Invention) | ✅ PASS | Todos deliverables rastreáveis FR-LGPD-01..02 + FR-AUDIT-01 OR ADR-019/017 OR River-Keymaker decision |
+
+#### Findings detalhados ruff
+
+| # | File | Line | Rule | Severity | Autofix |
+|---|------|------|------|----------|---------|
+| 1 | audit_isolation.py | 20 | I001 | LOW | ✅ |
+| 2 | audit_isolation.py | 23 | F401 (typing.Any unused) | LOW | ✅ |
+| 3 | audit_isolation.py | 28 | F401 (sqlalchemy.select unused) | LOW | ✅ |
+| 4-7 | audit_isolation.py | 76,127,146,181 | ANN001 (db_session type missing) | MEDIUM | ❌ Manual |
+| 8 | tos.py | 29 | I001 | LOW | ✅ |
+| 9 | tos.py | 233 | UP017 (datetime.UTC alias) | LOW | ✅ |
+
+#### 2 Caminhos forward (Eric escolhe — DEC-ERIC-LGPD-PATH)
+
+- **Caminho A (Oracle recommended) — ~15min Neo fix loop:** `ruff check --fix` (5 autofix) + manual `db_session: AsyncSession` em 4 helpers + retest 352/352 + commit chunk 8 → re-gate PASS → push PR #6
+- **Caminho B — waiver expansion + push agora:** WAIVED-LGPD-05 LOW (fix-by 2026-05-13) + push PR #6 + Neo follow-up commit pós-merge
+
+#### WAIVERS herdados re-validados
+
+| Waiver | Severity | Status Oracle |
+|--------|----------|---------------|
+| WAIVED-LGPD-01 | HIGH | ✅ APROVADO (Eric advogado texto pendente até 2026-05-22) |
+| WAIVED-LGPD-02 | MEDIUM | ✅ APROVADO (Integration tests _REQUIRES_POSTGRES) |
+| WAIVED-LGPD-03 | LOW | ✅ APROVADO (Sati Opção B post-hoc ratify) |
+| WAIVED-LGPD-04 | LOW | ✅ APROVADO (CodeRabbit DEFERRED — Oracle G5 compensou) |
+
+#### Recommended next status
+
+**Story permanece `InReview`** até Eric escolher Caminho A ou B.
+- Caminho A → após Neo fix + Oracle re-gate → status `Done`
+- Caminho B → após WAIVED-LGPD-05 documentado → status `Done` (com débito tracking)
+
+— Oracle, guardião da qualidade 🛡️
