@@ -6794,3 +6794,70 @@ PR #6 MERGEABLE apesar de PR #4 (AUTH) + PR #5 (BYOK) ainda OPEN. Surface mínim
 4. DEC-ERIC-DIV-01 + DEC-ERIC-MERGE-ORDER ainda pendentes (paralelos a este merge)
 
 — Operator, deployando com confiança 🚀
+
+---
+
+## Sessão 2026-05-09 — Aria ADR-020 Multi-Doctype Dispatcher v2 PROPOSED
+
+> Eric instrução: "avance com o recomendado sempre pela skill" → Aria via Skill `LMAS:agents:architect` cria ADR-020 (DEC-ERIC-DIV-01 Opção A formalização — sidebar SPA 7 modos vs ADR-016 4 doctypes).
+
+### ADR-020 entregue
+
+- ADD `governance/architecture/adr/adr-020-multi-doctype-dispatcher-v2.md` (~18KB, status Proposed, adr_level=spec)
+- MOD `governance/architecture/adr/adr-016-multi-doctype-dispatcher.md` (frontmatter superseded_by: ADR-020 + warning banner inline)
+- MOD `governance/architecture/ADR-INDEX.md` (ADR-016 strikethrough Arquivados + ADR-020 added Multi-Tenant Architecture section + estatísticas atualizadas)
+- ADD `.lmas/handoffs/handoff-architect-to-mor-2026-05-09-adr-020-proposed.yaml`
+
+### Decisão arquitetural — Strategy hierárquica 3-camada
+
+```
+DoctypeDispatcher (abstract base — preserved)
+├── BancarioBaseStrategy (abstract intermediate NEW — DRY Template Method)
+│   ├── CCBDispatcher
+│   ├── CartaoDispatcher
+│   └── ConsignadoDispatcher
+├── VeicularDispatcher (standalone preserved)
+├── FIESDispatcher (standalone preserved)
+├── ImobiliarioDispatcher (standalone preserved)
+└── GeralDispatcher (catch-all fallback NEW Tier 3)
+```
+
+### Mudanças material vs ADR-016
+
+| Aspecto | ADR-016 | ADR-020 |
+|---------|---------|---------|
+| Doctypes operacionais | 4 | 7 |
+| Detecção tiers | 2 (UI + LLM) | 3 (UI + LLM + Geral fallback) |
+| Persona prompt files | 16 | 32 (+16 para sub-bancários DRY + Geral) |
+| Vault doctype_tag enum | 5 valores | 8 valores |
+| BACEN series novas | — | CDI 4391 + modalidade 218 |
+| Migrations dependentes | — | sp04_004 + sp04_005 |
+| Tech debts NEW | — | TD-SP04-12 + TD-SP04-13 (MEDIUM) |
+
+### Decisões Aria internas
+
+- **D-ARIA-S04-ADR020-A** — Strategy hierárquica vs flat (DRY violation prevention)
+- **D-ARIA-S04-ADR020-B** — GeralDispatcher Tier 3 catch-all (UX coerente vs unknown rejection)
+- **D-ARIA-S04-ADR020-C** — adr_level=spec desde início (Smith F-MIN-XX retro-promote prevention)
+- **D-ARIA-S04-ADR020-D** — Backfill conservador 'bancario' → 'bancario_cross' (zero data loss)
+
+### 6 riscos assessed
+
+R-01 (refactor backend BAIXA) + R-02 (vault gaps MÉDIA) + R-03 (cognitive load BAIXA) + R-04 (BACEN cache miss BAIXA) + R-05 (Trinity PRD bloqueio MÉDIA) + R-06 (TD-SP04-12 curadoria BAIXA)
+
+### Eric decisão pendente
+
+**DEC-ERIC-ADR020-RATIFY** — formalização Opção A (Proposed → Accepted)
+
+### Próximo handoff
+
+**H-S04-ADR020-ARI2MOR-001** → Morpheus apresenta ADR-020 a Eric ratify:
+1. Eric ratify → Aria flip Proposed → Accepted
+2. Pós-Accepted → River patch SP04-UI-SPA-01 AC-12 (DIV-01 resolved) → Ready
+3. Paralelo: River drafta SP04-DOCTYPE-01 NEW (~3-5 days Neo Strategy refactor)
+
+### Paralelo workflow chain LGPD
+
+PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-020 progress.
+
+— Aria, arquitetando o futuro 🏗️

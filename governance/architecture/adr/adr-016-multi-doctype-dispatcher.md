@@ -10,7 +10,7 @@ decision_makers:
   - "@architect (Aria) — design"
   - "Eric Claudino — autorização escopo B (4 doctypes simultâneos)"
 supersedes: ""
-superseded_by: ""
+superseded_by: "ADR-020"
 related_to:
   - "ADR-003 (4 personas implementation — base preserved)"
   - "ADR-014 (Haiku 4.5 para classifier fallback)"
@@ -27,6 +27,9 @@ tags:
 ---
 
 # ADR-016: Multi-Doctype Dispatcher
+
+> ⚠️ **SUPERSEDED em 2026-05-09 por [ADR-020](adr-020-multi-doctype-dispatcher-v2.md)**.
+> Razão: Eric SPA OrSheva 7 (commit 2026-05-09 15:55) expôs sidebar com 7 modos análise (CCB/Veículo/Consignado/Cartão/Imobiliário/FIES/Geral). DEC-ERIC-DIV-01 resolvida Opção A — ADR-020 expande para Strategy hierárquica 7 doctypes operacionais (BancarioBaseStrategy + 3 sub + 3 standalone + Geral catch-all). Esta ADR-016 é mantida para contexto histórico — a decisão de 4 doctypes NÃO é mais válida.
 
 ## Contexto
 
