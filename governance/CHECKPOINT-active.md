@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-09T26:00"
+last_updated: "2026-05-09T26:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,16 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🕶️ Sessão Sprint 04 pré-merge recovery — @smith FINAL re-gate consolidado: 🟡 CONTAINED + 🟢 GREENLIGHT** (@smith · Smith — 2026-05-09T26:30):
+  - **Trigger:** Hamann recovery chain Step 4 — review N=4 (1 original INFECTED + 3 verifies CONTAINED) consolidação pré-merge
+  - **6 spot-checks empíricos PASS:** SPA externo CDN=0 / "Em formalização LGPD"=2 / app.py session check linhas 491-492 / ADR-020 accepted_by quote literal linhas 7-11 / 5 commits recovery chain limpa / H2/H3/H5 unchanged sem regressão silenciosa
+  - **Verdict:** 🟡 **CONTAINED PRE-MERGE** + 🟢 **GREENLIGHT PROCEED TO PUSH**
+  - **Recovery effectiveness:** 5/5 pre-merge blockers RESOLVED (100%) — original 20 findings → final 0 blockers + 18 post-merge tech debt rastreáveis
+  - **Comparativo veredict:** Review N=1 INFECTED (5 blockers) → Review N=4 CONTAINED (0 blockers) — +1 nível ↑
+  - **Files emitidos:** `governance/qa/smith-final-pre-merge-consolidated-sprint-04-2026-05-09.md` + `.lmas/handoffs/handoff-smith-to-operator-2026-05-09-final-greenlight.yaml`
+  - **Status final pré-merge:** **0 blockers ativos**. C1+C2/NF1+H4+H6+H1 todos 🟢 RESOLVED com evidência empírica verificável.
+  - **Próxima Skill:** `LMAS:agents:devops` Operator `*push` sync 6+ commits ahead branch `feat/sp04-lgpd-01` → Eric merge PR #4+#5+#6 (autoridade exclusiva)
 
 - **🏛️ Sessão Sprint 04 pré-merge recovery — @architect Aria H1 closure ADR-020 frontmatter flip DONE** (@architect · Aria — 2026-05-09T26:00):
   - **Trigger:** Smith H1 (HIGH) — `accepted_by: "Eric Claudino (avance ratify implícito sessão 2026-05-09)"` insuficiente para audit trail; Eric forneceu quote literal 2026-05-09
