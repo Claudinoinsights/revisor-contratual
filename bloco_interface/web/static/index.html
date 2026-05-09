@@ -7,11 +7,22 @@
 <meta name="description" content="Análise revisional de contratos bancários com IA — diagnóstico iluminado, estrutura jurídica, consolidação revisional. BYOK · LGPD-aware · Validação humana obrigatória.">
 <meta name="theme-color" content="#EE6B20">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Frank+Ruhl+Libre:wght@400;700&display=swap" rel="stylesheet">
-
 <style>
+/* ============================================================
+   FONTES SELF-HOSTED (LGPD NFR-LGPD-01 — REV-INT-02 Sprint 02 pattern preserved)
+   Zero CDN externo (sem fonts.googleapis/gstatic).
+   Manrope 400/500/600/700 + Fraunces 500 + JetBrains Mono 400/500 (~117KB total).
+   Weights ausentes (Manrope 300/800, Fraunces variable axis, Frank Ruhl Libre)
+   usam fallback browser nativo. TD-SP04-15 LOW Sprint 06+ download adicionais.
+============================================================ */
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400; font-display: swap; src: url('/static/fonts/manrope-400.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 500; font-display: swap; src: url('/static/fonts/manrope-500.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 600; font-display: swap; src: url('/static/fonts/manrope-600.woff2') format('woff2'); }
+@font-face { font-family: 'Manrope'; font-style: normal; font-weight: 700; font-display: swap; src: url('/static/fonts/manrope-700.woff2') format('woff2'); }
+@font-face { font-family: 'Fraunces'; font-style: normal; font-weight: 500; font-display: swap; src: url('/static/fonts/fraunces-500.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/static/fonts/jetbrains-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('/static/fonts/jetbrains-mono-500.woff2') format('woff2'); }
+
 /* ===================== TOKENS (herdados do brandbook OrSheva 7) ===================== */
 :root{
   --or-50:#FFF4EC; --or-100:#FFE3CF; --or-200:#FFC79E; --or-300:#FFA66B;
