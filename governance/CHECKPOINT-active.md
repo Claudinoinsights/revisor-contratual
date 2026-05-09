@@ -7040,3 +7040,53 @@ PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-0
 **H-S04-DOCTYPE-SM2MOR-DRAFTED-001** → Morpheus apresenta a Eric.
 
 — River, removendo obstáculos 🌊
+
+---
+
+## Sessão 2026-05-09 — Morgan PRD v2.0.1 PATCH (16 prompts brief)
+
+> Eric "avance com o recomendado" → DEC-ERIC-DOCTYPE-G3-TIMING Opção C → Skill `LMAS:agents:pm` Morgan drafta brief estrutural.
+
+### PRD v2.0.1 entregue
+
+- ADD `governance/prd/prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md` (~28KB, 10 sections, 16 prompts brief, 4 BACEN Res + 7 Súmulas + 8 Leis cross-refs)
+- ADD `.lmas/handoffs/handoff-pm-to-mor-2026-05-09-prd-v2-0-1-doctype-content-brief.yaml`
+- MOD handoff predecessor consumed: true
+
+### 16 prompts brief estrutural
+
+| Categoria | Arquivos | Pattern |
+|-----------|----------|---------|
+| A Bancário Base | 4 | Compartilhado via BancarioBaseStrategy Template Method |
+| B CCB specific | 4 | Override doctype_specific_section() |
+| B Cartão specific | 4 | Override + Súmula 530 STJ + Resolução 4.549/2017 |
+| B Consignado specific | 4 | Override + Lei 10.820/2003 + Súmula 603 STJ |
+| C Geral standalone | 4 | Catch-all Tier 3 (CDC base + cross-doctype) |
+
+### Eric advogado cronograma
+
+- Total: ~9.5h cumulativo (~2-3 days)
+- Day 1: Bancário base + CCB (~4h)
+- Day 2: Cartão + Consignado (~4h)
+- Day 3: Geral + smoke test (~1.5h)
+- **Paralelo Neo:** SP04-DOCTYPE-01 chunks 1-3 (skeleton + dispatchers + router) podem rodar paralelo
+
+### Bloqueios resolvidos / pendentes
+
+| ID | Status |
+|----|--------|
+| **TRINITY-PHASE-3-PRD-CONTENT** | 🟢 **RESOLVED** via PRD v2.0.1 PATCH (skeleton placeholder pattern) |
+| TANK-RATIFY-CHUNK-4 | ⏳ MEDIUM (LIGHT validation ~15-30min) |
+| DEC-ERIC-MERGE-ORDER | ⏳ MEDIUM (PR #4+#5+#6 antes chunk 1) |
+
+### Eric decisões pendentes (recurring + new)
+
+- DEC-ERIC-DOCTYPE-G3-TIMING — agora possível Keymaker G3
+- DEC-ERIC-LEGAL-CONTENT-START — Eric advogado inicia preenchimento (A/B/C)
+- DEC-ERIC-MERGE-ORDER — PR #4+#5+#6 merge
+
+### Próximo handoff
+
+**H-S04-DOCTYPE-PM2MOR-PRD-V2-0-1-001** → Morpheus apresenta a Eric.
+
+— Morgan, planejando o futuro 📊
