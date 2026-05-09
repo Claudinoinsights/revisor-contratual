@@ -7001,3 +7001,42 @@ PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-0
 - 🆕 SP04-DOCTYPE-01 NEW (a draftar paralelo)
 
 — Keymaker, equilibrando prioridades 🎯
+
+---
+
+## Sessão 2026-05-09 — River drafta SP04-DOCTYPE-01 NEW (Draft BLOCKED 3 deps)
+
+> Eric "avance com o recomendado sempre pela skill" → Skill `LMAS:agents:sm` River drafta backend Strategy refactor.
+
+### Story entregue
+
+- ADD `governance/stories/SP04-DOCTYPE-01-multi-doctype-dispatcher-backend.md` (~32KB Draft, 12 sections, 8 ACs, 7 chunks Path B, 8 risks, 21 files target)
+- ADD `.lmas/handoffs/handoff-sm-to-mor-2026-05-09-sp04-doctype-01-drafted.yaml`
+
+### Escopo backend per ADR-020
+
+- 8 dispatchers + router (`bloco_workflow/dispatchers/`)
+- 32 persona prompts (Template Method DRY via BancarioBase)
+- 2 migrations SQL (sp04_004 vault enum + sp04_005 BACEN series)
+- POST /revisar update + audit log dispatcher_resolved
+
+### 3 BLOCKERS
+
+| ID | Severidade |
+|----|-----------|
+| **TRINITY-PHASE-3-PRD-CONTENT** | HIGH (16 prompts conteúdo legal cross-domain) |
+| **TANK-RATIFY-CHUNK-4** | MEDIUM (migrations LIGHT ~15-30min) |
+| **DEC-ERIC-MERGE-ORDER** | MEDIUM (PR #4+#5+#6 antes chunk 1) |
+
+### Eric decisão pendente
+
+**DEC-ERIC-DOCTYPE-G3-TIMING:**
+- A — Keymaker G3 conservador
+- B — Aguardar Trinity commit
+- **C (River recommended)** — Trinity drafta brief paralelo + Keymaker G3 + Neo skeleton chunks 1-3
+
+### Próximo handoff
+
+**H-S04-DOCTYPE-SM2MOR-DRAFTED-001** → Morpheus apresenta a Eric.
+
+— River, removendo obstáculos 🌊
