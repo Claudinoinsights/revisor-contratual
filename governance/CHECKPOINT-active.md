@@ -6941,3 +6941,63 @@ PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-0
 - DEC-ERIC-MERGE-ORDER ainda pendente (LOW non-blocking OR MEDIUM bloqueio chunk 1?)
 
 — River, removendo obstáculos 🌊
+
+---
+
+## Sessão 2026-05-09 — Keymaker G3 PASS 10/10 SP04-UI-SPA-01
+
+> Eric instrução: "avance com o recomendado sempre pela skill" → Skill `LMAS:agents:po` Keymaker validate-story-draft G3.
+
+### Verdict: ✅ GO 10/10
+
+**Score perfeito** — paridade SP04-BYOK-01 + LGPD-01 (template Sprint 04 maduro). Threshold ≥7/10 exceeded por +3 pontos.
+
+### 10-point checklist (todos PASS)
+
+| # | Ponto | Score |
+|---|-------|-------|
+| 1 | Frontmatter completo (18+ campos) | ✅ 1/1 |
+| 2 | Sumário Section 1 claro | ✅ 1/1 |
+| 3 | As a / I want / So that Section 2 | ✅ 1/1 |
+| 4 | ACs estruturadas (12 ACs com Tested + code blocks) | ✅ 1/1 |
+| 5 | File List Section 4 pre-implementation | ✅ 1/1 |
+| 6 | Pre-flight Section 5 (Aria DONE + Sati MANDATORY) | ✅ 1/1 |
+| 7 | Risk Assessment Section 6 (8 risks + R-02 RESOLVED + R-NEW-02) | ✅ 1/1 |
+| 8 | Implementation Plan Section 7 (7 chunks Path B) | ✅ 1/1 |
+| 9 | Cross-references rastreáveis | ✅ 1/1 |
+| 10 | Dependencies + source_frs canônicos | ✅ 1/1 |
+
+### 3 Concerns Keymaker (todos não-bloqueantes G3)
+
+- **K-UI-01 LOW** — Sati post-hoc ratify pragmatismo: ACEITO (sidebar entregue Phase 4)
+- **K-UI-02 LOW** — Scope split SP04-UI-SPA-01 (frontend) vs SP04-DOCTYPE-01 NEW (backend): ACEITO (zero overlap)
+- **K-UI-03 MEDIUM** — DEC-ERIC-MERGE-ORDER pendente: NON-BLOCKING G3 (bloqueia downstream chunk 1, não story Ready)
+
+### Files
+
+- MOD `governance/stories/SP04-UI-SPA-01-frontend-orsheva-integration.md` (Section 9 QA Validation Verdict @po appended ~150 lines)
+- ADD `.lmas/handoffs/handoff-po-to-dev-2026-05-09-develop-sp04-ui-spa-01.yaml`
+- MOD `.lmas/handoffs/handoff-sm-to-po-2026-05-09-validate-sp04-ui-spa-01.yaml` (consumed: true)
+
+### Próximo handoff
+
+**H-S04-UI-SPA-KEY2NEO-DEVELOP-001** → @dev Neo `*develop SP04-UI-SPA-01`:
+
+**Sequência serial obrigatória:**
+1. ⏳ Eric merge PR #4 SP04-AUTH-01 (exclusive)
+2. ⏳ Eric merge PR #5 SP04-BYOK-01 (exclusive)
+3. ⏳ Eric merge PR #6 SP04-LGPD-01 (opcional pre-chunk 1)
+4. ✅ Skill `LMAS:agents:dev` *develop SP04-UI-SPA-01 chunks 1-7 (~3-5 days)
+5. ✅ Skill `LMAS:agents:qa` *qa-gate G5 → *push → PR #7
+
+**Paralelo opcional:** River drafta SP04-DOCTYPE-01 NEW (backend Strategy refactor per ADR-020 §2-7).
+
+### Status sessão consolidado
+
+- ✅ SP04-LGPD-01 PR #6 OPEN MERGEABLE
+- ✅ ADR-020 Accepted
+- ✅ **SP04-UI-SPA-01 Ready + G3 PASS 10/10** (autorizado para Neo *develop)
+- ⏳ Eric merge PRs #4/#5/#6 (DEC-ERIC-MERGE-ORDER)
+- 🆕 SP04-DOCTYPE-01 NEW (a draftar paralelo)
+
+— Keymaker, equilibrando prioridades 🎯

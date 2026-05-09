@@ -778,6 +778,62 @@ Pattern Path B SP04-AUTH-01/BYOK-01/LGPD-01 adaptado para frontend:
 3. ✅ Status: Draft → Ready
 4. ✅ Skill `LMAS:agents:po` `*validate-story-draft SP04-UI-SPA-01`
 
+### Verdict @po Keymaker (2026-05-09T21:25 — RE-VALIDATE pós River patch)
+
+**Verdict:** ✅ **GO** | **Score: 10/10** | **Status:** Ready (preserved) → autorizado para `*develop` Neo (chunks 1-7 Path B)
+
+> Story tem qualidade técnica sólida pós River patch. ADR-020 Accepted formalizou DEC-ERIC-DIV-01 Opção A. AC-12 reescrito com implementation specs concretos (JS code blocks frontend + backend dispatcher resolution per ADR-020 §1.5). Scope delimit explícito (frontend only — backend SP04-DOCTYPE-01 NEW separada). Paridade total com SP04-BYOK-01 + SP04-LGPD-01 (template Sprint 04 maduro).
+
+#### 10-point PO Master Checklist (G3)
+
+| # | Ponto | Score | Evidência |
+|---|-------|-------|-----------|
+| 1 | Frontmatter completo (18+ campos) | ✅ 1/1 | type/id/title/status (Ready)/epic/project/sprint/phase/priority/estimated_days/agent/branch/created/created_by/predecessor_handoff/predecessor_artifact/predecessor_ux_spec/dependencies(8 — incluindo ADR-020 + ADR-016 superseded)/source_frs(10)/cross_references/tags(11) — paridade SP04-BYOK-01/LGPD-01 confirmada |
+| 2 | Sumário Section 1 claro | ✅ 1/1 | 7 deliverables explicitados (asset extraction + GET / refactor + auth flow + onboarding wizard + analysis flow + settings panel + theme toggle) + foundation impact (desbloqueia E2E real Sprint 04) + branch strategy + NOTA divergência inicial atualizada para RESOLVED |
+| 3 | As a / I want / So that Section 2 | ✅ 1/1 | Advogado responsável (BYOK tenant Sprint 04 cloud SaaS) + workflow E2E SPA OrSheva 7 + tese ético-legal (BYOK + LGPD-aware + validação humana) — papel/quero/para cristalino |
+| 4 | ACs estruturadas Section 3 (testable + 5+) | ✅ 1/1 | 12 ACs (excede mínimo 5) — cada um com "Tested:" explícito + code blocks copy-paste-ready em AC-01..08 + checklist manual em AC-11. AC-12 reescrito pós-DIV-01 com JS frontend + Python backend specs. Exemplar Sprint 04 padrão |
+| 5 | File List Section 4 pre-implementation contract | ✅ 1/1 | 4 novos (static/index.html + spa.css + spa.js + test_spa_e2e.py) + 4-6 modificados (app.py + auth/api.py + index.html raiz + 2 templates legacy + pyproject.toml) + cross-domain pendências explícitas (Sati S4 variants post-hoc, Operator merge order) |
+| 6 | Pre-flight consultation Section 5 | ✅ 1/1 | Aria CONDITIONAL → MANDATORY DONE (ADR-020 entregue + Accepted) + Sati CONDITIONAL → MANDATORY (S4 7 variants — post-hoc ratify acceptable per River pragmatism) + Tank N/A justificada (sem schema) + Smith defer post-merge + Eric advogado N/A (TOS reusa SP04-LGPD-01) |
+| 7 | Risk Assessment Section 6 (3+ risks com P/I/M) | ✅ 1/1 | 8 risks tabelados (R-01 R-03..R-08) + R-02 strikethrough RESOLVED via ADR-020 + R-NEW-02 Trinity PRD bloqueio templates D3 (não bloqueia esta story). Cada risk com Probability/Impact/Mitigation completo |
+| 8 | Implementation Plan Section 7 chunks | ✅ 1/1 | 7 chunks Path B (setup → asset extraction → backend handler → auth → onboarding → analysis+settings → smoke E2E) + estimativa 3-5 days + branch creation timing condicional (PR #4+#5 merged) |
+| 9 | Cross-references rastreáveis | ✅ 1/1 | PRD v2.0.0-DRAFT + ADRs (014, 016 superseded, 017, 019, 020 Accepted) + predecessors (SP04-AUTH-01 + BYOK-01 + LGPD-01) + Sati UX Spec v2.0.0 S1..S8 + Smith findings F-008 + F-013 + Morpheus handoff predecessor |
+| 10 | Frontmatter dependencies + source_frs canônicos | ✅ 1/1 | 8 dependencies (3 stories Done + 5 ADRs incluindo ADR-020 Accepted) + 10 source_frs canônicos (FR-AUTH-03/01 + FR-API-KEY-01 + FR-LGPD-01..02 + FR-OCR-01..02 + FR-PERSONAS-01..03 + FR-OUTPUT-01..04 + FR-DOCTYPE-01..02) — todos rastreáveis PRD v2.0.0-DRAFT |
+| **TOTAL** | | **10/10** | **GO threshold ≥ 7/10 — exceeded by 3 pontos. Score perfeito paridade SP04-BYOK-01 + LGPD-01.** |
+
+#### Concerns Keymaker (3 itens — todos não-bloqueantes)
+
+| # | Concern | Severidade | Recomendação |
+|---|---------|-----------|--------------|
+| **K-UI-01** | **Sati post-hoc ratify pragmatismo (S4 wireframes 7 variants)** | LOW | ✅ Aceito — sidebar SPA já entregue Sati Phase 4 (facto consumado). Variants per-doctype são refinamento UX Sprint 06+ se métricas cohort demandarem. River argument procede |
+| **K-UI-02** | **Scope split SP04-UI-SPA-01 (frontend) vs SP04-DOCTYPE-01 NEW (backend)** | LOW | ✅ Aceito — Section 1 + AC-12 + Section 4 explicitam zero overlap. Frontend story plugs SPA → endpoints; backend story implementa Strategy refactor (32 prompts + 7 dispatchers + migrations sp04_004/005). Scope claro |
+| **K-UI-03** | **DEC-ERIC-MERGE-ORDER ainda pendente (PR #4/#5 merge antes chunk 1)** | MEDIUM | ⚠️ Non-blocking validate G3 — Section 7 Implementation Plan já documenta branch creation timing condicional. Story Ready ≠ Neo *develop pode iniciar agora. Aguardar Eric merge PR #4+#5 antes de chunk 1 (PR #6 não-bloqueante hard) |
+
+#### Validações especiais Keymaker
+
+| Aspecto | Validação |
+|---------|-----------|
+| **AC-12 implementation specs concretos** | ✅ EXEMPLAR — JS code blocks (spa/sidebar.js + spa/analysis.js + dispatcher resolution Python ADR-020 §1.5) + scope delimit + Tested: integration test path. Neo tem mapa copy-paste-ready |
+| **ADR-020 dependency rastreável** | ✅ Accepted 2026-05-09 + supersedes ADR-016 + 7 doctypes operacionais formalmente arquitetados — DEC-ERIC-DIV-01 traceability completa |
+| **Paridade SP04-BYOK-01/LGPD-01** | ✅ Mesmo padrão estrutural (12 sections + 8 risks + 7 chunks Path B + 10-point checklist + Anti-Patterns Section 10 + Files NOT to Modify Section 11 + Change Log Section 12) — template Sprint 04 maduro |
+| **Constitutional No Invention** | ✅ Todos deliverables rastreáveis FR-AUTH/API-KEY/LGPD/OCR/PERSONAS/OUTPUT/DOCTYPE OR ADR-014/017/019/020 OR Sati UX Spec v2.0.0 S1..S8. Zero invention |
+| **Branch base safety** | ✅ Branch creation timing condicional explícito Section 7 — PR #4+#5 merged antes chunk 1 (clean rebase) — preserva PRs review intactos |
+
+#### Próximo step
+
+**Recomendação Keymaker:** Skill `LMAS:agents:dev` (@dev Neo) `*develop SP04-UI-SPA-01` Path B chunks 1-7 — **MAS** Operator/Eric MUST merge PR #4 + PR #5 antes do chunk 1 (Section 7 timing requirement). Sequência:
+
+1. ⏳ Eric review + merge PR #4 SP04-AUTH-01 (exclusive)
+2. ⏳ Eric review + merge PR #5 SP04-BYOK-01 (exclusive)
+3. ⏳ Eric review + merge PR #6 SP04-LGPD-01 (opcional pre-chunk 1, MERGEABLE confirmado)
+4. ✅ Skill `LMAS:agents:dev` *develop SP04-UI-SPA-01 chunks 1-7 (~3-5 days Neo)
+5. ✅ Skill `LMAS:agents:qa` *qa-gate G5 SP04-UI-SPA-01 pós-Neo InReview
+6. ✅ Skill `LMAS:agents:devops` *push + *create-pr → PR #7 base main
+
+**Paralelo opcional (não-bloqueante):**
+- River drafta SP04-DOCTYPE-01 NEW (backend Strategy refactor per ADR-020 §2-7) — ~3-5 days Neo paralelo durante Trinity Phase 3 PRD conteúdo legal templates D3
+
+— Keymaker, equilibrando prioridades 🎯
+
 ---
 
 ## 10. Anti-Patterns (Defensive Scope Guard)
