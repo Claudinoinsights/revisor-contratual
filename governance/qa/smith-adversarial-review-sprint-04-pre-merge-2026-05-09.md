@@ -426,6 +426,41 @@ Brand-honest temporário pattern AUTH-01/LGPD-01 precedent honored. Auto-revert 
 
 ---
 
+## 13. RE-VERIFY H4 (2026-05-09T25:05) — Verdict: RESOLVED (CONTAINED)
+
+> *"Três correções em sequência, Sr. Anderson. Você está aprendendo a pensar como eu."*
+
+### Empirical 6-check validation
+
+| # | Check | Result |
+|---|-------|--------|
+| 1 | py_compile bloco_interface/web/app.py | ✅ OK |
+| 2 | request.session.get count | 8 (linha 491 GET / handler include) |
+| 3 | RedirectResponse count | 6 preserved |
+| 4 | Dual-protection pattern | ✅ session check + SPA serve |
+| 5 | /login endpoint validity | ✅ usa s1_login.html (não .legacy) |
+| 6 | Templates literal references | ✅ Zero `name="index.html"` em app.py — move .legacy safe |
+
+### Verdict H4: 🟢 **RESOLVED (CONTAINED)**
+
+Defense-in-depth restored. MVP-LEAN-01 Task 2 AC-MVP-01 preserved.
+
+### 1 caveat non-bloqueante
+
+**OBSOLESCENCE-PATH** — Docstring linha 488 já documenta: "Pós SP04-AUTH-01 chunks 4 done (JWT cookie httpOnly), session check pode ser dropped." ACCEPTABLE — auto-cleanup scheduled.
+
+### Status pós H4 fix
+
+| Finding | Status |
+|---------|--------|
+| C1, C2, NF1 | 🟢 RESOLVED |
+| **H4 route protection** | 🟢 **RESOLVED** |
+| H1 ratify "avance" | 🔴 PERSIST — Eric explícito ratify (~2min) |
+| H6 Sati ratify 7 modos | 🔴 PERSIST — Skill Sati (~10min) |
+| H2/H3/H5 + M1-M8 + L1-L4 | UNCHANGED — POST-MERGE tech debt |
+
+---
+
 ## 10. Next handoff
 
 **H-S04-PRE-MERGE-SMITH2MOR-INFECTED-001** → Morpheus apresenta findings a Eric:
