@@ -6900,3 +6900,44 @@ PR #6 SP04-LGPD-01 OPEN MERGEABLE — escopos independentes, não bloqueia ADR-0
 3. (Opcional paralelo) *draft SP04-DOCTYPE-01 NEW Strategy refactor backend
 
 — Aria, arquitetando o futuro 🏗️
+
+---
+
+## Sessão 2026-05-09 — River patch SP04-UI-SPA-01 → Ready
+
+> Eric instrução: "avance com o recomendado sempre pela skill" → Skill `LMAS:agents:sm` River patch story DIV-01 resolved.
+
+### 6 sections + frontmatter editadas
+
+1. **Frontmatter** — status `Draft → Ready` + dependency ADR-020 added + ADR-016 marked superseded
+2. **NOTA divergência inicial** — `BLOQUEIA` → `🟢 RESOLVED via ADR-020 Accepted Opção A`
+3. **AC-12** — reescrito com implementation specs concretos (spa/sidebar.js + spa/analysis.js JS code blocks + backend dispatcher resolution per ADR-020 §1.5) + scope delimit (frontend only; backend SP04-DOCTYPE-01 NEW)
+4. **Section 4 Pendências cross-domain** — Eric+Aria strikethrough RESOLVED; Sati post-hoc + Operator merge order kept pending
+5. **Section 5 Pre-flight** — Aria CONDITIONAL → MANDATORY DONE; Sati CONDITIONAL → MANDATORY post-hoc ratify
+6. **Section 6 Risks** — R-02 strikethrough RESOLVED; R-NEW-02 Trinity Phase 3 PRD bloqueio templates D3 added
+7. **Section 12 Change Log** — entry @sm River Phase 14.2 v1.1.0 detailed
+
+### River decisões patch
+
+- **D-RIV-S04-UI-PATCH-A** — AC-12 implementation specs CONCRETOS (JS code blocks vs comparison table) — Keymaker G3 quality bar
+- **D-RIV-S04-UI-PATCH-B** — Scope delimit explícito (frontend only vs backend SP04-DOCTYPE-01) — evita scope creep
+- **D-RIV-S04-UI-PATCH-C** — Sati S4 variants post-hoc ratify pragmático — sidebar já entregue Phase 4
+
+### Files
+
+- MOD `governance/stories/SP04-UI-SPA-01-frontend-orsheva-integration.md` (6 sections + frontmatter status flip)
+- ADD `.lmas/handoffs/handoff-sm-to-po-2026-05-09-validate-sp04-ui-spa-01.yaml`
+- MOD `.lmas/handoffs/handoff-architect-to-sm-2026-05-09-adr-020-accepted-unblock-sp04-ui-spa-01.yaml` (consumed: true)
+
+### Próximo handoff
+
+**H-S04-UI-SPA-RIV2KEY-VALIDATE-001** → @po Keymaker `*validate-story-draft SP04-UI-SPA-01` G3 10-point.
+
+**Verdict predicted:** ≥9/10 (high quality — paridade SP04-BYOK-01 + scope claro pós-DIV-01).
+
+**Concerns potenciais:**
+- Sati post-hoc ratify pragmatismo (River argumenta sidebar already delivered Phase 4)
+- Scope split SP04-UI-SPA-01 vs SP04-DOCTYPE-01 NEW (Keymaker valida zero overlap)
+- DEC-ERIC-MERGE-ORDER ainda pendente (LOW non-blocking OR MEDIUM bloqueio chunk 1?)
+
+— River, removendo obstáculos 🌊
