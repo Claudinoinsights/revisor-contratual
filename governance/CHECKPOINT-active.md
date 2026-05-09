@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-08T20:45"
+last_updated: "2026-05-09T25:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,17 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🎨 Sessão Sprint 04 pré-merge recovery — @ux-design-expert Sati *ratify-post-hoc sidebar 7 modos OrSheva 7 EMITIDO** (@ux-design-expert · Sati — 2026-05-09T25:30):
+  - **Trigger:** Smith H6 (HIGH) — UX Spec v2.0.0-DRAFT 4 doctypes ↔ ADR-020 Accepted 7 modos sem ratify formal
+  - **Verdict:** 🟡 **RATIFY WITH CHANGES** — não bloqueia Sprint 04 merge; changes são tech debt rastreável Sprint 05/06+
+  - **6 eixos UX avaliados:** brandbook PASS / Miller's law BORDERLINE / hierarchy PASS / S4 variants NEEDS CHANGES / analytics MANDATORY / Geral catch-all PASS
+  - **Tech debt criado (5 itens):** TD-SP04-04-ANALYTICS (MEDIUM Sprint 5) + TD-SP04-S4-V1/V2 (MEDIUM Sprint 6) + TD-SP04-S4-V3 + TD-SP04-15 (LOW Sprint 6) + TD-PROCESS-01 (framework)
+  - **Process lesson:** ADR governance precisa hook obrigatório consulta UX expert se ADR muda visible-to-user surface (sidebar/navegação/IA)
+  - **Files emitidos:** `governance/qa/sati-ratify-post-hoc-sidebar-7-modos-2026-05-09.md` + `.lmas/handoffs/handoff-sati-to-smith-2026-05-09-h6-ratify.yaml`
+  - **Status H6:** 🟢 RESOLVED (RATIFY WITH CHANGES)
+  - **Status H1:** 🟢 Eric ratify recebido literal: *"Aprovo ADR-020 Multi-Doctype Dispatcher v2 — Opção A (7 doctypes) — 2026-05-09"* — pendente Skill Aria flip ADR-020 `accepted_by` field com quote
+  - **Próxima Skill:** `LMAS:agents:smith` *verify h6-ratify-resolution → após CLEAN → `LMAS:agents:architect` Aria flip ADR-020 accepted_by → Smith FINAL re-gate consolidado → Operator push → Eric merge
 
 - **💻 Sessão 91 Sprint 04 Phase 13.3 EXECUTADA — @dev Neo *develop SP04-LGPD-01 chunks 1-7 Path B COMPLETO** (@dev · Neo — 2026-05-08T22:30):
   - **Trigger:** Keymaker GO 10/10 + Tank LIGHT 3 decisões vinculantes + Sati Opção B antecipada (River+Keymaker recommendation) + Eric advogado placeholder pattern (AUTH-01 chunk 5 precedent)
