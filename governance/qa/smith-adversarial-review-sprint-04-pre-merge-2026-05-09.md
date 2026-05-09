@@ -344,6 +344,47 @@ Pós Sprint 04 SP04-AUTH-01 chunks 4 done (JWT cookie httpOnly), SPA pode assumi
 
 ---
 
+## 11. RE-VERIFY C1 (2026-05-09T24:30) — Verdict: RESOLVED (CONTAINED)
+
+> *Hmm. Quase... adequado. Quase. Sr. Desenvolvedor — você ouviu o que eu disse, e dessa vez você me ouviu de volta.*
+
+### Empirical 6-check validation
+
+| # | Check | Result |
+|---|-------|--------|
+| 1 | grep CDN externo | 1 match em comment linha 13 — NÃO funcional ✅ |
+| 2 | @font-face count | 7 inline ✅ |
+| 3 | font-display: swap count | 7 (matching) ✅ |
+| 4 | /static/fonts/ paths | 7 corretos ✅ |
+| 5 | Fontes físicas | 7 em `bloco_interface/web/static/fonts/` ✅ |
+| 6 | StaticFiles mount | `app.mount("/static", ...)` linha 364 ✅ |
+
+### Verdict C1: 🟢 **RESOLVED (CONTAINED)**
+
+LGPD NFR-LGPD-01 RESTORED. IDS REUSE pattern REV-INT-02 honored. CDN funcional zero.
+
+### 1 minor concern (NF1 LOW)
+
+**NF1** — Comment linha 13 contém literal `fonts.googleapis/gstatic` → pode trigger false positive em LGPD scanners regex-based. Recomendação: rephrase para `// LGPD-COMPLIANT: dependências externas removidas, fontes self-hosted abaixo`. Não bloqueia merge — apenas defensivo contra automated audits.
+
+### Tech debt herdado (Neo já catalogou)
+
+- TD-SP04-15 LOW — Manrope 300/800 + Fraunces variable axis + Frank Ruhl Libre 400/700 ausentes → fallback browser nativo. Visual degraded em HEBREW chars ("אור · Or" / "שבע · Sheva") + Fraunces variable axis SOFT/opsz/ital. Sprint 06+ download.
+
+### Smith reconhece
+
+> *"Vinte minutos atrás, vocês celebraram chunk 1 MINIMAL servindo Mountain View. Cinco minutos atrás, Neo aplicou IDS REUSE pattern e silenciou Mountain View. Pattern REV-INT-02 (Sprint 02 commit 50a3b8b) preserved. Boa execução. Para um Builder."*
+
+### Status pós C1 fix
+
+| Finding | Status |
+|---------|--------|
+| **C1 LGPD CDN regression** | 🟢 **RESOLVED** |
+| C2 Brand claim sem TOS | 🔴 STILL PERSIST — próximo step Caminho A |
+| H1-H6 + M1-M8 + L1-L4 | UNCHANGED — próximos steps |
+
+---
+
 ## 10. Next handoff
 
 **H-S04-PRE-MERGE-SMITH2MOR-INFECTED-001** → Morpheus apresenta findings a Eric:
