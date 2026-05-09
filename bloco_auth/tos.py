@@ -33,12 +33,13 @@ import os
 import re
 import time
 import unicodedata
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path as FastAPIPath, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import Path as FastAPIPath
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -48,7 +49,6 @@ from bloco_audit.chain import append_audit_entry
 from bloco_auth.db import get_sessionmaker, with_tenant_context
 from bloco_auth.middleware import get_current_user
 from bloco_auth.models import TosAcceptance
-
 
 router = APIRouter(prefix="/api/tenant/tos", tags=["tos"])
 
@@ -230,7 +230,7 @@ async def accept_tos(
         tenant_id=tenant_id,
         tos_version=version,
         tos_text_hash=text_hash,
-        accepted_at=datetime.now(timezone.utc),
+        accepted_at=datetime.now(UTC),
         accepted_by_user_id=user_id,
         ip_address=ip_address,
         user_agent=user_agent,

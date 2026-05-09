@@ -20,18 +20,17 @@ em chunk 5 do Path B SP04-LGPD-01.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import select, text
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bloco_audit.chain import append_audit_entry
 from bloco_auth.db import get_sessionmaker, with_tenant_context
 from bloco_auth.middleware import get_current_user
-
 
 router = APIRouter(prefix="/api/tenant/audit", tags=["audit-isolation"])
 
@@ -73,7 +72,7 @@ class IsolationResponse(BaseModel):
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-async def _aggregate_counts(db_session, tenant_id: UUID) -> IsolationCounts:
+async def _aggregate_counts(db_session: AsyncSession, tenant_id: UUID) -> IsolationCounts:
     """Conta linhas em tabelas multi-tenant scoped (RLS auto-filtra para tenant_id).
 
     Uso ``COUNT(*)`` simples — escritório pequeno (< 1000 analyses) torna full
@@ -124,7 +123,7 @@ async def _aggregate_counts(db_session, tenant_id: UUID) -> IsolationCounts:
     )
 
 
-async def _list_rls_policies(db_session) -> list[str]:
+async def _list_rls_policies(db_session: AsyncSession) -> list[str]:
     """Introspecciona policies RLS ativas via pg_policies."""
     result = await db_session.execute(
         text(
@@ -143,7 +142,7 @@ async def _list_rls_policies(db_session) -> list[str]:
     return [row[0] for row in result.all()]
 
 
-async def _last_login_per_user(db_session) -> list[LastLoginEntry]:
+async def _last_login_per_user(db_session: AsyncSession) -> list[LastLoginEntry]:
     """Lista último login por user (RLS auto-scopa). Sprint 03+ pode não ter
     coluna ``last_login_at`` em ``users``; fallback list vazia silently.
     """
@@ -178,7 +177,7 @@ async def _last_login_per_user(db_session) -> list[LastLoginEntry]:
         ]
 
 
-def _check_rls_session_var(db_session, tenant_id: UUID) -> bool:
+def _check_rls_session_var(db_session: AsyncSession, tenant_id: UUID) -> bool:
     """Verifica se ``app.tenant_id`` está setado ao tenant correto.
 
     Defesa-em-profundidade: se RLS context não está aplicado, query retorna
