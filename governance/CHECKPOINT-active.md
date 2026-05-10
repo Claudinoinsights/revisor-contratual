@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-10T02:10"
+last_updated: "2026-05-10T02:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-MERGED-main-foundation-p0-cloud-saas-byok-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,19 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 92 TD-SP04-16 disclaimer RESOLVED — @dev Neo via Skill** (@dev · Neo — 2026-05-10T02:30):
+  - **Trigger:** Eric "avance com o recomendado sempre pela skill" + credentials atualizados (admin / Revisor2026!) + backend rodando local
+  - **TD-SP04-16 LOW:** disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos (Imobiliário/FIES/Geral) — Sati ratify post-hoc condition #4 cumprida + Smith H6 reverify F-3 endereçado
+  - **Implementação 3 arquivos:**
+    - `bloco_interface/web/static/index.html`: CSS class `.modo-avancado-badge` (--or-300 + ⚠ icon) + HTML `<span id="modoAvancadoBadge">` no breadcrumb + JS conditional `MODOS_AVANCADOS = ['imobiliario','fies','geral']` em setView()
+    - `tests/integration/test_spa_orsheva_7.py`: NEW test_spa_disclaimer_modo_avancado_3_modos_novos (9th SPA test, total 9 tests)
+    - `governance/TECH-DEBT.md`: TD-SP04-16 marked RESOLVED 2026-05-10 (strikethrough)
+  - **Pattern brand-honest:** similar "Em formalização LGPD" sidebar footer — não-bloqueante UX (usuário pode usar 3 modos avançados com template unificado bancário fallback)
+  - **Backend StaticFiles auto-serve:** mudança visível no browser sem restart uvicorn
+  - **Pre-release público v0.3.0:** 1/3 condições cumpridas (✅ TD-SP04-16 + ❌ TD-SP04-10 advogado + ❌ smoke test E2E)
+  - **Files emitidos:** 3 modificados + `.lmas/handoffs/handoff-dev-to-eric-2026-05-10-td-sp04-16-disclaimer-done.yaml`
+  - **Próximas Skills sugeridas:** TD-PROCESS-01/02 framework hooks (Morpheus) OR H3 PRD PATCH (Trinity) OR H5 ADR-020 §1.5 PATCH (Aria)
 
 - **💻 Sessão 92 Backend local Sprint 04 RUNNING — @dev Neo Caminho A executado via Skill** (@dev · Neo — 2026-05-10T02:10):
   - **Trigger:** Eric "execute você pela skill o backend completo para teste local" + correção "não use containers arena, crie exclusivos para esse projeto, sempre pela skill"
