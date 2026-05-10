@@ -24,10 +24,14 @@ from pydantic import ValidationError
 # Não-relacionado a chunk 1 MINIMAL UI changes.
 # TD-SP04-PIPELINE-THREADING MEDIUM Sprint 6+ — investigar sqlite isolation_level
 # OR migrar fixture para connection-per-test pattern.
-pytestmark = pytest.mark.skip(
-    reason="Sprint 04 CI regression — sqlite3 thread mixing em CI runner. "
+#
+# allow_module_level=True garante skip ANTES de fixture autouse executar (pytestmark
+# é honrado apenas após fixture setup — sqlite3 error ocorre em fixture).
+pytest.skip(
+    "Sprint 04 CI regression — sqlite3 thread mixing em CI runner. "
     "See TD-SP04-PIPELINE-THREADING in governance/TECH-DEBT.md. "
-    "Não relacionado ao chunk 1 SPA OrSheva 7."
+    "Não relacionado ao chunk 1 SPA OrSheva 7.",
+    allow_module_level=True,
 )
 
 from bloco_audit.chain import verify_audit_integrity
