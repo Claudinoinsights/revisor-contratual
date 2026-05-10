@@ -254,11 +254,21 @@ async def onboarding_step2(
 async def onboarding_step3(
     data: OnboardingStep3Data, session_id: str, request: Request
 ) -> StepResponse:
-    """Step 3 — DPA acceptance (chunk 5 hash flow completo via dpa.py)."""
+    """Step 3 — DPA + TOS acceptance combined (Sati Opção B antecipada — SP04-LGPD-01 AC-04).
+
+    Originalmente apenas DPA (AUTH-01 chunk 5). LGPD-01 chunk 4 adiciona TOS/EULA
+    no mesmo step (menor friction onboarding; texto único legal Eric advogado
+    pode estruturar com headers DPA e TOS sequential).
+    """
     if not data.accepted:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="DPA deve ser aceita para prosseguir",
+        )
+    if not data.tos_accepted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="TOS/EULA deve ser aceito para prosseguir",
         )
     try:
         store_step(session_id, 3, data)
@@ -267,7 +277,11 @@ async def onboarding_step3(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
         ) from exc
     _audit("onboarding_step3_completed", None, None, request,
-           extra={"session_id": session_id, "dpa_version": data.dpa_version})
+           extra={
+               "session_id": session_id,
+               "dpa_version": data.dpa_version,
+               "tos_version": data.tos_version,
+           })
     return StepResponse(session_id=session_id, next_url="/api/onboarding/step4", step_completed=3)
 
 

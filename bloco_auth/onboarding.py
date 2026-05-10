@@ -79,12 +79,25 @@ class OnboardingStep2Data(BaseModel):
 
 
 class OnboardingStep3Data(BaseModel):
-    """Step 3 — DPA acceptance (chunk 5 implementa flow completo)."""
+    """Step 3 — DPA + TOS acceptance combined (Sati Opção B antecipada — Sprint 04
+    SP04-LGPD-01 chunk 4).
+
+    Originalmente apenas DPA (SP04-AUTH-01 chunk 5). SP04-LGPD-01 adiciona
+    TOS/EULA combine no mesmo step (River+Keymaker recommendation):
+    menor friction onboarding + texto único legal Eric advogado pode estruturar
+    com headers DPA e TOS sequential.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     dpa_version: str = Field(..., pattern=r"^\d+\.\d+\.\d+$", description="Semver da DPA aceita")
-    accepted: bool
+    accepted: bool = Field(..., description="DPA accepted (LGPD Art. 5º tratamento)")
+    tos_version: str = Field(
+        ..., pattern=r"^\d+\.\d+\.\d+$", description="Semver do TOS/EULA aceito"
+    )
+    tos_accepted: bool = Field(
+        ..., description="TOS/EULA accepted (LGPD Art. 5º operador posture)"
+    )
 
 
 class OnboardingStep4Data(BaseModel):
@@ -220,16 +233,19 @@ async def complete_onboarding(
     db_session: AsyncSession,
     request: Request | None = None,
 ) -> tuple[Tenant, User]:
-    """Persiste tenant + first user + dpa_acceptance atomicamente (triple insert).
+    """Persiste tenant + first user + dpa + tos + api_key atomicamente
+    (quintuple insert).
 
     Pre-requisitos: todos 4 steps completos no state machine. Caller é
     responsável por verificar antes de chamar (rota POST /api/onboarding/step4
     valida).
 
-    Triple insert em single transaction (chunk 5 — fecha AC-06):
+    Quintuple insert em single transaction (LGPD-01 chunk 4 — fecha AC-04):
       1. Tenant
       2. User (advogado responsável)
-      3. DpaAcceptance (via dpa.accept_dpa) com IP + user_agent capture
+      3. DpaAcceptance (via dpa.accept_dpa) — LGPD tratamento dos dados
+      4. TosAcceptance (via tos.accept_tos) — LGPD operador posture (Opção B Sati)
+      5. TenantAPIKey (BYOK encrypted) — SP04-BYOK-01 chunk 4
 
     Falha em qualquer passo rollback completo — tenant órfão sem user OR
     sem DPA acceptance é estado inválido (compliance LGPD).
@@ -248,9 +264,10 @@ async def complete_onboarding(
         OnboardingError: sessão incompleta OR violação UNIQUE (CNPJ/email já
             cadastrados) OR DPA texto canônico ausente.
     """
-    # Import lazy para evitar ciclo (dpa.py importa onboarding indiretamente
-    # via api.py routing? não — mas mantemos defensive). Função interna.
+    # Import lazy para evitar ciclo (dpa.py/tos.py importam onboarding
+    # indiretamente via api.py routing? não — mas mantemos defensive).
     from bloco_auth import dpa as _dpa
+    from bloco_auth import tos as _tos
 
     session = _SESSIONS.get(session_id)
     if session is None:
@@ -264,6 +281,8 @@ async def complete_onboarding(
         raise OnboardingError("Wizard incompleto — todos 4 steps devem ser preenchidos")
     if not step3.accepted:
         raise OnboardingError("DPA não aceita — onboarding bloqueado")
+    if not step3.tos_accepted:
+        raise OnboardingError("TOS/EULA não aceito — onboarding bloqueado")
 
     # Quadruple insert atomic — single transaction (SP04-BYOK-01 chunk 4 extension)
     # Sequência: tenant → user → dpa_acceptance → tenant_api_keys (encrypted)
@@ -288,7 +307,7 @@ async def complete_onboarding(
         db_session.add(user)
         await db_session.flush()  # gera user.id sem commit
 
-        # Triple insert step 3 — DPA acceptance (AUTH-01 chunk 5 / AC-06)
+        # Triple insert step 3a — DPA acceptance (AUTH-01 chunk 5 / AC-06)
         # Falha aqui (texto inexistente, hash compute error) rollback completo.
         try:
             await _dpa.accept_dpa(
@@ -304,7 +323,24 @@ async def complete_onboarding(
                 f"onboarding bloqueado. Detalhe: {exc}"
             ) from exc
 
-        # Quadruple insert step 4 — BYOK encrypted api_key (SP04-BYOK-01 chunk 4 / AC-03)
+        # Quadruple insert step 3b — TOS/EULA acceptance (LGPD-01 chunk 4 / AC-04)
+        # Sati Opção B antecipada: combine DPA+TOS step 3 (menor friction).
+        # Falha aqui (texto TOS canônico inexistente) rollback completo.
+        try:
+            await _tos.accept_tos(
+                tenant_id=tenant.id,
+                user_id=user.id,
+                version=step3.tos_version,
+                request=request,
+                db_session=db_session,
+            )
+        except FileNotFoundError as exc:
+            raise OnboardingError(
+                f"TOS/EULA texto canônico v{step3.tos_version} não encontrado — "
+                f"onboarding bloqueado. Detalhe: {exc}"
+            ) from exc
+
+        # Quintuple insert step 4 — BYOK encrypted api_key (SP04-BYOK-01 chunk 4 / AC-03)
         # Tank Phase 12.3a — quadruple insert atomic (rollback completo se encrypt falha).
         # Audit chain event byok_key_set é emitido em chunk 7 via byok_lifecycle helper
         # (separação de concern — lifecycle audit centralizado em byok_lifecycle.py).

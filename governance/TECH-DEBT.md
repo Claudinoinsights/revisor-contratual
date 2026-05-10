@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-07T09:30"
+last_updated: "2026-05-09T27:30"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -877,13 +877,140 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | **TD-SP04-05** | Tank Phase 12.3a Item 5 | MEDIUM | last_used_at update strategy promotion: inline per-request UPDATE (volume MVP 0.005 writes/sec = 50 tenants × 10 análises/dia = 500 writes/day) → background batch APScheduler async OR pg_cron dedicated procedure quando scale exceed 50K writes/day (= 500 tenants × 100 análises/dia escala 10x). Localização: `bloco_auth/byok_middleware.py.get_anthropic_client` UPDATE inline. | 6h | @dev | 2026-05-08 |
 | **TD-SP04-06** | Oracle qa-gate G5 BYOK (MEDIUM-G5-BYOK-01) | MEDIUM | byok_middleware.py middleware abre sessão própria via `sessionmaker()` + commit interno (não Depends(get_db_session) idiomatic FastAPI). Pattern desviante: middleware NÃO compartilha transaction com endpoint caller — endpoint que usa `get_anthropic_client` + outras queries terá 2 transactions distintas. Refatorar para Depends(get_db_session) compartilhado quando arquitetura permitir; OR documentar pattern formalmente como deliberate (architectural ADR). Localização: `bloco_auth/byok_middleware.py` linhas 88-141. | 4h | @dev | 2026-05-08 |
 | **TD-SP04-07** | Oracle qa-gate G5 BYOK (MEDIUM-G5-BYOK-03) | MEDIUM | Integration tests SP04-BYOK-01 stub-heavy: 14/15 são pytest.skip placeholders (apenas `test_byok_encrypt_decrypt_roundtrip_real_postgres` tem implementação real). Mesmo com Operator setup PostgreSQL + DB rodando, esses 14 não validam empiricamente. Implementar conteúdo real OR criar story SP04-BYOK-INTEGRATION-COMPLETION dedicado para Sprint 06+ retest pós Operator setup PostgreSQL completo. Localização: `tests/integration/test_byok_lifecycle_e2e.py` + `test_byok_rls_isolation.py` + `test_byok_audit_chain.py`. | 6h | @dev | 2026-05-08 |
+| **TD-SP04-08** | Tank Phase 13.3a Item 3 LIGHT | LOW | Reavaliar indexes seletivos `idx_tos_acceptances_tenant` + `idx_tos_acceptances_version` quando MVP escalar para 5K+ tenants. Pattern aplica também para `dpa_acceptances` (mesmos 2 indexes). Tabela append-only ON DELETE RESTRICT — overhead writes negligível em scale MVP; em scale 5K+, EXPLAIN ANALYZE pode justificar remoção do index version (cardinality muito baixa) OR composite index (tenant_id, tos_version) para queries DPO admin. Localização: `bloco_database/migrations/sp04_003_lgpd_tos_audit.sql` linhas 53-54. | 2h | @data-engineer | 2026-05-08 |
+| **TD-SP04-09** | Neo SP04-LGPD-01 chunk 6 | MEDIUM | Integration tests SP04-LGPD-01 stub-heavy: 9/9 são pytest.skip placeholders sem DATABASE_URL setado (5 TOS lifecycle + 4 audit isolation endpoint). Pattern idêntico TD-SP04-07 (BYOK chunk 6). Setup local docker pg + 3 migrations + JWT_SECRET_KEY + MASTER_ENCRYPTION_KEY env documentado em docstring. **qa-gate G5 retest mandatory antes Done** OR criar story SP04-LGPD-INTEGRATION-COMPLETION Sprint 06+. Localização: `tests/integration/test_tos_lifecycle_e2e.py` + `test_audit_isolation_endpoint.py`. | 6h | @dev | 2026-05-08 |
+| **TD-SP04-10** | Neo SP04-LGPD-01 AC-01/AC-02 | HIGH | Eric advogado MANDATORY pre-deploy: textos canônicos `governance/legal/dpa-templates/v1.0.0.md` + `governance/legal/tos-templates/v1.0.0.md` finalizados ANPD-ready. Atualmente placeholder estrutural com seções tagueadas `[ERIC ADVOGADO PREENCHE TEXTO SUBSTANTIVO]`. Code SP04-LGPD-01 funciona com placeholder (hash SHA-256 deterministic do placeholder), mas deploy production exige texto substantivo Art. 5º LGPD + cláusulas Subprocessador + Retenção + Direitos titulares. Loop iterativo Eric advogado → River review estrutural → Eric finaliza. **Bloqueia close-story Done** se não finalizado antes Operator push+PR. | 16h | @claudino (Eric externo) | 2026-05-08 |
 
 **Extension natural Sprint 04 → BYOK:**
 
 - **TD-SP04-03** (já registrado AUTH-01 acima): structlog logger audit chain swallow — extension natural BYOK (`bloco_auth/byok_middleware.py._audit_byok_event` aplica mesmo CC.39 pattern try/except: pass; resolução conjunta TD-SP04-03)
 
-**Total Sprint 04 BYOK Tank+Oracle debt:** 4 MEDIUM = 20h Sprint 06+ effort.
+**Total Sprint 04 LGPD-01 Tank+Neo debt:** 1 LOW + 1 MEDIUM + 1 HIGH = ~24h Sprint 05+/06+ effort.
 
-**Total Sprint 04 acumulado (AUTH-01 + BYOK):** 7 MEDIUM = 31h Sprint 05+/06+ effort.
+**Total Sprint 04 acumulado (AUTH-01 + BYOK + LGPD-01):** 1 HIGH + 8 MEDIUM + 1 LOW = ~55h Sprint 05+/06+ effort.
 
 *Sprint 04 close-story Story SP04-BYOK-01 — Keymaker (sessão 91, 2026-05-08) · Path B chunks 1-8 + chunk 5.1 · Q-gate cycle BYOK complete (implementation 100% + qa-gate G5 CONCERNS + close-story Done) · **Foundation P0 Cloud SaaS BYOK COMPLETO** (AUTH-01 + BYOK-01 done; 12 stories dependentes desbloqueadas pós-merge).*
+
+---
+
+## Sprint 04 — Pre-merge Recovery findings (2026-05-09 sessão 92, Ordem 17)
+
+> **Origem:** Hamann recovery chain Caminho A executado pós Smith adversarial review INFECTED (20 findings, 2 CRITICAL + 6 HIGH bloqueando merge).
+> **Source docs:**
+>   - `governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md` (review N=1 INFECTED)
+>   - `governance/qa/hamann-board-session-2026-05-09-sprint04-pre-merge-recovery.md` (8 advisors, Caminho A)
+>   - `governance/qa/sati-ratify-post-hoc-sidebar-7-modos-2026-05-09.md` (commit 2bffbb9)
+>   - `governance/qa/smith-h6-reverify-sprint-04-pre-merge-2026-05-09.md` (review N=3 CONTAINED + 3 NEW)
+>   - `governance/qa/smith-final-pre-merge-consolidated-sprint-04-2026-05-09.md` (review N=4 CONTAINED + GREENLIGHT)
+> **Decision:** 5/5 pre-merge blockers RESOLVED commits f08fd5b → 0051ffb. 18 findings post-merge promovidos para tracking Sprint 5+/6+.
+
+### NEW debt — Sati ratify post-hoc 7 modos (5 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-04-ANALYTICS** | Sati ratify Eixo 5 (MANDATORY) | MEDIUM | Tracking 5 métricas pós-deploy obrigatório validar Miller's law upper bound 7±2 cognitive load: drop-off rate por doctype (≤15%), tempo médio seleção→submissão (≤90s), % uso "Geral" como primeira escolha (≤10%), % reclassificação manual (≤5%), distribuição uso 7 modos (Pareto top-3 ≥60%). Localização: novo módulo `bloco_interface/web/analytics/sidebar_metrics.py`. | 8h | @dev+@ux-design-expert | 5 | 2026-05-09 |
+| **TD-SP04-S4-V1** | Sati ratify Eixo 4 | MEDIUM | Wireframe variant Imobiliário (SFH/SFI) — campos específicos: matrícula RGI, valor avaliação, garantia (alienação fiduciária vs hipoteca), índice (TR/IPCA/IGP-M). Atualmente template unificado bancário não cobre. Disclaimer "Modo Avançado em desenvolvimento" cobre interim. Localização: `bloco_interface/web/static/index.html` form variant + backend strategy. | 12h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-S4-V2** | Sati ratify Eixo 4 | MEDIUM | Wireframe variant FIES (Lei 10.260/2001) — campos específicos: ano matrícula, instituição ensino, fase (utilização vs amortização), coparticipação. Localização: idem TD-SP04-S4-V1. | 12h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-S4-V3** | Sati ratify Eixo 6 | LOW | Geral catch-all UX (Tier 3 fallback) — helper text + confirmation prompt anti-premature-defaulting: quando usuário escolhe Geral, mostrar "Não encontrou seu tipo? OK. Se for um dos modos acima, recomendamos voltar — análise específica é mais precisa." Localização: SPA Geral form. | 4h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+| **TD-SP04-15** | Sati ratify Eixo 1+2 | LOW | Tooltips por modo na sidebar (escopo + exemplos contratuais) para reduzir hesitação cognitive load borderline. Ex.: tooltip "Cartão" → "Resolução BACEN 4.949 + Resolução 96 — fatura, juros rotativos, anuidade, IOF". 7 tooltips × ~80 chars cada. Localização: SPA sidebar `<button>` data-tooltip + tooltip helper. | 3h | @ux-design-expert+@dev | 6 | 2026-05-09 |
+
+### NEW debt — Smith H6 reverify (3 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-16** | Smith H6 reverify F-3 | LOW | Disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos (Imobiliário/FIES/Geral) enquanto S4 não tem variants. Bloqueia release público v0.3.0 NÃO bloqueia merge interno. Pattern: badge laranja `--or-300` próximo ao breadcrumb. Localização: `bloco_interface/web/static/index.html` form headers dos 3 modos. | 2h | @dev | 5 (pré v0.3.0 público) | 2026-05-09 |
+| **TD-PROCESS-01** | Smith H6 reverify F-1 | LOW | Process gap framework — ADR governance precisa hook obrigatório "ADRs com impacto UX-visible (sidebar/navegação/IA/layout) requerem consulta pré-flip Accepted ao @ux-design-expert". Adicionar cláusula em `.claude/rules/adr-governance.md` ou `adr-scope.md` (framework repo, NÃO project). Localização: framework `the_matrix/.claude/rules/`. | 2h | @lmas-master | framework | 2026-05-09 |
+| **TD-SP04-17-AUTO** | Smith H6 reverify F-2 | LOW | Tech debt registry trigger não explicitado em verdicts Sati/Smith — auto-resolve via Morpheus consolidação protocol (este registro). Sem ação requerida — protocolo cumprido. | 0h | @lmas-master | DONE 2026-05-09 | 2026-05-09 |
+
+### Status original Smith review N=1 (10 itens — referência cross-doc)
+
+> Referenciados em `governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md`:
+
+| Finding original | Sev | Status post-merge | Action delegada |
+|------------------|:---:|-------------------|-----------------|
+| **H2** PR #6 over-scope crescente | HIGH | POST-MERGE acceptable | Future story SP04-UI-CLEANUP-01 (PR scope rebalance) |
+| **H3** PRD v2.0.1 conta inconsistente "16 vs 20 prompts" | HIGH | POST-MERGE acceptable | Trinity PATCH 1.1 doc (sem code change) |
+| **H5** ADR-020 §1.5 multi-tenant LLM classifier ambiguidade | HIGH | POST-MERGE acceptable | Aria PATCH §1.5 spec (clarification) |
+| **M1-M8** (8 MEDIUM tech debt) | MED | POST-MERGE trackable | Smith review original Section 5 — escopo distribuído @dev/@architect/@data-engineer Sprint 5+ |
+| **L1-L4** (4 LOW cosmético) | LOW | POST-MERGE optional | Smith review original Section 6 — escopo cosmético Sprint 6+ |
+
+### Resolved Sprint 04 pre-merge recovery
+
+| ID | Resolution | Date |
+|----|-----------|------|
+| **C1** LGPD CDN regression | Chunk 1.5 self-host fonts (REV-INT-02 pattern reuse) — commit `d7f61e7` + verify `be5ef57` | 2026-05-09 |
+| **C2 + NF1** brand claim ANPD | Chunk 1.6 brand-honest "Em formalização LGPD" — commit `a206c2a` + verify `5e01581` | 2026-05-09 |
+| **H4** route protection MVP-LEAN-01 | Chunk 1.7 dual-protection session check + RedirectResponse — commit `f08fd5b` + verify `331eaa5` | 2026-05-09 |
+| **H6** Sati ratify post-hoc 7 modos | RATIFY WITH CHANGES verdict — commit `2bffbb9` + Smith verify `f7ee64f` | 2026-05-09 |
+| **H1** Eric ratify ADR-020 audit trail | Quote literal preservada frontmatter — commit `78f92ed` | 2026-05-09 |
+| **WAIVED-LGPD-03** | Sati ratify post-hoc cumprida (acima H6) | 2026-05-09 |
+
+### Retrospective Sprint 04 Recovery
+
+**O que funcionou:**
+- **Hamann board Caminho A** (sequential fix) preferido sobre paralelo — preveniu race conditions inter-Skills
+- **Smith adversarial chain** (4 reviews: 1 original + 3 verifies + 1 FINAL) — capturou regressão silenciosa potencial 0
+- **Skill workflow strict** — Eric "avance com o recomendado sempre pela skill" enforçado consistentemente, zero atalhos via Bash/Edit raw em código produto
+- **IDS REUSE pattern** — chunk 1.5 reusou REV-INT-02 self-host fonts pattern Sprint 02 ao invés de re-criar
+- **Eric quote literal** (H1 closure) — fortaleceu audit trail LGPD ANPD-defensible vs "avance implícito"
+
+**O que não funcionou (process gaps):**
+- ADR-020 flipped Accepted sem consulta UX expert pré-flip → process gap → **TD-PROCESS-01**
+- Sprint 04 quality gates anteriores (Keymaker G3 10/10 + Oracle G5 PASS + Tank LIGHT) NÃO capturaram C1 (Google Fonts CDN regression) nem C2 (brand claim sem TOS) — Smith adversarial detectou. **Insight:** quality gates formais ≠ adversarial review.
+- 14 commits ahead origin antes do push (recovery + sessão anterior) indicam push deferido demais — **future:** push intermediário antes de sprint review formal.
+
+**Lessons learned:**
+1. **Adversarial chain pré-merge previne regression silent** — 4 Smith reviews capturou 5/5 blockers + 3 NEW findings minor
+2. **Brand-honest temporário > brand-claim aspiracional** quando ANPD/LGPD compliance pendente — Eric advogado externo finaliza TOS canônico (TD-SP04-10 HIGH)
+3. **Post-hoc ratify legítimo** quando trabalho Skill subsequente prova qualidade (Sati 6 eixos UX defensáveis), MAS process gap (TD-PROCESS-01) deve ser fechado para evitar repetição
+4. **Quote literal > avance implícito** para audit trail regulatory — Eric authority direta substitui inferência
+
+---
+
+## Total Sprint 04 acumulado atualizado (2026-05-09 sessão 92)
+
+| Categoria | Quantidade | Effort estimado |
+|-----------|:----------:|:---------------:|
+| HIGH ativos (TD-SP04-10 advogado + H2/H3/H5 originais) | 4 | ~16h + cross-doc actions |
+| MEDIUM novos Sprint 04 recovery (Sati 4 + Smith 0) | 4 | ~36h |
+| LOW novos Sprint 04 recovery (Sati 1 + Smith 2) | 3 | ~7h |
+| MEDIUM originais (M1-M8) | 8 | trackable Sprint 5+ |
+| LOW originais (L1-L4) | 4 | trackable Sprint 6+ |
+| **Total cumulativo Sprint 04** | **23** | **~95h Sprint 05+/06+ effort** |
+
+*Sprint 04 pre-merge recovery — Morpheus (sessão 92, 2026-05-09) · Hamann board Caminho A 100% executado · 5/5 pre-merge blockers RESOLVED · review chain INFECTED → CONTAINED → GREENLIGHT · 6 commits recovery pushed origin · aguarda Eric merge PR #4+#5+#6 (autoridade exclusiva).*
+
+---
+
+## Sprint 04 — Post-Eric-authorization CI regression findings (2026-05-09 sessão 92, Neo Opção B-1)
+
+> **Origem:** Eric autorizou explicitamente "execute os marges, todos eles" — Operator detectou
+> regressão real CI durante merge sequence (não bypassável):
+> - **Fase 1:** CI workflow ci.yml não tinha 14 deps Sprint 04 → fix commits 60abbdf + a866a50 + 235acf1
+> - **Fase 2:** Após CI fix workflow, pytest revelou **27 testes legacy MVP-LEAN-01 fail**
+>   — chunk 1 MINIMAL (commit e7cbe7b) substituiu GET / template Jinja2 por SPA OrSheva 7,
+>   testes legacy ficaram órfãos com asserts esperando HTML antigo.
+>
+> **Source docs:**
+>   - `.lmas/handoffs/handoff-operator-to-eric-2026-05-09-merge-blocked-regression.yaml`
+>   - `.lmas/handoffs/handoff-dev-to-operator-2026-05-09-legacy-tests-fix.yaml` (Neo este fix)
+> **Decision:** Opção B-1 (Operator recomendação aceita Eric) — skip 27 testes legacy + criar
+> `tests/integration/test_spa_orsheva_7.py` cobertura mínima nova (8 tests) + tech debt formal.
+
+### NEW debt — CI regression Sprint 04 post-authorization (3 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-LEGACY-TESTS** | Neo Opção B-1 fix | MEDIUM | Atualizar 27 testes legacy MVP-LEAN-01 (test_layout_base 8 tests + test_s2_pre_upload 10 tests + test_s5_processing_sse 1 test + test_s8_banner_critical 3 tests) para validar SPA OrSheva 7 ao invés de template Jinja2. Atualmente skipped via pytest.mark.skip. Cobertura mínima interim em `tests/integration/test_spa_orsheva_7.py` (NEW, 8 tests). Reescrever asserts para SPA atual: aria-label "Barra de navegação principal" → sidebar OrSheva 7, id "app-main" → SPA structure, banner-tema-1378 → sidebar nav, sse_resilient.js → SPA fetch pattern. | 3-4h | @dev+@ux-design-expert | 6 | 2026-05-09 |
+| **TD-SP04-PIPELINE-THREADING** | Neo CI investigation | MEDIUM | sqlite3.ProgrammingError em CI runner: TestPipelineHappyPath + TestPipelineEdgeCases (6 tests) com erro "SQLite objects created in a thread can only be used in that same thread". Causa: fixture asyncio + sqlite3 connection sharing entre threads pytest. Investigar `isolation_level=None` OR migrar fixture para connection-per-test pattern. Não-relacionado a chunk 1 SPA UI. Atualmente skipped via pytestmark module-level. Localização: `tests/integration/test_pipeline_e2e.py`. | 4h | @dev | 6 | 2026-05-09 |
+| **TD-PROCESS-02** | Neo gap analysis Smith chain | LOW | Process gap framework — Smith adversarial review pré-merge MUST include CI/pytest status check. 4 reviews Smith Sprint 04 (1 INFECTED + 3 verifies + 1 FINAL CONTAINED+GREENLIGHT) NÃO capturaram regressão de 27 testes legacy porque methodology spot-checks empíricos manuais não invocam pytest CI. Adicionar cláusula em `.claude/rules/quality-gate-enforcement.md` ou criar nova rule: "Smith *verify FINAL re-gate pré-merge DEVE incluir gh pr checks status verde para PRs Sprint review". Localização: framework `the_matrix/.claude/rules/`. | 2h | @lmas-master | framework | 2026-05-09 |
+
+### Resolved nesta sessão (2026-05-09 fase 2)
+
+| ID | Resolution | Date |
+|----|-----------|------|
+| **CI-WORKFLOW-DEPS-MISSING** | ci.yml manual pip install não tinha 14 deps Sprint 04 (fastapi, psutil, bcrypt, pyjwt, sqlalchemy, asyncpg, cryptography, etc.) — fix cherry-picked 3 branches | 2026-05-09 |
+| **27 legacy tests skipping** | pytestmark module 3 arquivos (test_layout_base + test_s2_pre_upload + test_pipeline_e2e) + targeted @skip 4 tests (s5 + s8) — todos com reason TD-SP04-LEGACY-TESTS reference | 2026-05-09 |
+| **SPA OrSheva 7 zero coverage** | NEW `tests/integration/test_spa_orsheva_7.py` (8 tests) — render auth/unauth + sidebar 7 modos + numeração 01-07 + brand-honest LGPD + zero CDN + self-host fonts + apikey section | 2026-05-09 |
+
+*Sprint 04 post-authorization CI fix — Neo Opção B-1 (sessão 92, 2026-05-09) · 27 legacy skipped + 8 new SPA tests + 2 NEW MEDIUM TD + 1 LOW process gap. PR #6 ready re-merge attempt após CI re-run verde.*

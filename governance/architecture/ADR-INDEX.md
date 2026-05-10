@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-07"
+last_updated: "2026-05-09"
 status: active
 sprint: "04"
-etapa: "Phase 5.3 — ADR-019 DPA Storage Schema (Smith F-012 CRITICAL fechado)"
+etapa: "Phase 14.1 — ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED (DEC-ERIC-DIV-01 + RATIFY Opção A formalizada — supersedes ADR-016)"
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -103,7 +103,8 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 |-----|--------|--------|------|---------|
 | [ADR-014](adr/adr-014-provider-abstraction-byok.md) | Provider Abstraction Anthropic + BYOK + pgcrypto — supersedes ADR-010 + ADR-011 | ✅ Accepted | 2026-05-07 | Atlas v2 Section 1 + Eric A1 Anthropic only Phase 1.7 |
 | [ADR-015](adr/adr-015-vision-ocr-architecture.md) | Vision OCR Architecture — Sonnet 4.6 vision + caching SHA-256 (partial supersede ADR-013) | ✅ Accepted | 2026-05-07 | Atlas v1 vision OCR landscape + Smith CC.41 RAM constraint |
-| [ADR-016](adr/adr-016-multi-doctype-dispatcher.md) | Multi-Doctype Dispatcher Strategy — 4 doctypes (FIES/Veicular/Bancário/Imobiliário) | ✅ Accepted | 2026-05-07 | Eric escopo B Phase 1.7.1 + Atlas v2 doctype strategy |
+| ~~[ADR-016](adr/adr-016-multi-doctype-dispatcher.md)~~ | ~~Multi-Doctype Dispatcher Strategy — 4 doctypes (FIES/Veicular/Bancário/Imobiliário)~~ | 🔄 Superseded by ADR-020 | 2026-05-07 | Eric escopo B Phase 1.7.1 + Atlas v2 doctype strategy |
+| [ADR-020](adr/adr-020-multi-doctype-dispatcher-v2.md) | Multi-Doctype Dispatcher v2 — Strategy hierárquica 7 doctypes (CCB/Veículo/Consignado/Cartão/Imobiliário/FIES/Geral) com BancarioBaseStrategy + GeralDispatcher catch-all (level=spec) | ✅ Accepted | 2026-05-09 | Eric SPA OrSheva 7 (DEC-ERIC-DIV-01 + RATIFY Opção A) — supersedes ADR-016 |
 
 ### SaaS Pricing & Billing (Sprint 04)
 
@@ -122,6 +123,7 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 | ADR-010 | Migração Sabia/Qwen local → Anthropic cloud | ADR-014 |
 | ADR-011 | Migração Ollama local → Anthropic API cloud (sem Ollama) | ADR-014 |
 | ADR-013 (parcial) | Substituição parcial OCR local → Vision OCR cloud | ADR-015 |
+| ADR-016 | Expansão 4 → 7 doctypes operacionais via SPA OrSheva 7 sidebar (DEC-ERIC-DIV-01 Opção A) | ADR-020 |
 
 ---
 
@@ -140,17 +142,19 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ## Estatísticas
 
-- **ADRs ativas (accepted):** 14 (ADR-001..006, 008, 012, 014..019)
+- **ADRs ativas (accepted):** 15 (ADR-001..006, 008, 012, 014..015, 017..020) — ADR-016 superseded por ADR-020 em 2026-05-09 + ADR-020 ratify Accepted Eric quote literal 2026-05-09 (post-Smith H1 flip)
 - **ADRs proposed (aguardando Eric):** 0
 - **Sprint 03 Phase 0 ADRs:** 2 (ADR-012 Vault Data Bundling accepted; ADR-013 partial superseded por ADR-015)
-- **Sprint 04 ADRs novos:** 6 (ADR-014..019 — pivot SaaS BYOK cloud)
-- **ADRs deprecadas/superseded:** 5 (ADR-007 → ADR-017, ADR-009 → ADR-017, ADR-010 → ADR-014, ADR-011 → ADR-014, ADR-013 partial → ADR-015)
+- **Sprint 04 ADRs novos:** 7 (ADR-014..019 + ADR-020 — pivot SaaS BYOK cloud + 7 doctypes UX)
+- **ADRs deprecadas/superseded:** 6 (ADR-007 → ADR-017, ADR-009 → ADR-017, ADR-010 → ADR-014, ADR-011 → ADR-014, ADR-013 partial → ADR-015, ADR-016 → ADR-020)
 - **R-NEW absorvidas em ADRs:** 7 (Smith-01, -02, -03, -04, -05, -07, -10) + 1 Smith F-012 (ADR-019 Sprint 04)
 - **Tech debts absorvidos em ADRs:** 2 Sprint 02 (TD-LLM-SABIA-Q4 + TD-LLM-FORMAT-JSON via ADR-010 superseded)
+- **Tech debts NEW Sprint 04 ADR-020:** 2 (TD-SP04-12 vault re-classify + TD-SP04-13 vault gaps Cartão/Consignado curadoria)
 - **Smith CRITICAL findings fechados via ADRs:** 1/4 (F-012 via ADR-019; F-003+F-007 via PRD v2.0.1; F-016 cross-domain Eric)
 - **R-NEW diferidas para PATCH v1.0.3:** 6 (Sati R-NEW-01..03 + Smith-06, -08, -09 endossando) — Sprint 03 anchor
-- **Decisões pendentes Eric:** 2 (DP-05 LGPD retenção, outcomes registry) — Sprint 06+
+- **Decisões pendentes Eric:** 3 (DP-05 LGPD retenção, outcomes registry, ADR-020 ratify Accepted) — Sprint 06+ + sessão atual
 - **Path A chain progress (Sprint 04 Phase 5):** 3/6 done (Operator commit Smith report ✅, Trinity PRD patches ✅, Aria ADR-019 ✅)
+- **Sprint 04 Phase 14 (UI integration):** 1 ADR (ADR-020 Proposed) — desbloqueia SP04-UI-SPA-01 + SP04-DOCTYPE-01 NEW
 
 ---
 
