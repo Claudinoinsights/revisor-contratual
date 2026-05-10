@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-10T02:30"
+last_updated: "2026-05-10T04:30"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-MERGED-main-foundation-p0-cloud-saas-byok-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,18 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **👑 Sessão 92 Sprint 04 Cleanup CLOSURE Ordem 18 — @lmas-master Morpheus** (@lmas-master · Morpheus — 2026-05-10T04:30):
+  - **Trigger:** Sprint 04 cleanup post-merge complete (Smith FINAL consolidated CLEAN commit 110b849)
+  - **Skills executadas cleanup phase:** 10 cumulativas (Operator merge + Neo CI fix + Neo backend local + Neo TD-SP04-16 + Morpheus framework hooks + Morpheus cleanup + Trinity H3 + Aria H5 + Smith consolidated)
+  - **5 Tech debt RESOLVED 2026-05-10:** TD-SP04-16 (Neo) + TD-PROCESS-01 (Morpheus framework local) + TD-PROCESS-02 (Morpheus framework local) + H3 (Trinity PRD v2.0.1.1) + H5 (Aria ADR-020 §5.1)
+  - **Sprint 04 closure rate FINAL:** CRITICAL 2/2 (100%) + HIGH 5/6 (83%, H2 process trackable)
+  - **7 D-S92-06 a D-S92-12 decisões documentadas** (Eric authorization full merge + Neo Opção B-1 + containers exclusivos + pg_cron skip + framework local-only + project-isolation cleanup + Smith TD-PROCESS-02 self-compliance)
+  - **5 NEW Process Insights (6-10):** CI status check non-negotiable + project-isolation deliberate + Skill workflow strict resilient + local-only trade-off explicit + sequência CLEAN sample size
+  - **Foundation P0 Cloud SaaS BYOK production-ready:** Sprint 04 + recovery + cleanup em main + backend rodando local + 5 SP04 stories Done
+  - **Files emitidos:** `governance/qa/morpheus-fechamento-sessao-92-ordem-18.md` (9 sections) + `.lmas/handoffs/handoff-morpheus-to-eric-2026-05-10-ordem-18-sprint-04-cleanup-closure.yaml`
+  - **Pré-release público v0.3.0 pendentes:** TD-SP04-10 HIGH Eric advogado (~9.5h) + smoke test E2E completo
+  - **Próxima ação:** Eric advogado externo OR Skills POST-MERGE não-bloqueantes (TD-SP04-04-ANALYTICS / TD-SP04-LEGACY-TESTS / TD-SP04-S4-V1/V2/V3 / SP04-DOCTYPE-01 chunks 5-6)
 
 - **💻 Sessão 92 TD-SP04-16 disclaimer RESOLVED — @dev Neo via Skill** (@dev · Neo — 2026-05-10T02:30):
   - **Trigger:** Eric "avance com o recomendado sempre pela skill" + credentials atualizados (admin / Revisor2026!) + backend rodando local
