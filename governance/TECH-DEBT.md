@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-09T27:30"
+last_updated: "2026-05-10T02:30"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -918,7 +918,7 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 
 | ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
 |----|--------|-----|-------------|-------------|-------|:------:|-------|
-| **TD-SP04-16** | Smith H6 reverify F-3 | LOW | Disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos (Imobiliário/FIES/Geral) enquanto S4 não tem variants. Bloqueia release público v0.3.0 NÃO bloqueia merge interno. Pattern: badge laranja `--or-300` próximo ao breadcrumb. Localização: `bloco_interface/web/static/index.html` form headers dos 3 modos. | 2h | @dev | 5 (pré v0.3.0 público) | 2026-05-09 |
+| ~~**TD-SP04-16**~~ | Smith H6 reverify F-3 | ~~LOW~~ | ~~Disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos (Imobiliário/FIES/Geral)~~ ✅ **RESOLVED 2026-05-10** — Neo Skill TD-SP04-16: badge `--or-300` injetado no breadcrumb (#modoAvancadoBadge) + JS conditional `MODOS_AVANCADOS = ['imobiliario','fies','geral']` em setView() + 1 test integration `test_spa_disclaimer_modo_avancado_3_modos_novos`. Pattern brand-honest temporário (similar a "Em formalização LGPD" sidebar footer). Pre-release público v0.3.0 desbloqueado. | 2h (~30min real) | @dev | DONE | 2026-05-10 |
 | **TD-PROCESS-01** | Smith H6 reverify F-1 | LOW | Process gap framework — ADR governance precisa hook obrigatório "ADRs com impacto UX-visible (sidebar/navegação/IA/layout) requerem consulta pré-flip Accepted ao @ux-design-expert". Adicionar cláusula em `.claude/rules/adr-governance.md` ou `adr-scope.md` (framework repo, NÃO project). Localização: framework `the_matrix/.claude/rules/`. | 2h | @lmas-master | framework | 2026-05-09 |
 | **TD-SP04-17-AUTO** | Smith H6 reverify F-2 | LOW | Tech debt registry trigger não explicitado em verdicts Sati/Smith — auto-resolve via Morpheus consolidação protocol (este registro). Sem ação requerida — protocolo cumprido. | 0h | @lmas-master | DONE 2026-05-09 | 2026-05-09 |
 

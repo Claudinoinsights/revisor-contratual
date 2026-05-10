@@ -371,6 +371,24 @@ body::before{
 @media(max-width:768px){ .menu-toggle{ display:flex; } }
 .menu-toggle:hover{ border-color:var(--accent); color:var(--accent); }
 
+/* TD-SP04-16 (Sati ratify post-hoc condition #4) — disclaimer "Modo Avançado em desenvolvimento" */
+/* Aplicado nos 3 modos novos (Imobiliário/FIES/Geral) enquanto S4 wireframe variants Sprint 6+ */
+.modo-avancado-badge{
+  display:none;
+  margin-left:12px;
+  padding:3px 10px;
+  border-radius:12px;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.2px;
+  background:var(--or-300, #fde7d6);
+  color:var(--or-900, #7a3a0d);
+  border:1px solid var(--or-400, #f4c298);
+  white-space:nowrap;
+}
+.modo-avancado-badge.show{ display:inline-flex; align-items:center; gap:4px; }
+.modo-avancado-badge::before{ content:"⚠"; font-size:10px; }
+
 .crumb{
   display:flex; align-items:center; gap:10px; min-width:0;
   font-family:var(--f-mono); font-size:11px; letter-spacing:0.16em;
@@ -1007,6 +1025,8 @@ body::before{
           <span class="crumb-trail">Revisor</span>
           <span class="crumb-trail crumb-sep">/</span>
           <span id="crumbCurrent" class="crumb-current">Início</span>
+          <!-- TD-SP04-16: disclaimer 3 modos novos pré-release público v0.3.0 -->
+          <span id="modoAvancadoBadge" class="modo-avancado-badge" role="status" aria-live="polite">Modo Avançado em desenvolvimento</span>
         </nav>
       </div>
       <div class="topbar-right">
@@ -1513,6 +1533,15 @@ body::before{
 
     // crumb
     document.getElementById('crumbCurrent').textContent = opts.crumb || (view.charAt(0).toUpperCase() + view.slice(1));
+
+    // TD-SP04-16: disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos
+    // (Imobiliário/FIES/Geral) — wireframe variants pendentes Sprint 6+ (TD-SP04-S4-V1/V2/V3)
+    const MODOS_AVANCADOS = ['imobiliario','fies','geral'];
+    const badge = document.getElementById('modoAvancadoBadge');
+    if (badge){
+      const isModoAvancado = (view === 'analysis' && MODOS_AVANCADOS.includes(opts.mode));
+      badge.classList.toggle('show', isModoAvancado);
+    }
 
     // mode-specific
     if (view === 'analysis'){

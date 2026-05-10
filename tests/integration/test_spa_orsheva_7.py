@@ -207,3 +207,28 @@ def test_spa_has_apikey_section(client: TestClient) -> None:
     assert "API Key" in body
     # JS validation pattern (sk-ant- prefix Anthropic Claude)
     assert "sk-ant-" in body
+
+
+# ── TD-SP04-16 Disclaimer "Modo Avançado em desenvolvimento" ──────────────
+
+
+@pytest.mark.integration
+def test_spa_disclaimer_modo_avancado_3_modos_novos(client: TestClient) -> None:
+    """TD-SP04-16 — badge 'Modo Avançado em desenvolvimento' presente na SPA + JS conditional 3 modos novos.
+
+    Sati ratify post-hoc condition #4 (commit 2bffbb9) — disclaimer pré v0.3.0 público
+    enquanto S4 wireframe variants TD-SP04-S4-V1/V2/V3 pendentes Sprint 6+.
+    """
+    response = client.get("/")
+    body = response.text
+    # Badge HTML element presente
+    assert 'id="modoAvancadoBadge"' in body
+    assert "Modo Avançado em desenvolvimento" in body
+    # CSS class definida (display:none default + .show toggle)
+    assert ".modo-avancado-badge" in body
+    assert ".modo-avancado-badge.show" in body
+    # JS conditional 3 modos novos (Imobiliário/FIES/Geral)
+    assert "MODOS_AVANCADOS" in body
+    assert "'imobiliario'" in body
+    assert "'fies'" in body
+    assert "'geral'" in body
