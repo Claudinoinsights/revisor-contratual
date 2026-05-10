@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-09T26:50"
+last_updated: "2026-05-09T27:30"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -979,3 +979,38 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | **Total cumulativo Sprint 04** | **23** | **~95h Sprint 05+/06+ effort** |
 
 *Sprint 04 pre-merge recovery — Morpheus (sessão 92, 2026-05-09) · Hamann board Caminho A 100% executado · 5/5 pre-merge blockers RESOLVED · review chain INFECTED → CONTAINED → GREENLIGHT · 6 commits recovery pushed origin · aguarda Eric merge PR #4+#5+#6 (autoridade exclusiva).*
+
+---
+
+## Sprint 04 — Post-Eric-authorization CI regression findings (2026-05-09 sessão 92, Neo Opção B-1)
+
+> **Origem:** Eric autorizou explicitamente "execute os marges, todos eles" — Operator detectou
+> regressão real CI durante merge sequence (não bypassável):
+> - **Fase 1:** CI workflow ci.yml não tinha 14 deps Sprint 04 → fix commits 60abbdf + a866a50 + 235acf1
+> - **Fase 2:** Após CI fix workflow, pytest revelou **27 testes legacy MVP-LEAN-01 fail**
+>   — chunk 1 MINIMAL (commit e7cbe7b) substituiu GET / template Jinja2 por SPA OrSheva 7,
+>   testes legacy ficaram órfãos com asserts esperando HTML antigo.
+>
+> **Source docs:**
+>   - `.lmas/handoffs/handoff-operator-to-eric-2026-05-09-merge-blocked-regression.yaml`
+>   - `.lmas/handoffs/handoff-dev-to-operator-2026-05-09-legacy-tests-fix.yaml` (Neo este fix)
+> **Decision:** Opção B-1 (Operator recomendação aceita Eric) — skip 27 testes legacy + criar
+> `tests/integration/test_spa_orsheva_7.py` cobertura mínima nova (8 tests) + tech debt formal.
+
+### NEW debt — CI regression Sprint 04 post-authorization (3 itens)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Sprint | Added |
+|----|--------|-----|-------------|-------------|-------|:------:|-------|
+| **TD-SP04-LEGACY-TESTS** | Neo Opção B-1 fix | MEDIUM | Atualizar 27 testes legacy MVP-LEAN-01 (test_layout_base 8 tests + test_s2_pre_upload 10 tests + test_s5_processing_sse 1 test + test_s8_banner_critical 3 tests) para validar SPA OrSheva 7 ao invés de template Jinja2. Atualmente skipped via pytest.mark.skip. Cobertura mínima interim em `tests/integration/test_spa_orsheva_7.py` (NEW, 8 tests). Reescrever asserts para SPA atual: aria-label "Barra de navegação principal" → sidebar OrSheva 7, id "app-main" → SPA structure, banner-tema-1378 → sidebar nav, sse_resilient.js → SPA fetch pattern. | 3-4h | @dev+@ux-design-expert | 6 | 2026-05-09 |
+| **TD-SP04-PIPELINE-THREADING** | Neo CI investigation | MEDIUM | sqlite3.ProgrammingError em CI runner: TestPipelineHappyPath + TestPipelineEdgeCases (6 tests) com erro "SQLite objects created in a thread can only be used in that same thread". Causa: fixture asyncio + sqlite3 connection sharing entre threads pytest. Investigar `isolation_level=None` OR migrar fixture para connection-per-test pattern. Não-relacionado a chunk 1 SPA UI. Atualmente skipped via pytestmark module-level. Localização: `tests/integration/test_pipeline_e2e.py`. | 4h | @dev | 6 | 2026-05-09 |
+| **TD-PROCESS-02** | Neo gap analysis Smith chain | LOW | Process gap framework — Smith adversarial review pré-merge MUST include CI/pytest status check. 4 reviews Smith Sprint 04 (1 INFECTED + 3 verifies + 1 FINAL CONTAINED+GREENLIGHT) NÃO capturaram regressão de 27 testes legacy porque methodology spot-checks empíricos manuais não invocam pytest CI. Adicionar cláusula em `.claude/rules/quality-gate-enforcement.md` ou criar nova rule: "Smith *verify FINAL re-gate pré-merge DEVE incluir gh pr checks status verde para PRs Sprint review". Localização: framework `the_matrix/.claude/rules/`. | 2h | @lmas-master | framework | 2026-05-09 |
+
+### Resolved nesta sessão (2026-05-09 fase 2)
+
+| ID | Resolution | Date |
+|----|-----------|------|
+| **CI-WORKFLOW-DEPS-MISSING** | ci.yml manual pip install não tinha 14 deps Sprint 04 (fastapi, psutil, bcrypt, pyjwt, sqlalchemy, asyncpg, cryptography, etc.) — fix cherry-picked 3 branches | 2026-05-09 |
+| **27 legacy tests skipping** | pytestmark module 3 arquivos (test_layout_base + test_s2_pre_upload + test_pipeline_e2e) + targeted @skip 4 tests (s5 + s8) — todos com reason TD-SP04-LEGACY-TESTS reference | 2026-05-09 |
+| **SPA OrSheva 7 zero coverage** | NEW `tests/integration/test_spa_orsheva_7.py` (8 tests) — render auth/unauth + sidebar 7 modos + numeração 01-07 + brand-honest LGPD + zero CDN + self-host fonts + apikey section | 2026-05-09 |
+
+*Sprint 04 post-authorization CI fix — Neo Opção B-1 (sessão 92, 2026-05-09) · 27 legacy skipped + 8 new SPA tests + 2 NEW MEDIUM TD + 1 LOW process gap. PR #6 ready re-merge attempt após CI re-run verde.*

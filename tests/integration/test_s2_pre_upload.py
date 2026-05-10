@@ -18,6 +18,14 @@ import bcrypt
 import pytest
 from fastapi.testclient import TestClient
 
+# Sprint 04 chunk 1 MINIMAL (commit e7cbe7b) substituiu GET / por SPA OrSheva 7 —
+# wizard S2 legacy (drop zones D1/D2, CTA disabled, microcopy UX spec, upload.js)
+# não existe mais. TD-SP04-LEGACY-TESTS MEDIUM Sprint 6+ — atualizar.
+pytestmark = pytest.mark.skip(
+    reason="Legacy MVP-LEAN-01 S2 wizard superseded by SPA OrSheva 7 chunk 1 "
+    "(commit e7cbe7b). See TD-SP04-LEGACY-TESTS in governance/TECH-DEBT.md."
+)
+
 # ── Fixtures (mesmo pattern Task 1+2) ─────────────────────────────────────
 TEST_USERNAME = "tester"
 TEST_PASSWORD = "test-pwd-123"  # noqa: S105

@@ -19,6 +19,17 @@ import bcrypt
 import pytest
 from fastapi.testclient import TestClient
 
+# Sprint 04 chunk 1 MINIMAL (commit e7cbe7b) substituiu GET / template Jinja2
+# legacy MVP-LEAN-01 por SPA OrSheva 7 estática (bloco_interface/web/static/index.html).
+# Estes testes assertam HTML do template antigo (aria-label "Barra de navegação principal",
+# id "app-main", banner-tema-1378, footer c7) que NÃO existe mais.
+# TD-SP04-LEGACY-TESTS MEDIUM Sprint 6+ — atualizar para validar SPA OrSheva 7.
+# Cobertura mínima SPA atual: tests/integration/test_spa_orsheva_7.py (NEW).
+pytestmark = pytest.mark.skip(
+    reason="Legacy MVP-LEAN-01 Jinja2 template superseded by SPA OrSheva 7 chunk 1 "
+    "(commit e7cbe7b). See TD-SP04-LEGACY-TESTS in governance/TECH-DEBT.md."
+)
+
 # Task 2 instalou auth — tests de layout_base agora precisam autenticar antes de GET /
 TEST_USERNAME = "tester"
 TEST_PASSWORD = "test-pwd-123"  # noqa: S105
