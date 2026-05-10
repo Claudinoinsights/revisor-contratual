@@ -108,7 +108,9 @@ def test_get_root_authenticated_renders_spa_orsheva_7(client: TestClient) -> Non
     # SPA marker — title + meta theme-color OrSheva orange
     assert "OrSheva 7" in body
     assert 'data-theme="light"' in body
-    assert 'theme-color="#EE6B20"' in body  # --or-500 brand
+    # meta tag: <meta name="theme-color" content="#EE6B20"> — checar attribute pair
+    assert 'name="theme-color"' in body
+    assert "#EE6B20" in body  # --or-500 brand
 
 
 @pytest.mark.integration
