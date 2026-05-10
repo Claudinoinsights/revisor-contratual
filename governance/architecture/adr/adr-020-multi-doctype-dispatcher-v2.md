@@ -8,7 +8,7 @@ accepted_by: |
   Eric Claudino — quote literal 2026-05-09:
   "Aprovo ADR-020 Multi-Doctype Dispatcher v2 — Opção A (7 doctypes) — 2026-05-09"
 accepted_date: "2026-05-09"
-last_reviewed: "2026-05-09"
+last_reviewed: "2026-05-10"
 domain: software-dev/legaltech
 adr_level: spec
 decision_makers:
@@ -224,6 +224,77 @@ def resolve_dispatcher(
 
 **Mudança vs ADR-016:** Tier 3 fallback **agora é GeralDispatcher** (era `unknown` rejection). Garante que advogado nunca recebe erro "doctype não suportado" — sempre roda análise via prompts genéricos.
 
+##### 5.1 Multi-tenant Classifier Key Resolution (PATCH H5 — 2026-05-10)
+
+> **Addresses:** Smith Sprint 04 review N=1 H5 HIGH — ambiguidade sobre qual API key Anthropic é usada pelo Tier 2 LLM classifier em contexto multi-tenant ADR-017.
+
+**Decisão arquitetural:** Tier 2 classifier usa **a mesma BYOK key do tenant** (Opção 1 — Quota Interna pattern preservado), instanciada via middleware AUTH-01/BYOK-01 já existente:
+
+```python
+# bloco_workflow/dispatchers/router.py — multi-tenant resolution explicit
+async def resolve_dispatcher_multitenant(
+    ui_selector: str | None,
+    contract_text: str,
+    tenant_id: UUID,                    # AUTH-01 JWT claim
+    db_session: AsyncSession,           # ADR-017 Pool+RLS
+) -> DoctypeDispatcher:
+    # Tier 1: UI selector (curto-circuita classifier — zero cost)
+    if ui_selector and ui_selector in DISPATCHERS:
+        return DISPATCHERS[ui_selector]()
+
+    # Tier 2: classifier usa BYOK do tenant atual (mesma key da análise principal)
+    # byok_middleware.get_anthropic_client retorna AsyncAnthropic instanciado com
+    # encrypted_key decifrada via pgp_sym_decrypt(MASTER_ENCRYPTION_KEY) per tenant.
+    classifier_llm = await byok_middleware.get_anthropic_client(tenant_id, db_session)
+    classified = await classifier_llm.classify(
+        contract_text,
+        labels=list(DISPATCHERS.keys()) + ["unknown"],
+    )
+    if classified in DISPATCHERS:
+        return DISPATCHERS[classified]()
+
+    # Tier 3: GeralDispatcher (catch-all — ainda sem cost na resolução)
+    return GeralDispatcher()
+```
+
+**Justificativa da decisão:**
+
+| Critério | BYOK tenant (escolhido) | Eric/operador infra key (rejeitado) |
+|----------|------------------------|-------------------------------------|
+| **Ops simplicity** | ✅ Single key path (mesmo middleware AUTH-01/BYOK-01) | ❌ Two-key system (BYOK + system) — complexity creep |
+| **Cost attribution** | ✅ Tenant paga próprio classify ($0.001/análise) — fair | ❌ Eric assume custo agregado de TODOS os tenants — escalação financial risk |
+| **Audit trail** | ✅ Audit chain BYOK inclui classify calls — single source truth | ❌ Audit chain split (BYOK + infra) — reconciliação cross-source |
+| **LGPD operador posture** | ✅ Tenant data → tenant key (zero leakage cross-tenant) | ⚠️ Operador key processa dados de múltiplos tenants — review LGPD necessário |
+| **Quota Interna pattern** | ✅ Alinhado ADR-014 §Decisão.Componentes 7 | ❌ Quebra pattern estabelecido |
+
+**Implicação financeira para o tenant:**
+
+- $0.001 USD × call do classifier = ~R$ 0,005 por análise (taxa câmbio típica)
+- Tenant Tier 1 (UI selector escolhido): $0 classifier (curto-circuita)
+- Tenant Tier 2 (UI vazio + classify): $0.001 classifier + custo análise principal
+- Trivial vs preço per-approval pricing (ADR-018 SaaS pricing) — não justifica system-wide infra key
+
+**Edge cases:**
+
+| Edge case | Comportamento |
+|-----------|---------------|
+| BYOK ausente (`tenant_api_keys.encrypted_key IS NULL`) | Tier 1 (UI selector) **mandatory** — frontend SPA bloqueia submit sem `data-mode` selecionado. Tier 2 não dispara — GeralDispatcher fallback impossível pois requer classifier que requer key. UX: badge "Configure API Key (Claude)" sidebar visível. |
+| BYOK inválida (`401 Unauthorized` Anthropic) | Mesmo behavior — Tier 1 mandatory. Tenant recebe erro estruturado "API Key inválida — reconfigure" + audit log entry. |
+| BYOK em rotação (`status='pending_rotation'`) | byok_middleware retorna client com `encrypted_key` ativa (não `pending_encrypted_key`) — classifier funciona normalmente durante 24h overlap. |
+| Tenant `status='suspended_byok'` (revoke flow) | Endpoint dispatcher retorna 403 antes de Tier 1 — classifier nunca invocado. |
+
+**Implementação dependency:**
+
+- `bloco_auth/byok_middleware.py.get_anthropic_client(tenant_id, session)` — já implementado SP04-BYOK-01 chunks 1-8
+- Migração SP04-DOCTYPE-01 chunks 5-6 (Strategy refactor) consome esse middleware sem mudança adicional — zero novo código de instanciação de client
+
+**Não-impact:**
+
+- Decisão Tier 1 + Tier 3 fallback inalterados
+- 7 doctypes operacionais inalterados
+- Strategy hierárquica BancarioBaseStrategy inalterada
+- ADR-017 multi-tenant Pool+RLS BACKBONE preserved
+
 #### 6. Vault `doctype_tag` enum expandido
 
 Migration `sp04_004_doctype_tag_v2.sql`:
@@ -380,6 +451,16 @@ Pós Eric ratify ADR-020 Accepted:
 - **Audit trail:** quote literal preservada para compliance LGPD ANPD-defensible (regulatory requirement) + audit accountability (regulatory + legal)
 - **Conteúdo da decisão:** INALTERADO — Strategy hierárquica 7 doctypes permanece. Apenas frontmatter + Histórico section.
 - **Refs:** Smith H1 finding (governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md), Hamann board session (governance/qa/hamann-board-session-2026-05-09-sprint04-pre-merge-recovery.md), Sati ratify post-hoc 7 modos (governance/qa/sati-ratify-post-hoc-sidebar-7-modos-2026-05-09.md)
+
+### 2026-05-10T03:45 — H5 PATCH §5.1 multi-tenant classifier key resolution (Aria post-Smith review)
+- **Trigger:** Smith adversarial review Sprint 04 review N=1 identificou H5 (HIGH) — Section "Detecção doctype 3-tier" recebia `classifier_llm: AnthropicClient` como parâmetro sem documentar qual API key instancia o client em contexto multi-tenant ADR-017.
+- **Decisão arquitetural:** Tier 2 LLM classifier usa **a BYOK key do tenant atual** (Opção 1 — Quota Interna pattern preservado), instanciada via `byok_middleware.get_anthropic_client(tenant_id, db_session)` já implementado em SP04-BYOK-01.
+- **Justificativa:** ops simplicity (single key path), cost attribution fair (tenant paga próprio classify $0.001/análise), audit trail single-source (BYOK chain inclui classify calls), LGPD operador posture (zero leakage cross-tenant), alinhamento Quota Interna ADR-014.
+- **Edge cases documentados:** BYOK ausente/inválida → Tier 1 mandatory + UX badge "Configure API Key"; BYOK em rotação → encrypted_key ativa usada; tenant `suspended_byok` → 403 antes de Tier 1.
+- **Implementação dependency:** zero código novo — middleware AUTH-01/BYOK-01 já provê `get_anthropic_client(tenant_id)`. SP04-DOCTYPE-01 chunks 5-6 consome direto.
+- **Ação Aria:** Section §5.1 "Multi-tenant Classifier Key Resolution" adicionada inline após Tier 3 fallback (linha ~225) com code snippet refactored explícito + tabela justificativa + edge cases. Frontmatter `last_reviewed: 2026-05-10` bumped (mantém date Accepted original 2026-05-09).
+- **Conteúdo da decisão:** INALTERADO — Strategy hierárquica 7 doctypes permanece. Apenas clarificação narrative §5 + Histórico entry.
+- **Não-impact:** Eric quote literal accepted_by preservada (H1 closure intact); decisão arquitetural inalterada; status Accepted mantém.
 
 ```
 [@architect · Aria (Visionary)]
