@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-09T29:00"
+last_updated: "2026-05-10T02:10"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-MERGED-main-foundation-p0-cloud-saas-byok-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,22 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **💻 Sessão 92 Backend local Sprint 04 RUNNING — @dev Neo Caminho A executado via Skill** (@dev · Neo — 2026-05-10T02:10):
+  - **Trigger:** Eric "execute você pela skill o backend completo para teste local" + correção "não use containers arena, crie exclusivos para esse projeto, sempre pela skill"
+  - **Stack dedicada criada:**
+    - `docker-compose.yml` NEW (revisor-contratual exclusive)
+    - `revisor-postgres` container postgres:16-alpine port 5433 host (volume revisor-contratual_postgres-data)
+    - Network revisor-contratual_net isolada
+  - **Sprint 04 schema deployed:** 5 tabelas (tenants + users + tenant_api_keys + dpa_acceptances + tos_acceptances) via 3 migrations sp04_001/002/003
+  - **pg_cron skip:** postgres:16-alpine standard sem pg_cron — TD-SP04-04 fallback (rotation manual via app-level endpoint)
+  - **.env Sprint 04 keys appended:** JWT_SECRET_KEY (64b urlsafe HS256) + MASTER_ENCRYPTION_KEY (Fernet 44 chars) + DATABASE_URL (asyncpg port 5433) + ANTHROPIC_API_KEY placeholder
+  - **deps Sprint 04 instaladas:** anthropic 0.100.0 + asyncpg + sqlalchemy[asyncio] + pyjwt[crypto] + cryptography (via pip install -e .)
+  - **App rodando background:** http://localhost:8080 — uvicorn com --env-file .env (.env loaded auto)
+  - **30 endpoints registrados:** /api/auth/* + /api/onboarding/* + /api/tenant/byok/* + /api/tenant/dpa/* + /api/tenant/tos/* + /api/tenant/audit/isolation + /api/tenant/users/*
+  - **GET / → 303 redirect /login** (H4 dual-protection working)
+  - **Files emitidos:** `docker-compose.yml` NEW + `.lmas/handoffs/handoff-dev-to-eric-2026-05-09-backend-local-running.yaml`
+  - **Próxima ação Eric:** Testar visual via http://localhost:8080 (login Sprint 03 admin) OU testar BYOK funcional via API multi-tenant signup
 
 - **🎉 Sessão 92 Sprint 04 MERGE COMPLETE FINAL — Foundation P0 Cloud SaaS BYOK em MAIN** (@devops · Operator — 2026-05-09T29:00):
   - **Trigger:** Eric authorization preserved + 3 PRs CI green pós Neo Opção B-1 fix → Operator retoma merge sequence Hamann Step 5

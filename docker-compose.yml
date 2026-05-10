@@ -1,0 +1,67 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Revisor Contratual — docker-compose.yml (Sprint 04 Cloud SaaS BYOK local dev)
+#
+# Stack exclusiva do projeto (Eric directive 2026-05-09 sessão 92):
+#   - revisor-postgres: PostgreSQL 16 + pgcrypto (multi-tenant ADR-017 BACKBONE)
+#                       Note: pg_cron skipped (TD-SP04-04 fallback — patch local migration)
+#   - revisor-redis (opcional, comentado): session/cache layer Sprint 06+ TD-SP04-02
+#
+# Uso:
+#   docker compose up -d              # Subir Postgres em background
+#   docker compose ps                 # Status
+#   docker compose logs -f postgres   # Stream logs
+#   docker compose down               # Parar (preserva volume)
+#   docker compose down -v            # Parar + apagar volume (reset DB)
+#
+# .env DATABASE_URL alinhado:
+#   postgresql+asyncpg://revisor:revisor_dev@localhost:5433/revisor_contratual
+#
+# Porta 5433 (não 5432) para NÃO conflitar com arena-postgres ou outro local.
+# ════════════════════════════════════════════════════════════════════════════
+
+name: revisor-contratual
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: revisor-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: revisor
+      POSTGRES_PASSWORD: revisor_dev
+      POSTGRES_DB: revisor_contratual
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"  # 5433 host → 5432 container (evita conflito local)
+    volumes:
+      - revisor-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U revisor -d revisor_contratual"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - revisor-net
+
+  # Redis (opcional, descomente quando Sprint 06+ TD-SP04-02 session persistence)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: revisor-redis
+  #   restart: unless-stopped
+  #   ports:
+  #     - "6380:6379"
+  #   volumes:
+  #     - revisor-redis-data:/data
+  #   networks:
+  #     - revisor-net
+
+volumes:
+  revisor-postgres-data:
+    name: revisor-contratual_postgres-data
+  # revisor-redis-data:
+  #   name: revisor-contratual_redis-data
+
+networks:
+  revisor-net:
+    name: revisor-contratual_net
+    driver: bridge
