@@ -929,7 +929,7 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | Finding original | Sev | Status post-merge | Action delegada |
 |------------------|:---:|-------------------|-----------------|
 | **H2** PR #6 over-scope crescente | HIGH | POST-MERGE acceptable | Future story SP04-UI-CLEANUP-01 (PR scope rebalance) |
-| **H3** PRD v2.0.1 conta inconsistente "16 vs 20 prompts" | HIGH | POST-MERGE acceptable | Trinity PATCH 1.1 doc (sem code change) |
+| ~~**H3**~~ PRD v2.0.1 conta inconsistente "16 vs 20 prompts" | ~~HIGH~~ | ✅ **RESOLVED 2026-05-10** | Trinity PATCH v2.0.1.1: título + section 2 + effort recalc + Delta section clarified (4 base + 12 sub + 4 Geral = 20 ARQUIVOS, 28 prompts canônicos via DRY) |
 | **H5** ADR-020 §1.5 multi-tenant LLM classifier ambiguidade | HIGH | POST-MERGE acceptable | Aria PATCH §1.5 spec (clarification) |
 | **M1-M8** (8 MEDIUM tech debt) | MED | POST-MERGE trackable | Smith review original Section 5 — escopo distribuído @dev/@architect/@data-engineer Sprint 5+ |
 | **L1-L4** (4 LOW cosmético) | LOW | POST-MERGE optional | Smith review original Section 6 — escopo cosmético Sprint 6+ |

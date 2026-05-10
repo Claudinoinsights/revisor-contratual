@@ -1,8 +1,8 @@
 ---
 type: prd
 title: "Revisor Contratual — PRD v2.0.1 PATCH (Doctype Content Brief)"
-version: "2.0.1"
-last_updated: "2026-05-09"
+version: "2.0.1.1"
+last_updated: "2026-05-10"
 status: active
 patch_of: "v2.0.0-DRAFT"
 patches: ["v2.0.1-DOCTYPE-CONTENT-PATCH"]
@@ -23,14 +23,14 @@ tags:
   - cross-domain
 ---
 
-# PRD v2.0.1 — DOCTYPE CONTENT PATCH (Brief 16 Prompts NOVOS)
+# PRD v2.0.1.1 — DOCTYPE CONTENT PATCH (Brief 20 Prompts NOVOS)
 
 ```
-[@pm · Morgan (Strategist)] — Sprint 04 · Phase 14.5 · PRD PATCH brief 16 prompts
+[@pm · Morgan (Strategist)] — Sprint 04 · Phase 14.5 · PRD PATCH brief 20 prompts
 SPRINT: 04 · PHASE: 14.5 · DOMÍNIO: software-dev/legaltech-content · CROSS-DOMAIN
 ```
 
-> **PATCH escopo restrito:** Esta PATCH adiciona à PRD v2.0.0-DRAFT a **estrutura** de 16 novos prompts de persona necessários para SP04-DOCTYPE-01 (backend Strategy refactor per ADR-020). NÃO inclui conteúdo legal substantivo — esse é responsabilidade Eric advogado (~30min cada × 16 = ~8h cumulativo). Pattern AUTH-01 chunk 5 placeholder + finalização advogado.
+> **PATCH escopo restrito:** Esta PATCH adiciona à PRD v2.0.0-DRAFT a **estrutura** de 20 novos prompts de persona necessários para SP04-DOCTYPE-01 (backend Strategy refactor per ADR-020). NÃO inclui conteúdo legal substantivo — esse é responsabilidade Eric advogado (~30min cada × 20 = ~9.5h cumulativo conforme cronograma section 5.1). Pattern AUTH-01 chunk 5 placeholder + finalização advogado.
 
 ---
 
@@ -66,11 +66,12 @@ Story `governance/stories/SP04-DOCTYPE-01-multi-doctype-dispatcher-backend.md` (
 | v1.1.1 | 2026-05-06 | Morgan | PATCH Sprint 03 ajustes |
 | v1.1.2 | 2026-05-06 | Morgan | PATCH MVP Lean ADR-013 |
 | v2.0.0-DRAFT | 2026-05-07 | Morgan | MAJOR Sprint 04 cloud SaaS BYOK pivot |
-| **v2.0.1** | **2026-05-09** | **Morgan** | **PATCH 16 prompts brief (SP04-DOCTYPE-01 paralelo)** |
+| v2.0.1 | 2026-05-09 | Morgan | PATCH brief prompts (SP04-DOCTYPE-01 paralelo) |
+| **v2.0.1.1** | **2026-05-10** | **Morgan** | **PATCH H3 — clarificação conta prompts: 20 NOVOS (4 base + 12 sub + 4 Geral), não 16** |
 
 ---
 
-## 2. 16 Prompts NOVOS — Outline Estrutural
+## 2. 20 Prompts NOVOS — Outline Estrutural
 
 ### 2.1 Categoria A — Bancário Base (4 arquivos compartilhados via Template Method DRY)
 
@@ -378,7 +379,7 @@ Cada prompt finalizado por Eric advogado deve passar smoke test:
 | A — Bancário base | 4 | ~30min | ~2h |
 | B — Sub-bancários (CCB+Cartão+Consignado) | 12 | ~30min | ~6h |
 | C — Geral standalone | 4 | ~20min (genérico) | ~1.5h |
-| **Total cumulativo** | **16** | — | **~9.5h** |
+| **Total cumulativo** | **20** | — | **~9.5h** |
 
 ### 5.2 Cronograma 2-3 days
 
@@ -421,7 +422,7 @@ Smith adversarial review pós-Sprint 04 close pode flag:
 ### 7.1 Critérios closure PATCH
 
 - [x] Section 1 Contexto + 1.3 Versionamento documentados
-- [x] Section 2 16 prompts outline estrutural por arquivo
+- [x] Section 2 20 prompts outline estrutural por arquivo
 - [x] Section 3 Cross-references jurídicas BACEN + Súmulas + Leis
 - [x] Section 4 Eric advogado guidance + anti-padrões
 - [x] Section 5 Cronograma sugerido (2-3 days)
@@ -429,7 +430,7 @@ Smith adversarial review pós-Sprint 04 close pode flag:
 
 ### 7.2 Pendências cross-domain (não esta PATCH)
 
-- ⏳ **Eric advogado** preenche conteúdo substantivo 16 prompts (~9.5h cumulativo, ~2-3 days)
+- ⏳ **Eric advogado** preenche conteúdo substantivo 20 prompts (~9.5h cumulativo, ~2-3 days)
 - ⏳ **Neo SP04-DOCTYPE-01 chunks 5-6** integrate prompts pós Eric advogado finaliza
 - ⏳ **Smith Sprint 04 close-out** revisa prompts ANPD-defensável
 - ⏳ **PRD v2.0.0-DRAFT → v2.0.0** finalize (separate PATCH posterior)
@@ -449,8 +450,17 @@ Smith adversarial review pós-Sprint 04 close pode flag:
 
 ## 9. Changelog
 
-### v2.0.1 (2026-05-09) — PATCH brief 16 prompts NOVOS
-- **Added:** 16 prompts brief estrutural — 4 base bancário + 12 sub-bancários specific + 4 Geral standalone
+### v2.0.1.1 (2026-05-10) — PATCH H3 conta inconsistente prompts
+- **Fixed:** Sumário/título mencionavam "16 prompts NOVOS" mas seção 2 detalhava 4+12+4 = 20 (4 base bancário + 12 sub-bancários + 4 Geral standalone)
+- **Changed:** Título PRD "Brief 16 Prompts NOVOS" → "Brief 20 Prompts NOVOS"
+- **Changed:** Section 2 heading "16 Prompts NOVOS" → "20 Prompts NOVOS"
+- **Changed:** Effort cumulativo recalculado consistentemente: 30min × 20 = ~9.5h (cronograma section 5.1 já estava correto)
+- **Clarified:** Delta section — distinção entre 28 prompts canônicos (4 personas × 7 doctypes) vs 20 ARQUIVOS de prompt (DRY via BancarioBaseStrategy compartilha 4 base entre 3 sub-bancários)
+- **Reason:** Smith H3 HIGH (governance/qa/smith-adversarial-review-sprint-04-pre-merge-2026-05-09.md) identificou inconsistência documental pré-merge; Hamann board Caminho A deferiu POST-MERGE; PATCH agora resolve narrative consistency
+- **Não-impact:** Conteúdo legal substantivo dos prompts não alterado (Eric advogado scope preserved); estrutura backend ADR-020 não alterada (7 doctypes mantidos)
+
+### v2.0.1 (2026-05-09) — PATCH brief 20 prompts NOVOS
+- **Added:** 20 prompts brief estrutural — 4 base bancário + 12 sub-bancários specific + 4 Geral standalone
 - **Added:** Cross-references jurídicas (BACEN Resoluções 4.558/4.549/3.919/4.196 + 7 Súmulas STJ + 8 Leis)
 - **Added:** Eric advogado guidance + anti-padrões + cronograma 2-3 days
 - **Reason:** Desbloqueio cross-domain SP04-DOCTYPE-01 chunks 5-6 (Trinity Phase 3 PRD update River dependency)
@@ -464,7 +474,7 @@ Smith adversarial review pós-Sprint 04 close pode flag:
 ## 10. Delta (v2.0.0 → v2.0.1)
 
 ### Features Adicionadas
-- 16 prompts NOVOS estrutural (4 base + 12 sub + 4 Geral)
+- 20 prompts NOVOS estrutural (4 base + 12 sub + 4 Geral)
 - Cross-references Resoluções BACEN + Súmulas STJ + Leis aplicáveis
 - Cronograma Eric advogado work (2-3 days)
 
@@ -472,9 +482,10 @@ Smith adversarial review pós-Sprint 04 close pode flag:
 - 12 prompts standalone (veicular/fies/imobiliario × 4 personas) preserved da v1.x.x
 
 ### Escopo Atual vs Original
-- v2.0.0-DRAFT: 16 prompts (4 personas × 4 doctypes ADR-016)
-- v2.0.1: 32 prompts total (4 personas × 7 doctypes ADR-020 + Template Method DRY)
-- Net incremento: +16 prompts brief estrutural + Eric advogado preenchimento
+- v2.0.0-DRAFT: 16 prompts (4 personas × 4 doctypes ADR-016 — histórico pré-PATCH)
+- v2.0.1: 28 prompts total (4 personas × 7 doctypes ADR-020 — sub-bancários compartilham via Template Method DRY)
+- Net incremento: +20 prompts NOVOS brief estrutural (4 base bancário compartilhado + 12 sub-bancários specific + 4 Geral standalone) + Eric advogado preenchimento substantivo paralelo
+- Nota arithmetic: 4 personas × 7 doctypes = 28 prompts canônicos; section 2 detalha 20 ARQUIVOS de prompt (DRY via BancarioBaseStrategy compartilha 4 base entre 3 sub-bancários, evitando duplicação)
 
 ---
 
