@@ -38,6 +38,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
+from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
+from bloco_auth import api as sp04_auth_api
+from bloco_auth import dpa as sp04_dpa
+from bloco_auth import jwt_utils as sp04_jwt_utils
 from bloco_backup.scheduler import create_scheduler
 from bloco_dataset import tema_1378_state
 from bloco_interface import ollama_manager
@@ -199,6 +203,23 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     lock_fd: int | None = None
     spawned_pids: dict[str, int] = {}
     try:
+        # Etapa 0 — Sprint 04 SP04-AUTH-01: JWT config eager validation
+        # (Story Risk #3 — falha cedo no startup é melhor que falha no primeiro
+        # request prod). Se JWT_SECRET_KEY ausente OR < 32 bytes, ConfigError
+        # é raised aqui e impede app start (silent fail bloqueado).
+        try:
+            sp04_jwt_utils.validate_config()
+            logger.info("Lifespan startup: SP04 JWT config validated (HS256 + secret >= 32 bytes)")
+        except sp04_jwt_utils.ConfigError as exc:
+            # Em dev sem JWT_SECRET_KEY setado, log warning ao invés de abortar
+            # — preserva DX Sprint 03 (dev pode rodar sem Sprint 04 deps prontas).
+            # Em prod, ops deve setar JWT_SECRET_KEY e este path não dispara.
+            logger.warning(
+                "Lifespan startup: SP04 JWT config inválida (Sprint 04 endpoints "
+                "vão falhar com 500 — setar JWT_SECRET_KEY para habilitar): %s",
+                exc,
+            )
+
         # Etapa 1 — acquire app lock (EC-11)
         lock_fd = ollama_manager.acquire_app_lock()
         logger.info("Lifespan startup: app lock acquired (fd=%d)", lock_fd)
@@ -339,6 +360,15 @@ app.add_middleware(
 app.add_middleware(HeadersMiddleware)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+# Sprint 04 SP04-AUTH-01: registra routers Auth + Onboarding + Users CRUD
+# (multi-tenant cloud SaaS BYOK). Coexiste com cookie auth Sprint 03 (admin
+# single-user via auth.py) — Sprint 03 path é fallback durante transição;
+# deprecation TODO em story posterior Sprint 04 backlog.
+app.include_router(sp04_auth_api.router)
+# Sprint 04 chunk 5 — DPA flow ADR-019 (3 endpoints: GET text/{version},
+# POST accept, GET status). Fecha AC-06 do story SP04-AUTH-01.
+app.include_router(sp04_dpa.router)
 
 
 # CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos

@@ -842,3 +842,21 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 ```
 
 *Sprint 04 Phase 6 governance ship — Operator (sessão 91, 2026-05-07) · Path A 6/6 complete · 4/4 Smith CRITICAL closed.*
+
+---
+
+## Sprint 04 — qa-gate G5 findings (2026-05-08, Oracle)
+
+> **Origem:** qa-gate G5 verdict CONCERNS @qa Oracle Story SP04-AUTH-01 (sessão 91, 2026-05-08).
+> **Source handoff:** `.lmas/handoffs/handoff-qa-to-morpheus-2026-05-08-sp04-phase8-verdict-concerns.yaml`
+> **Decision:** `*close-story` Done com observations — 3 MEDIUM promovidos para tracking Sprint 05+ (rule `quality-gate-enforcement.md` MANDATORY).
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP04-01** | Oracle qa-gate G5 (MEDIUM-G5-01) | MEDIUM | `accept_dpa` `db_session.rollback()` em IntegrityError handler pode dropar transaction outer `complete_onboarding` (race handler). Probabilidade BAIXA (UUID per call único — `gen_random_uuid()` impossibilita race em wizard único). Substituir por `db_session.begin_nested()` (savepoint) para isolar rollback do contexto outer. Localização: `bloco_auth/dpa.py` linhas 234-246 ↔ `bloco_auth/onboarding.py` linhas 267-296. | 2h | @dev | 2026-05-08 |
+| **TD-SP04-02** | Oracle qa-gate G5 (MEDIUM-G5-02) | MEDIUM | `_SESSIONS: dict[str, dict[str, Any]] = {}` in-memory state machine não persiste cross restart server OR deploy multi-instance (sem sticky sessions OR shared state). Story Risk #2 já documenta; chunk 4 Decisões Neo já marca Sprint 05+ Redis. **Trigger:** story SP04-SESSION-PERSISTENCE backlog Sprint 05+ — promote para Redis com TTL configurable. Localização: `bloco_auth/onboarding.py`. | 8h | @dev | 2026-05-08 |
+| **TD-SP04-03** | Oracle qa-gate G5 (MEDIUM-G5-03) | MEDIUM | `try/except: pass` para audit chain failures silencia errors (filesystem cheio, lock contention, GENESIS missing). Compliance LGPD audit retention pode silenciosamente quebrar. Pattern alinhado CC.39 hardening Sprint 03 (audit best-effort) preserva user-facing functionality MAS perde observability. **Action:** adicionar structlog logger em catch para registrar audit failures + alerta operacional. Localização: `bloco_auth/api.py` `_audit` helper linhas 148-153 + `bloco_auth/dpa.py` accept endpoint audit best-effort. | 1h | @dev | 2026-05-08 |
+
+**Total Sprint 04 qa-gate G5 debt:** 3 MEDIUM = 11h Sprint 05+ effort.
+
+*Sprint 04 close-story Story SP04-AUTH-01 — Keymaker (sessão 91, 2026-05-08) · Path B 12/N FINAL · Q-gate cycle complete (implementation 100% + qa-gate G5 CONCERNS + close-story Done).*
