@@ -857,6 +857,33 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | **TD-SP04-02** | Oracle qa-gate G5 (MEDIUM-G5-02) | MEDIUM | `_SESSIONS: dict[str, dict[str, Any]] = {}` in-memory state machine não persiste cross restart server OR deploy multi-instance (sem sticky sessions OR shared state). Story Risk #2 já documenta; chunk 4 Decisões Neo já marca Sprint 05+ Redis. **Trigger:** story SP04-SESSION-PERSISTENCE backlog Sprint 05+ — promote para Redis com TTL configurable. Localização: `bloco_auth/onboarding.py`. | 8h | @dev | 2026-05-08 |
 | **TD-SP04-03** | Oracle qa-gate G5 (MEDIUM-G5-03) | MEDIUM | `try/except: pass` para audit chain failures silencia errors (filesystem cheio, lock contention, GENESIS missing). Compliance LGPD audit retention pode silenciosamente quebrar. Pattern alinhado CC.39 hardening Sprint 03 (audit best-effort) preserva user-facing functionality MAS perde observability. **Action:** adicionar structlog logger em catch para registrar audit failures + alerta operacional. Localização: `bloco_auth/api.py` `_audit` helper linhas 148-153 + `bloco_auth/dpa.py` accept endpoint audit best-effort. | 1h | @dev | 2026-05-08 |
 
-**Total Sprint 04 qa-gate G5 debt:** 3 MEDIUM = 11h Sprint 05+ effort.
+**Total Sprint 04 qa-gate G5 AUTH-01 debt:** 3 MEDIUM = 11h Sprint 05+ effort.
 
 *Sprint 04 close-story Story SP04-AUTH-01 — Keymaker (sessão 91, 2026-05-08) · Path B 12/N FINAL · Q-gate cycle complete (implementation 100% + qa-gate G5 CONCERNS + close-story Done).*
+
+---
+
+## Sprint 04 — BYOK Tank ratify + Oracle qa-gate G5 BYOK findings (2026-05-08)
+
+> **Origem:** Tank Phase 12.3a pre-implement ratify SP04-BYOK-01 + Oracle qa-gate G5 BYOK verdict CONCERNS (sessão 91).
+> **Source handoffs:**
+>   - `.lmas/handoffs/handoff-dbe-to-dev-2026-05-08-sp04-phase12-ratify-byok-01.yaml` (Tank decisões 5/5 vinculantes)
+>   - `.lmas/handoffs/handoff-qa-to-morpheus-2026-05-08-sp04-phase12-verdict-byok-01.yaml` (Oracle 4 MEDIUM TECH-DEBT candidates)
+> **Decision:** `*close-story` Done com observations — 4 MEDIUM novos promovidos para tracking Sprint 06+ (rule `quality-gate-enforcement.md` MANDATORY).
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP04-04** | Tank Phase 12.3a Item 2/3 | MEDIUM | APScheduler fallback se pg_cron extension unavailable em deployment final managed Postgres + reavaliar partial indexes em tenant_api_keys quando 5K+ tenants (cardinality MVP 1 row/tenant não justifica overhead writes em scale atual). Verify pg_cron deployment-specific antes deploy production. Localização: `bloco_database/migrations/sp04_002_byok_keys.sql` linhas 33 + 89-105. | 4h | @devops | 2026-05-08 |
+| **TD-SP04-05** | Tank Phase 12.3a Item 5 | MEDIUM | last_used_at update strategy promotion: inline per-request UPDATE (volume MVP 0.005 writes/sec = 50 tenants × 10 análises/dia = 500 writes/day) → background batch APScheduler async OR pg_cron dedicated procedure quando scale exceed 50K writes/day (= 500 tenants × 100 análises/dia escala 10x). Localização: `bloco_auth/byok_middleware.py.get_anthropic_client` UPDATE inline. | 6h | @dev | 2026-05-08 |
+| **TD-SP04-06** | Oracle qa-gate G5 BYOK (MEDIUM-G5-BYOK-01) | MEDIUM | byok_middleware.py middleware abre sessão própria via `sessionmaker()` + commit interno (não Depends(get_db_session) idiomatic FastAPI). Pattern desviante: middleware NÃO compartilha transaction com endpoint caller — endpoint que usa `get_anthropic_client` + outras queries terá 2 transactions distintas. Refatorar para Depends(get_db_session) compartilhado quando arquitetura permitir; OR documentar pattern formalmente como deliberate (architectural ADR). Localização: `bloco_auth/byok_middleware.py` linhas 88-141. | 4h | @dev | 2026-05-08 |
+| **TD-SP04-07** | Oracle qa-gate G5 BYOK (MEDIUM-G5-BYOK-03) | MEDIUM | Integration tests SP04-BYOK-01 stub-heavy: 14/15 são pytest.skip placeholders (apenas `test_byok_encrypt_decrypt_roundtrip_real_postgres` tem implementação real). Mesmo com Operator setup PostgreSQL + DB rodando, esses 14 não validam empiricamente. Implementar conteúdo real OR criar story SP04-BYOK-INTEGRATION-COMPLETION dedicado para Sprint 06+ retest pós Operator setup PostgreSQL completo. Localização: `tests/integration/test_byok_lifecycle_e2e.py` + `test_byok_rls_isolation.py` + `test_byok_audit_chain.py`. | 6h | @dev | 2026-05-08 |
+
+**Extension natural Sprint 04 → BYOK:**
+
+- **TD-SP04-03** (já registrado AUTH-01 acima): structlog logger audit chain swallow — extension natural BYOK (`bloco_auth/byok_middleware.py._audit_byok_event` aplica mesmo CC.39 pattern try/except: pass; resolução conjunta TD-SP04-03)
+
+**Total Sprint 04 BYOK Tank+Oracle debt:** 4 MEDIUM = 20h Sprint 06+ effort.
+
+**Total Sprint 04 acumulado (AUTH-01 + BYOK):** 7 MEDIUM = 31h Sprint 05+/06+ effort.
+
+*Sprint 04 close-story Story SP04-BYOK-01 — Keymaker (sessão 91, 2026-05-08) · Path B chunks 1-8 + chunk 5.1 · Q-gate cycle BYOK complete (implementation 100% + qa-gate G5 CONCERNS + close-story Done) · **Foundation P0 Cloud SaaS BYOK COMPLETO** (AUTH-01 + BYOK-01 done; 12 stories dependentes desbloqueadas pós-merge).*

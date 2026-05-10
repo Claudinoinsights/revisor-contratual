@@ -63,6 +63,11 @@ dependencies = [
   "pyjwt[crypto]>=2.8",        # JWT HS256 — login token com tenant_id/user_id claims (FR-AUTH-03)
   # NOTE: passlib droppado — incompat passlib 1.7.4 ↔ bcrypt>=4.0 (__about__ removido).
   # SP04 password hashing usa raw `bcrypt>=4.0` (já em deps Sprint 03 acima).
+  # Sprint 04 BYOK Anthropic (SP04-BYOK-01 / ADR-014 + Tank Phase 12.3a)
+  "anthropic>=0.40",           # Anthropic SDK Python oficial (BYOK runtime injection)
+  # NOTE: apscheduler já presente acima (Sprint 03 LGPD backup); SP04-BYOK-01 usa
+  # pg_cron primary (Tank decision Item 2). APScheduler fallback Sprint 06+ TD-SP04-04
+  # se deployment final não suportar pg_cron extension.
 ]
 
 [project.optional-dependencies]

@@ -21,6 +21,7 @@ from uuid import UUID
 from sqlalchemy import (
     DateTime,
     ForeignKey,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -161,4 +162,58 @@ class DpaAcceptance(Base):
         )
 
 
-__all__ = ["Base", "Tenant", "User", "DpaAcceptance"]
+class TenantAPIKey(Base):
+    """BYOK Anthropic API key persistence (SP04-BYOK-01 / ADR-014 §Decisão.Componentes 7).
+
+    Quota Interna pattern: 1 key/escritório (``tenant_id`` é PK, não FK adicional).
+    ``encrypted_key`` é nullable — Tank Phase 12.3a Item 1: força purge LGPD via
+    ``revoked_purge_consistency`` CHECK constraint (encrypted=NULL apenas em
+    status='revoked'; non-revoked exigem encrypted NOT NULL).
+
+    Dual-key state machine 24h overlap (FR-API-KEY-03):
+      active → pending_rotation (start_rotation seta pending_*) → active (pg_cron auto-complete)
+
+    Audit trail: chave NUNCA full em logs — apenas ``key_fingerprint`` truncated
+    formato ``sk-ant-...XYZ`` (ADR-014 §Decisão.Componentes 6).
+
+    Cross-references:
+        governance/stories/sp04-byok-01-anthropic-key-lifecycle.md (AC-01)
+        bloco_database/migrations/sp04_002_byok_keys.sql
+    """
+
+    __tablename__ = "tenant_api_keys"
+
+    tenant_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("tenants.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+    encrypted_key: Mapped[Optional[bytes]] = mapped_column(
+        LargeBinary, nullable=True
+    )  # Tank Item 1: NULLABLE para revoke purge
+    key_fingerprint: Mapped[str] = mapped_column(String(20), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default="active", server_default="active"
+    )
+    pending_encrypted_key: Mapped[Optional[bytes]] = mapped_column(
+        LargeBinary, nullable=True
+    )
+    pending_fingerprint: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    rotation_started_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<TenantAPIKey tenant_id={self.tenant_id} status={self.status} "
+            f"fingerprint={self.key_fingerprint}>"
+        )
+
+
+__all__ = ["Base", "Tenant", "User", "DpaAcceptance", "TenantAPIKey"]
