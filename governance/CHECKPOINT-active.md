@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-10T04:30"
+last_updated: "2026-05-10T04:50"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-MERGED-main-foundation-p0-cloud-saas-byok-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,27 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **⚡ Sessão 92 Health-Check pós Sprint 04 cleanup — @devops Operator** (@devops · Operator — 2026-05-10T04:50):
+  - **Trigger:** Sprint 04 cleanup CLOSED (Morpheus Ordem 18 commit 08e2e35) — health-check empirical pré decisão Sprint 5+
+  - **8/8 checks GREEN:**
+    1. PRs Sprint 04 open: 0 (PRs #1+#2 são pre-Sprint-04 históricos)
+    2. Main CI 3 últimos: SUCCESS
+    3. Last commits sanity: Ordem 18 + Smith CLEAN + Aria H5 coerente
+    4. Container revisor-postgres: Up healthy 1+ hour
+    5. App responding: GET / 303 → /login 200 ✅
+    6. DB schema: 5 tabelas Sprint 04 ✅
+    7. Tech debt RESOLVED 2026-05-10: 5 entries ✅
+    8. Cross-repo new refs 5 commits: 0 ✅ (project-isolation compliant)
+  - **Verdict:** 🟢 GREEN production-ready confirmed
+  - **Tech debt status:** 5 RESOLVED hoje + 9 active Sprint 5+ + 18 originais cumulativo
+  - **Top-3 recomendações Sprint 5+:**
+    1. TD-SP04-15 tooltips por modo (~3h Neo) — quick win UX
+    2. TD-SP04-04-ANALYTICS tracking 5 métricas (~8h Neo) — pre-release mandatory
+    3. SP04-DOCTYPE-01 chunks 5-6 (~3-5 days Neo) — main story Sprint 5+
+  - **Bloqueadores pre-release v0.3.0:** TD-SP04-10 HIGH Eric advogado (~9.5h externo) + smoke E2E
+  - **Files emitidos:** `.lmas/handoffs/handoff-operator-to-eric-2026-05-10-health-check-pos-cleanup.yaml`
+  - **Decisão pendente Eric:** pausar (advogado paralelo) OR continuar via Skill (top-3 ou outras opções listadas)
 
 - **👑 Sessão 92 Sprint 04 Cleanup CLOSURE Ordem 18 — @lmas-master Morpheus** (@lmas-master · Morpheus — 2026-05-10T04:30):
   - **Trigger:** Sprint 04 cleanup post-merge complete (Smith FINAL consolidated CLEAN commit 110b849)
