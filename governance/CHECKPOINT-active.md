@@ -2,9 +2,9 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-09T28:30"
+last_updated: "2026-05-09T29:00"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
-status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
+status: sprint-04-MERGED-main-foundation-p0-cloud-saas-byok-COMPLETE
 shard_of: "PROJECT-CHECKPOINT.md"
 shard_scope: "Sessões 24+ (Phase 1 — ADRs e codificação em diante)"
 tags:
@@ -21,6 +21,21 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🎉 Sessão 92 Sprint 04 MERGE COMPLETE FINAL — Foundation P0 Cloud SaaS BYOK em MAIN** (@devops · Operator — 2026-05-09T29:00):
+  - **Trigger:** Eric authorization preserved + 3 PRs CI green pós Neo Opção B-1 fix → Operator retoma merge sequence Hamann Step 5
+  - **3 Merge commits sequenciais main:** `dbbb56b` (PR #4 AUTH base) → `85fa2b3` (PR #5 BYOK sobre #4) → `85a8f16` (PR #6 LGPD HEAD com recovery + Neo CI fix)
+  - **3 branches deleted origin:** feat/sp04-auth-01 + feat/sp04-byok-01 + feat/sp04-lgpd-01
+  - **Strategy --merge:** preservou audit trail completo Sprint 04 + recovery + CI fix linear em main
+  - **Foundation P0 Cloud SaaS BYOK COMPLETO:**
+    - SP04-AUTH-01: Multi-tenant auth + tenant onboarding + DPA + JWT + bcrypt
+    - SP04-BYOK-01: BYOK Anthropic key lifecycle + pgcrypto + pg_cron rotation + audit chain
+    - SP04-LGPD-01: LGPD compliance + DPA + TOS + audit isolation + ANPD-defensible structure
+    - SP04-UI-SPA-01: SPA OrSheva 7 + sidebar 7 modos + brand-honest LGPD
+    - ADR-020: Multi-Doctype Dispatcher v2 (level=spec, Eric quote literal Accepted)
+  - **Sprint 04 journey métricas:** 9 Skills · 4 Smith reviews · 5/5 blockers RESOLVED · 27→0 CI fails · 537 tests (468 pass + 69 skip) · 7 governance docs · 9 handoffs · 20+ commits audit trail
+  - **Files emitidos:** `.lmas/handoffs/handoff-operator-to-eric-2026-05-09-merge-complete-final.yaml` (celebration handoff)
+  - **Próxima ação:** Eric pull main local + post-merge Skills opcionais (TD-SP04-16 disclaimer Neo + TD-PROCESS-01/02 framework Morpheus + H3 PRD Trinity + H5 ADR-020 Aria + Eric advogado externo TD-SP04-10 TOS canônico ANPD)
 
 - **💻 Sessão 92 Sprint 04 CI regression FIX DONE — @dev Neo Opção B-1 → 3 PRs CI GREEN** (@dev · Neo — 2026-05-09T28:30):
   - **Trigger:** Eric autorização explicita "execute os marges" → Operator MERGE BLOCKED por regressão real → Neo Opção B-1 fix aceito (skip 27 legacy + 8 SPA new tests)
