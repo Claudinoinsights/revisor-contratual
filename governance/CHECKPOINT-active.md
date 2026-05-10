@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Active Checkpoint (Phase 1+ ADRs e codificação)"
 project: revisor-contratual
-last_updated: "2026-05-09T26:55"
+last_updated: "2026-05-09T27:15"
 active_story: "Sessão 91 Sprint 04 Phase 12.3a EXECUTADA — @data-engineer Tank pre-implement ratify SP04-BYOK-01 5 itens schema/arquitetura formalizadas (vinculantes Neo chunks 1-8). Decisões: (1) CHECK refinado 3 constraints separados (rotation_state_consistency com pending_fingerprint NOT NULL + revoked_purge_consistency LGPD invariante + byok_status_enum strict; encrypted_key NULLABLE); (2) Rotation auto-complete = pg_cron primary com stored procedure complete_pending_rotations() + cron.schedule hourly — APScheduler removido pyproject.toml fallback Sprint 06+ TD-SP04-04 se pg_cron unavailable; (3) Partial indexes DROP ambos — cardinality 1 row/tenant scale MVP <500 rows; reavaliar 5K+ tenants TD-SP04-04; (4) tenants.status enum strict ADD CONSTRAINT CHECK (active|suspended|dpa_pending|suspended_byok) — ALTER TABLE trivial <50 rows + 4 valores é ponto inflexão typo prevention; (5) last_used_at = inline per-request UPDATE — volume MVP 0.005 writes/sec; promotion 50K writes/day TD-SP04-05. Schema ADR-014 alignment confirmado sem desvio. Story file modifications: Section 5 nova subsection 'Tank ratify decisions (2026-05-08 — Phase 12.3a)' + AC-01 SQL refinado integralmente (3 CHECK + ALTER TABLE tenants enum + pg_cron procedure + indexes removidos) + Section 4 File List apscheduler removido + Section 12 Change Log entry Tank. Frontmatter status mantém Ready (Tank ratify não muda lifecycle). Deployment context: PostgreSQL 16 self-hosted/managed (sem Cloudflare D1/Workers — wrangler.toml/jsonc ausente). Sprint 04 backlog 2/14 ativas. Handoff OUT: H-S04-P16a-DBE2DEV-RATIFY-BYOK-01-001. Próxima Skill: LMAS:agents:dev (@dev Neo) consume Tank decisions + execute chunks 1-8 Path B."
 status: sprint-04-phase12.3a-tank-ratify-byok-01-DONE-aguarda-neo-develop
 shard_of: "PROJECT-CHECKPOINT.md"
@@ -21,6 +21,18 @@ tags:
 > Índice geral em [PROJECT-CHECKPOINT.md](./PROJECT-CHECKPOINT.md).
 
 ## Contexto Ativo
+
+- **🛑 Sessão 92 Sprint 04 MERGE BLOCKED — @devops Operator regressão real detectada CI** (@devops · Operator — 2026-05-09T27:15):
+  - **Trigger:** Eric autorizou explicitamente "execute os marges, todos eles, eu autorizo. você tem acesso completo ao meu github"
+  - **Tentativa merge:** 3 PRs Sprint 04 — CI status red em TODOS (Workers Builds + pytest 3.11/3.12 fail)
+  - **Fase 1 fix CI workflow deps Sprint 04:** Cherry-pick 60abbdf → AUTH (a866a50) + BYOK (235acf1) + LGPD original — adicionadas 14 deps Sprint 04 (fastapi, psutil, bcrypt, pyjwt, sqlalchemy, asyncpg, cryptography, etc.)
+  - **CI re-run pós fix workflow:** Deps install OK (28s → 1m24s pytest collection)
+  - **🛑 Fase 2 regressão real descoberta:** **27 failed + 466 passed + 46 skipped** — chunk 1 MINIMAL (commit e7cbe7b) substituiu GET / template Jinja2 por SPA OrSheva 7, mas 27 testes legacy MVP-LEAN-01 (test_layout_base + test_s2_pre_upload + test_s5_processing_sse + test_s8_banner_critical + test_pipeline_e2e) esperam template antigo
+  - **Smith adversarial chain GAP exposto:** 4 reviews Smith (1 INFECTED + 3 verifies + 1 FINAL CONTAINED+GREENLIGHT) NÃO incluíram pytest CI status — methodology spot-checks empíricos manuais não capturou regressão. **TD-PROCESS-02 NEW candidate framework rule update**
+  - **MERGE BLOCKED** — Operator não bypassa CI red real sem decisão Eric
+  - **Files emitidos:** `.lmas/handoffs/handoff-operator-to-eric-2026-05-09-merge-blocked-regression.yaml` (4 opções A/B/C/D detalhadas)
+  - **Recomendação Operator:** Opção A — Skill Neo fix 27 testes legacy (~1-3h, preserva integrity)
+  - **Próxima ação Eric:** Decisão entre 4 opções (A fix tests / B skip / C admin override / D revert chunk 1)
 
 - **👑 Sessão 92 Sprint 04 Pre-merge Recovery CLOSURE — @lmas-master Morpheus Ordem 17 EXECUTADA** (@lmas-master · Morpheus — 2026-05-09T26:55):
   - **Trigger:** Cadeia Skills 100% executada (Hamann/Neo/Smith×3/Sati/Aria/Operator) — consolidação final docs + tech debt + sessão closure
