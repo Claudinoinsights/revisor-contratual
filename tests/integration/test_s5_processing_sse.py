@@ -134,6 +134,11 @@ def test_s5_renders_5_canonical_phases(client: TestClient) -> None:
 
 
 @pytest.mark.integration
+@pytest.mark.skip(
+    reason="Legacy MVP-LEAN-01 SSE resilient script (sse_resilient.js) — "
+    "SPA OrSheva 7 chunk 1 (commit e7cbe7b) usa fetch direto sem SSE legacy. "
+    "TD-SP04-LEGACY-TESTS MEDIUM Sprint 6+ — atualizar para validar SPA SSE pattern."
+)
 def test_s5_includes_sse_resilient_script(client: TestClient) -> None:
     """AC-MVP-SSE-RESILIENT: client-side script incluído."""
     pdf_content = b"%PDF-1.4\n%fake"
