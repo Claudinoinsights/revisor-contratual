@@ -145,7 +145,7 @@ H2/H3/H5 HIGH + 8 MEDIUM + 4 LOW (referência: `governance/qa/smith-adversarial-
 
 ### POST-MERGE Skills (não bloqueantes)
 - **Skill `LMAS:agents:dev`** Neo TD-SP04-16 — Disclaimer "Modo Avançado" nos 3 modos novos pré v0.3.0 público (~10min)
-- **Skill `LMAS:agents:lmas-master`** Morpheus TD-PROCESS-01 — ADR governance hook UX expert em framework `.claude/rules/adr-governance.md` (~10min — outro repo `the_matrix`)
+- **Skill `LMAS:agents:lmas-master`** Morpheus TD-PROCESS-01 — ADR governance hook UX expert em rule LMAS framework (gerenciado fora deste repo, escopo cross-projeto) (~10min)
 - **Skill `LMAS:agents:pm`** Trinity H3 PRD PATCH 1.1 — corrigir conta inconsistente "16 vs 20 prompts" (~15min)
 - **Skill `LMAS:agents:architect`** Aria H5 ADR-020 §1.5 PATCH — clarification multi-tenant LLM classifier (~15min)
 
