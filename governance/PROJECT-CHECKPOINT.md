@@ -3,7 +3,7 @@ type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
 last_updated: "2026-05-06"
-active_story: "🚀 Sprint 03 Phase 0 VAULT-FIX-01 PUSHED + CC.1A CC FECHADO — feature/sprint-03-vault-fix-01 commits 3d055c6 (VAULT-FIX-01) + ef8d087 (CC.1A docs); CI verde Python 3.11+3.12. Próximo: CC.2 Aria ADR-013 + Eric decide PR creation"
+active_story: "🎯 ADVOGADO(A) FULFILLMENT 20/32 ABSORVIDO 2026-05-12: Advogado(a) Orsheva entregou Bloco A Bancário Base + B.1 CCB + B.2 Cartão + B.3 Consignado + C Geral = 20 prompts FINAL (62.5% coverage). Artefato canônico PREENCHIMENTO-ADVOGADO-2026-05-12-FINAL.md. BRIEF v2.0.2 + PRD v2.0.4.1 Changelog atualizados. Súmulas/BACEN/Leis validadas pelo profissional (resolve F-D3-HIGH-01 anchor bias). Sprint 04 PRs #3/#4/#5/#6 já merged 2026-05-08/10. CHECKPOINT shard II aplicado (1607 linhas active). 17/19 Smith findings resolved. PRs OPEN: #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING+CI FAIL). **Próximo Eric decide:** A (Neo dispatch SP04-DOCTYPE-01 chunks 5-6 Bancário+Geral funcionais — backend pronto testes) OR B (Aguardar Blocos D/E/F advogado(a) ~6h) OR C (Sprint 04 features secundárias OCR/PDF/APPROVE/DASH/ADMIN/NOTIFY paralelas) OR D (Resolver PRs OPEN #1+#2)"
 status: sprint-03-phase-0-vault-fix-01-PUSHED-cc1a-FECHADO-cc2-aria-em-curso
 
 # Status executivo atualizado sessão 86 (Operator consolidação pós v0.2.0 release):
@@ -53,8 +53,9 @@ status: sprint-03-phase-0-vault-fix-01-PUSHED-cc1a-FECHADO-cc2-aria-em-curso
 #  • UI-1 (priority 4 plano original) — Conectar UI ao pipeline real, 3-5h (depende Aria OR fallback Qwen)
 sharded: true
 shard_files:
-  - "CHECKPOINT-active.md (Phase 1+ — sessões 24+)"
-  - "CHECKPOINT-history-phase-0.md (Phase 0 archive — sessões 1-23)"
+  - "CHECKPOINT-active.md (Phase 2+ — Sprint 04 development pós-pivot + sessão massiva 2026-05-12 Smith fixes)"
+  - "CHECKPOINT-history-phase-1.md (Phase 1 archive — sessões 24-92 = Sprint 02 closure + Sprint 03 MVP-LEAN + Sprint 04 pré-pivot, archived 2026-05-12 Sharding II)"
+  - "CHECKPOINT-history-phase-0.md (Phase 0 archive — sessões 1-23, archived 2026-05-01 Sharding I)"
 tags:
   - project/revisor-contratual
   - checkpoint
@@ -73,8 +74,9 @@ tags:
 | Arquivo | Escopo | Estado |
 |---------|--------|--------|
 | **PROJECT-CHECKPOINT.md** (este) | Índice + status executivo + últimas decisões | Vivo |
-| **[CHECKPOINT-active.md](./CHECKPOINT-active.md)** | Phase 1+ (sessões 24+ — ADRs, codificação) | Vivo, append-only |
-| **[CHECKPOINT-history-phase-0.md](./CHECKPOINT-history-phase-0.md)** | Phase 0 (sessões 1-23 — Research, PRD v1.0.0/1.0.1/1.0.2, 2 tribunais) | Arquivado, read-only |
+| **[CHECKPOINT-active.md](./CHECKPOINT-active.md)** | Phase 2+ (Sprint 04 development pós-pivot 2026-05-09+ + sessão massiva 2026-05-12 Smith fixes) | Vivo, append-only |
+| **[CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md)** | Phase 1 (sessões 24-92 — Sprint 02 closure + Sprint 03 MVP-LEAN + Sprint 04 pré-pivot ADRs Phase 2.1, archived 2026-05-12 Sharding II) | Arquivado, read-only |
+| **[CHECKPOINT-history-phase-0.md](./CHECKPOINT-history-phase-0.md)** | Phase 0 (sessões 1-23 — Research, PRD v1.0.0/1.0.1/1.0.2, 2 tribunais, archived 2026-05-01 Sharding I) | Arquivado, read-only |
 
 ---
 

@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-09"
+last_updated: "2026-05-12"
 status: active
 sprint: "04"
-etapa: "Phase 14.1 — ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED (DEC-ERIC-DIV-01 + RATIFY Opção A formalizada — supersedes ADR-016)"
+etapa: "Phase 14.1+ — ADR-014 file flip status proposed→accepted 2026-05-12 (A_REAFFIRM Eric, post-Morpheus SPA-backend false-positive alert resolved). ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED 2026-05-09. ADR-INDEX-file drift corrigido. ADR-014 styling cleanup aplicado 2026-05-12 (Smith F-D1 LOWs + Nota glossário PRDs v1.x.x F-D4-LOW-01)."
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -155,6 +155,20 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 - **Decisões pendentes Eric:** 3 (DP-05 LGPD retenção, outcomes registry, ADR-020 ratify Accepted) — Sprint 06+ + sessão atual
 - **Path A chain progress (Sprint 04 Phase 5):** 3/6 done (Operator commit Smith report ✅, Trinity PRD patches ✅, Aria ADR-019 ✅)
 - **Sprint 04 Phase 14 (UI integration):** 1 ADR (ADR-020 Proposed) — desbloqueia SP04-UI-SPA-01 + SP04-DOCTYPE-01 NEW
+
+---
+
+## Nota Glossário PRDs Cross-Version (v2.0.4 — F-D4-LOW-01)
+
+**Para leitores futuros:** Esta nota documenta que os PRDs v1.x.x (Sprint 01 + Sprint 03 anchor — `prd-v1.0.x.md` + `prd-v1.1.x.md`) usam **"Eric"** tanto como **founder/decision-maker** quanto como **operador estrutural** (pré-pivot SaaS BYOK + pré-glossário Orsheva introduzido em PRD v2.0.3).
+
+**A partir do PRD v2.0.3 (2026-05-12):** distinção semântica explícita aplicada via frontmatter `entities`:
+- **Orsheva** = entidade empresarial (operador LGPD, Admin super-user, role estrutural)
+- **Eric Claudino** = founder Orsheva (decision-maker histórico — autorizações pivot, ratifications, ADR decision_maker)
+
+**Canonical Sprint 04+:** ler PRD v2.0.4 ou posterior (`prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md` canônico). PRDs v1.x.x preservados como histórico Sprint 01/03 — **não atualizados retroativamente** (Morgan 0c scope decision documentada em PRD v2.0.3 Changelog).
+
+**Status review v2.0.4:** Smith F-D4-LOW-01 endereçado via esta nota.
 
 ---
 

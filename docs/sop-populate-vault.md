@@ -134,7 +134,7 @@ revisor populate-vault --source all --no-zero-embeddings
 |---------------|----------------|
 | **Mensal** | STJ publica novas súmulas; advogado quer manter o vault atualizado |
 | **Trimestral** | Equipes que toleram leve defasagem; STF SVs mudam pouco |
-| **Sob demanda** | Após Eric/operador identificar súmula ausente que deveria estar no vault |
+| **Sob demanda** | Após Orsheva (operador) identificar súmula ausente que deveria estar no vault |
 | **NÃO recomendado: a cada revisão** | Custo de rede desnecessário (vault é persistente sqlite) |
 
 `populate-vault` é **idempotente por id_doc**: se um doc já existe (`STJ-S539`), o insert é pulado silenciosamente (sqlite IntegrityError capturado). Re-executar é seguro.
