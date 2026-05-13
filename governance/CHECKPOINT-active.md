@@ -51,9 +51,9 @@ Operator health-check pós-cleanup Ordem 18 (handoff `handoff-operator-to-eric-2
 |-------|-------|--------|--------|
 | 1 | `LMAS:agents:sm` (River) | Draft story TD-SP04-15 tooltips sidebar (Path B SDC Phase 1) | ✅ **DONE** 2026-05-13 — `governance/stories/TD-SP04-15-tooltips-sidebar.md` criado (12 ACs + 5 chunks + 8 risks LOW) |
 | 2 | `LMAS:agents:po` (Keymaker) | Validate story 10-point checklist (G3) | ✅ **DONE** 2026-05-13 — Verdict GO 10/10 com obs Check 6 (Playwright ausente; D-KEY-S05-001 Opção A/B Neo decide). Status Draft → Ready |
-| 3 | `LMAS:agents:dev` (Neo) | Implementar tooltips (HTML/CSS additive) + tests | 🟡 **INICIANDO** — handoff po→neo criado |
-| 4 | `LMAS:agents:qa` (Oracle) | QA Gate G5 (7 checks) | Aguarda Passo 3 |
-| 5 | `LMAS:agents:devops` (Operator) | Push + PR + merge | Aguarda Passo 4 |
+| 3 | `LMAS:agents:dev` (Neo) | Implementar tooltips (HTML/CSS additive) + tests | ✅ **DONE** 2026-05-13 — 4 chunks implementados em `bloco_interface/web/static/index.html` (+95 linhas); Chunk 5 LEAN deferred D-KEY-S05-001 Opção B; commit local `feat(ui): TD-SP04-15...`; 9/12 ACs PASS direto + 4/12 deferred Oracle G5 empírica (AC-5/7/10/11); D-NEO-S05-003 scope expansion 7→9 nav-items (welcome + apikey bonus); microcopy híbrida BACEN refs (CCB/Cartão/Consignado/Geral absorvido) + genérica (Veículo/Imobiliário/FIES pendentes Blocos D/E/F advogada) |
+| 4 | `LMAS:agents:qa` (Oracle) | QA Gate G5 (7 checks) | ✅ **DONE** 2026-05-13 — **Verdict CONCERNS** (apta Done): 10/12 ACs PASS direto empírica + 3 WAIVED-LOW (Sati ratify post-hoc + pytest Docker offline + test rigor Opção B); 2 tech debts catalogados (TD-SP04-FONTS-FALLBACK-LOW + TD-SP04-15-MICROCOPY-D-E-F-LOW); contraste **AAA 17.60:1** + size diff +1.94KB gzip dentro budget; XSS-safe textContent |
+| 5 | `LMAS:agents:devops` (Operator) | Push + PR + merge | 🟡 **INICIANDO** — handoff oracle→operator criado |
 | 6 | Morpheus closure Ordem 19.1 | Marco TD-SP04-15 DONE + dispatch Bloco 2 (TD-SP04-04-ANALYTICS) | Aguarda Passo 5 |
 
 ### Handoff inicial

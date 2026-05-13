@@ -1014,3 +1014,11 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | **SPA OrSheva 7 zero coverage** | NEW `tests/integration/test_spa_orsheva_7.py` (8 tests) — render auth/unauth + sidebar 7 modos + numeração 01-07 + brand-honest LGPD + zero CDN + self-host fonts + apikey section | 2026-05-09 |
 
 *Sprint 04 post-authorization CI fix — Neo Opção B-1 (sessão 92, 2026-05-09) · 27 legacy skipped + 8 new SPA tests + 2 NEW MEDIUM TD + 1 LOW process gap. PR #6 ready re-merge attempt após CI re-run verde.*
+
+### NOVOS Sprint 5+ (Ordem 19.1 — Operator catalogar pós TD-SP04-15 Oracle G5 CONCERNS 2026-05-13)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP04-FONTS-FALLBACK** | Oracle G5 TD-SP04-15 review (2026-05-13) | LOW | Comentário linha 16 `bloco_interface/web/static/index.html` mislabel "TD-SP04-15 LOW Sprint 06+ download adicionais" referencia fonts (Manrope 300/800 + Fraunces variable axis + Frank Ruhl Libre) — NÃO tooltips. Update comment ID para novo TD-* + adicionar woff2 weights ausentes (~100KB additional) OR documentar fallback browser nativo como aceito permanent. | 1-2h | @dev (Neo) Sprint 6+ | 2026-05-13 |
+| **TD-SP04-15-MICROCOPY-D-E-F** | Oracle G5 TD-SP04-15 review (2026-05-13) | LOW | Microcopy 3 tooltips sidebar (Veículo + Imobiliário + FIES) genérica até Advogada Orsheva absorver Blocos D/E/F (~6h externos pendentes 2026-05-12 fulfillment 20/32). Micro-patch atualizar 3 `data-tooltip` attributes em `static/index.html` com BACEN/Lei refs canonical pós-absorção. | 15min pós-absorção | @dev (Neo) trigger advogada-blocos-def-done | 2026-05-13 |
+
