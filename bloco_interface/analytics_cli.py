@@ -100,13 +100,22 @@ def _emit_admin_warn_once() -> None:
 
     Print stderr WARNING once per CLI invocation antes de queries cross-tenant.
     Full fix Sprint 6+: TD-ANALYTICS-L5 (`analytics_admin BYPASSRLS` role).
+
+    Smith RV-L2 fix Fase 4.5d — env var RC_ANALYTICS_SILENCE_ADMIN_WARN=1 suprime
+    warning para cron jobs running heavy use (24x/day → 24 stderr lines noise).
+    Interactive CLI use mantém warning visible.
     """
     global _ADMIN_WARN_EMITTED
     if _ADMIN_WARN_EMITTED:
         return
+    import os
+    if os.environ.get("RC_ANALYTICS_SILENCE_ADMIN_WARN") == "1":
+        _ADMIN_WARN_EMITTED = True  # Mark emitted to skip on subsequent calls
+        return
     click.echo(
         "⚠️  Admin role pending (TD-ANALYTICS-L5 Sprint 6+). "
-        "Results may be empty se DATABASE_URL não é super OR sem BYPASSRLS attribute.",
+        "Results may be empty se DATABASE_URL não é super OR sem BYPASSRLS attribute. "
+        "Set RC_ANALYTICS_SILENCE_ADMIN_WARN=1 para silenciar em cron jobs.",
         err=True,
     )
     _ADMIN_WARN_EMITTED = True

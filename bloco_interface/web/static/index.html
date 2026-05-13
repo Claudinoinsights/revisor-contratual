@@ -2379,12 +2379,15 @@ body::before{
 
   // ── Contract submit hook (AC-3 TTI delta + cancel dropoff) ───────────────
   // Smith C1 fix Fase 4.5b — selector real do SPA #btnAnalyze (NÃO data-action fantasma).
-  // Listener adicional via addEventListener — coexiste com handler upload existente (linha ~1718).
+  // Smith RV-H1 fix Fase 4.5d — REMOVED `if (btnAnalyze.disabled) return;` guard:
+  // browser spec já suppresses clicks em disabled buttons no dispatch level (listeners
+  // never fire). When OUR listener fires, button WAS enabled at dispatch time → submit
+  // proceeding → capture is correct. Guard era defensive contra cenário que browser
+  // já previne; pior, listener ordering com upload (linha 1718 → runAnalysis sync
+  // sets disabled=true) causava regression silenciosa do AC-3 TTI.
   const btnAnalyze = document.getElementById('btnAnalyze');
   if (btnAnalyze) {
     btnAnalyze.addEventListener('click', () => {
-      // Guard: only fire if not disabled (analysis actually proceeding)
-      if (btnAnalyze.disabled) return;
       const lastSel = getLastSelection();
       const tti_ms = lastSel.at ? (Date.now() - lastSel.at) : null;
       captureEvent('contract_submitted', lastSel.doctype, { tti_ms_client_hint: tti_ms });

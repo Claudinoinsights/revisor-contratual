@@ -112,17 +112,14 @@ def test_analytics_batch_over_5_rejected(valid_event_kwargs):
 
 
 @pytest.mark.unit
-@pytest.mark.parametrize("pii_field", [
-    # 9 vectors NFR-PRIVACY-01.3 (Sati Eixo 5)
-    "contract_text", "contract_content", "advogada_nome", "advogado_nome",
-    "cpf", "cnpj", "oab", "ip_full", "ip_address",
-    "user_agent_raw", "geo_country", "geo_city", "occurred_at_ms",
-    # Smith M2 fix Fase 4.5b — broader PII canonical defense-in-depth
-    "email", "phone", "telefone", "auth_token", "session_token",
-    "jwt", "password", "senha",
-])
+@pytest.mark.parametrize("pii_field", sorted(analytics._PII_BLOCKLIST))
 def test_pii_blocklist_rejects_field(pii_field):
-    """AC-12 — runtime payload validation rejeita PII vectors (defense-in-depth)."""
+    """AC-12 — runtime payload validation rejeita PII vectors (defense-in-depth).
+
+    Smith RV-L1 fix Fase 4.5d — parametrize DERIVADO de sorted(_PII_BLOCKLIST)
+    auto-sync. Garante 100% coverage automatic: novos PII vectors adicionados
+    ao blocklist são automaticamente testados sem manual parametrize update.
+    """
     with pytest.raises(HTTPException) as exc_info:
         analytics._validate_payload_pii({pii_field: "any-value"})
     assert exc_info.value.status_code == 400
