@@ -56,7 +56,33 @@ Operator health-check pós-cleanup Ordem 18 (handoff `handoff-operator-to-eric-2
 | 5 | `LMAS:agents:devops` (Operator) | Push + PR + merge | ✅ **DONE** 2026-05-13 — branch `docs/sprint-04-smith-cycle-and-fulfillment-2026-05-12` pushed (commits: da91eee governance prior + 5a16ea3 TD-SP04-15 feat(ui) + 74ee123 Oracle closure); **PR #7 MERGEABLE UNSTABLE** (CI pytest 3.11/3.12 + Workers Builds IN_PROGRESS, Cloudflare Pages ✅ SUCCESS); comment added documentando Ordem 19.1 closure; 2 tech debts cataloged em TECH-DEBT.md; story status flipped Ready for Review → **Done**; Eric decide merge timing após CI green (TD-PROCESS-02 obrigatório). |
 | 6 | Morpheus closure Ordem 19.1 | Marco TD-SP04-15 DONE + dispatch Bloco 2 (TD-SP04-04-ANALYTICS) | ⏸️ **PAUSADO** — Eric escolheu invocar Smith FINAL re-gate pré-merge |
 | 7 | `LMAS:agents:smith` FINAL re-gate consolidado pré-merge PR #7 | TD-PROCESS-02 MUST CI verification + adversarial review 3 commits scope | ✅ **CONTAINED+GREENLIGHT (post-investigation)** 2026-05-13 — 11 findings (0 CRITICAL + 1 HIGH RESOLVED OVERRIDE + 3 MEDIUM + 7 LOW). **F-SMITH-PR7-H1 Workers Builds FAIL** UPGRADED: investigação Smith provou pre-existing Cloudflare misconfiguration (repo SEM wrangler.toml + ZERO config files diff PR #7); override documentado em adversarial review. Oracle WAIVED-PYTEST M1 + comment mislabel M2 opcionais pre/post-merge. Review formal + Override section: `governance/qa/smith-adversarial-review-pr-7-pre-merge-2026-05-13.md`. |
-| 8 | Eric decisão merge PR #7 | A (investigar) ✅ done · B override · C fix M1+M2 antes merge | 🟡 **AGUARDANDO ERIC FINAL DECISION** — Smith path A executou; Eric pode merge direto OR endereçar M1+M2 Skills loop ~30min |
+| 8 | Eric decisão merge PR #7 | A (investigar) ✅ done · merge direto autorizado | ✅ **DONE** 2026-05-13 — Eric escolheu merge direto pós Smith CONTAINED+GREENLIGHT |
+| 9 | Operator merge PR #7 --squash | Commit Smith review (c8e83c6 +487/-2) + push + `gh pr merge 7 --squash --admin` | ✅ **DONE** 2026-05-13T04:25:18Z — **PR #7 MERGED** squash commit `2e18712` em main; admin override (main sem branch protection); branch local cleanup; 4 tech debts cataloged em TECH-DEBT.md (TD-SP04-15-M1-ORACLE-WAIVER-CANCEL + TD-SP04-15-M3-POSITION-RACE + TD-CLOUDFLARE-WORKERS-FIX + TD-SP04-15-L1-L7-POLISH) |
+
+---
+
+## 🎯 Ordem 19.1 FINAL CLOSURE — TD-SP04-15 SHIPPED 2026-05-13
+
+### Métricas finais cadeia SDC + Smith FINAL
+
+| Aspecto | Valor |
+|---------|-------|
+| **Skills invocadas** | 6 (River + Keymaker + Neo + Oracle + Operator + Smith) |
+| **Handoffs YAML gitignored** | 8 (sm→po→dev→qa→operator→smith→operator→morpheus) |
+| **Commits** | 3 final (5a16ea3 + 74ee123 + c8e83c6) → squash 2e18712 main |
+| **Lines diff** | +95 produto (`static/index.html`) + ~700 governance (story + checkpoint + Smith review + TECH-DEBT.md) |
+| **Adversarial findings** | 11 (0 CRITICAL + 1 HIGH override + 3 MEDIUM + 7 LOW) |
+| **Tech debts cataloged** | 6 total (2 Neo session + 4 Smith residuais) Sprint 5+/6+ |
+| **Tempo orchestrated** | ~3h (Neo dev 55min + 5 Skill personas overhead) |
+| **Quality marcos** | AAA contrast 17.60:1 · XSS-safe · zero NPM · +1.94KB gzip dentro budget · 4/9 BACEN refs canonical |
+| **Eric directives compliance** | ✅ Workflow Skill estrito + ✅ Operator não edita produto + ✅ Sempre via Skill + ✅ Token economy tabulada |
+
+### Próximo capítulo (Eric decide timing)
+
+- **Bloco 2** TD-SP04-04-ANALYTICS (~8h MEDIUM pre-release v0.3.0 Sati Eixo 5 mandatory) — paralelo possível com advogado externo TOS (~9.5h) + Advogada Blocos D/E/F (~6h)
+- **Bloco 3** SP04-DOCTYPE-01 chunks 5-6 (~3-5 dias MEDIUM main story Sprint 5+)
+- **Sprint 5+ M1 patch** Oracle cancel WAIVED-PYTEST + Neo edit comment linha 16 (~30min Skills opcional)
+- **Sprint 5+ M3** Tooltip position race refactor (~30min Neo Skill)
 
 ### Handoff inicial
 
