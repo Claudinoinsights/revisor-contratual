@@ -526,7 +526,33 @@ Story Ready for Review → **Smith Fase 4.5 mid-chain review Neo code** (Eric ri
 
 ## QA Results
 
-(empty — preencher após Oracle gate G5 Fase 5 — apenas quando todos 5 chunks completos)
+**Reviewer:** @qa (Oracle) · **Date:** 2026-05-13 · **Phase:** G5 Fase 5 formal gate · **Token:** H-S05-SMITH2ORACLE-FASE-5-G5-015
+
+### Verdict: 🟢 PASS-with-CONCERNS (Score 9/10)
+
+**7 Quality Checks Empíricos:**
+
+| # | Check | Verdict | Notes |
+|---|-------|---------|-------|
+| Q1 | Requirements alignment | ✅ PASS | 22 ACs PRD v2.0.5.1 rastreáveis + 19/22 FULL + 3 deferred TD-L4/L5/L6 |
+| Q2 | Code quality | ✅ PASS | Pydantic strict (8 `extra='forbid'`) + REUSE empírico SP04-LGPD-01 |
+| Q3 | Test coverage | ⚠️ CONCERNS | 32 test functions + parametrize sorted(_PII_BLOCKLIST) 23 cases; **empírico pytest host Python 3.13 FAIL ModuleNotFoundError sqlalchemy** — tests structurally OK, Docker/WSL/CI env required for runtime validation. Operator empirical pytest run obrigatório pré-push (Fase 6) |
+| Q4 | Security review | ✅ PASS | 23 PII vectors + HMAC chain tenant-keyed + advisory lock + multi-tenant RLS — 15 security primitives Smith C1/C2/H1/H2/H3/M2/F-01/F-02 empíricamente verified |
+| Q5 | Documentation | ✅ PASS | Story Dev Agent Record + 6 Change Log entries + 4 Smith reviews em governance/qa/ + TECH-DEBT.md TD-L4/L5/L6 + CHECKPOINT trail completo |
+| Q6 | Architecture | ✅ PASS | ADR-017 RLS + ADR-019 audit_storage reuse + ADR-020 sidebar 7 modos enum validation empíricamente honored |
+| Q7 | Constitutional Art. IV | ✅ PASS | Art. I CLI First 8 commands antes UI; Art. II Neo EXCLUSIVE; Art. III story Ready; Art. IV Smith chain 5 reviews CLEAN convergiu |
+
+**Action items:**
+
+- TD-ANALYTICS-L7 catalog em TECH-DEBT.md (host pytest env setup documentação)
+- Operator (Fase 6) pytest validation Docker env pré-push obrigatória
+- Smith FINAL Fase 6.5 verifica CI status (Smith CI Status Verification rule)
+
+**Gate file:** `governance/qa/oracle-g5-gate-td-sp04-04-analytics.md`
+
+**Decision:** Story → Done eligible após Operator empirical validation pre-push. Concerns flag Q3 não bloqueia merge mas requer Docker pytest run validation.
+
+— Oracle, guardião da qualidade 🛡️
 
 ---
 
