@@ -21,6 +21,49 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-12 — Morpheus Ordem 19 Sprint 5+ Execution Chain INICIADA
+
+### Trigger
+
+Eric autorizou: "Execute na ordem e os recomendados e liberados para executar, faça isso sempre pelas Skills corretas!!!"
+
+### Contexto Ativo
+
+Operator health-check pós-cleanup Ordem 18 (handoff `handoff-operator-to-eric-2026-05-10-health-check-pos-cleanup.yaml`) identificou top-3 recomendações Sprint 5+ liberadas (não-bloqueadas por externos):
+
+1. **TD-SP04-15** tooltips sidebar (LOW, ~3h, quick win Sati Eixo 2)
+2. **TD-SP04-04-ANALYTICS** 5 métricas tracking (MEDIUM, ~8h, pre-release v0.3.0 mandatory)
+3. **SP04-DOCTYPE-01 chunks 5-6** Strategy refactor + persona prompts (MEDIUM, ~3-5 dias, main story Sprint 5+)
+
+### Decisões tomadas (Morpheus Ordem 19)
+
+- **D-MOR-S05-001:** Ordem execução fixa Eric-autorizada — TD-SP04-15 → TD-SP04-04-ANALYTICS → SP04-DOCTYPE-01 chunks 5-6
+- **D-MOR-S05-002:** SDC workflow estrito por item — @sm draft → @po validate → @dev develop → @qa gate → @devops push
+- **D-MOR-S05-003:** Skill chain rigor (Eric directive sessão 86 internalizada) — zero Bash/Edit produto código direto por Morpheus; toda mutação via Skill agente correto
+- **D-MOR-S05-004:** PRs OPEN #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING+CI FAIL pre-Sprint-04) NÃO-incluídos nesta ordem (não-recomendados pelo Operator) — Eric decide separadamente
+- **D-MOR-S05-005:** Itens externos (TD-SP04-10 TOS, Smoke E2E, BL-VAULT-BULK-IMPORT, BL-GOLDEN-SET, Blocos D/E/F advogada) preservados como bloqueadores Eric paralelos — não bloqueiam Sprint 5+ Neo
+- **D-MOR-S05-006:** Bloco 1 PRIMEIRA-execução = TD-SP04-15 (3h quick win) — primeira cadeia Skill dispatch River
+- **D-MOR-S05-007:** Atualizações inline checkpoint por agente conforme `checkpoint-protocol.md` regra MUST — Morpheus orquestra mas cada Skill atualiza própria seção
+
+### Próximos Passos (ordem cadeia)
+
+| Passo | Skill | Output | Status |
+|-------|-------|--------|--------|
+| 1 | `LMAS:agents:sm` (River) | Draft story TD-SP04-15 tooltips sidebar (Path B SDC Phase 1) | ✅ **DONE** 2026-05-13 — `governance/stories/TD-SP04-15-tooltips-sidebar.md` criado (12 ACs + 5 chunks + 8 risks LOW) |
+| 2 | `LMAS:agents:po` (Keymaker) | Validate story 10-point checklist (G3) | ✅ **DONE** 2026-05-13 — Verdict GO 10/10 com obs Check 6 (Playwright ausente; D-KEY-S05-001 Opção A/B Neo decide). Status Draft → Ready |
+| 3 | `LMAS:agents:dev` (Neo) | Implementar tooltips (HTML/CSS additive) + tests | 🟡 **INICIANDO** — handoff po→neo criado |
+| 4 | `LMAS:agents:qa` (Oracle) | QA Gate G5 (7 checks) | Aguarda Passo 3 |
+| 5 | `LMAS:agents:devops` (Operator) | Push + PR + merge | Aguarda Passo 4 |
+| 6 | Morpheus closure Ordem 19.1 | Marco TD-SP04-15 DONE + dispatch Bloco 2 (TD-SP04-04-ANALYTICS) | Aguarda Passo 5 |
+
+### Handoff inicial
+
+H-S05-MOR2RIVER-TD-SP04-15-001 emitido (próximo passo).
+
+— Morpheus, orquestrando Ordem 19 🎯
+
+---
+
 ## Sessão 2026-05-09 — Morpheus + River: SP04-UI-SPA-01 Draft (BLOCKED DEC-ERIC-DIV-01)
 
 > ⚠️ **Gap CHECKPOINT-active.md sessões 87..N (2026-05-06..2026-05-08) — body desatualizado** vs frontmatter (Sprint 03 Phase 0 closure + Sprint 04 SP04-AUTH-01 + SP04-BYOK-01 + SP04-LGPD-01 InReview). Esta entry retoma append direto na sessão atual sem retroactivar gap (per `checkpoint-protocol.md` regra 9 stale detection — flag aceito). Eric pode invocar `*update-checkpoint-retroactive` se quiser reconstruir sessões intermediárias.
@@ -1662,3 +1705,74 @@ Sessão massiva 2026-05-12 FECHADA com reconciliação meta-context. Próxima se
 Cadeia 0a→0l sessão massiva 2026-05-12 totaliza 33+ Skills + 13 handoffs YAML. Sprint 04 development unblocked para Bancário+Geral. Próxima decisão Eric (A/B/C/D) determina trajetória testes práticos primeiros.
 
 — Morgan, planejando o futuro com fulfillment substantivo 📊
+
+---
+
+## Sessão 2026-05-12 — Operator 0m+0n Workspace Recon + Governance PR #7 Created
+
+> Eric directiva: "Finalize o que não esta concluido ainda. Sempre pela Skill correta! Lembrando que existe um repositorio separado no github para esse projeto!"
+
+### Operator 0m — Workspace Reconnaissance
+
+**Descoberta CRÍTICA:** `projects/revisor-contratual-staging/` É o clone local físico do repo dedicated `Claudinoinsights/revisor-contratual` (origin: `https://github.com/Claudinoinsights/revisor-contratual.git`). NÃO é submodule — é repo aninhado gitignored pelo the-matrix root. Toda a cadeia 0a→0l editou DIRETAMENTE o repo dedicated.
+
+**Estado real mapeado:**
+
+| Item | Status |
+|------|--------|
+| Branch atual | `main` (DIRTY — 9 modified + 6 untracked governance + 4 working/snapshots excluídos) |
+| `bloco_engine/strategies/` | ❌ **NÃO EXISTE** — SP04-DOCTYPE-01 chunks 1-4 pendentes |
+| `bloco_workflow/personas/prompts/` | ❌ **NÃO EXISTE** — Neo precisa criar 20 .txt files |
+| `bloco_workflow/personas/` base | ✅ EXISTE — advogado.py + economista.py + juiz.py + llm_factory.py |
+| `bloco_interface/web/static/index.html` | ✅ EXISTE — SPA OrSheva 7 chunk 1 (2033 linhas) |
+| `documentos-para-teste/` | ✅ Eric criou 4 subpastas (Crédito Bancário + FIES + Imobiliário + Veículo) |
+| PRs OPEN | #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING + CI FAIL ~5-6 dias) |
+| Sprint 04 PRs #3..#6 | Branches deletadas pós-merge 2026-05-08/10 (esperado) |
+
+**Handoff:** `.lmas/handoffs/handoff-devops-to-lmas-master-2026-05-12-0m-workspace-recon-repo-dedicated.yaml` (consumed: true → 0n)
+
+### Operator 0n — Branch + Commit + Push + PR #7
+
+**Branch criada:** `docs/sprint-04-smith-cycle-and-fulfillment-2026-05-12` (a partir de `origin/main`)
+
+**Commit `da91eee`:** "docs(governance): Sprint 04 Smith Cycle + Sharding II + Advogado(a) Fulfillment 20/32 + Context Drift reconciled"
+- 15 files staged (governance + docs apenas; EXCLUÍDOS: `.tmp/`, `documentos-para-teste/`, 2 HTMLs snapshot)
+- +10.678 insertions / -6.980 deletions
+- Mensagem detalhada referenciando cadeia 0a→0m + 19 Smith findings + 16 resolved + próximos passos
+
+**Push:** `origin/docs/sprint-04-smith-cycle-and-fulfillment-2026-05-12` ✅
+
+**PR #7 criado:** https://github.com/Claudinoinsights/revisor-contratual/pull/7
+- Título: "docs(governance): Sprint 04 Smith Cycle + Sharding II + Advogado(a) Fulfillment 20/32 + Context Drift reconciled"
+- Body: completo (sumário + conteúdo 15 files + 3 Smith rounds + Advogado fulfillment + Lesson Learned canônica + 4 fases próximos passos + test plan)
+- Escopo: **GOVERNANCE-ONLY** (Operator no-code-edits)
+
+**CI Status PR #7 (snapshot):**
+- pytest (Python 3.11): pending
+- pytest (Python 3.12): pending
+- Cloudflare Pages: ✅ PASS
+- Workers Builds: pending
+
+### Próximos passos pós-merge PR #7
+
+**Fase 2 (Skill Neo dispatch — PR SEPARADO `feat/sp04-doctype-01-prompts-and-strategies`):**
+
+1. Criar `bloco_workflow/personas/prompts/` + **20 arquivos `.txt`** (extrair de `PREENCHIMENTO-ADVOGADO-2026-05-12-FINAL.md`)
+2. Criar `bloco_engine/strategies/` + classes ADR-020:
+   - `bancario_base_strategy.py` (Template Method 4 personas)
+   - `ccb_strategy.py` + `cartao_strategy.py` + `consignado_strategy.py` (override Bancário)
+   - `geral_dispatcher.py` (catch-all Tier 3)
+   - `veiculo_strategy.py` + `imobiliario_strategy.py` + `fies_strategy.py` (stubs até Wave 2)
+3. Wire `bloco_workflow/personas/*.py` consumir Strategy + load .txt prompts
+4. pytest local manter baseline 232 tests + integration tests novos
+5. Operator push + PR creation Fase 2
+
+**Fase 3 (após Fase 2 merge):** Smith review code + Eric primeiro teste prático com PDF de `documentos-para-teste/Crédito Bancário/`
+
+**Fase 4 (paralelo Fase 3):** Advogado(a) Wave 2 Blocos D/E/F (12 prompts pending)
+
+### Handoff
+
+`.lmas/handoffs/handoff-devops-to-lmas-master-2026-05-12-0n-pr7-created-fase1-complete.yaml` → Morpheus
+
+— Operator, deployando com precisão cirúrgica 🚀
