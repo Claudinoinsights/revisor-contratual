@@ -67,10 +67,13 @@ _VALID_DOCTYPES: frozenset[str] = frozenset(
     {"ccb", "veiculo", "consignado", "cartao", "imobiliario", "fies", "geral"}
 )
 
-# Smith H3 fix — 9 PII vectors absent (NFR-PRIVACY-01.3)
-# Backend rejeita payload se conter qualquer destes campos (defense-in-depth)
+# Smith H3 + M2 Fase 4.5b fix — 9 PII vectors absent (NFR-PRIVACY-01.3)
+# Backend rejeita payload se conter qualquer destes campos (defense-in-depth).
+# M2 fix Fase 4.5b: broader canonical PII added (email/phone/auth_token/etc) — Smith
+# defense-in-depth runtime layer ADICIONAL ao Pydantic extra='forbid'.
 _PII_BLOCKLIST: frozenset[str] = frozenset(
     {
+        # 9 vectors NFR-PRIVACY-01.3 (Sati Eixo 5)
         "contract_text",
         "contract_content",
         "advogada_nome",
@@ -86,6 +89,15 @@ _PII_BLOCKLIST: frozenset[str] = frozenset(
         "geo_city",
         "geo_ip",
         "occurred_at_ms",  # NFR-PRIVACY-01.3.8 — server rounds to minute
+        # Smith M2 Fase 4.5b — broader PII canonical (defense-in-depth runtime)
+        "email",
+        "phone",
+        "telefone",
+        "auth_token",
+        "session_token",
+        "jwt",
+        "password",
+        "senha",
     }
 )
 
@@ -191,14 +203,31 @@ def _compute_event_hmac(
     return _hmac_module.new(tenant_keyed_secret, event_data, hashlib.sha256).hexdigest()
 
 
+def _genesis_sentinel(tenant_id: UUID) -> str:
+    """Genesis chain anchor — deterministic per tenant (Smith H1 fix Fase 4.5b helper extraction)."""
+    secret = _get_hmac_secret()
+    return _hmac_module.new(
+        secret, f"genesis:{tenant_id}".encode("utf-8"), hashlib.sha256
+    ).hexdigest()
+
+
 async def _fetch_last_chain_hash(
     db_session: AsyncSession, tenant_id: UUID
 ) -> str:
     """Busca ``hmac`` do último analytics_event do tenant (chain anchor).
 
+    Smith H2 fix Fase 4.5b: pg_advisory_xact_lock per tenant prevê concurrent
+    INSERT race condition. Transaction-scoped lock — auto-released no commit/rollback.
+
     RLS auto-scopa para tenant_id; query é tenant-isolated. Se zero rows,
     retorna genesis sentinel deterministic per tenant.
     """
+    # Smith H2 — serialize concurrent INSERTs per tenant. hashtext casts UUID
+    # to int8 deterministically; xact_lock auto-released on transaction end.
+    await db_session.execute(
+        text("SELECT pg_advisory_xact_lock(hashtext(:tenant_id))"),
+        {"tenant_id": str(tenant_id)},
+    )
     result = await db_session.execute(
         text(
             """
@@ -213,10 +242,7 @@ async def _fetch_last_chain_hash(
     if row is not None and row[0]:
         return str(row[0])
     # Genesis sentinel — deterministic per tenant para chain anchor.
-    secret = _get_hmac_secret()
-    return _hmac_module.new(
-        secret, f"genesis:{tenant_id}".encode("utf-8"), hashlib.sha256
-    ).hexdigest()
+    return _genesis_sentinel(tenant_id)
 
 
 def _round_to_minute(ts: datetime) -> datetime:
@@ -304,15 +330,15 @@ async def _raise_hmac_tamper_alert(
 # ──────────────────────────────────────────────────────────────────────────────
 
 
-async def _ingest_single_event(
+async def _ingest_single_event_inner(
     db_session: AsyncSession,
     tenant_id: UUID,
     event: AnalyticsEventIn,
-) -> AnalyticsEventOut:
-    """Ingest single event — HMAC chain + idempotency + PII validation.
+) -> None:
+    """Insert single event — RAISES IntegrityError up to caller.
 
-    Returns AnalyticsEventOut(status=accepted|duplicate).
-    Smith F-01: duplicate event_id retorna HTTP 200 silent (NÃO 409).
+    Smith C2 fix Fase 4.5b refactor: inner func does NOT call rollback.
+    Caller decides rollback scope (single endpoint = full tx; batch = SAVEPOINT).
     """
     _validate_event_type_and_doctype(event.event_type, event.doctype)
     _validate_payload_pii(event.payload)
@@ -320,7 +346,7 @@ async def _ingest_single_event(
     # NFR-PRIVACY-01.3.8 — round timestamp to minute
     occurred_at_rounded = _round_to_minute(event.occurred_at)
 
-    # HMAC chain — busca prev_hash + computa hmac
+    # HMAC chain — busca prev_hash + computa hmac (H2 advisory_lock applied inside)
     prev_hash = await _fetch_last_chain_hash(db_session, tenant_id)
     secret = _get_hmac_secret()
     canonical = _canonical_event_serialize(
@@ -334,37 +360,31 @@ async def _ingest_single_event(
     )
     event_hmac = _compute_event_hmac(secret, tenant_id, canonical)
 
-    # INSERT — Smith F-01 catch IntegrityError em UNIQUE event_id
-    try:
-        await db_session.execute(
-            text(
-                """
-                INSERT INTO analytics_events (
-                    event_id, tenant_id, session_id, event_type, doctype,
-                    occurred_at, payload_json, prev_hash, hmac
-                ) VALUES (
-                    :event_id, :tenant_id, :session_id, :event_type, :doctype,
-                    :occurred_at, CAST(:payload_json AS JSONB), :prev_hash, :hmac
-                )
-                """
-            ),
-            {
-                "event_id": str(event.event_id),
-                "tenant_id": str(tenant_id),
-                "session_id": str(event.session_id),
-                "event_type": event.event_type,
-                "doctype": event.doctype,
-                "occurred_at": occurred_at_rounded,
-                "payload_json": json.dumps(event.payload) if event.payload else None,
-                "prev_hash": prev_hash,
-                "hmac": event_hmac,
-            },
-        )
-        return AnalyticsEventOut(status="accepted", event_id=event.event_id)
-    except IntegrityError:
-        # Smith F-01 fix — UNIQUE event_id violation → 200 silent (idempotency)
-        await db_session.rollback()
-        return AnalyticsEventOut(status="duplicate", event_id=event.event_id)
+    # INSERT — IntegrityError raises up to caller (NO rollback aqui — Smith C2 fix)
+    await db_session.execute(
+        text(
+            """
+            INSERT INTO analytics_events (
+                event_id, tenant_id, session_id, event_type, doctype,
+                occurred_at, payload_json, prev_hash, hmac
+            ) VALUES (
+                :event_id, :tenant_id, :session_id, :event_type, :doctype,
+                :occurred_at, CAST(:payload_json AS JSONB), :prev_hash, :hmac
+            )
+            """
+        ),
+        {
+            "event_id": str(event.event_id),
+            "tenant_id": str(tenant_id),
+            "session_id": str(event.session_id),
+            "event_type": event.event_type,
+            "doctype": event.doctype,
+            "occurred_at": occurred_at_rounded,
+            "payload_json": json.dumps(event.payload) if event.payload else None,
+            "prev_hash": prev_hash,
+            "hmac": event_hmac,
+        },
+    )
 
 
 @router.post("/event", response_model=AnalyticsEventOut, status_code=status.HTTP_200_OK)
@@ -377,13 +397,19 @@ async def ingest_event(
     Smith C1: tenant_id derivado server-side de JWT (NÃO do payload — extra='forbid').
     Smith F-01: duplicate event_id retorna 200 com status='duplicate' (NUNCA 409).
     Smith H3: 9 PII vectors validated absent runtime.
-    Smith C2: HMAC chain in-DB tenant-scoped.
+    Smith C2: HMAC chain in-DB tenant-scoped + linkage validation Fase 4.5b.
     """
     tenant_id, _user_id = current
     sessionmaker = get_sessionmaker()
     try:
         async with sessionmaker() as session, with_tenant_context(session, tenant_id):
-            return await _ingest_single_event(session, tenant_id, event)
+            try:
+                await _ingest_single_event_inner(session, tenant_id, event)
+                return AnalyticsEventOut(status="accepted", event_id=event.event_id)
+            except IntegrityError:
+                # Smith F-01 — single-event: rollback whole tx (no prior events to preserve)
+                await session.rollback()
+                return AnalyticsEventOut(status="duplicate", event_id=event.event_id)
     except HTTPException:
         raise  # propagate 400 PII/event_type validation
     except SQLAlchemyError as exc:
@@ -398,7 +424,11 @@ async def ingest_batch(
     batch: AnalyticsEventBatchIn,
     current: tuple[UUID, UUID] = Depends(get_current_user),
 ) -> AnalyticsBatchOut:
-    """Ingest batch up to 5 events — atomically per event (idempotency preserved)."""
+    """Ingest batch up to 5 events — atomically per event (idempotency preserved).
+
+    Smith C2 fix Fase 4.5b: SAVEPOINT per event isolates IntegrityError —
+    accepted events não são rolled back quando subsequent event é duplicate.
+    """
     tenant_id, _user_id = current
     sessionmaker = get_sessionmaker()
     results: list[AnalyticsEventOut] = []
@@ -407,12 +437,17 @@ async def ingest_batch(
     try:
         async with sessionmaker() as session, with_tenant_context(session, tenant_id):
             for event in batch.events:
-                outcome = await _ingest_single_event(session, tenant_id, event)
-                results.append(outcome)
-                if outcome.status == "accepted":
+                # SAVEPOINT per event — IntegrityError em event N NÃO rollbacks events 0..N-1
+                try:
+                    async with session.begin_nested():
+                        await _ingest_single_event_inner(session, tenant_id, event)
+                    outcome = AnalyticsEventOut(status="accepted", event_id=event.event_id)
                     accepted_count += 1
-                else:
+                except IntegrityError:
+                    # SAVEPOINT auto-rollback; outer transaction preserves accepted events
+                    outcome = AnalyticsEventOut(status="duplicate", event_id=event.event_id)
                     duplicate_count += 1
+                results.append(outcome)
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
@@ -484,11 +519,13 @@ async def verify_chain_integrity(
 ) -> tuple[bool, int, list[dict]]:
     """Verify HMAC chain integrity para últimos ``days`` (default 7).
 
-    Smith C2 fix — runtime tamper detection. Recompute HMAC chain end-to-end;
-    se divergência → audit log + return (False, count, violations_list).
+    Smith C2 fix — runtime tamper detection (per-row HMAC consistency).
+    Smith H1 fix Fase 4.5b — ADDED chain linkage validation:
+        entry[N].prev_hash MUST equal entry[N-1].hmac (or genesis sentinel se N=0).
 
     Returns:
         (intact, events_scanned, violations) — violations vazio se intact.
+        Violations have 'reason' field: 'hmac_mismatch' | 'linkage_broken'.
     """
     result = await db_session.execute(
         text(
@@ -506,8 +543,26 @@ async def verify_chain_integrity(
 
     secret = _get_hmac_secret()
     violations: list[dict] = []
+    expected_prev = _genesis_sentinel(tenant_id)  # H1 fix — track expected chain link
+
     for row in rows:
         event_id, session_id, event_type, doctype, occurred_at, payload_json, prev_hash, stored_hmac = row
+
+        # H1 fix — chain linkage validation
+        if (prev_hash or "") != expected_prev:
+            violations.append(
+                {
+                    "event_id": str(event_id),
+                    "reason": "linkage_broken",
+                    "expected_prev_prefix": expected_prev[:16],
+                    "stored_prev_prefix": (prev_hash or "")[:16],
+                }
+            )
+            await _raise_hmac_tamper_alert(
+                tenant_id, event_id, expected_prev, prev_hash or ""
+            )
+
+        # Per-row HMAC validation (Smith C2 original)
         canonical = _canonical_event_serialize(
             event_id,
             session_id,
@@ -524,6 +579,7 @@ async def verify_chain_integrity(
             violations.append(
                 {
                     "event_id": str(event_id),
+                    "reason": "hmac_mismatch",
                     "expected_hmac_prefix": recomputed[:16],
                     "stored_hmac_prefix": (stored_hmac or "")[:16],
                 }
@@ -531,6 +587,8 @@ async def verify_chain_integrity(
             await _raise_hmac_tamper_alert(
                 tenant_id, event_id, recomputed, stored_hmac or ""
             )
+
+        expected_prev = stored_hmac or expected_prev  # advance chain anchor
 
     return (len(violations) == 0, len(rows), violations)
 

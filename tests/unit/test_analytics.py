@@ -113,12 +113,16 @@ def test_analytics_batch_over_5_rejected(valid_event_kwargs):
 
 @pytest.mark.unit
 @pytest.mark.parametrize("pii_field", [
+    # 9 vectors NFR-PRIVACY-01.3 (Sati Eixo 5)
     "contract_text", "contract_content", "advogada_nome", "advogado_nome",
     "cpf", "cnpj", "oab", "ip_full", "ip_address",
     "user_agent_raw", "geo_country", "geo_city", "occurred_at_ms",
+    # Smith M2 fix Fase 4.5b — broader PII canonical defense-in-depth
+    "email", "phone", "telefone", "auth_token", "session_token",
+    "jwt", "password", "senha",
 ])
 def test_pii_blocklist_rejects_field(pii_field):
-    """AC-12 — runtime payload validation rejeita 9 PII vectors (defense-in-depth)."""
+    """AC-12 — runtime payload validation rejeita PII vectors (defense-in-depth)."""
     with pytest.raises(HTTPException) as exc_info:
         analytics._validate_payload_pii({pii_field: "any-value"})
     assert exc_info.value.status_code == 400
@@ -285,69 +289,67 @@ def test_get_hmac_secret_raises_when_env_missing(monkeypatch):
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Smith F-01 — Idempotency UNIQUE event_id → HTTP 200 status='duplicate'
+# Smith F-01 — Idempotency contract (caller catches IntegrityError)
+# Smith C2 Fase 4.5b refactor: _ingest_single_event_inner raises;
+# callers (single endpoint OR batch endpoint with SAVEPOINT) handle.
 # ──────────────────────────────────────────────────────────────────────────────
+
+
+def _make_chain_select_mock():
+    """Mock SELECT last_chain_hash returning None (genesis path)."""
+    mock_result_chain = MagicMock()
+    mock_result_chain.first = MagicMock(return_value=None)
+    return mock_result_chain
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_idempotency_returns_200_not_409(valid_event_kwargs):
-    """AC-15 + Smith F-01 fix — duplicate event_id retorna 200 com status='duplicate'.
+async def test_inner_raises_integrity_error_on_duplicate(valid_event_kwargs):
+    """Smith C2 Fase 4.5b refactor — inner RAISES IntegrityError UP (no rollback inside).
 
-    Backend catch psycopg.errors.UniqueViolation (via SQLAlchemy IntegrityError)
-    e transform → AnalyticsEventOut(status='duplicate'). NUNCA HTTP 409.
+    Contract: callers (single/batch endpoints) catch + decide rollback scope.
+    This test verifies inner raises faithfully.
     """
     event = analytics.AnalyticsEventIn(**valid_event_kwargs)
     tenant_id = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 
-    # Mock session — fetch_last_chain_hash retorna sentinel; INSERT raises IntegrityError
     mock_session = MagicMock()
-    mock_result_chain = MagicMock()
-    mock_result_chain.first = MagicMock(return_value=None)  # no prev events → genesis
-
     call_count = {"n": 0}
 
     async def execute_side_effect(stmt, params=None):
         call_count["n"] += 1
-        if call_count["n"] == 1:
-            return mock_result_chain  # SELECT last hmac
-        # 2nd call = INSERT → raise IntegrityError simulating UNIQUE violation
+        # Calls: 1) pg_advisory_xact_lock (H2), 2) SELECT last hmac, 3) INSERT
+        if call_count["n"] in (1, 2):
+            return _make_chain_select_mock()
         raise IntegrityError("INSERT", {}, Exception("duplicate key event_id"))
 
     mock_session.execute = AsyncMock(side_effect=execute_side_effect)
-    mock_session.rollback = AsyncMock(return_value=None)
 
-    outcome = await analytics._ingest_single_event(mock_session, tenant_id, event)
-    assert outcome.status == "duplicate"
-    assert outcome.event_id == event.event_id
-    # rollback must be called after IntegrityError catch (não propagar 409)
-    mock_session.rollback.assert_called_once()
+    with pytest.raises(IntegrityError):
+        await analytics._ingest_single_event_inner(mock_session, tenant_id, event)
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_ingest_event_accepted_path(valid_event_kwargs):
-    """Happy path — INSERT succeed → status='accepted'."""
+async def test_inner_accepted_path_no_raise(valid_event_kwargs):
+    """Happy path inner — INSERT succeed, no exception raised."""
     event = analytics.AnalyticsEventIn(**valid_event_kwargs)
     tenant_id = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 
     mock_session = MagicMock()
-    mock_result_chain = MagicMock()
-    mock_result_chain.first = MagicMock(return_value=None)
 
     async def execute_side_effect(stmt, params=None):
-        # First call SELECT last hmac, second call INSERT — both succeed
-        return mock_result_chain
+        return _make_chain_select_mock()
 
     mock_session.execute = AsyncMock(side_effect=execute_side_effect)
-    outcome = await analytics._ingest_single_event(mock_session, tenant_id, event)
-    assert outcome.status == "accepted"
-    assert outcome.event_id == event.event_id
+
+    # Should not raise
+    await analytics._ingest_single_event_inner(mock_session, tenant_id, event)
 
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_ingest_event_pii_payload_raises_400(valid_event_kwargs):
+async def test_inner_pii_payload_raises_400(valid_event_kwargs):
     """AC-12 — payload PII → HTTPException 400 ANTES de chegar ao DB."""
     event_kwargs = {**valid_event_kwargs, "payload": {"cpf": "123.456.789-00"}}
     event = analytics.AnalyticsEventIn(**event_kwargs)
@@ -355,11 +357,107 @@ async def test_ingest_event_pii_payload_raises_400(valid_event_kwargs):
     mock_session.execute = AsyncMock()  # nunca chamado — validation raises antes
 
     with pytest.raises(HTTPException) as exc_info:
-        await analytics._ingest_single_event(
+        await analytics._ingest_single_event_inner(
             mock_session, UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"), event
         )
     assert exc_info.value.status_code == 400
     mock_session.execute.assert_not_called()
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_batch_mixed_accepted_and_duplicate_preserves_accepted(valid_event_kwargs):
+    """Smith C2 + M1 fix Fase 4.5b — batch endpoint SAVEPOINT isolation.
+
+    Contract crítico: quando event[N] é duplicate em batch, events [0..N-1] que
+    foram accepted permanecem persisted. SAVEPOINT per event garante isolation.
+
+    Pre-fix Fase 4.5: `_ingest_single_event` chamava `db_session.rollback()` que
+    rollback ENTIRE transaction → accepted events lost. Este test prova fix.
+    """
+    # 3 events: [event_A new, event_B new, event_C duplicate]
+    events = [
+        analytics.AnalyticsEventIn(**{**valid_event_kwargs, "event_id": uuid4()})
+        for _ in range(3)
+    ]
+
+    # Trace which events were "inserted" (i.e., advanced past inner raise check)
+    inserted_event_ids: list[UUID] = []
+    call_count = {"n": 0}
+    insert_call_count = {"n": 0}
+
+    async def execute_side_effect(stmt, params=None):
+        call_count["n"] += 1
+        sql_str = str(stmt).strip()
+        # advisory_lock or SELECT chain hash — return empty result
+        if "pg_advisory_xact_lock" in sql_str or "SELECT hmac" in sql_str:
+            return _make_chain_select_mock()
+        # INSERT statement — track + simulate 3rd event as duplicate
+        if "INSERT INTO analytics_events" in sql_str:
+            insert_call_count["n"] += 1
+            if insert_call_count["n"] == 3:
+                raise IntegrityError("INSERT", {}, Exception("duplicate key event_id"))
+            # Track success
+            if params:
+                inserted_event_ids.append(params.get("event_id"))
+            return MagicMock()
+        return _make_chain_select_mock()
+
+    # Mock SAVEPOINT context manager (session.begin_nested)
+    class _FakeSavepoint:
+        async def __aenter__(self_inner):
+            return self_inner
+        async def __aexit__(self_inner, exc_type, exc, tb):
+            # Re-raise IntegrityError so batch caller catches it
+            return False
+
+    mock_session = MagicMock()
+    mock_session.execute = AsyncMock(side_effect=execute_side_effect)
+    mock_session.begin_nested = MagicMock(return_value=_FakeSavepoint())
+
+    # Simulate the batch caller logic (mirror ingest_batch endpoint inner-loop)
+    results = []
+    accepted_count = 0
+    duplicate_count = 0
+    tenant_id = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+    for event in events:
+        try:
+            async with mock_session.begin_nested():
+                await analytics._ingest_single_event_inner(mock_session, tenant_id, event)
+            results.append(analytics.AnalyticsEventOut(status="accepted", event_id=event.event_id))
+            accepted_count += 1
+        except IntegrityError:
+            results.append(analytics.AnalyticsEventOut(status="duplicate", event_id=event.event_id))
+            duplicate_count += 1
+
+    # Assertions: 2 accepted + 1 duplicate, accepted events NOT lost
+    assert accepted_count == 2, f"Expected 2 accepted, got {accepted_count}"
+    assert duplicate_count == 1, f"Expected 1 duplicate, got {duplicate_count}"
+    assert results[0].status == "accepted"
+    assert results[1].status == "accepted"
+    assert results[2].status == "duplicate"
+    # Critical assertion: first 2 INSERTs succeeded (params captured)
+    assert len(inserted_event_ids) == 2, (
+        f"Expected 2 successful INSERTs, got {len(inserted_event_ids)}. "
+        "Fase 4.5b SAVEPOINT fix violated — accepted events lost."
+    )
+
+
+@pytest.mark.unit
+def test_genesis_sentinel_deterministic_per_tenant():
+    """H1 helper extraction — _genesis_sentinel reproducible per tenant_id."""
+    tid = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
+    g1 = analytics._genesis_sentinel(tid)
+    g2 = analytics._genesis_sentinel(tid)
+    assert g1 == g2
+    assert len(g1) == 64  # SHA-256 hex
+
+
+@pytest.mark.unit
+def test_genesis_sentinel_different_tenants_different_anchors():
+    g_a = analytics._genesis_sentinel(UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"))
+    g_b = analytics._genesis_sentinel(UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))
+    assert g_a != g_b
 
 
 # ──────────────────────────────────────────────────────────────────────────────

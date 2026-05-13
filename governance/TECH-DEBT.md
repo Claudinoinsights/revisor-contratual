@@ -893,6 +893,22 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 
 ---
 
+## Sprint 5+ Analytics — TD-ANALYTICS-L4/L5/L6 (Smith Fase 4.5b cataloged)
+
+> **Origem:** Smith mid-chain review Neo code Fase 4.5 (CONTAINED post-PATCH) — 3 LOWs cataloged durante Neo PATCH Fase 4.5b para garantir não-esquecimento em closure Operator Fase 8.
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-ANALYTICS-L4** | Smith F-NEO-L2 + Neo D-Bloco2-010 | LOW | AC-14 cronjob `analytics_chain_verify` daily APScheduler registration. Helper `verify_chain_integrity` (bloco_auth/analytics.py) ready com H1 chain linkage validation Fase 4.5b. Falta APScheduler integration em `bloco_interface/web/app.py` lifespan + cron schedule 03:00 UTC daily rescaneia últimos 7 dias. Pattern reuse SP04-LGPD-01 Phase 13.3 chunk 5 (`audit_isolation_aggregate` weekly). | 3h | @dev | 2026-05-13 |
+| **TD-ANALYTICS-L5** | Smith F-NEO-H3 lowered MED-warn | MEDIUM | CLI admin queries `bloco_interface/analytics_cli.py._run_admin_query` precisa role dedicada `analytics_admin BYPASSRLS` attribute. Atualmente warn-only emit stderr "⚠️ Admin role pending" antes de queries — production CLI silent empty se DATABASE_URL não super. Criar migration `sp06_001_analytics_admin_role.sql` + env var `ANALYTICS_ADMIN_DATABASE_URL` dedicada. CLI muda para sessionmaker próprio dedicado role. | 4h | @data-engineer + @dev | 2026-05-13 |
+| **TD-ANALYTICS-L6** | Smith F-NEO-L3 | LOW | `getOrRotateSession` em IIFE rota sessionId sem emit `session_rotated` event. Privacy compliance audit (NFR-PRIVACY-01.6) não pode rastrear quantas rotations aconteceram per session. Expand `_VALID_EVENT_TYPES` migration sp06_001 enum com `session_rotated` + IIFE captureEvent('session_rotated', null, {prev_sessionId}) antes assignment novo ID. CLI `health` reportar rotation_count metric. | 2h | @dev | 2026-05-13 |
+
+**Total TD-ANALYTICS Sprint 5+/6+ debt:** 2 LOW + 1 MEDIUM = ~9h Sprint 5+/6+ effort.
+
+*Smith Fase 4.5b PATCH closure (sessão 2026-05-13) · Neo endereçou 2 CRIT + 4 HIGH + 2 MED + 3 LOW (L2/L3 cataloged aqui; L1 dead code deleted) · **Foundation P0 Sati Eixo 5 v0.3.0 release MANDATORY** complete pos-PATCH.*
+
+---
+
 ## Sprint 04 — Pre-merge Recovery findings (2026-05-09 sessão 92, Ordem 17)
 
 > **Origem:** Hamann recovery chain Caminho A executado pós Smith adversarial review INFECTED (20 findings, 2 CRITICAL + 6 HIGH bloqueando merge).

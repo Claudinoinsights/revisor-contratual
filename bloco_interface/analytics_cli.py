@@ -92,13 +92,37 @@ def _verdict(passed: bool, action_if_fail: str) -> dict[str, str]:
     }
 
 
+_ADMIN_WARN_EMITTED = False
+
+
+def _emit_admin_warn_once() -> None:
+    """Smith H3 fix Fase 4.5b — warn admin role pending (lowered to MED-warn-only).
+
+    Print stderr WARNING once per CLI invocation antes de queries cross-tenant.
+    Full fix Sprint 6+: TD-ANALYTICS-L5 (`analytics_admin BYPASSRLS` role).
+    """
+    global _ADMIN_WARN_EMITTED
+    if _ADMIN_WARN_EMITTED:
+        return
+    click.echo(
+        "⚠️  Admin role pending (TD-ANALYTICS-L5 Sprint 6+). "
+        "Results may be empty se DATABASE_URL não é super OR sem BYPASSRLS attribute.",
+        err=True,
+    )
+    _ADMIN_WARN_EMITTED = True
+
+
 async def _run_admin_query(query: str, params: dict[str, Any] | None = None) -> Any:
     """Execute admin query — cross-tenant analytics queries usadas por CLI.
 
     RLS bypass via SUPERUSER-equivalent — em produção, CLI rodaria com
     role admin Sprint 6+. MVP: CLI roda como o role configurado no
     DATABASE_URL; admin queries assumem connection authorized.
+
+    Smith H3 fix Fase 4.5b: emit warning stderr antes de execute para alertar
+    operador que results podem ser empty se role não tem BYPASSRLS.
     """
+    _emit_admin_warn_once()
     sessionmaker = get_sessionmaker()
     async with sessionmaker() as session:
         result = await session.execute(text(query), params or {})

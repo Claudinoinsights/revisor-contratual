@@ -2205,11 +2205,20 @@ body::before{
     } catch (_e) { /* quota exceeded — silently drop */ }
   }
 
-  function getAuthToken(){
-    // Reuse SP04-AUTH-01 cookie auth pattern; JWT vive em cookie httpOnly
-    // Frontend não acessa direto — backend extrai via Depends(get_current_user)
-    // Fetch credentials: 'include' garante cookie sent
-    return null;  // sentinel — fetch usa credentials: 'include'
+  // Smith H4 fix Fase 4.5b — last selection persist em sessionStorage
+  // (NÃO localStorage — sessionStorage clears on tab close matching session semantics).
+  // Garante reclassification + TTI funcionarem após page reload.
+  const LAST_SELECTION_KEY = 'rc_analytics_last_selection_v1';
+  function getLastSelection(){
+    try {
+      const raw = sessionStorage.getItem(LAST_SELECTION_KEY);
+      return raw ? JSON.parse(raw) : { doctype: null, at: null, sessionId: null };
+    } catch (_e) { return { doctype: null, at: null, sessionId: null }; }
+  }
+  function setLastSelection(doctype, at, sessionId){
+    try {
+      sessionStorage.setItem(LAST_SELECTION_KEY, JSON.stringify({ doctype, at, sessionId }));
+    } catch (_e) { /* quota — ignore */ }
   }
 
   // ── Session management (NFR-PRIVACY-01.3.9 rotation) ─────────────────────
@@ -2299,22 +2308,21 @@ body::before{
   //   1º beforeunload (immediate fire)
   //   2º JWT expiry (server-side detection — handled when fetch returns 401)
   //   3º 15min timeout (deferred SetTimeout)
-  let lastDoctypeSelected = null;
-  let lastDoctypeSelectedAt = null;
-  let lastDoctypeContext = null;  // { doctype, sessionId } for dropoff event
+  // Smith H4 fix Fase 4.5b — state persisted via sessionStorage (getLastSelection/setLastSelection).
+  // dropoffTimer is in-memory (timer reference, can't be persisted) — re-scheduled on page load if last selection exists.
   let dropoffTimer = null;
   let dropoffFired = false;
 
   function scheduleDropoff(doctype){
     if (dropoffTimer) clearTimeout(dropoffTimer);
     dropoffFired = false;
-    lastDoctypeContext = { doctype, sessionId: getOrRotateSession() };
     dropoffTimer = setTimeout(() => {
       // Priority 3 — 15min timeout
-      if (!dropoffFired && lastDoctypeContext) {
-        captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+      const lastSel = getLastSelection();
+      if (!dropoffFired && lastSel.doctype) {
+        captureEvent('doctype_dropoff', lastSel.doctype, {
           trigger: '15min_timeout',
-          session_id_at_select: lastDoctypeContext.sessionId
+          session_id_at_select: lastSel.sessionId
         });
         dropoffFired = true;
         flushQueue('dropoff_15min');
@@ -2326,7 +2334,8 @@ body::before{
     if (dropoffTimer) clearTimeout(dropoffTimer);
     dropoffTimer = null;
     dropoffFired = false;
-    lastDoctypeContext = null;
+    // Clear persisted state — submit completed cycle
+    setLastSelection(null, null, null);
   }
 
   // ── Listeners — sidebar nav-item clicks (reuse TD-SP04-15 hooks) ─────────
@@ -2343,7 +2352,8 @@ body::before{
       if (!doctype) return;
 
       const isFirst = !getFirstSelectionFlag();
-      const isReclassification = lastDoctypeSelected && lastDoctypeSelected !== doctype;
+      const lastSel = getLastSelection();
+      const isReclassification = lastSel.doctype && lastSel.doctype !== doctype;
 
       // AC-9 FR-ANALYTICS-05 — Pareto (no dedup intra-session)
       captureEvent('doctype_selected', doctype, null);
@@ -2354,37 +2364,42 @@ body::before{
         markFirstSelectionDone();
       }
 
-      // AC-7 FR-ANALYTICS-04 — reclassification matrix from→to
+      // AC-7 FR-ANALYTICS-04 — reclassification matrix from→to (survives page reload via sessionStorage)
       if (isReclassification) {
         captureEvent('doctype_changed', doctype, {
-          from_doctype: lastDoctypeSelected,
+          from_doctype: lastSel.doctype,
           to_doctype: doctype
         });
       }
 
-      lastDoctypeSelected = doctype;
-      lastDoctypeSelectedAt = Date.now();
+      setLastSelection(doctype, Date.now(), getOrRotateSession());
       scheduleDropoff(doctype);
     });
   });
 
   // ── Contract submit hook (AC-3 TTI delta + cancel dropoff) ───────────────
-  // Hook into form submit buttons across doctypes (data-action="submit")
-  document.querySelectorAll('[data-action="submit-contract"], [data-action="analyze-contract"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tti_ms = lastDoctypeSelectedAt ? (Date.now() - lastDoctypeSelectedAt) : null;
-      captureEvent('contract_submitted', lastDoctypeSelected, { tti_ms_client_hint: tti_ms });
+  // Smith C1 fix Fase 4.5b — selector real do SPA #btnAnalyze (NÃO data-action fantasma).
+  // Listener adicional via addEventListener — coexiste com handler upload existente (linha ~1718).
+  const btnAnalyze = document.getElementById('btnAnalyze');
+  if (btnAnalyze) {
+    btnAnalyze.addEventListener('click', () => {
+      // Guard: only fire if not disabled (analysis actually proceeding)
+      if (btnAnalyze.disabled) return;
+      const lastSel = getLastSelection();
+      const tti_ms = lastSel.at ? (Date.now() - lastSel.at) : null;
+      captureEvent('contract_submitted', lastSel.doctype, { tti_ms_client_hint: tti_ms });
       cancelDropoff();
       flushQueue('contract_submitted');
     });
-  });
+  }
 
   // ── Smith F-02 Priority 1: beforeunload — immediate fire ─────────────────
   window.addEventListener('beforeunload', () => {
-    if (lastDoctypeContext && !dropoffFired) {
-      captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+    const lastSel = getLastSelection();
+    if (lastSel.doctype && !dropoffFired) {
+      captureEvent('doctype_dropoff', lastSel.doctype, {
         trigger: 'beforeunload',
-        session_id_at_select: lastDoctypeContext.sessionId
+        session_id_at_select: lastSel.sessionId
       });
       dropoffFired = true;
     }
@@ -2398,11 +2413,12 @@ body::before{
         method: 'GET',
         credentials: 'include'
       });
-      if (resp.status === 401 && lastDoctypeContext && !dropoffFired) {
+      const lastSel = getLastSelection();
+      if (resp.status === 401 && lastSel.doctype && !dropoffFired) {
         // JWT expired — fire dropoff before session truly ends
-        captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+        captureEvent('doctype_dropoff', lastSel.doctype, {
           trigger: 'jwt_expiry',
-          session_id_at_select: lastDoctypeContext.sessionId
+          session_id_at_select: lastSel.sessionId
         });
         dropoffFired = true;
         flushQueue('jwt_expiry');
