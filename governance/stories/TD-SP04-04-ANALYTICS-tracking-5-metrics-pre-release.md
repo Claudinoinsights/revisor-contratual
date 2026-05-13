@@ -2,7 +2,7 @@
 type: story
 id: TD-SP04-04-ANALYTICS
 title: "Analytics Tracking 5 Métricas Pré-Release v0.3.0 (Sati Eixo 5 MANDATORY)"
-status: Ready
+status: InProgress
 priority: 2
 sprint: "5+"
 epic: "Sprint-5-plus-pre-release-v0.3.0"
@@ -413,9 +413,88 @@ Story Ready → **Smith mid-chain Fase 3.5** (Eric rigor heavy directive — Smi
 
 ---
 
+## Dev Agent Record (Neo SDC Phase 4 — PARCIAL Chunk 1 only)
+
+**Agent:** @dev (Neo) · **Date:** 2026-05-13 · **Token:** H-S05-SMITH2NEO-FASE-4-DEVELOP-009 · **Mode:** Interactive
+
+### Status real: PARCIAL (1/5 chunks done)
+
+**Realistic context assessment:** Context window heavy após ~17 Skills cumulativas nesta sessão massive. Cliff de implementation 14-16h em single Skill é matematicamente unfeasible em context window restante. Neo escolheu **honest partial delivery** — Chunk 1 completed properly OVER pretensão de attempt full + collapse mid-implementation.
+
+### Chunks executados
+
+| Chunk | Descrição | Status | Lines |
+|-------|-----------|--------|-------|
+| **1** | Backend schema migration `sp05_001_analytics_events.sql` | ✅ **DONE** | ~140 SQL |
+| 2 | Backend FastAPI router `bloco_auth/analytics.py` | ⏸️ **DEFERRED** Neo follow-up Skill | ~250 estimated |
+| 3 | Frontend SPA IIFE event capture + queue | ⏸️ **DEFERRED** Neo follow-up Skill | ~180 estimated |
+| 4 | CLI 8 commands `lmas analytics *` (Smith H2 realistic 6-8h) | ⏸️ **DEFERRED** Neo follow-up Skill | ~400 estimated |
+| 5 | Tests pytest unit + integration | ⏸️ **DEFERRED** Neo follow-up Skill | ~600 estimated |
+
+**Progress:** ~10% effort total (140/1750 estimated lines).
+
+### Chunk 1 details — Backend Schema Migration
+
+**File:** `bloco_database/migrations/sp05_001_analytics_events.sql` (NEW, ~140 lines SQL)
+
+**Implementation highlights:**
+
+1. **REUSE pattern empírico SP04-LGPD-01** — mirror `sp04_003_lgpd_tos_audit.sql` (tos_acceptances template):
+   - RLS via `current_setting('app.tenant_id', true)::uuid` (ADR-017 §2)
+   - ON DELETE RESTRICT em FK tenants (retention 13 meses LGPD)
+   - Indexes seletivos pattern (Tank Phase 13.3a Item 3)
+   - COMMENT ON CONSTRAINT inline documenta semantic
+
+2. **Smith F-01 fix (idempotency CRITICAL):** UNIQUE constraint `event_id` UUID v4 client-side. Backend (Chunk 2 future) catch `psycopg.errors.UniqueViolation` → HTTP 200 silent (NUNCA 409). COMMENT inline documenta contract.
+
+3. **Smith F-02 fix (drop-off priority):** event_type enum constrained com 5 types (Smith aligned PRD Section 4.2). Drop-off priority order (beforeunload > JWT expiry > 15min timeout) implementado client-side Chunk 3 future.
+
+4. **Smith C2 HMAC chain integrity:** Columns `prev_hash` + `hmac` para chain integrity. Tamper detection runtime + cronjob `analytics_chain_verify` daily — implementação Python Chunk 2 future. COMMENT inline `hmac` column documenta recovery protocol.
+
+5. **Smith H3 PII anonymization:** Column `occurred_at` COMMENT documenta rounded to nearest minute (NFR-PRIVACY-01.3.8 timing correlation mitigation). `session_id` rotation policy (50 events OR 30min) implementação client-side Chunk 3 future.
+
+6. **CHECK constraints:** `valid_event_type` (5 enum values) + `valid_doctype` (7 doctypes ADR-020). Prevents invalid data at DB level (defense-in-depth).
+
+7. **5 indexes seletivos:** tenant+occurred (aggregate queries), tenant+session (drop-off correlation), tenant+event_type (filter), tenant+doctype WHERE NOT NULL (partial), event_id UNIQUE (idempotency lookup auto).
+
+### Files Modified
+
+| Path | Type | Lines |
+|------|------|-------|
+| `bloco_database/migrations/sp05_001_analytics_events.sql` | NEW | ~140 (SQL) |
+
+### AC Status (parcial — Chunk 1 cobre AC parcialmente)
+
+| AC | Status | Notes |
+|----|--------|-------|
+| AC-15 (idempotency contract) | ⚠️ **Partial** | UNIQUE constraint criado; backend catch handler Chunk 2 future |
+| AC-13 (HMAC tamper detection) | ⚠️ **Partial** | Schema columns ready; runtime detection logic Chunk 2 future |
+| AC-14 (Cronjob daily verify) | ⚠️ **Partial** | Schema ready; cronjob registration Chunk 2 future |
+| AC-20 (Multi-tenant RLS) | ✅ **DONE** | Policy `analytics_tenant_isolation` aplicada |
+| AC-1..AC-12, AC-16..AC-19, AC-21, AC-22 | ⏸️ **DEFERRED** | Chunks 2-5 future |
+
+### Decisões Neo (D-NEO-S05-Bloco2-001..003)
+
+- **D-NEO-S05-Bloco2-001:** Honest partial delivery > pretensão full implementation em single Skill. Context window matemática — 14-16h cliff unfeasible. Eric was warned (Path A pause antes Neo escolhido inicialmente; reverted após governance push).
+- **D-NEO-S05-Bloco2-002:** Chunk 1 isolado primeiro — schema foundation foi escolhido (não Chunk 2 router) porque DB schema é most isolated + sets foundation for Chunks 2-5 reuse SP04-LGPD-01 patterns confirmed empíricamente via Read.
+- **D-NEO-S05-Bloco2-003:** Smith F-01/F-02 fixes embedded em schema design (UNIQUE event_id + CHECK constraints) — even partial Chunk 1 delivery honors Smith mid-chain findings.
+
+### Completion Notes
+
+1. **Chunk 1 (schema) implementação completa + tests SQL inline documentados** — smoke validation queries em COMMENT.
+2. **Chunks 2-5 require dedicated Neo follow-up Skill session** — estimate ~10-12h orchestrated cumulative remaining; better executed em fresh context window.
+3. **Story status InProgress (NÃO Ready for Review)** — Oracle G5 G5 só após all 5 chunks done. Smith Fase 4.5 review premature para Chunk 1 alone (scope too narrow).
+4. **Eric decision pending:** continue Neo follow-up Skill same session (risk context overflow) OR break + Neo Sprint 5+ subsequent session (recommended). Operator pode push Chunk 1 SQL agora preservar trabalho.
+
+### Next gate
+
+Story InProgress → Eric decision continue OR break. Se break → Neo Sprint 5+ subsequent session implementa Chunks 2-5; Smith Fase 4.5 review when all chunks done; Oracle G5 Fase 5 follow; Operator push + Smith FINAL.
+
+---
+
 ## QA Results
 
-(empty — preencher após Oracle gate G5 Fase 5)
+(empty — preencher após Oracle gate G5 Fase 5 — apenas quando todos 5 chunks completos)
 
 ---
 
