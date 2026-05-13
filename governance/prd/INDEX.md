@@ -2,7 +2,7 @@
 type: dashboard
 title: "PRD Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-05"
+last_updated: "2026-05-13"
 tags:
   - project/revisor-contratual
   - prd-index
@@ -16,7 +16,10 @@ tags:
 
 | Versão | Status | Bump | Arquivo | Data | Razão |
 |---|---|---|---|---|---|
-| **v1.1.2** | ⭐ **ACTIVE** | PATCH | [prd-v1.1.2-PATCH.md](./prd-v1.1.2-PATCH.md) | 2026-05-05 | Smith re-review CC.1A' endereçado (6/6 findings) — defense-in-depth LGPD (CSRF+CSP+encryption-at-rest) + cross-platform backup (APScheduler) + SOP-005 fallback Tema 1378 + D3 Apelação reestimado 6-8h. Eric escolheu opção B perfeição |
+| **v2.0.5.1** | ⭐ **ACTIVE** | MICRO-PATCH | [prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md](./prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md) (file inplace bump 2.0.5.0→2.0.5.1) | 2026-05-13 | Sprint 5+ Ordem 19.2 Fase 1.6 — Smith mid-chain INFECTED 15 findings endereçado: 6 MUST (C1 tenant_id JWT + C2 HMAC recovery + H1 3 NFRs + H2 effort 14-16h honest + H3 9 PII vectors + H4 REUSE line numbers) + 4 SHOULD inline (M1-M4) + 5 LOW catalog Section 11 |
+| v2.0.5.0 | superseded by v2.0.5.1 | PATCH | (same file inplace) | 2026-05-13 | Sprint 5+ Ordem 19.2 Fase 1 — TD-SP04-04-ANALYTICS Sati Eixo 5 MANDATORY pre-release v0.3.0 initial alignment (Trinity initial 5 FRs + 3 NFRs); INFECTED por Smith mid-chain → v2.0.5.1 supersede |
+| v2.0.4.1 | superseded by v2.0.5.0/v2.0.5.1 | PATCH | [prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md](./prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md) | 2026-05-12 | Sprint 04 cumulative (v2.0.1 + v2.0.1.1 + v2.0.2 + v2.0.3 + v2.0.4 + v2.0.4.1) — Doctype Content Brief 32 prompts + LLM Provider BYOK + Orsheva glossary + Smith CRITICAL fixes + Smith Round 2 cleanup |
+| v1.1.2 | superseded | PATCH | [prd-v1.1.2-PATCH.md](./prd-v1.1.2-PATCH.md) | 2026-05-05 | Smith re-review CC.1A' endereçado (6/6 findings) — defense-in-depth LGPD (CSRF+CSP+encryption-at-rest) + cross-platform backup (APScheduler) + SOP-005 fallback Tema 1378 + D3 Apelação reestimado 6-8h. Eric escolheu opção B perfeição |
 | v1.1.1 | superseded | PATCH | [prd-v1.1.1-PATCH.md](./prd-v1.1.1-PATCH.md) | 2026-05-05 | Tribunal CC.1A endereçado (14/14 findings) — FR-LGPD-MVP-01 + FR-MONITOR-01 ATIVO + FR-BACKUP-MVP-01 + FR-ECONOMISTA-01 + D3 Apelação + validação OAB |
 | v1.1.0 | superseded | MAJOR | [prd-v1.1.0-MAJOR.md](./prd-v1.1.0-MAJOR.md) | 2026-05-05 | Course-correction Eric — caminho híbrido enxuto + roadmap 5 modalidades + decisão FIES projeto-irmão |
 | v1.0.3 | superseded | PATCH | [prd-v1.0.3-DELTA.md](./prd-v1.0.3-DELTA.md) | 2026-05-05 | Sprint 02 planning — REV-INT-01 stack migration + 3 R-NEW absorvidas |

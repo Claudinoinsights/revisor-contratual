@@ -84,6 +84,49 @@ Operator health-check pós-cleanup Ordem 18 (handoff `handoff-operator-to-eric-2
 - **Sprint 5+ M1 patch** Oracle cancel WAIVED-PYTEST + Neo edit comment linha 16 (~30min Skills opcional)
 - **Sprint 5+ M3** Tooltip position race refactor (~30min Neo Skill)
 
+---
+
+## Sessão 2026-05-13 — Ordem 19.2 Bloco 2 INICIADA (rigor heavy: PRD-driven + Smith mid-chain)
+
+### Trigger
+
+Eric autorizou "continue pela skill correta" + NOVO RIGOR: "leia synapse + constitution + Smith review ao fim de cada sessão". Bloco 2 (TD-SP04-04-ANALYTICS) dispatch iniciado com rigor amplificado.
+
+### Cadeia Skill Bloco 2 (8 main + 6 Smith mid-chain = 14 invocações ~3-4h orchestrated)
+
+| Fase | Skill | Status |
+|------|-------|--------|
+| 0 | Morpheus — Constitution v2.0.0 + Synapse layered context loaded | ✅ DONE 2026-05-13 |
+| 1 | `LMAS:agents:pm` Trinity — *patch-prd v2.0.5.0 PATCH-ANALYTICS-EIXO-5 | ✅ **DONE** 2026-05-13 — 5 FRs + 3 NFRs + 7 CLI commands + REUSE SP04-LGPD-01 audit chain + IDS strategy 30/25/45 + Smith preemptive 8 probes anticipated; INDEX updated |
+| 1.5 | `LMAS:agents:smith` Smith mid-chain review PRD v2.0.5.0 | 🔴 **INFECTED** 2026-05-13 — 15 findings (2 CRITICAL + 4 HIGH + 4 MED + 5 LOW); C1 tenant_id spoofing + C2 HMAC integrity recovery ausente; review formal `governance/qa/smith-mid-chain-review-prd-v2050-fase-1-5.md` |
+| 1.6 | `LMAS:agents:pm` Trinity micro-patch v2.0.5.1 endereçando 2 CRIT + 4 HIGH | ✅ **DONE** 2026-05-13 — PRD file inplace bump 2.0.5.0→2.0.5.1; **6 MUST addressed:** C1 tenant_id JWT (Section 4.1 + NFR-PRIVACY-01.1) + C2 HMAC recovery (NFR-PRIVACY-01.6 tamper detection + cronjob + recovery protocol) + H1 3 NFRs (RELIABILITY-01 idempotency + AVAILABILITY-01 graceful degrade + OBSERVABILITY-01 health endpoint) + H2 effort 14-16h honest (Section 6) + H3 9 PII vectors (NFR-PRIVACY-01.3 sub 3.1-3.9) + H4 REUSE table line numbers (Section 5 expanded 5 sources); **4 SHOULD inline:** M1 drop-off 15min/beforeunload/JWT expiry + M2 p90 not "médio" + M3 first_doctype per session_id após login + M4 Pareto re-calibration caveat após 50+ sessions; **5 LOW cataloged Section 11.** INDEX.md updated v2.0.5.1 ACTIVE. |
+| 1.7 | `LMAS:agents:smith` Smith re-verify mid-chain post-patch v2.0.5.1 | ✅ **CLEAN** 2026-05-13 — 6/6 MUST + 4/4 SHOULD + 5/5 LOW cataloged = 15/15 findings v2.0.5.0 endereçados; 6 probes empíricas P1-P6 confirmaram via grep; review formal `governance/qa/smith-reverify-mid-chain-prd-v2051-fase-1-7.md`; River UNBLOCKED |
+| 2 | `LMAS:agents:sm` River draft story TD-SP04-04-ANALYTICS | ✅ **DONE** 2026-05-13 — story file `governance/stories/TD-SP04-04-ANALYTICS-tracking-5-metrics-pre-release.md` criada: **22 ACs** (excedendo handoff min 18) + 5 chunks Path B 14-16h envelope honest + 10 risks (1 HIGH + 4 MED + 5 LOW) + 100% Constitutional alignment rastreável + REUSE table 5 sources line numbers concretos |
+| 2.5 | `LMAS:agents:smith` Smith mid-chain review story draft | ✅ **CONTAINED** 2026-05-13 — 10 findings (0 CRIT + 0 HIGH + 2 MED + 8 LOW); F-01 idempotency contract gap + F-02 drop-off priority ambiguity (addressable Neo Fase 4); review formal `governance/qa/smith-midchain-review-story-td-sp04-04-fase-2-5.md`; Keymaker UNBLOCKED com awareness |
+| 3 | `LMAS:agents:po` Keymaker G3 validate 10-point | ✅ **GO 10/10** 2026-05-13 — Smith CONTAINED awareness; D-KEY-S05-002 F-01/F-02 MED flagged Neo Fase 4 (idempotency + drop-off priority); D-KEY-S05-003 8 LOW catalog Sprint 5+; status Draft → Ready |
+| 3.5 | `LMAS:agents:smith` Smith mid-chain review Keymaker G3 verdict | ✅ **CONTAINED** 2026-05-13 — 2 LOW (Chunk 4 effort awareness Neo + Change Log polish); Neo Fase 4 UNBLOCKED com awareness; review formal `governance/qa/smith-midchain-G3-verdict-review-fase-3-5.md` |
+| 4 | `LMAS:agents:dev` Neo *develop 5 chunks ~14-16h | ⏸️ **PAUSADO Eric** — Eric escolheu pause antes Neo cliff (Path A: Continuar Keymaker + parar antes Neo) |
+| 2.5 | Smith review River draft | Aguarda Fase 2 |
+| 3 | `LMAS:agents:po` Keymaker G3 validate | Aguarda Fase 2.5 |
+| 3.5 | Smith review Keymaker | Aguarda Fase 3 |
+| 4 | `LMAS:agents:dev` Neo implement | Aguarda Fase 3.5 |
+| 4.5 | Smith review Neo code | Aguarda Fase 4 |
+| 5 | `LMAS:agents:qa` Oracle G5 gate | Aguarda Fase 4.5 |
+| 5.5 | Smith review Oracle G5 | Aguarda Fase 5 |
+| 6 | `LMAS:agents:devops` Operator push | Aguarda Fase 5.5 |
+| 6.5 | Smith FINAL pre-merge | Aguarda Fase 6 |
+| 7 | Eric merge decision | Aguarda Fase 6.5 |
+| 8 | Morpheus closure Ordem 19.2 | Aguarda Fase 7 |
+
+### Decisões Morpheus + Trinity Bloco 2 (D-MOR-S05-008..010 + D-PM-S05-001..003)
+
+- **D-MOR-S05-008:** Constitution v2.0.0 (4 artigos universais) lida + Synapse layered context confirmed (l0-constitution + l1-global + l2-agent + l4-task + l5-squad + l6-keyword + l7-star-command loading via hooks)
+- **D-MOR-S05-009:** Eric rigor heavy aceito — Bloco 2 cadeia 14 Skills (vs Bloco 1 standard 6 Skills)
+- **D-MOR-S05-010:** PRD-driven Bloco 2 (PM Trinity patch ANTES de Sm River draft)
+- **D-PM-S05-001:** Opção B PRD patch v2.0.5.0 escolhida (v2.0.4.1 não cobria analytics; Sati Eixo 5 MANDATORY exigia FR/NFR estruturados)
+- **D-PM-S05-002:** IDS strategy 30% REUSE (SP04-LGPD-01 audit chain HMAC) + 25% ADAPT (DPA flow extension) + 45% CREATE (event types enum)
+- **D-PM-S05-003:** Effort 8h alinhado Sati estimate; breakdown 5 chunks matemática (1+1.5+2+2+1.5)
+
 ### Handoff inicial
 
 H-S05-MOR2RIVER-TD-SP04-15-001 emitido (próximo passo).
