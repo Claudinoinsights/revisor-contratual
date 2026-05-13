@@ -1877,4 +1877,129 @@ Cadeia 0a→0l sessão massiva 2026-05-12 totaliza 33+ Skills + 13 handoffs YAML
 
 `.lmas/handoffs/handoff-devops-to-lmas-master-2026-05-12-0n-pr7-created-fase1-complete.yaml` → Morpheus
 
+---
+
+## Sessão 2026-05-13 — Sprint 5+ Ordem 20.1 Bloco 3 Fase 4.5 Smith mid-chain Neo CONTAINED
+
+### Contexto Ativo
+
+Bloco 3 Imobiliário Wireframe Variant — Neo completou 5 chunks (~806 lines) commit local `4b7d7da`. Smith Fase 4.5 mid-chain Neo code review executado per Eric rigor heavy directive.
+
+### Smith Fase 4.5 Empirical (6 probes)
+
+- **Probe 1 Chunk 1 Schema:** RLS + 4 CHECK + 3 indexes pattern Bloco 2 sp05_001 reuse ✓ PASS
+- **Probe 2 Chunk 2 Pydantic Router:** extra='forbid' + matrícula regex + valor Decimal bounds + Literal enums + Depends(get_current_user) + with_tenant_context ✓ (1 MEDIUM idempotency + 3 LOW polish)
+- **Probe 3 Chunk 3 SPA:** Fieldset hidden + JS conditional toggle + badge MODOS_AVANCADOS imobiliario removido + aria-* completeness ✓ (2 LOW)
+- **Probe 4 Chunk 4 CLI/LLM:** Click Choice + Pydantic reuse + 4 markers MANDATORY prompt v1.0.0 + R-01 advogada loop ✓ PASS
+- **Probe 5 Chunk 5 Tests:** 16 tests parametrized > Smith H2 threshold 10 + fixture reuse ✓ PASS
+- **Probe 6 Chain Findings:** 8/8 chain findings addressed empirical (Trinity.5 H1/M1/M2 + River.5 L1/L2 + Keymaker.5 L1 + Sati.5 L1/L2) ✓ ALL
+
+### Decisões tomadas (Smith Fase 4.5)
+
+- **D-SMITH-S05-BL3-004:** Verdict CONTAINED — 10 findings (1 MEDIUM + 9 LOW), zero CRITICAL/HIGH. NÃO BLOQUEIA Oracle G5.
+- **D-SMITH-S05-BL3-005:** Comparativa Bloco 2 vs 3 — Bloco 2 Neo.5 INFECTED 12 findings (2 CRIT + 3 HIGH + 4 MED + 3 LOW) → Bloco 3 CONTAINED 10 findings (0+0+1+9). Chain awareness funcionou empírico.
+- **D-SMITH-S05-BL3-006:** F-NEO-BL3-01 MEDIUM (idempotency UniqueViolation) defer Sprint 6+ aceitável — analysis_id optional + FK contracts table NÃO migrada. TD-SP06-IMOBILIARIO-IDEMPOTENCY cataloged.
+- **D-SMITH-S05-BL3-007:** 9 LOW findings polish-only — TD-SP06-IMOBILIARIO-* bundle Sprint 6+ defer (sanitize SQL exception, JSON encoder Decimal, max_digits explicit, single-source enum, JS wire submit, aria-* parity selects, UNIQUE constraint partial, CLI Decimal refactor, i18n COMMENTs)
+- **D-SMITH-S05-BL3-008:** AC coverage 12/13 FULL + AC-12 zero regression pendente Oracle G5 Docker empirical (single remaining)
+
+### Próximos Passos
+
+| Passo | Skill | Output | Status |
+|-------|-------|--------|--------|
+| Fase 5 Oracle G5 | `LMAS:agents:qa` *qa-gate | `governance/qa/oracle-g5-quality-gate-bloco-3-imobiliario.md` + 7 checks Docker empirical | ⏳ |
+| Fase 5.5 Smith O.5 | `LMAS:agents:smith` *verify | Smith mid-chain Oracle verdict review | pending |
+| Fase 6 Operator push | `LMAS:agents:devops` *push | commit `4b7d7da` → main | pending |
+| Fase 6.5 Smith FINAL | `LMAS:agents:smith` *verify final-pre-merge | CI Status Verification (`gh pr checks`) MUST | pending |
+| Fase 7 Eric merge | manual | Merge sequence | pending |
+| Fase 8 Morpheus closure | `LMAS:agents:lmas-master` | Ordem 20.1 Bloco 3 closure | pending |
+
+### Files atualizados Smith Fase 4.5
+
+- `governance/qa/smith-midchain-neo-code-fase-4-5-bloco-3.md` (NEW — Smith review CONTAINED verdict + 10 findings + comparativa Bloco 2 vs 3)
+- `.lmas/handoffs/handoff-smith-to-oracle-2026-05-13-fase-5-g5-quality-gate.yaml` (NEW — handoff Smith→Oracle G5 quality gate)
+- `.lmas/handoffs/handoff-neo-to-smith-2026-05-14-fase-4-5-midchain-code-review-bloco-3.yaml` (UPDATED — consumed: true)
+
+### Handoff Smith→Oracle
+
+`.lmas/handoffs/handoff-smith-to-oracle-2026-05-13-fase-5-g5-quality-gate.yaml` → Oracle
+
+### Fase 5 Oracle G5 Quality Gate — FAIL (CRITICAL regression empirical)
+
+**7 G5 checks empirical:**
+
+| # | Check | Status |
+|---|-------|--------|
+| 1 | pytest baseline regression ≥425 | 🔴 **FAIL** (424 — test_cli.py BROKEN) |
+| 2 | Lint pass | ⏸️ DEFER |
+| 3 | Type check mypy | ⏸️ DEFER |
+| 4 | Security bandit zero CRITICAL | 🟢 PASS |
+| 5 | Coverage test_imobiliario ≥80% | 🟢 PASS (31 tests empirical) |
+| 6 | Migration apply Docker | ⏸️ DEFER |
+| 7 | Integration smoke POST | ⏸️ DEFER |
+
+**F-ORACLE-NEO-BL3-CRIT-01 (CRITICAL):**
+
+Neo inventou `format_error` em [`cli.py:660,669`](bloco_interface/cli.py#L660) — Constitution Art. IV (No Invention) violation. `bloco_interface.output` exporta apenas `echo_error`, `format_info`, `format_success`, `format_veredito`.
+
+**Empirical evidence:**
+- `pytest tests/unit/test_cli.py` → `ImportError: cannot import name 'format_error' from 'bloco_interface.output'. Did you mean: 'format_info'?`
+- Pre-Bloco 3 (fe0ff79): cli.py ended cleanly em `main()` block
+- Post-Bloco 3 (4b7d7da): linha 669 `from bloco_interface.output import format_error` introduced
+- Baseline: 425 cataloged → 424 empirical (delta -1)
+
+**AC FAIL:** AC-11 (CLI First) + AC-12 (zero regression). 11/13 ACs FULL.
+
+### Decisões tomadas (Oracle Fase 5)
+
+- **D-ORACLE-S05-Bloco-3-001:** Verdict FAIL — F-ORACLE-NEO-BL3-CRIT-01 bloqueia merge
+- **D-ORACLE-S05-Bloco-3-002:** AC-12 evidence empirical — pytest unit/ 424 passed (skipping test_cli.py BROKEN), test_imobiliario.py 31 passed
+- **D-ORACLE-S05-Bloco-3-003:** Smith Fase 4.5 oversight cataloged TD-PROCESS-NN — Smith spot-check Probe 4 (CLI) DEVE incluir runtime import test
+- **D-ORACLE-S05-Bloco-3-004:** Fix recomendação Opção A (preferred) — add `format_error` em `bloco_interface/output.py` mirror `format_success`/`format_info` pattern
+- **D-ORACLE-S05-Bloco-3-005:** Pós-PATCH expected baseline = 456 passed (424 + 32 test_cli restored)
+
+### Files Oracle Fase 5
+
+- `governance/qa/oracle-g5-quality-gate-bloco-3-imobiliario.md` (NEW — FAIL verdict + CRITICAL finding + NFR assessment)
+- `.lmas/handoffs/handoff-oracle-to-smith-2026-05-13-fase-5-5-midchain-g5-verdict-review.yaml` (NEW — handoff Oracle→Smith Fase 5.5)
+- `.lmas/handoffs/handoff-smith-to-oracle-2026-05-13-fase-5-g5-quality-gate.yaml` (UPDATED — consumed: true)
+
+### Handoff Oracle→Smith Fase 5.5
+
+`.lmas/handoffs/handoff-oracle-to-smith-2026-05-13-fase-5-5-midchain-g5-verdict-review.yaml` → Smith
+Next: Smith Fase 5.5 → CONFIRM FAIL → Smith→Neo PATCH (Opção A) Fase 6
+
+### Fase 5.5 Smith Mid-Chain Oracle G5 Verdict Review — CONFIRM FAIL + Self-Assessment
+
+**3 Probes empíricas:**
+
+| # | Probe | Status |
+|---|-------|--------|
+| 1 | Verify Oracle empirical (symbols dump + git diff) | ✅ CONFIRMED `format_error` NÃO existe + introduced 4b7d7da exclusively |
+| 2 | Constitutional rationale (Art. IV No Invention zero rastreabilidade) | ✅ CONFIRMED |
+| 3 | Self-assessment Smith Fase 4.5 Probe 4 oversight | ✅ CONFESSED — TD-PROCESS-SMITH-CLI-RUNTIME-IMPORT cataloged |
+
+**Veredito Smith Fase 5.5:** ✅ **CONFIRM Oracle G5 FAIL** — Neo PATCH mandatory.
+
+**Smith Fase 4.5 retroactive update:** CONTAINED → INFECTED (1 CRIT + 1 MED + 9 LOW + 1 PROCESS).
+
+### Decisões tomadas (Smith Fase 5.5)
+
+- **D-SMITH-S05-Bloco-3-009:** CONFIRM Oracle G5 FAIL — `format_error` invented Constitution Art. IV violation empirical proven
+- **D-SMITH-S05-Bloco-3-010:** Smith Fase 4.5 Probe 4 oversight ACKNOWLEDGED — falhei em runtime import test, marquei `format_error pattern reuse ✓` baseado em grep apenas
+- **D-SMITH-S05-Bloco-3-011:** TD-PROCESS-SMITH-CLI-RUNTIME-IMPORT cataloged Sprint posterior — Smith Probe Methodology v2 mandatory runtime import test para CLI/import paths
+- **D-SMITH-S05-Bloco-3-012:** TD-PROCESS-NEO-PRE-COMMIT-IMPORT-VALIDATION cataloged Sprint posterior — Neo pre-commit hook recommended
+- **D-SMITH-S05-Bloco-3-013:** Route Smith→Neo PATCH Fase 6 (Opção A — add `format_error` em `bloco_interface/output.py` simétrico format_success/format_info)
+- **D-SMITH-S05-Bloco-3-014:** Expected baseline post-PATCH: 456 passed (424 atual + 32 test_cli.py restored)
+
+### Files Smith Fase 5.5
+
+- `governance/qa/smith-midchain-oracle-g5-verdict-fase-5-5.md` (NEW — CONFIRM verdict + 3 probes + self-assessment + 12 findings consolidados)
+- `.lmas/handoffs/handoff-smith-to-neo-2026-05-13-fase-6-patch-format-error.yaml` (NEW — Smith→Neo PATCH dispatch Opção A)
+- `.lmas/handoffs/handoff-oracle-to-smith-2026-05-13-fase-5-5-midchain-g5-verdict-review.yaml` (UPDATED — consumed: true)
+
+### Handoff Smith→Neo PATCH Fase 6
+
+`.lmas/handoffs/handoff-smith-to-neo-2026-05-13-fase-6-patch-format-error.yaml` → Neo
+Next: Neo PATCH Opção A (add format_error to bloco_interface/output.py) → empirical validate runtime import + pytest → re-emit Neo→Smith Fase 4.5b re-verify → Oracle 5b re-gate → Operator push Fase 6
+
 — Operator, deployando com precisão cirúrgica 🚀

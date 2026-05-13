@@ -90,6 +90,17 @@ def format_success(message: str) -> str:
     return f"✅ {message}"
 
 
+def format_error(message: str) -> str:
+    """Format error message (mirror format_success/format_info pattern).
+
+    Sprint 5+ Bloco 3 PATCH F-ORACLE-NEO-BL3-CRIT-01 — Smith Fase 5.5 + Oracle G5
+    empirical: previous Bloco 3 commit 4b7d7da used format_error in cli.py:660
+    without defining it here. Adding now to satisfy Constitution Art. IV
+    rastreabilidade — pattern simétrico format_success/format_info.
+    """
+    return f"❌ {message}"
+
+
 def echo_error(message: str) -> None:
     """Imprime erro para stderr (não polui stdout que pode ser pipeable)."""
     print(message, file=sys.stderr)
