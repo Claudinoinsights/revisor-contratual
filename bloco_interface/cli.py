@@ -602,5 +602,14 @@ def validate_dataset(json_path: Path) -> None:
     raise SystemExit(exit_code)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# TD-SP04-04-ANALYTICS Chunk 4 — analytics subgroup (8 commands)
+# Constitution Art. I CLI First + Sati Eixo 5 MANDATORY
+# ─────────────────────────────────────────────────────────────────────
+from bloco_interface.analytics_cli import analytics_group  # noqa: E402
+
+main.add_command(analytics_group)
+
+
 if __name__ == "__main__":
     main()

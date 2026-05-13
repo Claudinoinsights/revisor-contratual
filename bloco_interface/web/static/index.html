@@ -2156,6 +2156,261 @@ body::before{
     if (currentBtn) hideTooltip();
   }, { passive: true, capture: true });
 })();
+
+// ════════════════════════════════════════════════════════════════════════════
+// TD-SP04-04-ANALYTICS Chunk 3 — SPA event capture (Sati Eixo 5 MANDATORY)
+// 5 event types + localStorage queue 100 FIFO + drop-off priority F-02
+// + opt-out check + flush batch 2s OR beforeunload + idempotency F-01
+// PRD v2.0.5.1 §4.2 frontend events + Smith F-01/F-02/H1 fixes
+// ════════════════════════════════════════════════════════════════════════════
+(function initAnalyticsCapture(){
+  'use strict';
+
+  // ── Configuration ────────────────────────────────────────────────────────
+  const QUEUE_KEY = 'rc_analytics_queue_v1';
+  const SESSION_FLAG_KEY = 'rc_analytics_first_doctype_v1';
+  const QUEUE_MAX = 100;                  // FIFO cap (Smith H1 NFR-AVAILABILITY-01)
+  const FLUSH_INTERVAL_MS = 2000;
+  const DROPOFF_TIMEOUT_MS = 15 * 60 * 1000;  // 15min Smith F-02 third priority
+  const SESSION_ROTATION_EVENTS = 50;     // NFR-PRIVACY-01.3.9
+  const SESSION_ROTATION_MS = 30 * 60 * 1000;  // 30min OR
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
+  function uuidv4(){
+    // crypto.randomUUID is widely supported 2024+; fallback for older browsers
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function readQueue(){
+    try {
+      const raw = localStorage.getItem(QUEUE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_e) { return []; }
+  }
+
+  function writeQueue(events){
+    try {
+      // FIFO drop oldest when over cap (Smith H1 graceful degradation)
+      const trimmed = events.length > QUEUE_MAX
+        ? events.slice(events.length - QUEUE_MAX)
+        : events;
+      localStorage.setItem(QUEUE_KEY, JSON.stringify(trimmed));
+    } catch (_e) { /* quota exceeded — silently drop */ }
+  }
+
+  function getAuthToken(){
+    // Reuse SP04-AUTH-01 cookie auth pattern; JWT vive em cookie httpOnly
+    // Frontend não acessa direto — backend extrai via Depends(get_current_user)
+    // Fetch credentials: 'include' garante cookie sent
+    return null;  // sentinel — fetch usa credentials: 'include'
+  }
+
+  // ── Session management (NFR-PRIVACY-01.3.9 rotation) ─────────────────────
+  let sessionId = null;
+  let sessionEventCount = 0;
+  let sessionStartedAt = Date.now();
+
+  function getOrRotateSession(){
+    const now = Date.now();
+    if (!sessionId
+        || sessionEventCount >= SESSION_ROTATION_EVENTS
+        || (now - sessionStartedAt) >= SESSION_ROTATION_MS) {
+      sessionId = uuidv4();
+      sessionEventCount = 0;
+      sessionStartedAt = now;
+    }
+    return sessionId;
+  }
+
+  // ── Opt-out check (DPA acceptance reuse pattern) ─────────────────────────
+  function isOptedOut(){
+    // SP04-LGPD-01 DPA acceptance — Sprint 5+ TD-ANALYTICS-L3 catalog future
+    // Conservative default: if DPA flag absent, analytics opt-IN by default
+    // (consistent with current product behavior — TOS already accepted on signup)
+    try {
+      return localStorage.getItem('rc_analytics_optout') === '1';
+    } catch (_e) { return false; }
+  }
+
+  // ── Event capture core ───────────────────────────────────────────────────
+  function captureEvent(eventType, doctype, payload){
+    if (isOptedOut()) return;
+
+    const event = {
+      event_id: uuidv4(),
+      session_id: getOrRotateSession(),
+      event_type: eventType,
+      occurred_at: new Date().toISOString(),
+      doctype: doctype || null,
+      payload: payload || null
+    };
+
+    sessionEventCount += 1;
+
+    const queue = readQueue();
+    queue.push(event);
+    writeQueue(queue);
+  }
+
+  // ── Flush — POST batch (max 5 per request — Smith spec) ──────────────────
+  let flushInFlight = false;
+
+  async function flushQueue(reason){
+    if (flushInFlight) return;
+    const queue = readQueue();
+    if (queue.length === 0) return;
+
+    flushInFlight = true;
+    const batch = queue.slice(0, 5);
+
+    try {
+      const resp = await fetch('/api/analytics/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ events: batch }),
+        keepalive: reason === 'beforeunload'  // ensures send during unload
+      });
+
+      if (resp.ok) {
+        // Remove flushed events; remaining queue persists
+        const remaining = queue.slice(batch.length);
+        writeQueue(remaining);
+      }
+      // 503/5xx — events stay in queue for retry (Smith H1 NFR-AVAILABILITY-01)
+    } catch (_err) {
+      // Network failure — queue persists for next flush attempt
+    } finally {
+      flushInFlight = false;
+    }
+  }
+
+  // Periodic flush
+  setInterval(() => flushQueue('interval'), FLUSH_INTERVAL_MS);
+
+  // ── Smith F-02 drop-off priority order ───────────────────────────────────
+  //   1º beforeunload (immediate fire)
+  //   2º JWT expiry (server-side detection — handled when fetch returns 401)
+  //   3º 15min timeout (deferred SetTimeout)
+  let lastDoctypeSelected = null;
+  let lastDoctypeSelectedAt = null;
+  let lastDoctypeContext = null;  // { doctype, sessionId } for dropoff event
+  let dropoffTimer = null;
+  let dropoffFired = false;
+
+  function scheduleDropoff(doctype){
+    if (dropoffTimer) clearTimeout(dropoffTimer);
+    dropoffFired = false;
+    lastDoctypeContext = { doctype, sessionId: getOrRotateSession() };
+    dropoffTimer = setTimeout(() => {
+      // Priority 3 — 15min timeout
+      if (!dropoffFired && lastDoctypeContext) {
+        captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+          trigger: '15min_timeout',
+          session_id_at_select: lastDoctypeContext.sessionId
+        });
+        dropoffFired = true;
+        flushQueue('dropoff_15min');
+      }
+    }, DROPOFF_TIMEOUT_MS);
+  }
+
+  function cancelDropoff(){
+    if (dropoffTimer) clearTimeout(dropoffTimer);
+    dropoffTimer = null;
+    dropoffFired = false;
+    lastDoctypeContext = null;
+  }
+
+  // ── Listeners — sidebar nav-item clicks (reuse TD-SP04-15 hooks) ─────────
+  function getFirstSelectionFlag(){
+    try { return sessionStorage.getItem(SESSION_FLAG_KEY) === '1'; } catch (_e) { return false; }
+  }
+  function markFirstSelectionDone(){
+    try { sessionStorage.setItem(SESSION_FLAG_KEY, '1'); } catch (_e) { /* ignore */ }
+  }
+
+  document.querySelectorAll('.nav-item[data-mode]').forEach(navItem => {
+    navItem.addEventListener('click', () => {
+      const doctype = navItem.getAttribute('data-mode');
+      if (!doctype) return;
+
+      const isFirst = !getFirstSelectionFlag();
+      const isReclassification = lastDoctypeSelected && lastDoctypeSelected !== doctype;
+
+      // AC-9 FR-ANALYTICS-05 — Pareto (no dedup intra-session)
+      captureEvent('doctype_selected', doctype, null);
+
+      // AC-5 FR-ANALYTICS-03 — Geral pct (first selection after login)
+      if (isFirst) {
+        captureEvent('first_doctype_selected', doctype, null);
+        markFirstSelectionDone();
+      }
+
+      // AC-7 FR-ANALYTICS-04 — reclassification matrix from→to
+      if (isReclassification) {
+        captureEvent('doctype_changed', doctype, {
+          from_doctype: lastDoctypeSelected,
+          to_doctype: doctype
+        });
+      }
+
+      lastDoctypeSelected = doctype;
+      lastDoctypeSelectedAt = Date.now();
+      scheduleDropoff(doctype);
+    });
+  });
+
+  // ── Contract submit hook (AC-3 TTI delta + cancel dropoff) ───────────────
+  // Hook into form submit buttons across doctypes (data-action="submit")
+  document.querySelectorAll('[data-action="submit-contract"], [data-action="analyze-contract"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tti_ms = lastDoctypeSelectedAt ? (Date.now() - lastDoctypeSelectedAt) : null;
+      captureEvent('contract_submitted', lastDoctypeSelected, { tti_ms_client_hint: tti_ms });
+      cancelDropoff();
+      flushQueue('contract_submitted');
+    });
+  });
+
+  // ── Smith F-02 Priority 1: beforeunload — immediate fire ─────────────────
+  window.addEventListener('beforeunload', () => {
+    if (lastDoctypeContext && !dropoffFired) {
+      captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+        trigger: 'beforeunload',
+        session_id_at_select: lastDoctypeContext.sessionId
+      });
+      dropoffFired = true;
+    }
+    flushQueue('beforeunload');
+  });
+
+  // ── Smith F-02 Priority 2: JWT expiry detection (401 from health check) ──
+  async function healthCheckPing(){
+    try {
+      const resp = await fetch('/api/analytics/health', {
+        method: 'GET',
+        credentials: 'include'
+      });
+      if (resp.status === 401 && lastDoctypeContext && !dropoffFired) {
+        // JWT expired — fire dropoff before session truly ends
+        captureEvent('doctype_dropoff', lastDoctypeContext.doctype, {
+          trigger: 'jwt_expiry',
+          session_id_at_select: lastDoctypeContext.sessionId
+        });
+        dropoffFired = true;
+        flushQueue('jwt_expiry');
+      }
+    } catch (_err) { /* degradation tolerated */ }
+  }
+  setInterval(healthCheckPing, 30000);  // 30s health ping (Smith H1 observability)
+})();
 </script>
 
 </body>

@@ -39,6 +39,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
+from bloco_auth import analytics as sp05_analytics
 from bloco_auth import api as sp04_auth_api
 from bloco_auth import audit_isolation as sp04_audit_isolation
 from bloco_auth import byok_api as sp04_byok_api
@@ -381,6 +382,10 @@ app.include_router(sp04_tos.router)
 # Sprint 04 SP04-LGPD-01 chunk 5 — Audit isolation endpoint (FR-AUDIT-01).
 # 1 endpoint: GET /api/tenant/audit/isolation. Auth required + RLS scoped.
 app.include_router(sp04_audit_isolation.router)
+# Sprint 5+ TD-SP04-04-ANALYTICS — Analytics events ingestion (Sati Eixo 5 MANDATORY).
+# 3 endpoints: POST /api/analytics/event, POST /api/analytics/batch, GET /api/analytics/health.
+# Auth required + RLS scoped + HMAC chain in-DB (Smith C2 fix).
+app.include_router(sp05_analytics.router)
 
 
 # CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos
