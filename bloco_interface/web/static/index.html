@@ -348,6 +348,39 @@ body::before{
   display:flex; justify-content:space-between; align-items:center;
 }
 
+/* ===================== TOOLTIPS (TD-SP04-15 Sprint 5+) ===================== */
+/* Floating tooltip shared element. Reduz cognitive load Sati Eixo 2 (Miller's law 7±2 borderline). */
+#tooltip-floating{
+  position:fixed; z-index:9999;
+  padding:8px 12px;
+  background:var(--ink); color:var(--pearl);
+  font-family:var(--f-body); font-size:12.5px; font-weight:500;
+  line-height:1.4; max-width:280px;
+  border-radius:var(--r-sm);
+  box-shadow:var(--shadow-lg);
+  pointer-events:none;
+  opacity:0; transform:translateY(-2px);
+  transition:opacity 160ms var(--ease), transform 160ms var(--ease);
+}
+#tooltip-floating.visible{ opacity:1; transform:translateY(0); }
+#tooltip-floating::before{
+  content:""; position:absolute;
+  left:-5px; top:50%; margin-top:-5px;
+  border-style:solid; border-width:5px 5px 5px 0;
+  border-color:transparent var(--ink) transparent transparent;
+}
+#tooltip-floating.tooltip-left::before{
+  left:auto; right:-5px;
+  border-width:5px 0 5px 5px;
+  border-color:transparent transparent transparent var(--ink);
+}
+[data-theme="dark"] #tooltip-floating{ background:var(--pearl); color:var(--ink); }
+[data-theme="dark"] #tooltip-floating::before{ border-color:transparent var(--pearl) transparent transparent; }
+[data-theme="dark"] #tooltip-floating.tooltip-left::before{ border-color:transparent transparent transparent var(--pearl); }
+@media (prefers-reduced-motion: reduce){
+  #tooltip-floating{ transition:none; transform:none !important; }
+}
+
 /* ===================== MAIN ===================== */
 .main{
   display:flex; flex-direction:column; height:100vh; overflow:hidden;
@@ -951,7 +984,7 @@ body::before{
     <div class="sidebar-scroll">
       <div class="nav-group">
         <div class="nav-group-label">Início</div>
-        <button class="nav-item active" data-view="welcome" data-crumb="Início">
+        <button class="nav-item active" data-view="welcome" data-crumb="Início" data-tooltip="Painel inicial — escolha um modo de análise ao lado para revisar contrato bancário.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
           <span>Visão geral</span>
         </button>
@@ -959,37 +992,37 @@ body::before{
 
       <div class="nav-group">
         <div class="nav-group-label">Modos de Análise</div>
-        <button class="nav-item" data-view="analysis" data-mode="ccb" data-crumb="CCB Bancária">
+        <button class="nav-item" data-view="analysis" data-mode="ccb" data-crumb="CCB Bancária" data-tooltip="Cédula de Crédito Bancário (empréstimo/giro). Súmula 472 STJ + MP 2.170-36 + Res. BACEN 4.558/2017.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
           <span>CCB Bancária</span>
           <span class="nav-item-num">01</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="veiculo" data-crumb="Financiamento de Veículo">
+        <button class="nav-item" data-view="analysis" data-mode="veiculo" data-crumb="Financiamento de Veículo" data-tooltip="CDC pessoa física aquisição de veículo. Foco capitalização juros, IOF, tarifa cadastro e avaliação.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 17h14l-1.5-6h-11L5 17z"/><circle cx="8" cy="18.5" r="1.5"/><circle cx="16" cy="18.5" r="1.5"/></svg>
           <span>Financiamento Veículo</span>
           <span class="nav-item-num">02</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="consignado" data-crumb="Empréstimo Consignado">
+        <button class="nav-item" data-view="analysis" data-mode="consignado" data-crumb="Empréstimo Consignado" data-tooltip="Crédito em folha (INSS/SIAPE/militar). Margem 35%, Lei 10.820/2003 + regras consignatárias.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6h20v12H2z"/><path d="M2 10h20"/><circle cx="7" cy="14" r="1.5"/></svg>
           <span>Empréstimo Consignado</span>
           <span class="nav-item-num">03</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="cartao" data-crumb="Cartão de Crédito">
+        <button class="nav-item" data-view="analysis" data-mode="cartao" data-crumb="Cartão de Crédito" data-tooltip="Cartão + rotativo + cheque especial. Res. BACEN 4.549/2017 (rotativo) + Res. 3.919/2010 (anuidade).">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 11h20M6 16h4"/></svg>
           <span>Cartão de Crédito</span>
           <span class="nav-item-num">04</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="imobiliario" data-crumb="Contrato Imobiliário">
+        <button class="nav-item" data-view="analysis" data-mode="imobiliario" data-crumb="Contrato Imobiliário" data-tooltip="Crédito habitacional SFH/SFI. CES, sistema amortização, correção monetária TR/IPCA.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9H3z"/><path d="M9 21v-6h6v6"/></svg>
           <span>Imobiliário (SFH/SFI)</span>
           <span class="nav-item-num">05</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="fies" data-crumb="FIES — Financiamento Estudantil">
+        <button class="nav-item" data-view="analysis" data-mode="fies" data-crumb="FIES — Financiamento Estudantil" data-tooltip="Financiamento Estudantil federal (FNDE). Lei 10.260/2001 + Manual Operacional MEC vigente.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10L12 5 2 10l10 5 10-5z"/><path d="M22 10v6"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
           <span>FIES (Estudantil)</span>
           <span class="nav-item-num">06</span>
         </button>
-        <button class="nav-item" data-view="analysis" data-mode="geral" data-crumb="Análise Geral">
+        <button class="nav-item" data-view="analysis" data-mode="geral" data-crumb="Análise Geral" data-tooltip="Catch-all contratos não-classificados. Fundamentação primária via CDC Lei 8.078/1990.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
           <span>Análise Geral</span>
           <span class="nav-item-num">07</span>
@@ -998,7 +1031,7 @@ body::before{
 
       <div class="nav-group">
         <div class="nav-group-label">Configurações</div>
-        <button class="nav-item" data-view="apikey" data-crumb="API Key">
+        <button class="nav-item" data-view="apikey" data-crumb="API Key" data-tooltip="Configure chave Anthropic (BYOK sk-ant-...). Cliente paga API direto; chaves nunca passam pelo backend.">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="15" r="4"/><path d="M10.5 12.5L19 4M16 7l3 3M14 9l3 3"/></svg>
           <span>API Key (Claude)</span>
           <span id="apikeyDot" class="nav-item-num">∅</span>
@@ -2026,6 +2059,102 @@ body::before{
   // se sessão iniciou no welcome
   setView({ view:'welcome', crumb:'Início' });
 
+})();
+
+/* ===================== TOOLTIPS IIFE (TD-SP04-15 Sprint 5+) =====================
+   Floating shared tooltip element. Lê data-tooltip de cada .nav-item, posiciona à direita
+   do item (LTR), fallback esquerda se overflow viewport. Handlers: hover (300ms delay show
+   + 100ms dismiss) + keyboard focus/blur + ESC dismiss + touch long-press 500ms.
+   Accessibility: dynamic aria-describedby, role="tooltip", respeita prefers-reduced-motion.
+================================================================================ */
+(function initSidebarTooltips(){
+  'use strict';
+  const tooltip = document.createElement('div');
+  tooltip.id = 'tooltip-floating';
+  tooltip.setAttribute('role', 'tooltip');
+  tooltip.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(tooltip);
+
+  let showTimer = null;
+  let hideTimer = null;
+  let currentBtn = null;
+
+  function positionTooltip(btn){
+    const rect = btn.getBoundingClientRect();
+    const ttRect = tooltip.getBoundingClientRect();
+    // Default: right side of button
+    let left = rect.right + 12;
+    let top  = rect.top + (rect.height / 2) - (ttRect.height / 2);
+    tooltip.classList.remove('tooltip-left');
+    // Overflow detection — flip to left if overflow right edge
+    if (left + ttRect.width > window.innerWidth - 8){
+      left = rect.left - ttRect.width - 12;
+      tooltip.classList.add('tooltip-left');
+    }
+    // Vertical clamp
+    if (top < 8) top = 8;
+    if (top + ttRect.height > window.innerHeight - 8){
+      top = window.innerHeight - ttRect.height - 8;
+    }
+    tooltip.style.left = left + 'px';
+    tooltip.style.top  = top + 'px';
+  }
+
+  function showTooltip(btn){
+    const text = btn.getAttribute('data-tooltip');
+    if (!text) return;
+    tooltip.textContent = text;
+    tooltip.setAttribute('aria-hidden', 'false');
+    btn.setAttribute('aria-describedby', 'tooltip-floating');
+    // Render first to measure, then position
+    tooltip.classList.add('visible');
+    requestAnimationFrame(() => positionTooltip(btn));
+    currentBtn = btn;
+  }
+
+  function hideTooltip(){
+    tooltip.classList.remove('visible');
+    tooltip.setAttribute('aria-hidden', 'true');
+    if (currentBtn){
+      currentBtn.removeAttribute('aria-describedby');
+      currentBtn = null;
+    }
+  }
+
+  document.querySelectorAll('.nav-item[data-tooltip]').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      clearTimeout(hideTimer);
+      showTimer = setTimeout(() => showTooltip(btn), 300);
+    });
+    btn.addEventListener('mouseleave', () => {
+      clearTimeout(showTimer);
+      hideTimer = setTimeout(hideTooltip, 100);
+    });
+    btn.addEventListener('focus',   () => showTooltip(btn));
+    btn.addEventListener('blur',    () => hideTooltip());
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') hideTooltip();
+    });
+    // Touch long-press 500ms
+    let touchTimer = null;
+    btn.addEventListener('touchstart', () => {
+      clearTimeout(touchTimer);
+      touchTimer = setTimeout(() => showTooltip(btn), 500);
+    }, { passive: true });
+    btn.addEventListener('touchend', () => {
+      clearTimeout(touchTimer);
+      setTimeout(hideTooltip, 2000);
+    });
+    btn.addEventListener('touchcancel', () => {
+      clearTimeout(touchTimer);
+      hideTooltip();
+    });
+  });
+
+  // Dismiss on scroll (avoid stale position)
+  window.addEventListener('scroll', () => {
+    if (currentBtn) hideTooltip();
+  }, { passive: true, capture: true });
 })();
 </script>
 

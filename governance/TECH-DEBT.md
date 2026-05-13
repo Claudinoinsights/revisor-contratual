@@ -1014,3 +1014,21 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 | **SPA OrSheva 7 zero coverage** | NEW `tests/integration/test_spa_orsheva_7.py` (8 tests) — render auth/unauth + sidebar 7 modos + numeração 01-07 + brand-honest LGPD + zero CDN + self-host fonts + apikey section | 2026-05-09 |
 
 *Sprint 04 post-authorization CI fix — Neo Opção B-1 (sessão 92, 2026-05-09) · 27 legacy skipped + 8 new SPA tests + 2 NEW MEDIUM TD + 1 LOW process gap. PR #6 ready re-merge attempt após CI re-run verde.*
+
+### NOVOS Sprint 5+ (Ordem 19.1 — Operator catalogar pós TD-SP04-15 Oracle G5 CONCERNS 2026-05-13)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP04-FONTS-FALLBACK** | Oracle G5 TD-SP04-15 review (2026-05-13) | LOW | Comentário linha 16 `bloco_interface/web/static/index.html` mislabel "TD-SP04-15 LOW Sprint 06+ download adicionais" referencia fonts (Manrope 300/800 + Fraunces variable axis + Frank Ruhl Libre) — NÃO tooltips. Update comment ID para novo TD-* + adicionar woff2 weights ausentes (~100KB additional) OR documentar fallback browser nativo como aceito permanent. | 1-2h | @dev (Neo) Sprint 6+ | 2026-05-13 |
+| **TD-SP04-15-MICROCOPY-D-E-F** | Oracle G5 TD-SP04-15 review (2026-05-13) | LOW | Microcopy 3 tooltips sidebar (Veículo + Imobiliário + FIES) genérica até Advogada Orsheva absorver Blocos D/E/F (~6h externos pendentes 2026-05-12 fulfillment 20/32). Micro-patch atualizar 3 `data-tooltip` attributes em `static/index.html` com BACEN/Lei refs canonical pós-absorção. | 15min pós-absorção | @dev (Neo) trigger advogada-blocos-def-done | 2026-05-13 |
+
+
+### NOVOS Sprint 5+ (Smith FINAL re-gate PR #7 residuais — Operator catalogar pós-merge 2026-05-13)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP04-15-M1-ORACLE-WAIVER-CANCEL** | Smith FINAL F-SMITH-PR7-M1 | MEDIUM | Oracle WAIVED-PYTEST-DEFERRED-LOW justificativa INCORRETA — CI provou pytest Python 3.11 (1m13s) + 3.12 (1m14s) SUCCESS, AC-10 PASS empírica. Oracle deve patch QA Results section da story TD-SP04-15 cancelando waiver + atualizar `quality-gate-enforcement.md` Smith FINAL methodology (Oracle DEVE invocar `gh pr checks` antes de waivers ambient-dependent). | 15min Oracle Skill | @qa (Oracle) Sprint 5+ | 2026-05-13 |
+| **TD-SP04-15-M3-POSITION-RACE** | Smith FINAL F-SMITH-PR7-M3 | MEDIUM | Tooltip position calc happens AFTER visible class — 1-frame visual flash potential. JS refactor 5 linhas: pre-calcular posição com `visibility:hidden` + apply `visible` class depois OR positionTooltip antes de classList.add. | 30min Neo Skill | @dev (Neo) Sprint 5+ | 2026-05-13 |
+| **TD-CLOUDFLARE-WORKERS-FIX** | Smith FINAL F-SMITH-PR7-H1 override | MEDIUM | Workers Builds CI check tenta compilar Worker que NÃO existe no repo (sem wrangler.toml/_worker.js). Pre-existing Cloudflare dashboard misconfiguration. Disable Workers check em repo settings OU adicionar wrangler.toml minimal OU configure Cloudflare integration to use só Pages. | 1-2h | @devops (Operator) Sprint 5+ | 2026-05-13 |
+| **TD-SP04-15-L1-L7-POLISH** | Smith FINAL F-SMITH-PR7-L1..L7 consolidado | LOW | 7 LOW findings consolidated: L1 scroll dismiss agressivo (`capture:true` muito broad) · L2 touch dismiss 2000ms arbitrário · L3 consignado microcopy "Margem 35%" oversimplifica INSS/SIAPE/militar variants · L4 focus tooltip sem aria-expanded indicator · L5 story ACs 7 modos vs code 9 (welcome+apikey) precisa PATCH v1.1 ou aceitar débito · L6 pre-existing innerHTML em verdict/findings list audit Sprint 6+ · L7 cartão tooltip duplica info "cheque especial" (Res. CMN 4.765/2019 separado). | 4-6h consolidado | @dev (Neo) + @ux-design-expert (Sati) Sprint 6+ | 2026-05-13 |
+

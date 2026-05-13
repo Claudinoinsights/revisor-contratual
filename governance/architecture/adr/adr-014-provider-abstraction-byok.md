@@ -2,8 +2,14 @@
 type: adr
 id: "ADR-014"
 title: "Provider Abstraction Anthropic Only + BYOK Key Management"
-status: proposed
+status: accepted
 date: "2026-05-07"
+accepted_date: "2026-05-12"
+accepted_by:
+  by: "Eric Claudino"
+  reason: "A_REAFFIRM — reafirmação pivot Sprint 04"
+  trigger: "Morpheus alerta SPA-backend false-positive resolvido (Aria BLOCKING ALERT detectou: SPA já alinhado com ADR-014 desde chunk 1 MINIMAL 2026-05-09)"
+  date: "2026-05-12"
 domain: infra
 adr_level: design
 decision_makers:
@@ -13,7 +19,7 @@ decision_makers:
 supersedes:
   - "ADR-010"
   - "ADR-011"
-superseded_by: ""
+superseded_by: null
 related_to:
   - "ADR-017 (multi-tenant isolation — RLS para tenant_api_keys)"
   - "ADR-015 (vision OCR — usa mesmo provider)"
@@ -104,3 +110,36 @@ Componentes:
 - **ADR-011 (superseded)** — Auto-Ollama Lifecycle local
 - **ADR-017 (related)** — Multi-tenant isolation cobre RLS para `tenant_api_keys`
 - **ADR-015 (related)** — Vision OCR usa mesmo provider Anthropic
+
+---
+
+## Histórico
+
+### 2026-05-07 — ADR-014 drafted (status: proposed)
+- Autoria: Aria (design) + Atlas (research v2 Section 1) + Eric Claudino (autorização A1 + LGPD Path A)
+- Motivação: Smith CC.41 F-A1 — hardware Eric 16GB RAM inviável para LLMs locais simultâneos
+- Supersedes documentados: ADR-010 (Sabia/Qwen mitigation) + ADR-011 (Auto-Ollama Lifecycle)
+- Phase 2.1 Sprint 04 cloud pivot fundamento
+
+### 2026-05-12 — ADR-014 ACCEPTED (A_REAFFIRM Eric)
+- Trigger: Morpheus sessão 2026-05-12 diagnosticou "divergência SPA-backend" baseado em context-load incompleto (não leu Sprint 04 ADRs 013-020)
+- Achado Aria BLOCKING ALERT: SPA OrSheva 7 com "API Key Anthropic" NÃO é divergência — é implementação CORRETA do pivot ADR-014 desde chunk 1 MINIMAL (2026-05-09)
+- Eric confirmou **A_REAFFIRM**: reafirmar pivot Sprint 04, NÃO reverter para Ollama
+- Drift detectado: ADR-INDEX já listava ADR-014 como ✅ Accepted desde 2026-05-07 (estatísticas linha 146 "ADRs proposed: 0"), mas frontmatter do file mantinha `status: proposed` — corrigido nesta sessão
+- Lição arquitetural: **context-load Sprint 04 ADRs (013-020) é MANDATORY antes de qualquer diagnóstico arquitetural**; cadeia consistente (ADR-013/014/015/017/018/019/020) define identidade SaaS BYOK Anthropic do produto
+
+### UX Consultation Hook (adr-governance.md)
+- **Override justificado:** ratify de status `proposed` → `accepted` é decisão de governance, NÃO mudança UX
+- SPA já implementa surface BYOK Anthropic há sessão 2026-05-09 (chunk 1 MINIMAL Neo) — nenhuma surface visible-to-user adicional muda
+- Sati ratify não invocado nesta sessão (consistente com adr-governance.md Override section)
+
+### Conflict Detection (adr-governance.md)
+- ADR-010 + ADR-011 já marcados como superseded no `supersedes:` frontmatter desta ADR (consistente)
+- ADR-INDEX seção "Arquivados (Superseded)" já reflete ADR-010 → ADR-014 e ADR-011 → ADR-014 (consistente)
+- Cadeia Sprint 04 (ADR-013/015/017/018/019/020) consistente — nenhum conflito detectado
+
+### 2026-05-12 — ADR-014 Styling Cleanup (Smith F-D1 LOWs — sessão Aria 0e)
+- **F-D1-LOW-01:** `superseded_by: ""` → `null` (YAML idiomático para "sem valor")
+- **F-D1-LOW-02:** Tag `accepted-2026-05-12` removida do frontmatter (data já capturada em `accepted_date` field — tag específica demais dificulta queries Dataview consistentes)
+- **F-D1-LOW-03:** `accepted_by` string concatenada → map estruturado YAML (campos `by` / `reason` / `trigger` / `date`) para legibilidade + parseabilidade Dataview
+- **Razão:** Smith consolidated review 0a+0b+0c 2026-05-12 detectou estilo YAML não-idiomático em frontmatter pós-flip. Cleanup completa cadeia Smith fix mandatory (0a+0b+0c+0d+0e). Conteúdo decisão/Histórico preservado intacto — apenas styling YAML aprimorado

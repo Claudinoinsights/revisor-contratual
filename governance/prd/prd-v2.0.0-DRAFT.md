@@ -9,7 +9,7 @@ patches:
   - "Phase 3.1 (2026-05-07T15:45): PDF Generation FR-OUTPUT-01..04 + FR-APPROVE-01 simplificado + FR-D3-01 PDF + NFR-PDF-01 + SP04-PDF-OUTPUT-01 story (Eric clarification — advogado revisa PDF offline)"
   - "Phase 5.2 (2026-05-07T17:15): Smith Phase 5 patches CRITICAL — FR-OUTPUT-D3-01..05 (F-003) + FR-NOTIFY-01..05 (F-007) + Delta v2.0.0 → v2.0.1 + Changelog entry. Eric ratifica Path A (Smith RECOMENDADO)"
 previous_version: "1.1.2"
-audience: "Eric Claudino (founder), 4 escritórios beta launchers (TBD)"
+audience: "Eric Claudino (founder Orsheva), 4 escritórios beta launchers (TBD)"
 author: "@pm Trinity (Morgan)"
 sprint: "04"
 phase: 3
@@ -34,12 +34,12 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 **4 mudanças estruturais Sprint 04:**
 
-1. **Cloud LLM via BYOK Anthropic** — cada escritório cliente cadastra sua própria API key Anthropic; Eric não absorve custo variável de tokens
+1. **Cloud LLM via BYOK Anthropic** — cada escritório cliente cadastra sua própria API key Anthropic; Orsheva não absorve custo variável de tokens
 2. **Multi-tenant PostgreSQL Pool+RLS** — milhares de escritórios isolados em mesmo schema, RLS PostgreSQL battle-tested
 3. **4 doctypes simultâneos** — FIES + CDC Veicular + Bancário + Imobiliário (Sprint 03 cobria só Veicular)
-4. **Per-approval billing** — Eric ganha por documentação aprovada pelo advogado (não assinatura genérica)
+4. **Per-approval billing** — Orsheva ganha por documentação aprovada pelo advogado (não assinatura genérica)
 
-**Consequência LGPD crítica:** Eric vira **OPERADOR LGPD** (provê ferramenta SaaS); escritório é **CONTROLADOR** (relação direta com cliente final + responsabilidade pela base legal do tratamento).
+**Consequência LGPD crítica:** Orsheva é **OPERADOR LGPD** (provê ferramenta SaaS); escritório é **CONTROLADOR** (relação direta com cliente final + responsabilidade pela base legal do tratamento).
 
 ---
 
@@ -49,7 +49,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 **Persona primária do escritório:** Advogado(a) cível ou bancário que revisa contratos de financiamento (CDC, FIES, Bancário, Imobiliário) buscando irregularidades para fundamentar ações judiciais.
 
-**Cliente final (do escritório, NÃO do Eric):** Pessoa física que assinou contrato de financiamento e procura escritório por suspeita de cláusulas abusivas.
+**Cliente final (do escritório, NÃO da Orsheva):** Pessoa física que assinou contrato de financiamento e procura escritório por suspeita de cláusulas abusivas.
 
 **Beta launchers Sprint 04:** 4 escritórios TBD (Eric identifica pré-launch).
 
@@ -62,7 +62,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 **BYOK + Hybrid pricing**:
 
 - **Cliente paga sua API key Anthropic direto** (~R$ 4,18/análise CDC Veicular típica via stack Hybrid Sonnet+Haiku — ADR-014 + Atlas v2 Section 3)
-- **Eric cobra**: assinatura mensal base + per-approval fee quando advogado clica "Aprovar" relatório
+- **Orsheva cobra**: assinatura mensal base + per-approval fee quando advogado clica "Aprovar" relatório
 
 **Tier structure (estrutura — valores absolutos pendente Eric+Mifune):**
 
@@ -74,7 +74,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 ⚠️ **Cross-domain Mifune flag**: valores absolutos R$ são decisão Eric+Mifune (business). Atlas v2 Section 3 sugeriu ranges (R$ 200-500 base / R$ 30-50 per-approval) baseado em benchmark BR jurídico (Astrea/ADVBOX) e outcome-based SaaS 2026.
 
-**Margem Eric:** ~10× custo manual de revisão (advogado faria em 2-4h × R$ 200-300/h = R$ 400-1200/análise; Eric cobra R$ 50 = sweet spot Atlas).
+**Margem Orsheva:** ~10× custo manual de revisão (advogado faria em 2-4h × R$ 200-300/h = R$ 400-1200/análise; Orsheva cobra R$ 50 = sweet spot Atlas).
 
 ---
 
@@ -134,7 +134,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 ### Petição D3 (Apelação Cível)
 
 - **FR-D3-01** — Geração de petição Apelação Cível **em PDF** quando análise identifica irregularidades + decisão adversa anexa; mesmo flow download FR-OUTPUT-03 (advogado baixa PDF da peça pronta para uso)
-- **FR-D3-02** — Templates por doctype em `bloco_workflow/templates_d3/{doctype}.txt` — **conteúdo legal pendente Eric advogado** (Trinity define ESTRUTURA, não conteúdo jurídico)
+- **FR-D3-02** — Templates por doctype em `bloco_workflow/templates_d3/{doctype}.txt` — **conteúdo legal pendente advogado(a)** (Trinity define ESTRUTURA, não conteúdo jurídico)
 
 ### FR-NOTIFY — Notificação Async de Análise (CRÍTICO Smith F-007)
 
@@ -166,14 +166,14 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 - **FR-AUDIT-01** — Endpoint `GET /api/tenant/audit/isolation` retorna metadata para escritório auditar isolamento (counts, RLS policies ativas, último login per user) — ref. ADR-017
 - **FR-AUDIT-02** — Audit chain HMAC PRESERVADO Sprint 03 (`bloco_audit/genesis.py + chain.py`) adapta `tenant_id` no payload — ref. ADR-005 + ADR-017
-- **FR-LGPD-01** — DPA Eric-escritório obrigatório no onboarding (Eric advogado redige texto, sistema apresenta + escritório aceita digitalmente)
-- **FR-LGPD-02** — TOS/EULA do SaaS declarando explicitamente papel **operador** Eric (não controlador)
+- **FR-LGPD-01** — DPA Orsheva-escritório obrigatório no onboarding (advogado(a) redige texto, sistema apresenta + escritório aceita digitalmente)
+- **FR-LGPD-02** — TOS/EULA do SaaS declarando explicitamente papel **operador** Orsheva (não controlador)
 
 ### Dashboard & Admin
 
 - **FR-DASH-01** — Dashboard escritório (advogado): listagem de análises com filtros (status/doctype/data), histórico billing, gestão de usuários, settings API key
-- **FR-DASH-02** — Métricas escritório: total análises mês, taxa de aprovação, taxa de rejeição, custo agregado API + Eric fees
-- **FR-ADMIN-01** — Admin Eric (super-user): listar tenants, ver billing agregado por tenant, suspend/reactivate tenant, ver audit logs cross-tenant (read-only para troubleshooting)
+- **FR-DASH-02** — Métricas escritório: total análises mês, taxa de aprovação, taxa de rejeição, custo agregado API + Orsheva fees
+- **FR-ADMIN-01** — Admin Orsheva (super-user): listar tenants, ver billing agregado por tenant, suspend/reactivate tenant, ver audit logs cross-tenant (read-only para troubleshooting)
 
 ---
 
@@ -186,15 +186,15 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 - **NFR-SCALE-01** — Suportar 100+ escritórios concurrent sem degradação RLS (overhead 1-5% per Atlas v2 benchmark)
 - **NFR-AUDIT-01** — Audit chain HMAC PRESERVADO de Sprint 03 — invariante: cada entry tem hash do anterior + payload com `tenant_id`; chain quebrada = alerta crítico
 - **NFR-AVAILABILITY-01** — Uptime objetivo 99.5% (admite Anthropic downstream + manutenções planejadas); status page para escritórios
-- **NFR-SUPPORT-01** — Onboarding self-service (escritório consegue cadastrar API key + fazer 1ª análise sem ajuda Eric); suporte email/chat para edge cases
+- **NFR-SUPPORT-01** — Onboarding self-service (escritório consegue cadastrar API key + fazer 1ª análise sem ajuda Orsheva); suporte email/chat para edge cases
 
 ---
 
 ## 6. Constraints (CON)
 
-- **CON-LGPD-01** — Eric=operador, escritório=controlador (DPA mandatory) — não negociável; ref. Art. 5º LGPD
+- **CON-LGPD-01** — Orsheva=operador, escritório=controlador (DPA mandatory) — não negociável; ref. Art. 5º LGPD
 - **CON-PROVIDER-01** — Anthropic only (A1 Eric autorização Phase 1.7) — Sprint 04 não suporta multi-provider
-- **CON-BUDGET-01** — Per-approval pricing alinha incentivo qualidade Eric; rejection rate alta (>30%) sinaliza quality issue, não meta de receita
+- **CON-BUDGET-01** — Per-approval pricing alinha incentivo qualidade Orsheva; rejection rate alta (>30%) sinaliza quality issue, não meta de receita
 - **CON-VOLUME-01** — Volume aspiracional não definido (Eric C3); arquitetura suporta escala variável (Pool+RLS)
 - **CON-STACK-01** — Anthropic Hybrid (Sonnet OCR+Juiz, Haiku 4 personas) — ref. ADR-014 + Atlas judgment B
 - **CON-OFFLINE-01** — App requer internet (vision LLM cloud); sem internet = sem análise nova (cache OCR ainda servível para re-views)
@@ -225,7 +225,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 #### F-003 — FR-OUTPUT-D3 adicionado (5 FRs)
 - Spec mecanismo PDF petição D3 separado da análise (gap identificado: UX S6 expõe "Baixar Petição D3" sem FR específico)
 - Template Jinja2 dedicado, estrutura legal, watermark, audit log
-- Conteúdo legal templates: cross-domain Eric advogado especializado (mantém Section 12 pendência)
+- Conteúdo legal templates: cross-domain advogado(a) especializado(a) (mantém Section 12 pendência)
 
 #### F-007 — FR-NOTIFY adicionado (5 FRs)
 - Notificação async de análise pronta (gap identificado: UX S5 promete "você será notificado" mas PRD não tinha FR mecanismo)
@@ -235,7 +235,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 
 #### Não modificado nesta versão (CRITICAL pendentes)
 - **F-012** (DPA storage schema) → endereçado por **Aria Phase 5.3 ADR-019** (próximo Skill na cadeia Path A)
-- **F-016** (LGPD subprocessor argument) → cross-domain Eric advogado especializado paralelo (5-15 dias)
+- **F-016** (LGPD subprocessor argument) → cross-domain advogado(a) especializado(a) paralelo (5-15 dias)
 
 #### Não modificado nesta versão (debt aceitável)
 - 19 HIGH + 13 MEDIUM + 2 LOW Smith findings → TECH-DEBT.md CC.43+ (defer post Phase 6 PR creation)
@@ -261,7 +261,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 - **PDF Generation server-side** (FR-OUTPUT-01..04) — relatório análise + petição D3 ambos em PDF para download offline; workflow advogado revisa PDF na sua ferramenta preferida (Adobe/Foxit), retorna ao app apenas para Aprovar/Desaprovar
 - **Workflow simplificado approval** (FR-APPROVE-01 simplificado) — sem UI de revisão complexa dentro do app; click instantâneo Aprovar/Desaprovar após review offline do PDF
 - **Per-approval billing** (FR-APPROVE-01..04 + FR-BILLING-01..04) — modelo de receita novo
-- **Dashboard escritório + Admin Eric** (FR-DASH-* + FR-ADMIN-01)
+- **Dashboard escritório + Admin Orsheva** (FR-DASH-* + FR-ADMIN-01)
 - **DPA + TOS operador** (FR-LGPD-01..02) — formaliza papel operador
 
 ### Features Modificadas
@@ -276,7 +276,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 - **OCR local marker-pdf + Surya** — substituído por Vision LLM (sem fallback local)
 - **Auto-Ollama lifecycle management** — sem Ollama no cloud (ADR-011 superseded)
 - **Mitigação Sabia Q4 Qwen fallback** — sem LLM local (ADR-010 superseded)
-- **BACKUP_DIR + pseudonimização HMAC LGPD on-premise** — Eric vira operador; escritório controla pseudonimização (ADR-009 superseded)
+- **BACKUP_DIR + pseudonimização HMAC LGPD on-premise** — Orsheva é operador; escritório controla pseudonimização (ADR-009 superseded)
 - **SQLite vector store** — substituído por PostgreSQL pgvector multi-tenant (ADR-007 superseded)
 
 ### Escopo Atual vs Original
@@ -286,8 +286,8 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 | Doctypes suportados | 1 (CDC Veicular) | 4 (FIES + Veicular + Bancário + Imobiliário) | +3 |
 | Modelo de deploy | Local on-premise (1 user) | Cloud SaaS multi-tenant (N escritórios) | Estrutural |
 | LLM stack | Local Ollama (Sabia + Qwen) | Cloud Anthropic (Sonnet + Haiku) | Estrutural |
-| Modelo de negócio | N/A (uso interno Eric) | Hybrid base + per-approval | Novo |
-| Papel LGPD Eric | Controlador | Operador | Estrutural |
+| Modelo de negócio | N/A (uso interno Orsheva) | Hybrid base + per-approval | Novo |
+| Papel LGPD Orsheva | Controlador | Operador | Estrutural |
 | FRs totais | ~13 (PRD v1.1.2) | ~25 (PRD v2.0.0) | +12 |
 
 ---
@@ -301,7 +301,7 @@ Revisor Contratual evolui de ferramenta local single-tenant (Sprint 03 MVP-LEAN-
 - **Section Delta:** v2.0.0 → v2.0.1 com escopo +10 FRs e 2/4 CRITICAL fechados via PRD
 - **Reason:** Smith adversarial review (commit 4519ef1) verdict CONCERNS + 4 CRITICAL findings — patches mandatory antes Phase 7 implementation. Eric ratifica Path A (Smith RECOMENDADO).
 - **Refs:** governance/qa/smith-sp04-pivot-adversarial.md (commit 4519ef1)
-- **Pending CRITICAL:** F-012 (Aria Phase 5.3 ADR-019 DPA storage schema) + F-016 (cross-domain Eric advogado LGPD subprocessor argument)
+- **Pending CRITICAL:** F-012 (Aria Phase 5.3 ADR-019 DPA storage schema) + F-016 (cross-domain advogado(a) LGPD subprocessor argument)
 - **Path A chain progress:** step 2/6 done (Trinity Phase 5.2)
 
 ### v2.0.0 (2026-05-07) — MAJOR BUMP — Cloud SaaS BYOK Pivot
@@ -329,7 +329,7 @@ PRD on-premise local single-tenant CDC Veicular PF — preservado em branch `fea
 Sequência recomendada (dependências):
 
 1. **SP04-AUTH-01** — Multi-tenant authentication + tenant onboarding (FR-AUTH-01..03)
-2. **SP04-LGPD-01** — DPA + TOS operador + audit isolation endpoint (FR-LGPD-01..02 + FR-AUDIT-01) — paralelo a SP04-AUTH-01 pois Eric advogado redige DPA
+2. **SP04-LGPD-01** — DPA + TOS operador + audit isolation endpoint (FR-LGPD-01..02 + FR-AUDIT-01) — paralelo a SP04-AUTH-01 pois advogado(a) redige DPA
 3. **SP04-BYOK-01** — API key management (cadastro/validação/rotation/revocation) (FR-API-KEY-01..04)
 4. **SP04-OCR-01** — Vision OCR Sonnet 4.6 + cache (FR-OCR-01..03)
 5. **SP04-DOCTYPE-DISPATCHER-01** — Strategy pattern infrastructure (FR-DOCTYPE-01..04) — sem prompts ainda
@@ -341,7 +341,7 @@ Sequência recomendada (dependências):
 11. **SP04-APPROVE-01** — Workflow aprovação + state machine (FR-APPROVE-01..04) — depende SP04-PDF-OUTPUT-01
 12. **SP04-BILLING-01** — Stripe integration + billing event webhook (FR-BILLING-01..04) — depende SP04-APPROVE-01
 13. **SP04-DASH-01** — Dashboard escritório: listagem análises + filtros + botões [Baixar PDF] + [Aprovar] + [Desaprovar] (FR-DASH-01..02)
-14. **SP04-ADMIN-01** — Admin Eric super-user (FR-ADMIN-01)
+14. **SP04-ADMIN-01** — Admin Orsheva super-user (FR-ADMIN-01)
 
 Total estimativa stories: **~14**. SM (River) refina granularidade + estimativas em Phase 6+ (story creation).
 
@@ -384,8 +384,8 @@ Total estimativa stories: **~14**. SM (River) refina granularidade + estimativas
 | Pendência | Owner | Quando |
 |---|---|---|
 | Valores absolutos R$ pricing tier (FR-BILLING-04) | @mifune (Mifune business) cross-domain OR Eric direto | Antes de SP04-BILLING-01 implementação |
-| Conteúdo legal templates D3 (FR-D3-02) | Eric advogado | Antes de SP04-DOCTYPE-{FIES/VEICULAR/BANCARIO/IMOBILIARIO}-01 |
-| Texto DPA + TOS operador (FR-LGPD-01..02) | Eric advogado paralelo Phase 3 | Antes de SP04-LGPD-01 release |
+| Conteúdo legal templates D3 (FR-D3-02) | advogado(a) | Antes de SP04-DOCTYPE-{FIES/VEICULAR/BANCARIO/IMOBILIARIO}-01 |
+| Texto DPA + TOS operador (FR-LGPD-01..02) | advogado(a) paralelo Phase 3 | Antes de SP04-LGPD-01 release |
 | UX redesign aplicar OrSheva brandbook | @ux-design-expert Sati Phase 4 | Após Phase 3 |
 | Adversarial review pivot completo | @qa Smith Phase 5 | Após Phase 4 |
 

@@ -369,3 +369,32 @@ Convergência saudável de 13 → 0 findings em 4 iterações; ADR-013 reflete o
 *ADR-013 — Aria (sessão 87, 2026-05-06) · Sprint 03 course-correction CC.2 · Consolidação 5 decisões arquiteturais MVP v1.1.2.1 · ADR-Design DEFAULT (não Spec — implementação cirúrgica fica em FRs/stories)*
 
 — Aria, arquitetando o futuro 🏗️
+
+---
+
+## Histórico
+
+### 2026-05-06 — ADR-013 drafted (sessão 87 Sprint 03 course-correction CC.2)
+- Autoria: Aria (design) + Morgan (alinhamento PRD v1.1.2.1) + Morpheus (consolidação 5 decisões)
+- Escopo: MVP Lean Strategy + Deployment Path (5 decisões arquiteturais — Docker, Hosting, LGPD operacional, Backup automation, Tema 1378 risk mitigation)
+- Status inicial: accepted
+
+### 2026-05-07 — ADR-013 deprecated PARCIAL (Sprint 04 cloud pivot)
+- Trigger: Sprint 04 pivot SaaS B2B cloud → ADR-015 Vision OCR Architecture supersedeu mecanismo OCR (marker-pdf + Surya local → Claude Sonnet 4.6 vision cloud)
+- Frontmatter status: accepted → deprecated; partially_superseded_by: ADR-015
+- Warning bold no topo do documento
+- ADR-INDEX strikethrough + "Superseded by ADR-015 (parcial — Vision OCR pivot)"
+- Preservado válido: MVP Lean intent (single-page deploy, simple architecture, deployment path) — não revisita arquitetural
+- Razão: cloud pivot removeu OCR local, MAS distribution/hosting/deployment path conceitos permanecem válidos para reflection arquitetural
+
+### 2026-05-12 — CC.2 CLOSURE (sessão 2026-05-12 Aria 0h)
+- Trigger: PROJECT-CHECKPOINT.md L6 active_story declarou "Próximo: CC.2 Aria ADR-013" como pendente pré-sessão de fixes Smith
+- Análise Aria: ADR-013 já estava completamente documentado como deprecated parcial via frontmatter idiomático (status: deprecated + deprecated_date + partially_superseded_by: ADR-015 + warning bold L39-42) e ADR-INDEX já refletia strikethrough. VAULT-FIX-01 (story Done committed 3d055c6) implementou ADR-012 (vault data bundling), não ADR-013
+- Decisão Aria CC.2 closure: **ADR-013 NÃO requer updates substantivos** — deprecação parcial já formalizada em 2026-05-07. CC.2 closure é apenas consolidação documental
+- Cadeia CC Sprint 03 Phase 0:
+  * CC.1A FECHADO (docs commit ef8d087)
+  * CC.1B FECHADO (VAULT-FIX-01 commit 3d055c6 — story Done)
+  * CC.2 FECHADO (ADR-013 reaffirmação documental — esta entrada)
+- Próximo: Eric decide PR creation Sprint 03 Phase 0 closure (Operator dispatch quando autorizado)
+- Lição arquitetural: **ADR-013 deprecação parcial foi instrutiva** — demonstrou pattern "MVP roadmap morre quando estratégia pivota, mas reflection arquitetural intent permanece útil". Pattern aplicável a futuros pivots Sprint 05+
+

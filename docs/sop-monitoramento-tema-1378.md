@@ -122,7 +122,7 @@ Cada execução SOP-005 DEVE produzir:
   "tribunal": "STJ",
   "status_detectado": "em_julgamento",
   "data_verificacao": "2026-08-15",
-  "operator": "maintainer (Eric)",
+  "operator": "maintainer (Orsheva)",
   "source_url": "https://www.stj.jus.br/repetitivos/temas-repetitivos",
   "trigger_motivo": "reminder_trimestral",
   "action_taken": "documentar status; nenhuma acao adicional",
