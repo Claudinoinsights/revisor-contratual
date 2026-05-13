@@ -611,5 +611,63 @@ from bloco_interface.analytics_cli import analytics_group  # noqa: E402
 main.add_command(analytics_group)
 
 
+# ─────────────────────────────────────────────────────────────────────
+# TD-SP04-S4-V1 Imobiliário — CLI validate command (Sprint 5+ Bloco 3)
+# Constitution Art. I CLI First — validate before SPA UI integration
+# ─────────────────────────────────────────────────────────────────────
+
+
+@main.command("imobiliario")
+@click.option("--matricula", required=True, help="Matrícula RGI (formato X.XXX.XXX.XX.XXXX)")
+@click.option("--valor", required=True, type=float, help="Valor avaliação R$ (decimal)")
+@click.option(
+    "--garantia",
+    required=True,
+    type=click.Choice(["alienacao_fiduciaria", "hipoteca"]),
+    help="Tipo garantia (Lei 9.514/97 | CC Art. 1.473)",
+)
+@click.option(
+    "--indice",
+    required=True,
+    type=click.Choice(["tr", "ipca", "igpm", "pre"]),
+    help="Índice correção (SFH TR padrão + SFI livre)",
+)
+def imobiliario_validate(matricula: str, valor: float, garantia: str, indice: str) -> None:
+    """Validate Imobiliário contract data fields (Sprint 5+ Bloco 3 TD-SP04-S4-V1).
+
+    Validation via Pydantic ImobiliarioContractDataIn — exit 0 PASS, exit 1 FAIL.
+    Mirror backend strict validation antes de SPA submission.
+    """
+    from decimal import Decimal
+
+    from bloco_contratos.imobiliario_schema import ImobiliarioContractDataIn
+
+    def run() -> int:
+        try:
+            data = ImobiliarioContractDataIn(
+                matricula_rgi=matricula,
+                valor_avaliacao=Decimal(str(valor)),
+                tipo_garantia=garantia,
+                indice_correcao=indice,
+            )
+            click.echo(format_success(
+                f"PASS — Imobiliário data válida: matrícula={data.matricula_rgi} "
+                f"valor=R${data.valor_avaliacao:.2f} garantia={data.tipo_garantia} "
+                f"índice={data.indice_correcao}"
+            ))
+            return 0
+        except Exception as exc:  # noqa: BLE001
+            click.echo(format_error(f"FAIL — {exc}"))
+            return 1
+
+    from bloco_interface.error_handler import safe_run
+    exit_code = safe_run(run, on_error=echo_error)
+    raise SystemExit(exit_code)
+
+
+# Import format_error helper
+from bloco_interface.output import format_error  # noqa: E402
+
+
 if __name__ == "__main__":
     main()

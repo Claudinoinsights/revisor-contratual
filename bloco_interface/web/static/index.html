@@ -1237,6 +1237,81 @@ body::before{
           <div class="summary-chip">API Key: <strong id="apikeyChip">não configurada</strong></div>
         </div>
 
+        <!-- ════════════════════════════════════════════════════════════════
+             TD-SP04-S4-V1 Imobiliário Wireframe Variant (Sprint 5+ Bloco 3)
+             4 campos específicos SFH/SFI (Sati Eixo 4 NEEDS CHANGES pull-forward).
+             Conditional render: only visible quando currentMode === 'imobiliario'.
+             WCAG AA per Sati spec Section 4 (aria-* + focus-ring + error announce).
+             ════════════════════════════════════════════════════════════════ -->
+        <fieldset id="imobiliarioFields" class="imobiliario-fields" hidden
+                  aria-label="Campos específicos contrato imobiliário SFH/SFI">
+          <legend class="sr-only">Campos Imobiliário-specific</legend>
+
+          <div class="form-row">
+            <label for="imo-matricula-rgi">
+              Matrícula RGI <span aria-label="campo obrigatório">*</span>
+            </label>
+            <input id="imo-matricula-rgi" type="text"
+                   pattern="^\d{1,2}\.\d{3}\.\d{3}\.\d{2}\.\d{1,4}$"
+                   placeholder="0.000.000.00.0000"
+                   aria-describedby="imo-matricula-help imo-matricula-error"
+                   autocomplete="off" />
+            <small id="imo-matricula-help" class="form-help">
+              Formato: cartório.livro.folha.X.Y (ex: 1.234.567.89.0001)
+            </small>
+            <small id="imo-matricula-error" class="form-error" role="alert" hidden>
+              Formato inválido
+            </small>
+          </div>
+
+          <div class="form-row">
+            <label for="imo-valor-avaliacao">
+              Valor da avaliação <span aria-label="campo obrigatório">*</span>
+            </label>
+            <input id="imo-valor-avaliacao" type="text"
+                   inputmode="decimal"
+                   placeholder="R$ 0,00"
+                   aria-describedby="imo-valor-help imo-valor-error"
+                   autocomplete="off" />
+            <small id="imo-valor-help" class="form-help">
+              Avaliação atual do imóvel
+            </small>
+            <small id="imo-valor-error" class="form-error" role="alert" hidden>
+              Valor inválido (R$ 0 a R$ 100M)
+            </small>
+          </div>
+
+          <div class="form-row">
+            <label for="imo-garantia">
+              Tipo de garantia <span aria-label="campo obrigatório">*</span>
+            </label>
+            <select id="imo-garantia" aria-describedby="imo-garantia-help">
+              <option value="">Selecione</option>
+              <option value="alienacao_fiduciaria">Alienação fiduciária (Lei 9.514/97)</option>
+              <option value="hipoteca">Hipoteca (CC Art. 1.473)</option>
+            </select>
+            <small id="imo-garantia-help" class="form-help">
+              Modalidade legal de garantia do contrato
+            </small>
+          </div>
+
+          <div class="form-row">
+            <label for="imo-indice">
+              Índice de correção <span aria-label="campo obrigatório">*</span>
+            </label>
+            <select id="imo-indice" aria-describedby="imo-indice-help">
+              <option value="">Selecione</option>
+              <option value="tr">TR (SFH padrão)</option>
+              <option value="ipca">IPCA</option>
+              <option value="igpm">IGP-M</option>
+              <option value="pre">Pré-fixado</option>
+            </select>
+            <small id="imo-indice-help" class="form-help">
+              Índice contratual de correção monetária
+            </small>
+          </div>
+        </fieldset>
+
         <div class="analysis-grid">
 
           <!-- Upload + actions panel -->
@@ -1567,9 +1642,10 @@ body::before{
     // crumb
     document.getElementById('crumbCurrent').textContent = opts.crumb || (view.charAt(0).toUpperCase() + view.slice(1));
 
-    // TD-SP04-16: disclaimer "Modo Avançado em desenvolvimento" nos 3 modos novos
-    // (Imobiliário/FIES/Geral) — wireframe variants pendentes Sprint 6+ (TD-SP04-S4-V1/V2/V3)
-    const MODOS_AVANCADOS = ['imobiliario','fies','geral'];
+    // TD-SP04-16: disclaimer "Modo Avançado em desenvolvimento" nos modos novos.
+    // TD-SP04-S4-V1 Sprint 5+ Bloco 3 SHIPPED Imobiliário wireframe variant —
+    // imobiliario REMOVED do array (badge mantém apenas fies+geral pendentes Sprint 6+).
+    const MODOS_AVANCADOS = ['fies','geral'];
     const badge = document.getElementById('modoAvancadoBadge');
     if (badge){
       const isModoAvancado = (view === 'analysis' && MODOS_AVANCADOS.includes(opts.mode));
@@ -1586,6 +1662,14 @@ body::before{
       document.getElementById('modeTitle').innerHTML  = 'Análise — ' + info.title;
       document.getElementById('modeLead').textContent = info.lead;
       document.getElementById('modeChip').textContent = info.tag;
+
+      // TD-SP04-S4-V1 Sprint 5+ Bloco 3 — Imobiliário wireframe variant
+      // Conditional render fieldset apenas para mode === 'imobiliario'
+      const imoFields = document.getElementById('imobiliarioFields');
+      if (imoFields) {
+        imoFields.hidden = (mode !== 'imobiliario');
+      }
+
       resetAnalysis(); // limpar estado entre modos
     }
 

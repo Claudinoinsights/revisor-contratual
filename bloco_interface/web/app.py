@@ -40,6 +40,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
 from bloco_auth import analytics as sp05_analytics
+from bloco_contratos import imobiliario_schema as sp06_imobiliario
 from bloco_auth import api as sp04_auth_api
 from bloco_auth import audit_isolation as sp04_audit_isolation
 from bloco_auth import byok_api as sp04_byok_api
@@ -386,6 +387,9 @@ app.include_router(sp04_audit_isolation.router)
 # 3 endpoints: POST /api/analytics/event, POST /api/analytics/batch, GET /api/analytics/health.
 # Auth required + RLS scoped + HMAC chain in-DB (Smith C2 fix).
 app.include_router(sp05_analytics.router)
+# Sprint 5+ TD-SP04-S4-V1 — Imobiliário Wireframe Variant (Sati Eixo 4 pull-forward).
+# 1 endpoint: POST /api/contracts/imobiliario. 4 campos específicos SFH/SFI + RLS.
+app.include_router(sp06_imobiliario.router)
 
 
 # CC.39 fix F-06 (Smith CC.37): cache busting automático via mtime hash dos
