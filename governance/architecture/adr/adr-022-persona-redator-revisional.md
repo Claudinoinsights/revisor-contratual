@@ -130,18 +130,48 @@ class PecaRevisional(BaseModel):
     citacoes_jurisprudencia: list[str]  # IDs Súmulas/Temas vault
 ```
 
-**Validador post-LLM** (`bloco_workflow/personas/redator.py`):
+**Hardening 3-camadas defense in depth** (versão patch Sprint 6.1 — Smith F-γ-04 remediation):
+
+| Layer | Tipo | Implementação | Status atual |
+|-------|------|---------------|--------------|
+| **1** Pydantic strict | Structural — schema enforcement | `PecaRevisional` + `RelatorioInviabilidade` com `extra="forbid"` + `min_length` + regex `valor_causa` | ✅ Implementado Sprint 6 Bloco γ |
+| **2** Vault-restricted citation IDs | Symbolic — `id_doc` cross-reference | `validar_citacoes_vault(peca, vault_doc_ids)` em `redator.py` raises `PecaHallucinationError` se id fora vault | ✅ Implementado Sprint 6 Bloco γ |
+| **3** NLI semantic validator | Semantic — citação textual vs ementa real | Para cada `fundamentos_invocados[].citacao_textual` em `PecaRevisional`, executar NLI híbrido (cosine + BERT NLI) contra ementa real da Súmula vault. NLI label `contradiction` → `PecaHallucinationError`. Reuso pattern ADR-004 (`ValidacaoSemantica`) já aplicado a TeseAdvogado | 🟡 **Spec Sprint 6.1 — Story TD-SP06.1-LAYER-3-NLI-VALIDATOR** |
+
+**Layer 2 (current implementation):**
 
 ```python
-def validar_citacoes_vault(peca: PecaRevisional, vault_docs: list[str]) -> bool:
-    """Rejeita peça se cita Súmula/Tema fora do vault.docs_recuperados (R-01 mitigation)."""
-    for citacao_id in peca.citacoes_jurisprudencia:
-        if citacao_id not in vault_docs:
-            raise PecaHallucinationError(
-                f"Súmula '{citacao_id}' alucinada (fora vault docs: {vault_docs})"
-            )
-    return True
+def validar_citacoes_vault(peca: PecaRevisional, vault_doc_ids: list[str]) -> None:
+    """Layer 2 — bloqueia citações `id_doc` fora do vault (FR-PECA-05 traceability)."""
+    fantasmas = set(peca.citacoes_jurisprudencia) - set(vault_doc_ids)
+    if fantasmas:
+        raise PecaHallucinationError(
+            f"Citações fora do vault: {sorted(fantasmas)}. FR-PECA-05 traceability — peça REJEITADA."
+        )
 ```
+
+**Layer 3 (Sprint 6.1 spec — TD-SP06.1-LAYER-3-NLI-VALIDATOR):**
+
+```python
+# Adicionar ao bloco_workflow/personas/redator.py em Sprint 6.1:
+async def validar_citacoes_nli(
+    peca: PecaRevisional,
+    vault_docs: list[JurisprudenciaItem],
+    nli_validator_fn=None,  # DI para tests offline (reuso ValidacaoSemantica pattern ADR-004)
+) -> list[ValidacaoSemantica]:
+    """Layer 3 — NLI semantic validation citações textuais vs ementas vault.
+
+    Para cada fundamento citado pela peça, executa NLI híbrido (cosine similarity
+    + BERT NLI) contra ementa real da Súmula no vault. Bloqueia se label == contradiction.
+    """
+    # Implementation Sprint 6.1 — story TD-SP06.1-LAYER-3-NLI-VALIDATOR
+    ...
+```
+
+**Razão da distinção Layer 2 ↔ Layer 3:**
+- Layer 2 captura "Súmula 999 não existe no vault" (ID fantasma)
+- Layer 3 captura "Súmula 539 existe mas peça afirma o OPOSTO do que ela diz" (interpretação invertida)
+- Defesa em profundidade — ambos hallucination patterns documentados em LLMs jurídicos
 
 #### D3. Pipeline Integration — Serial Step 7 + Step 8
 
@@ -177,19 +207,26 @@ elif veredito.veredito == "REJEITADO":
 **Estrutura:**
 
 ```html
+<!-- Versão patch Sprint 6.1 — Smith F-γ-05 remediation:
+     Fontes alinhadas ao brandbook OrSheva 7 v1.1.2 real (tokens.css linhas 13-62):
+     Manrope (sans, UI/corpo) + Fraunces (serif, display) + Or-500 #EE6B20 accent.
+     Lora/Outfit do skeleton original NÃO existem em static/fonts/ — descontinuadas. -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <title>{{ peca.cabecalho|truncate(60) }}</title>
   <style>
-    @font-face { font-family: 'Lora'; src: url('/static/fonts/Lora-Regular.ttf'); }
-    @font-face { font-family: 'Outfit'; src: url('/static/fonts/Outfit-Regular.ttf'); }
-    body { font-family: 'Lora', serif; font-size: 12pt; line-height: 1.6; margin: 25mm; }
-    h1, h2 { font-family: 'Outfit', sans-serif; color: var(--peca-primary, #1a1a2e); }
-    .secao { margin-bottom: 18pt; page-break-inside: avoid; }
-    .disclaimer { font-size: 9pt; color: var(--peca-muted, #6c757d); margin-top: 24pt; border-top: 1pt solid #ddd; padding-top: 12pt; }
-    @page { size: A4 portrait; margin: 25mm; @bottom-right { content: counter(page) "/" counter(pages); } }
+    @font-face { font-family: 'Manrope'; font-weight: 400; src: url('fonts/manrope-400.woff2') format('woff2'); }
+    @font-face { font-family: 'Manrope'; font-weight: 600; src: url('fonts/manrope-600.woff2') format('woff2'); }
+    @font-face { font-family: 'Fraunces'; font-weight: 500; src: url('fonts/fraunces-500.woff2') format('woff2'); }
+    body { font-family: 'Manrope', sans-serif; font-size: 11pt; line-height: 1.55; color: #1A1816; }
+    h1, h2 { font-family: 'Fraunces', serif; color: #1A1816; }
+    h2 { color: #AC4408; border-bottom: 1pt solid #E8E4DC; }  /* Or-700 accent + neutral border */
+    .secao { margin-bottom: 6mm; page-break-inside: avoid; }
+    .valor-causa-bloco { background: #FFF4EC; border-left: 3pt solid #EE6B20; padding: 4mm 5mm; }  /* Or-50 surface + Or-500 accent */
+    .disclaimer { font-size: 9pt; color: #6B6457; margin-top: 12mm; border-top: 1pt solid #E8E4DC; padding-top: 4mm; }
+    @page { size: A4 portrait; margin: 25mm 22mm 22mm 22mm; @bottom-right { content: counter(page) " / " counter(pages); } }
   </style>
 </head>
 <body>
@@ -452,6 +489,7 @@ async def download_peca(request: Request, job_id: str) -> Response:
 | Data | Mudança | Autor |
 |------|---------|-------|
 | 2026-05-14 | Criação ADR — Persona Redator Revisional sabia-7b primary + Qwen fallback + 3-layer anti-hallucination defense | @architect (Aria) |
+| 2026-05-14 | **PATCH D2 + D4 Sprint 6.1** — Smith F-γ-04 + F-γ-05 remediation. D2: clarificar 3-camadas anti-hallucination distinguindo Layer 2 (vault-restricted citation IDs) de Layer 3 (NLI semantic validator citações textuais — spec via story TD-SP06.1-LAYER-3-NLI-VALIDATOR, reuso ADR-004 pattern). D4: substituir fontes Lora/Outfit por Manrope (sans) + Fraunces (serif) + Or-500 #EE6B20 — alinhamento brandbook OrSheva 7 v1.1.2 real (tokens.css linhas 13-62). Status ADR mantido `accepted` — patch refinement não supersede. | @architect (Aria) |
 
 ## Referências
 
