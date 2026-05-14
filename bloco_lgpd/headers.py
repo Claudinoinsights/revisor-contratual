@@ -13,10 +13,14 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 # CSP per ux-spec: HTMX requer style 'unsafe-inline' (inline styles em base.html banner Ollama SSE).
-# script-src 'self' bloqueia eval/external; frame-ancestors 'none' previne clickjacking.
+# UX-LOGIN-FIX (F-LOGIN-BROKEN-06 Smith CRITICAL 2026-05-14): script-src 'unsafe-inline'
+# necessário porque SPA bloco_interface/web/static/index.html:1487 wrappa ~700 lines de inline
+# JavaScript IIFE. Sprint 6+ TD-CSP-HARDEN-EXTRACT-JS: extract inline JS para /static/spa.js
+# + remove 'unsafe-inline' restaurando defense-in-depth XSS production-grade.
+# frame-ancestors 'none' previne clickjacking preservado.
 CSP_VALUE = (
     "default-src 'self'; "
-    "script-src 'self'; "
+    "script-src 'self' 'unsafe-inline'; "
     "style-src 'self' 'unsafe-inline'; "
     "img-src 'self' data:; "
     "connect-src 'self'; "
