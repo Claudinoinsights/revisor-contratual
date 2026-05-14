@@ -1828,9 +1828,50 @@ body::before{
     resetAnalysis(true);
   });
 
-  // ============ ANALYSIS ENGINE (mock) ============
+  // ============ ANALYSIS ENGINE (real backend ADR-021 — TD-SP06-SPA-CONNECT-01 Sprint 6 Bloco β) ============
+  // Mapping fases backend SSE → label UI. Backend MVP_LEAN_PHASES e pipeline.py emitem
+  // events `phase-start` / `phase-done` por step. SPA listen + atualiza UI fase real.
   const STEP_NAMES = ['Ingestão', 'Identificação', 'Cláusulas', 'Verificação', 'Cálculo', 'Síntese'];
   let analysisRunning = false;
+  let activeEventSource = null;
+
+  // TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3: Mapping SPA sidebar mode → backend
+  // ModalidadeContrato Literal. Apenas CDC_VEICULOS_PF é MVP-suportado (DP-03 restrição).
+  // Demais modalidades resultam em 422 backend até Sprint 6+ ADR específicas expansão.
+  const MODALIDADE_BACKEND_MAP = {
+    ccb: 'CDC_BENS_PF',
+    veiculo: 'CDC_VEICULOS_PF',
+    consignado: 'CDC_BENS_PF',
+    cartao: 'CARTAO_ROTATIVO',
+    imobiliario: 'CDC_IMOBILIARIO',
+    fies: 'CDC_BENS_PF',
+    geral: 'CDC_BENS_PF',
+  };
+  const MVP_SUPPORTED_MODES = new Set(['veiculo']);  // Apenas CDC_VEICULOS_PF MVP funcional
+
+  // TD-SP06-PHASE-VALID-01 Sprint 6 Bloco β Wave 3: Phase labels + timing thresholds
+  // baseados em Smith Bloco α empirical (parsing 2-5s, BACEN 16s, vault 16s, LLM 1m36s).
+  const PHASE_LABELS = {
+    parsing_pdf: { label: 'Lendo seu contrato...', expected_s: 5, warning_s: 30 },
+    calculo: { label: 'Calculando Tabela Price + anatocismo...', expected_s: 1, warning_s: 10 },
+    bacen: { label: 'Consultando taxa BACEN...', expected_s: 10, warning_s: 60 },
+    vault: { label: 'Buscando jurisprudência STJ...', expected_s: 20, warning_s: 60 },
+    personas: { label: 'Personas LLM analisando (Advogado + Economista)...', expected_s: 120, warning_s: 300 },
+    juiz: { label: 'Juiz validando aderência...', expected_s: 1, warning_s: 10 },
+  };
+
+  // TD-SP06-PHASE-VALID-01: error_type → cause user-friendly PT-BR (reusa C6 variants
+  // backend error_handler.py se phase-error payload já vem traduzido; senão fallback).
+  const ERROR_CAUSES_PT = {
+    VaultEmptyError: 'Banco de jurisprudência vazio — Vault SQLite não populado',
+    ModalidadeNaoSuportada: 'Modalidade contratual fora do MVP atual',
+    NotImplementedError: 'Funcionalidade ainda em desenvolvimento (DP-03 MVP restrição)',
+    BacenFetchExhausted: 'API BACEN temporariamente indisponível e sem cache',
+    OllamaSpawnFailed: 'Modelo LLM falhou ao inicializar',
+    MetadataExtractionError: 'PDF sem metadados extraíveis (forneça UF + data manualmente)',
+    ParserOCRRequired: 'PDF imagem-only — Marker OCR ausente. Use PDF born-digital sintético (TD-SP06-MARKER-DEFERRED)',
+    PipelineError: 'Erro no pipeline de análise',
+  };
 
   function resetAnalysis(keepFiles){
     analysisRunning = false;
@@ -1850,7 +1891,7 @@ body::before{
   document.getElementById('btnAnalyze').addEventListener('click', () => {
     if (analysisRunning) return;
     if (files.length === 0) return;
-    runAnalysis();
+    submitAnalysisReal();
   });
 
   function setStep(i, status){
@@ -1869,103 +1910,162 @@ body::before{
     }
   }
 
-  function runAnalysis(){
+  // ============ SUBMIT REAL — POST /revisar (ADR-021 dual-content-type JSON branch) ============
+  async function submitAnalysisReal(){
     analysisRunning = true;
     document.getElementById('result').classList.remove('show');
     document.getElementById('btnAnalyze').disabled = true;
-    document.getElementById('progressMeta').textContent = 'Análise em andamento';
-    // reset
+    document.getElementById('progressMeta').textContent = 'Enviando contrato ao backend...';
     for (let i=0;i<6;i++) setStep(i,'idle');
 
-    let i = 0;
-    const total = 6;
-    const tickStep = () => {
-      if (i >= total){
-        // concluído
-        document.getElementById('progressMeta').textContent = 'Análise concluída';
-        document.getElementById('phaseChip').textContent = 'concluído';
-        document.getElementById('progressFill').style.width = '100%';
+    // TD-SP06-MODE-PASS-01: Warning UI se modo não-MVP selecionado (DP-03 restrição)
+    if (currentMode && !MVP_SUPPORTED_MODES.has(currentMode)) {
+      const proceed = confirm(
+        `⚠️ Modalidade "${currentMode}" ainda não suportada no MVP (DP-03).\n\n` +
+        `Apenas "Financiamento Veículo" (CDC_VEICULOS_PF) funciona end-to-end real.\n\n` +
+        `Deseja continuar mesmo assim? (Backend retornará erro 422.)`
+      );
+      if (!proceed) {
         analysisRunning = false;
         document.getElementById('btnAnalyze').disabled = files.length === 0;
-        showResult();
+        document.getElementById('progressMeta').textContent = 'Análise cancelada';
         return;
       }
-      // marca anterior como done
-      if (i > 0) setStep(i-1,'done');
-      setStep(i,'active');
-      document.getElementById('phaseChip').textContent = STEP_NAMES[i];
-      const pct = Math.round(((i+0.5)/total)*100);
-      document.getElementById('progressFill').style.width = pct + '%';
-      i++;
-      // tempo variável por fase (1.0s a 1.8s)
-      setTimeout(tickStep, 900 + Math.random()*900);
-    };
-    tickStep();
+    }
+
+    // Build FormData: pdf (file primário) + uf/data/tier overrides + modalidade_override + CSRF
+    const formData = new FormData();
+    formData.append('pdf', files[0]);
+    formData.append('uf', '');  // Backend regex detecta do PDF (override opcional via UI futura)
+    formData.append('data', '');  // Idem
+    formData.append('tier', 'balanced');  // ADR-010 default
+    // TD-SP06-MODE-PASS-01: passa modalidade explícita ao backend (override regex)
+    const modalidadeBackend = MODALIDADE_BACKEND_MAP[currentMode] || '';
+    if (modalidadeBackend) {
+      formData.append('modalidade_override', modalidadeBackend);
+    }
+
+    try {
+      // Ensure CSRF token disponível (refresh se ausente)
+      if (!CSRF_TOKEN) {
+        const ct = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+        const ctData = await ct.json();
+        CSRF_TOKEN = ctData.csrf_token || '';
+      }
+
+      const resp = await fetch('/revisar', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Accept': 'application/json',  // ADR-021 trigger JSON branch backend
+          'X-CSRF-Token': CSRF_TOKEN,
+        },
+        body: formData,
+      });
+
+      if (!resp.ok) {
+        // 401/403 → re-login | 503 → Ollama down | 4xx/5xx → S7 error
+        const errMsg = resp.status === 401 || resp.status === 403
+          ? 'Sessão expirada. Faça login novamente.'
+          : `Falha no upload (HTTP ${resp.status})`;
+        throw new Error(errMsg);
+      }
+
+      const data = await resp.json();
+      // data = {job_id, status, filename, stream_url, verdict_url, has_decisao_adversa}
+      document.getElementById('progressMeta').textContent = 'Pipeline iniciando...';
+      connectPipelineStream(data.stream_url, data.verdict_url);
+    } catch (err) {
+      analysisRunning = false;
+      document.getElementById('btnAnalyze').disabled = files.length === 0;
+      document.getElementById('progressMeta').textContent = 'Erro: ' + (err.message || 'falha desconhecida');
+      document.getElementById('phaseChip').textContent = 'erro';
+      console.error('submitAnalysisReal failed:', err);
+    }
   }
 
-  // ============ RESULT GENERATION (mock plausível) ============
-  function pseudoRandom(seed){
-    // simple seeded PRNG (mulberry32)
-    let t = seed | 0;
-    return function(){
-      t = (t + 0x6D2B79F5) | 0;
-      let r = Math.imul(t ^ (t >>> 15), 1 | t);
-      r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
-      return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-    };
+  // ============ EVENT SOURCE SSE — pipeline real backend ============
+  function connectPipelineStream(streamUrl, verdictUrl){
+    if (activeEventSource) {
+      try { activeEventSource.close(); } catch(e) {}
+    }
+    let currentPhaseIdx = 0;
+    activeEventSource = new EventSource(streamUrl);
+
+    activeEventSource.addEventListener('phase-start', (e) => {
+      try {
+        const payload = JSON.parse(e.data);
+        if (currentPhaseIdx > 0) setStep(currentPhaseIdx - 1, 'done');
+        setStep(currentPhaseIdx, 'active');
+        // TD-SP06-PHASE-VALID-01: usa PHASE_LABELS mapping com timing context
+        const phaseKey = payload.phase || '';
+        const phaseInfo = PHASE_LABELS[phaseKey] || { label: STEP_NAMES[currentPhaseIdx] || phaseKey };
+        document.getElementById('phaseChip').textContent = phaseInfo.label;
+        const pct = Math.round(((currentPhaseIdx + 0.5) / 6) * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+        const expectedNote = phaseInfo.expected_s ? ` (esperado ~${phaseInfo.expected_s}s)` : '';
+        document.getElementById('progressMeta').textContent = `Fase ${currentPhaseIdx + 1} de 6: ${phaseInfo.label}${expectedNote}`;
+      } catch(err) { console.warn('phase-start parse error:', err); }
+    });
+
+    activeEventSource.addEventListener('phase-done', () => {
+      setStep(currentPhaseIdx, 'done');
+      currentPhaseIdx++;
+    });
+
+    activeEventSource.addEventListener('ping', () => {
+      // heartbeat — não muda fase, apenas confirma streaming alive
+    });
+
+    activeEventSource.addEventListener('complete', async (e) => {
+      try {
+        const payload = JSON.parse(e.data);
+        // Marca todas fases done + progressFill 100%
+        for (let i = 0; i < 6; i++) setStep(i, 'done');
+        document.getElementById('progressFill').style.width = '100%';
+        document.getElementById('phaseChip').textContent = 'concluído';
+        document.getElementById('progressMeta').textContent = `Análise concluída em ${payload.total_elapsed_s}s`;
+        showResultReal(payload.deliverables || {}, verdictUrl);
+      } catch(err) { console.warn('complete parse error:', err); }
+      analysisRunning = false;
+      document.getElementById('btnAnalyze').disabled = files.length === 0;
+      try { activeEventSource.close(); } catch(e) {}
+      activeEventSource = null;
+    });
+
+    activeEventSource.addEventListener('phase-error', (e) => {
+      try {
+        const payload = JSON.parse(e.data);
+        showErrorRealS7(payload);
+      } catch(err) { console.warn('phase-error parse error:', err); }
+      analysisRunning = false;
+      document.getElementById('btnAnalyze').disabled = files.length === 0;
+      try { activeEventSource.close(); } catch(e) {}
+      activeEventSource = null;
+    });
+
+    activeEventSource.addEventListener('error', (e) => {
+      // EventSource network-level error (não phase-error backend)
+      document.getElementById('progressMeta').textContent = 'Conexão SSE interrompida — tente novamente';
+      document.getElementById('phaseChip').textContent = 'erro';
+      analysisRunning = false;
+      document.getElementById('btnAnalyze').disabled = files.length === 0;
+      try { activeEventSource.close(); } catch(e) {}
+      activeEventSource = null;
+    });
   }
 
-  const FINDINGS_BY_MODE = {
-    ccb: [
-      { sev:'critical', text:'<strong>Capitalização mensal de juros</strong> sem pactuação expressa contraria a Súmula 539/STJ.', ref:'Cláusula 4.2 · Súmula 539/STJ' },
-      { sev:'high',     text:'<strong>Comissão de permanência cumulada</strong> com correção monetária e multa moratória.',     ref:'Cláusula 7.1 · Súmula 472/STJ' },
-      { sev:'high',     text:'<strong>CET divulgado divergente</strong> do CET efetivamente cobrado nas parcelas.',              ref:'Quadro de Encargos · Resol. 3.517/CMN' },
-      { sev:'medium',   text:'<strong>Tarifa de cadastro</strong> cobrada em renovação contratual — vedação reiterada.',          ref:'Cláusula 9.3 · Tema 618/STJ' },
-    ],
-    veiculo: [
-      { sev:'critical', text:'<strong>Anatocismo</strong> identificado em parcelas — Tabela Price com capitalização.',           ref:'Cláusula 5.1 · Tema 246/STJ' },
-      { sev:'high',     text:'<strong>Seguro de proteção financeira casado</strong> sem opção de não-contratação.',               ref:'Cláusula 12 · Súmula 473/STJ' },
-      { sev:'medium',   text:'<strong>Tarifa de avaliação do bem</strong> sem comprovação de prestação efetiva.',                 ref:'Cláusula 8.4 · Tema 958/STJ' },
-    ],
-    consignado: [
-      { sev:'critical', text:'<strong>Margem consignável</strong> excedida em consolidação contratual (>35%).',                  ref:'Cláusula 3 · Lei 10.820/2003' },
-      { sev:'high',     text:'<strong>Refinanciamento sem nova manifestação de vontade</strong> documentada.',                    ref:'Aditivos · CDC art. 6º' },
-      { sev:'medium',   text:'<strong>Juros remuneratórios acima da média BCB</strong> para a modalidade.',                       ref:'Cláusula 4 · Súmula 297/STJ' },
-    ],
-    cartao: [
-      { sev:'critical', text:'<strong>Juros do rotativo</strong> em patamar abusivo (>12x média de mercado).',                    ref:'Cláusula 6 · Resol. 4.549/BCB' },
-      { sev:'high',     text:'<strong>Cláusula mandato</strong> autorizando emissão de cártula em nome do cliente.',              ref:'Cláusula 14 · Súmula 60/STJ' },
-      { sev:'medium',   text:'<strong>Eleição de foro</strong> em desfavor do consumidor.',                                       ref:'Cláusula 22 · CDC art. 51' },
-    ],
-    imobiliario: [
-      { sev:'high',     text:'<strong>Tabela Price</strong> aplicada com capitalização sem expressa pactuação.',                  ref:'Cláusula 5 · Súmula 539/STJ' },
-      { sev:'high',     text:'<strong>Seguros MIP/DFI</strong> com prestadora vinculada ao banco — restrição à livre escolha.',   ref:'Cláusula 11 · Lei 4.380/64' },
-      { sev:'medium',   text:'<strong>Atualização monetária mensal</strong> com índice mais oneroso ao mutuário.',                ref:'Cláusula 8 · Súmula 295/STJ' },
-    ],
-    fies: [
-      { sev:'critical', text:'<strong>Capitalização mensal de juros durante a carência</strong> aplicada sem cláusula expressa — incidência sobre o saldo durante o curso amplifica o débito final.', ref:'Cláusula de Carência · Súmula 539/STJ · Lei 11.552/2007' },
-      { sev:'high',     text:'<strong>FGEDUC</strong> cobrado em até 5,63% sobre o valor financiado sem demonstração da prestação proporcional do fundo garantidor — onerosidade sem contrapartida verificada.', ref:'Cláusula de Garantia · Tema 958/STJ · Resol. CMN' },
-      { sev:'high',     text:'<strong>Coobrigação de fiador com renda 2× a parcela</strong> em contrato pré-Lei 13.530/2017 — desproporcionalidade da garantia em contrato de adesão estudantil.', ref:'Cláusula de Garantia · Lei 13.530/2017 · CDC art. 51' },
-      { sev:'medium',   text:'<strong>Taxa de juros aplicada</strong> (CESH ou Selic + spread) divergente do parâmetro regulamentar do FNDE para o período contratado.', ref:'Cláusula 4 · Portaria MEC/FNDE · Lei 10.260/2001' },
-    ],
-    geral: [
-      { sev:'high',     text:'<strong>Cláusula de eleição de foro</strong> potencialmente abusiva — verificação CDC.',           ref:'Cláusula 18 · CDC art. 51, IV' },
-      { sev:'high',     text:'<strong>Encargos por inadimplência</strong> cumulados além do permitido (multa + mora + comissão).', ref:'Cláusulas 7-9 · Súmula 472/STJ' },
-      { sev:'medium',   text:'<strong>Tarifa não justificada</strong> identificada — análise de prestação efetiva pendente.',     ref:'Quadro de Tarifas · Tema 958/STJ' },
-    ],
-  };
-
+  // ============ RESULT RENDER — dados REAIS backend (não FINDINGS_BY_MODE hardcoded) ============
   let lastResult = null;
 
-  function showResult(){
-    const seed = (currentMode + files.length + (files[0]?.name || '')).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-    const rng = pseudoRandom(seed);
-    const probability = Math.round(58 + rng()*36); // 58–94
-    const passed = probability >= 65;
-
-    const findings = (FINDINGS_BY_MODE[currentMode] || FINDINGS_BY_MODE.geral).slice();
-    // shuffle leve
-    findings.sort(() => rng() - 0.5);
+  function showResultReal(deliverables, verdictUrl){
+    // deliverables shape: VeredictoJuiz dict from backend
+    // {c1_score, c2_score, c3_score, aderencia, veredito, razoes: [...]}
+    const aderencia = typeof deliverables.aderencia === 'number' ? deliverables.aderencia : 0;
+    const probability = Math.round(aderencia);
+    const veredito = deliverables.veredito || 'INDETERMINADO';
+    const passed = veredito === 'APROVADO_100' || veredito === 'APROVADO_COM_RISCO_HITL';
+    const razoes = Array.isArray(deliverables.razoes) ? deliverables.razoes : [];
 
     const verdictEl = document.getElementById('verdict');
     verdictEl.classList.remove('pass','fail');
@@ -1974,32 +2074,82 @@ body::before{
       ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>'
       : '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>';
     document.getElementById('verdictTitle').textContent = passed
-      ? 'Indícios suficientes para revisional'
-      : 'Indícios insuficientes — revisão manual recomendada';
+      ? `Indícios suficientes para revisional (${veredito})`
+      : `Indícios insuficientes — ${veredito}`;
 
     document.getElementById('probValue').textContent = probability;
     document.getElementById('probFill').style.width = probability + '%';
     document.getElementById('probContext').innerHTML = passed
-      ? `Com base no cotejo das ${findings.length} cláusulas analisadas, o Revisor estima <strong>${probability}%</strong> de probabilidade de procedência total ou parcial em ação revisional. Esta estimativa <strong>não substitui</strong> a análise estratégica do(a) advogado(a).`
-      : `O resultado preliminar é abaixo do limiar recomendado (65%). Recomenda-se <strong>revisão manual atenta</strong> antes de qualquer decisão de protocolar ação revisional.`;
+      ? `Pipeline real concluído. Juiz aderência <strong>${probability}%</strong> (c1=${(deliverables.c1_score || 0).toFixed(2)} c2=${(deliverables.c2_score || 0).toFixed(2)} c3=${(deliverables.c3_score || 0).toFixed(2)}). Esta avaliação <strong>não substitui</strong> análise estratégica do(a) advogado(a).`
+      : `Aderência <strong>${probability}%</strong> abaixo do limiar (70%). Recomenda-se <strong>revisão manual atenta</strong> antes de protocolar ação revisional.`;
 
+    // Renderiza razões reais do Juiz (não findings hardcoded)
     const list = document.getElementById('findingsList');
     list.innerHTML = '';
-    findings.forEach(f => {
+    if (razoes.length === 0) {
       const div = document.createElement('div');
       div.className = 'finding';
-      const sevLabel = f.sev === 'critical' ? 'crítico' : f.sev === 'high' ? 'alto' : 'médio';
-      div.innerHTML = `
-        <span class="finding-tag ${f.sev}">${sevLabel}</span>
-        <div class="finding-text">${f.text}<span class="ref">${f.ref}</span></div>
-      `;
+      div.innerHTML = `<span class="finding-tag medium">info</span><div class="finding-text">Veredito derivado de aderência ${probability}% (Juiz Python puro). Razões detalhadas disponíveis no audit log.</div>`;
       list.appendChild(div);
-    });
+    } else {
+      razoes.forEach((razao) => {
+        const div = document.createElement('div');
+        div.className = 'finding';
+        const sev = passed ? 'medium' : 'high';
+        div.innerHTML = `
+          <span class="finding-tag ${sev}">${passed ? 'info' : 'atenção'}</span>
+          <div class="finding-text">${escapeHtml(razao)}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
 
-    lastResult = { mode: currentMode, modeName: MODE_INFO[currentMode].tag, probability, passed, findings, files: files.map(f=>({name:f.name,size:f.size})) };
+    lastResult = {
+      mode: currentMode,
+      modeName: (typeof MODE_INFO !== 'undefined' && MODE_INFO[currentMode]) ? MODE_INFO[currentMode].tag : currentMode,
+      probability,
+      passed,
+      veredito,
+      verdictUrl,
+      deliverables,
+    };
 
     document.getElementById('result').classList.add('show');
-    document.getElementById('btnDownload').disabled = !document.getElementById('confirmCheckbox').checked;
+    // Sprint 6 Bloco γ Wave γ.2 (TD-SP06-DOWNLOAD-ROUTES-01): btnDownload habilita
+    // após user marcar confirmCheckbox (handler abaixo). Endpoint backend /download/{job_id}
+    // retorna PDF weasyprint gerado por pipeline Step 8 (Redator + Weasyprint).
+    document.getElementById('btnDownload').disabled = true; // re-enable via checkbox handler
+  }
+
+  // ============ ERROR S7 — phase-error backend → SPA error pane (TD-SP06-PHASE-VALID-01 Wave 3) ============
+  function showErrorRealS7(payload){
+    document.getElementById('result').classList.remove('show');
+    const phase = payload.phase || 'fase desconhecida';
+    const phaseLabel = (PHASE_LABELS[phase] && PHASE_LABELS[phase].label) || phase;
+    document.getElementById('progressMeta').textContent = `Pipeline interrompido em ${phaseLabel}`;
+    document.getElementById('phaseChip').textContent = 'erro';
+
+    // Cause user-friendly PT-BR — usa ERROR_CAUSES_PT mapping ou fallback genérico
+    const errorType = payload.error_type || payload.cause || '';
+    const cause = ERROR_CAUSES_PT[errorType] || payload.cause || errorType || 'Erro inesperado no pipeline';
+
+    // Reuso C6 variants payload backend já formatado (diagnostic + cause + solution + alternative)
+    const diag = payload.diagnostic || 'Sem detalhes adicionais disponíveis';
+    const sol = payload.solution || '';
+    const alt = payload.alternative || '';
+
+    // Render mensagem estruturada (Wave 3 alert evolutivo — Sprint 6+ refina para S7 pane CSS dedicado)
+    const message = [
+      `Pipeline interrompido em: ${phaseLabel}`,
+      ``,
+      `Causa: ${cause}`,
+      ``,
+      `Diagnóstico: ${diag}`,
+      sol ? `\nSolução: ${sol}` : '',
+      alt ? `Alternativa: ${alt}` : '',
+    ].filter(Boolean).join('\n');
+
+    alert(message);
   }
 
   document.getElementById('confirmCheckbox').addEventListener('change', (e) => {
@@ -2015,122 +2165,54 @@ body::before{
     lastResult = null;
   });
 
-  // ============ PDF DOWNLOAD (mock — text blob com header PDF mínimo) ============
-  document.getElementById('btnDownload').addEventListener('click', () => {
-    if (!lastResult) return;
-    const r = lastResult;
-    const dt = new Date();
-    const stamp = dt.toLocaleString('pt-BR');
-    const lines = [];
-    lines.push('REVISOR CONTRATUAL · OrSheva 7');
-    lines.push('Relatório de Análise Revisional');
-    lines.push('=================================================');
-    lines.push('');
-    lines.push(`Data: ${stamp}`);
-    lines.push(`Modo: ${r.modeName}`);
-    lines.push(`Documentos: ${r.files.length}`);
-    r.files.forEach((f,i) => lines.push(`  ${i+1}. ${f.name} (${(f.size/1024).toFixed(1)} KB)`));
-    lines.push('');
-    lines.push(`VERDICT: ${r.passed ? 'INDÍCIOS SUFICIENTES PARA REVISIONAL' : 'INDÍCIOS INSUFICIENTES — REVISÃO MANUAL'}`);
-    lines.push(`Probabilidade de procedência: ${r.probability}%`);
-    lines.push('');
-    lines.push('FINDINGS:');
-    r.findings.forEach((f, i) => {
-      const sev = f.sev === 'critical' ? 'CRÍTICO' : f.sev === 'high' ? 'ALTO' : 'MÉDIO';
-      lines.push(`  ${i+1}. [${sev}] ${stripHtml(f.text)}`);
-      lines.push(`     ref: ${f.ref}`);
-    });
-    lines.push('');
-    lines.push('---');
-    lines.push('AVISO: Este relatório é insumo técnico-jurídico para análise por advogado(a)');
-    lines.push('habilitado(a). A IA não substitui validação humana e responsabilidade técnica');
-    lines.push('na peça final levada a juízo.');
-
-    // Build a tiny valid PDF (one page) embedding the lines as text
-    const pdf = buildPdf(lines);
-    const blob = new Blob([pdf], { type: 'application/pdf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `revisor_${r.mode}_${dt.toISOString().slice(0,10)}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 800);
-  });
-
-  function stripHtml(s){ return s.replace(/<[^>]*>/g,''); }
-
-  // Mini PDF builder — gera PDF válido single-page com o texto
-  function buildPdf(lines){
-    // limit & escape
-    const wrapped = [];
-    lines.forEach(l => {
-      const txt = l.toString();
-      // wrap a 95 chars
-      for (let i=0; i<txt.length; i += 95) wrapped.push(txt.slice(i, i+95));
-      if (txt === '') wrapped.push('');
-    });
-    const pageHeight = 792;
-    const lineHeight = 13;
-    const startY = pageHeight - 50;
-    const escape = s => s.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
-
-    const pages = [];
-    for (let i=0; i<wrapped.length; i += 55){
-      pages.push(wrapped.slice(i, i+55));
+  // ============ PDF DOWNLOAD ============ Sprint 6 Bloco γ Wave γ.2 (TD-SP06-DOWNLOAD-ROUTES-01)
+  // Backend endpoint GET /download/{job_id} retorna PDF weasyprint gerado pelo pipeline
+  // Step 8 (Redator + Weasyprint). Authz: session.user == JOBS[job_id].owner (Smith β F-D3-β-06
+  // SSE-OWNERSHIP-CHECK address). Audit chain pdf_downloaded HMAC-chained.
+  function _extractJobIdFromVerdictUrl(verdictUrl) {
+    if (!verdictUrl) return null;
+    try {
+      const url = new URL(verdictUrl, location.origin);
+      return url.searchParams.get('job_id');
+    } catch (err) {
+      return null;
     }
-    if (pages.length === 0) pages.push([]);
-
-    // Build content streams
-    const streams = pages.map(linesPage => {
-      let stream = 'BT\n/F1 10 Tf\n';
-      stream += `1 0 0 1 50 ${startY} Tm\n`;
-      linesPage.forEach((l, idx) => {
-        if (idx === 0) stream += `(${escape(l)}) Tj\n`;
-        else stream += `0 -${lineHeight} Td\n(${escape(l)}) Tj\n`;
-      });
-      stream += 'ET';
-      return stream;
-    });
-
-    // Object generation
-    const objects = [];
-    objects.push(null); // 1-indexed
-
-    // 1: Catalog
-    objects.push('<< /Type /Catalog /Pages 2 0 R >>');
-    // 2: Pages
-    const pageObjStart = 3;
-    const pageObjs = pages.map((_, i) => `${pageObjStart + i*2} 0 R`).join(' ');
-    objects.push(`<< /Type /Pages /Kids [${pageObjs}] /Count ${pages.length} >>`);
-    // pages and contents
-    pages.forEach((_, i) => {
-      const pageObjId = pageObjStart + i*2;
-      const contentObjId = pageObjId + 1;
-      objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${pageObjStart + pages.length*2} 0 R >> >> /Contents ${contentObjId} 0 R >>`);
-      const stream = streams[i];
-      objects.push(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);
-    });
-    // Font object (last)
-    const fontObjId = pageObjStart + pages.length*2;
-    objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
-
-    // Serialize
-    let pdf = '%PDF-1.4\n%âãÏÓ\n';
-    const offsets = [0];
-    for (let i = 1; i < objects.length; i++){
-      offsets.push(pdf.length);
-      pdf += `${i} 0 obj\n${objects[i]}\nendobj\n`;
-    }
-    const xrefOffset = pdf.length;
-    pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
-    for (let i=1; i<objects.length; i++){
-      pdf += offsets[i].toString().padStart(10,'0') + ' 00000 n \n';
-    }
-    pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-    return pdf;
   }
+
+  document.getElementById('btnDownload').addEventListener('click', async () => {
+    if (!lastResult) return;
+    const jobId = _extractJobIdFromVerdictUrl(lastResult.verdictUrl);
+    if (!jobId) {
+      alert('Erro: job_id não disponível. Reinicie a análise.');
+      return;
+    }
+    try {
+      const resp = await fetch('/download/' + encodeURIComponent(jobId), {
+        credentials: 'same-origin',
+      });
+      if (!resp.ok) {
+        if (resp.status === 401) { location.href = '/classic'; return; }
+        if (resp.status === 403) { alert('Acesso negado — você não é o proprietário desta análise.'); return; }
+        if (resp.status === 404) {
+          alert('Peça revisional ainda não disponível. Aguarde o pipeline concluir e tente novamente.');
+          return;
+        }
+        throw new Error('HTTP ' + resp.status);
+      }
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'peca-revisional-' + jobId.slice(0, 8) + '.pdf';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Cleanup blob URL após download iniciado (revoke async — browser pode estar fetching)
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      alert('Erro ao baixar peça: ' + (err && err.message ? err.message : err));
+    }
+  });
 
   // ============ API KEY ============
   function refreshApiKeyStatus(){

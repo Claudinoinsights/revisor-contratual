@@ -32,13 +32,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Literal, TypedDict
 
-from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
+from fastapi import FastAPI, Form, HTTPException, Request, Response, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from bloco_audit.chain import AuditChainError  # noqa: F401  (compat checks)
+from bloco_audit.chain import AuditChainError, append_audit_entry  # noqa: F401  (compat checks)
 from bloco_auth import analytics as sp05_analytics
 from bloco_contratos import imobiliario_schema as sp06_imobiliario
 from bloco_auth import api as sp04_auth_api
@@ -508,6 +508,42 @@ async def index(request: Request) -> HTMLResponse:
     )
 
 
+# TD-SP06-CLASSIC-01 Sprint 6 Bloco β — Rota Jinja2 bypass do SPA mock.
+# Permite Eric demo real imediato via templates legacy (s1_login + s2_pre_upload)
+# integrados ao backend pipeline real (POST /revisar + SSE /revisar/stream/{job_id}),
+# enquanto SPA permanece em GET / aguardando integração TD-SP06-SPA-CONNECT-01.
+@app.get("/classic", response_class=HTMLResponse)
+async def classic(request: Request) -> Any:
+    """Jinja2 bypass do SPA mock — entrada para fluxo pipeline real legacy.
+
+    Se sem session → renderiza `s1_login.html` com CSRF token (htmx POST /login).
+    Se com session → renderiza `s2_pre_upload.html` (form multipart POST /revisar).
+
+    Cache-Control no-cache consistente com GET / (evita stale Jinja2 pós-refactor).
+    """
+    layout = _layout_context(request)
+    # Ensure CSRF token disponível (mesma lógica /api/me linhas 519-522)
+    csrf = request.session.get("csrf_token")
+    if not csrf:
+        csrf = auth.generate_csrf_token()
+        request.session["csrf_token"] = csrf
+
+    if layout["session_user"]:
+        template_name = "s2_pre_upload.html"
+    else:
+        template_name = "s1_login.html"
+
+    context = {**layout, "csrf_token": csrf}
+    response = templates.TemplateResponse(
+        request=request,
+        name=template_name,
+        context=context,
+    )
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    return response
+
+
 # ── API: Session + CSRF endpoints (UX-LOGIN-UNIFIED) ──────────────────────
 @app.get("/api/me")
 async def api_me(request: Request) -> JSONResponse:
@@ -597,9 +633,11 @@ async def login_post(request: Request) -> Any:
             },
             "csrf_token": new_csrf,
         })
-    # Legacy htmx response
+    # Legacy htmx response (Jinja2 flow via /classic — TD-SP06-CLASSIC-01)
+    # HX-Redirect "/classic" não "/" para fluir templates Jinja2 reais
+    # (SPA continua usando JSON branch acima, não passa por aqui)
     response = HTMLResponse(content="", status_code=200)
-    response.headers["HX-Redirect"] = "/"
+    response.headers["HX-Redirect"] = "/classic"
     return response
 
 
@@ -622,11 +660,13 @@ def _login_error_response(
 
 
 # MVP-LEAN-01 Task 1 — AC-MVP-LGPD-L1: logout clears session, retorna HX-Redirect.
+# TD-SP06-CLASSIC-01 Sprint 6 Bloco β: HX-Redirect "/login" (inexistente) → "/classic"
+# (rota Jinja2 que renderiza s1_login.html quando sem session).
 @app.post("/logout", response_class=HTMLResponse)
 async def logout(request: Request) -> HTMLResponse:
     request.session.clear()
     response = HTMLResponse(content="", status_code=200)
-    response.headers["HX-Redirect"] = "/login"
+    response.headers["HX-Redirect"] = "/classic"
     return response
 
 
@@ -647,7 +687,14 @@ async def monitor_tema_acknowledge(request: Request) -> HTMLResponse:
     return response
 
 
-@app.post("/revisar", response_class=HTMLResponse)
+# TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3: Modalidades válidas ContratoMetadata
+# (mirror bloco_contratos/contrato.py linha 19 ModalidadeContrato Literal).
+_VALID_MODALIDADES = frozenset(
+    {"CDC_VEICULOS_PF", "CDC_BENS_PF", "CDC_IMOBILIARIO", "CARTAO_ROTATIVO"}
+)
+
+
+@app.post("/revisar")
 async def revisar(
     request: Request,
     pdf: UploadFile,
@@ -655,7 +702,8 @@ async def revisar(
     uf: str = Form(default=""),
     data: str = Form(default=""),
     tier: LLMTier = Form(default="balanced"),  # noqa: B008 — FastAPI Form pattern (ADR-010 default)
-) -> HTMLResponse:
+    modalidade_override: str = Form(default=""),  # TD-SP06-MODE-PASS-01: sidebar SPA → backend
+) -> Any:
     # Phase E / AC-7: on-demand health check + lazy respawn (EC-08 Ollama crash mid-revisar)
     host = ollama_manager.DEFAULT_HOST
     for role, port in (
@@ -712,6 +760,23 @@ async def revisar(
             detail="Arquivo não é um PDF válido (magic bytes %PDF- ausentes).",
         )
 
+    # TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3: validate modalidade_override
+    # Aceita "" (default — preserva regex _extract_modalidade) OR valor válido enum.
+    # Valor inválido → 422 com diagnostic claro user-friendly + tech-debt ref.
+    modalidade_override_clean: str | None = None
+    if modalidade_override:
+        if modalidade_override not in _VALID_MODALIDADES:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Modalidade '{modalidade_override}' não suportada. "
+                    f"Válidas: {sorted(_VALID_MODALIDADES)}. "
+                    f"Use CDC_VEICULOS_PF para teste real MVP (DP-03 restrição). "
+                    f"TD-SP06-MVP-MODALIDADES-RESTRITAS — Sprint 6+ expandirá suporte."
+                ),
+            )
+        modalidade_override_clean = modalidade_override
+
     # Phase C: Persistir PDF temporariamente (LGPD: deletado em pipeline_stream finally)
     pdf_bytes = await pdf.read()
     fd, pdf_path = tempfile.mkstemp(suffix=".pdf")
@@ -744,11 +809,38 @@ async def revisar(
         "tier": tier,
         "uf": uf,
         "data": data_obj,  # CC.42: agora é date | None, não string
+        "modalidade_override": modalidade_override_clean,  # TD-SP06-MODE-PASS-01
         "filename": filename,
         "verdict": None,
         "error": None,
         "has_decisao_adversa": has_decisao_adversa,
+        # TD-SP06-DOWNLOAD-ROUTES-01 (Sprint 6 Bloco γ Wave γ.2):
+        # owner para authz no GET /download/{job_id} — Smith β F-D3-β-06
+        # SSE-OWNERSHIP-CHECK partial address (peça PDF apenas owner baixa).
+        # peca_pdf_path populated pelo pipeline result_capture pós-Step 8.
+        "owner": request.session.get("user"),
+        "peca_pdf_path": None,
+        "peca_pdf_hash": None,
+        "peca_format": None,
     }
+
+    # ADR-021 dual-content-type Sprint 6 Bloco β Wave 2 (TD-SP06-SPA-CONNECT-01):
+    # SPA OrSheva 7 envia `Accept: application/json` → recebe JSON com job_id + stream_url
+    # para conectar EventSource SSE client-side. Jinja2 legacy /classic flow preservado
+    # via fall-through TemplateResponse abaixo (s5_processing.html embeda job_id no DOM).
+    accept_header = request.headers.get("accept", "").lower()
+    if "application/json" in accept_header:
+        return JSONResponse(
+            {
+                "job_id": job_id,
+                "status": "queued",
+                "filename": filename,
+                "stream_url": f"/revisar/stream/{job_id}",
+                "verdict_url": f"/verdict?job_id={job_id}",
+                "has_decisao_adversa": has_decisao_adversa,
+            },
+            status_code=200,
+        )
 
     # MVP-LEAN-01 Task 4: render S5 Processing (substitui partials/processing.html no MVP-LEAN)
     s5_context: dict[str, Any] = {
@@ -764,6 +856,98 @@ async def revisar(
         request=request,
         name="s5_processing.html",
         context=s5_context,
+    )
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Sprint 6 Bloco γ Wave γ.2 — TD-SP06-DOWNLOAD-ROUTES-01
+# GET /download/{job_id} — endpoint authenticated + ownership check + audit
+# Addresses Smith β F-D3-β-06 MEDIUM SSE-OWNERSHIP-CHECK (partial — PDF only).
+# ─────────────────────────────────────────────────────────────────────
+
+
+@app.get("/download/{job_id}")
+async def download_peca(request: Request, job_id: str) -> Response:
+    """Baixa a peça revisional PDF gerada pelo pipeline (Sprint 6 Bloco γ).
+
+    Authz: session.user == JOBS[job_id]["owner"] (404 se job ausente, 403 se
+    non-owner, 401 se não autenticado). Audit entry HMAC-chained `pdf_downloaded`.
+
+    Args:
+        job_id: identificador retornado por POST /revisar (verdict_url).
+
+    Returns:
+        Response 200 com Content-Type=application/pdf + Content-Disposition attachment.
+
+    Raises:
+        HTTPException 401 se sem sessão, 403 se non-owner, 404 se job/pdf ausente.
+    """
+    import hashlib as _hashlib  # noqa: PLC0415 — scope local
+
+    user = request.session.get("user")
+    if not user:
+        raise HTTPException(status_code=401, detail="Autenticação requerida")
+
+    job = JOBS.get(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job não encontrado")
+
+    # AC-02 ownership check — Smith β F-D3-β-06 SSE-OWNERSHIP-CHECK address
+    job_owner = job.get("owner")
+    if job_owner is not None and user != job_owner:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+
+    pdf_path_str = job.get("peca_pdf_path")
+    if not pdf_path_str:
+        raise HTTPException(
+            status_code=404,
+            detail="Peça PDF ainda não gerada — aguarde pipeline complete",
+        )
+
+    pdf_path = Path(pdf_path_str)
+    if not pdf_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Peça PDF não disponível no filesystem (arquivo removido?)",
+        )
+
+    pdf_bytes = pdf_path.read_bytes()
+
+    # AC-06 audit entry HMAC-chained (Smith F-γ-01 hotfix: audit-first pattern).
+    # LGPD §46 compliance — peça revisional contém dados pessoais sensíveis;
+    # audit failure NÃO PODE deixar download passar sem trail HMAC rastreável.
+    try:
+        append_audit_entry(
+            "pdf_downloaded",
+            {
+                "job_id": job_id,
+                "user": user,
+                "pdf_sha256": _hashlib.sha256(pdf_bytes).hexdigest(),
+                "pdf_size_bytes": len(pdf_bytes),
+                "peca_format": job.get("peca_format"),
+                "timestamp": datetime.now(UTC).isoformat(),
+            },
+            audit_path=DEFAULT_AUDIT_PATH,
+        )
+    except Exception as audit_exc:  # noqa: BLE001
+        # F-γ-01 FIX: audit failure BLOQUEIA download (LGPD §46 compliance).
+        # logger.error preserved para alerting/monitoring; 503 informa cliente.
+        logging.getLogger(__name__).error(
+            "audit pdf_downloaded falhou para job %s user %s: %s — BLOQUEANDO download (LGPD §46)",
+            job_id, user, audit_exc,
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Trail LGPD §46 indisponível — tente novamente em alguns segundos",
+        ) from audit_exc
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="peca-revisional-{job_id[:8]}.pdf"',
+            "X-Peca-Format": job.get("peca_format") or "PecaRevisional",
+        },
     )
 
 
@@ -821,6 +1005,10 @@ async def revisar_stream(job_id: str) -> StreamingResponse:
                 # CC.38 fix F-04: timeout global 30min para evitar hang infinito
                 # se Surya OCR travar OU outros bugs runtime.
                 # CC.42 fix F-A2: data_override agora vem do form S2 (era None hardcoded).
+                # TD-SP06-DOWNLOAD-ROUTES-01 Wave γ.2: result_capture coleta
+                # peca_pdf_path do Step 8 (Weasyprint) para popular JOBS dict
+                # antes do endpoint /download/{job_id} servir o arquivo.
+                pipeline_capture: dict[str, Any] = {}
                 pipeline_task = asyncio.create_task(
                     asyncio.wait_for(
                         revisar_contrato(
@@ -829,8 +1017,10 @@ async def revisar_stream(job_id: str) -> StreamingResponse:
                             vault_conn=conn,
                             uf_override=job["uf"] or None,
                             data_override=job["data"],  # date | None (CC.42)
+                            modalidade_override=job.get("modalidade_override"),  # TD-SP06-MODE-PASS-01
                             tier_advogado=job["tier"],
                             bacen_cache_dir=DEFAULT_BACEN_CACHE,
+                            result_capture=pipeline_capture,  # γ.2 — colhe peca_pdf_path
                         ),
                         timeout=1800,  # 30min hard ceiling
                     )
@@ -851,6 +1041,14 @@ async def revisar_stream(job_id: str) -> StreamingResponse:
                 veredito.model_dump() if hasattr(veredito, "model_dump") else dict(veredito)
             )
             JOBS[job_id]["status"] = "done"
+
+            # TD-SP06-DOWNLOAD-ROUTES-01 Wave γ.2: popular JOBS com peca_pdf_path
+            # capturado do pipeline Step 8 (Weasyprint). Endpoint /download/{job_id}
+            # serve apenas se este campo estiver presente.
+            if pipeline_capture:
+                JOBS[job_id]["peca_pdf_path"] = pipeline_capture.get("peca_pdf_path")
+                JOBS[job_id]["peca_pdf_hash"] = pipeline_capture.get("peca_pdf_hash")
+                JOBS[job_id]["peca_format"] = pipeline_capture.get("peca_format")
 
             # Pipeline real terminou — emit phase-done para todas as fases sequencialmente
             # (visual feedback: pipeline completou; UI animação não bloqueia veredito)
@@ -969,6 +1167,7 @@ async def pipeline_stream(job_id: str = "") -> StreamingResponse:
                     vault_conn=conn,
                     uf_override=job["uf"] or None,
                     data_override=None,  # parsed do PDF; CLI faz parse de --data-assinatura
+                    modalidade_override=job.get("modalidade_override"),  # TD-SP06-MODE-PASS-01
                     tier_advogado=job["tier"],
                     bacen_cache_dir=DEFAULT_BACEN_CACHE,
                 )
