@@ -435,16 +435,25 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLRe
 
     HTTPException → variant_key via HTTP_STATUS_TO_C6_VARIANT; fallback infra_unknown.
     Status code 401 (auth) preserva comportamento atual (partials/error.html legacy).
+
+    Sprint 6.2 F-6.1-01 fix (TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE): preserva
+    `exc.headers` em TemplateResponse para que custom headers (WWW-Authenticate
+    em 401, etc) cheguem ao cliente HTTP conforme RFC 7235.
     """
     # Auth errors mantêm fluxo legacy (não convertem para S7)
     if exc.status_code in (401, 403):
         error_type = ERROR_TYPE_MAP.get(exc.status_code, "pipeline_failure")
-        return templates.TemplateResponse(
+        response = templates.TemplateResponse(
             request=request,
             name="partials/error.html",
             context={"error_type": error_type, "error_message": exc.detail},
             status_code=exc.status_code,
         )
+        # Sprint 6.2 F-6.1-01: preserva exc.headers (RFC 7235 WWW-Authenticate, etc)
+        if exc.headers:
+            for header_name, header_value in exc.headers.items():
+                response.headers[header_name] = header_value
+        return response
 
     # Demais HTTPExceptions → S7 Error pane com C6 (Task 6)
     variant_key = HTTP_STATUS_TO_C6_VARIANT.get(exc.status_code, "infra_unknown")

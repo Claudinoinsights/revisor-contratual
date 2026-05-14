@@ -268,28 +268,19 @@ def test_download_503_when_audit_fails(
 # ─────────────────────────────────────────────────────────────────────
 
 
-def test_401_endpoint_specifies_www_authenticate_in_exception(
+def test_401_includes_www_authenticate_header_in_response(
     unauth_client: TestClient, populated_job: str
 ) -> None:
-    """F-γ-08 Sprint 6.1: HTTPException 401 declarada com headers WWW-Authenticate=Session.
+    """Sprint 6.2 TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE: 401 Response inclui header
+    `WWW-Authenticate: Session` accessible pelo cliente (RFC 7235 compliance).
 
-    Note: o `error_handler` middleware do projeto reescreve responses 401 para HTML
-    s7_error e pode swallow custom headers. O fix Sprint 6.1 ESTÁ aplicado no source
-    (raise HTTPException com headers={"WWW-Authenticate": "Session"}); a entrega
-    efetiva ao cliente depende do middleware. TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE
-    catalogado para Sprint 6.2 (middleware override preservar custom headers).
-
-    Esta verifica via source inspection que a constante está corretamente declarada.
+    Substitui test_401_endpoint_specifies_www_authenticate_in_exception (Sprint 6.1
+    source-level workaround). Sprint 6.2 fix em http_exception_handler app.py:432
+    agora propaga exc.headers para TemplateResponse antes de retornar.
     """
-    import inspect
-    from bloco_interface.web import app as web_app
-    source = inspect.getsource(web_app.download_peca)
-    # Source contém o header WWW-Authenticate (verifica fix aplicado no código)
-    assert '"WWW-Authenticate": "Session"' in source
-
-    # Comportamento user-facing: status_code 401 garantido (middleware preserva)
     response = unauth_client.get(f"/download/{populated_job}")
     assert response.status_code == 401
+    assert response.headers.get("www-authenticate") == "Session"
 
 
 def test_download_constants_exposed():

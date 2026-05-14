@@ -672,6 +672,93 @@ Eric directive "continue da forma como planejado" pós pre-compact signal — Ne
 
 *— Sessão 2026-05-14 SELADA. Sprint 6.x AGGRESSIVE entregue. 16 commits no remoto. v0.2.1 tag pública. Eric advogada externa coordination paralelo external. Próximo sprint depende de decisão estratégica Eric.*
 
+---
+
+## Sessão 2026-05-14 cont — Sprint 6.2 INICIADO ⚙️
+
+### Eric Decision pós-Sprint 6.x COMPLETE
+
+> "Forward advogada externa AGORA + iniciar Sprint 6.2 paralelo"
+
+Sprint 6.2 escopo: TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE (override error_handler middleware preservar custom headers — completar fix parcial Smith F-6.1-01 LOW Sprint 6.1).
+
+External paralelo: Eric forwarding advogada externa handoff template (BLOQUEANTE AC-PRD-γ-05 process externo).
+
+### Niobe Sprint 6.2 Story Draft 2026-05-14 — TD-SP06.2-MIDDLEWARE Draft ✅
+
+**Story:** [TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE](./stories/TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE.md) (MEDIUM, ~3h Neo)
+
+**Scope single story:** Override middleware error_handler preservar `WWW-Authenticate: Session` header em 401 responses (RFC 7235 compliance) — completar fix parcial Sprint 6.1 partial.
+
+**3 approach options documentados (Neo decide):**
+- Approach A RECOMENDADO: Custom `@app.exception_handler(HTTPException)` preserva `exc.headers`
+- Approach B: Middleware order modification (mais complexo)
+- Approach C: Custom Response direto endpoint (anti-idiomatic)
+
+**6 ACs:** AC-01 401 header accessible + AC-02 test substituir source-level workaround + AC-03 HTML s7_error backward compat + AC-04 cross-endpoint consistency + AC-05 baseline 492→493+ + AC-06 test workaround removal
+
+**Handoff yaml:** `.lmas/handoffs/handoff-sm-to-po-2026-05-14-sprint-6-2-single-story.yaml`
+**Próximo:** @po (Keymaker) Skill `*validate-story-draft TD-SP06.2-MIDDLEWARE` ✅ DONE
+
+### Keymaker Sprint 6.2 Single Validation 2026-05-14 — GO 10/10 ✅
+
+**Report:** [`governance/qa/keymaker-validate-sprint-6-2-single-story-2026-05-14.md`](./qa/keymaker-validate-sprint-6-2-single-story-2026-05-14.md)
+**Status flip:** Draft → Ready + validation fields
+**Constitution Art. III/IV/V:** PASS
+**Handoff yaml:** `.lmas/handoffs/handoff-po-to-dev-2026-05-14-sprint-6-2-execution.yaml`
+**Próximo:** @dev (Neo) Skill `*develop TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE` (~3h, Approach A custom exception handler) ✅ DONE
+
+### Neo Sprint 6.2 Development 2026-05-14 — TD-SP06.2-MIDDLEWARE Ready for Review ✅
+
+**Status flip:** Ready → InProgress → Ready for Review
+**Effort actual:** ~30min (vs ~3h estimate — exception_handler já existia em `app.py:432`, fix surgical foi loop propagação 3 linhas)
+
+**Approach A aplicado (Niobe recommended):**
+- Layer middleware swallow **identificado em `bloco_interface/web/app.py:432`** (NÃO em `error_handler.py` como Sprint 6.1 suspeitou)
+- Fix surgical: loop propagação `exc.headers` pós-TemplateResponse em 401/403 path
+- Backward compat HTML `s7_error.html` preservado (Bloco β SPA intacto)
+- Headers propagados APENAS quando explicitly setados em `HTTPException(headers={...})`
+
+**Files modified:**
+- `bloco_interface/web/app.py` (exception_handler 401/403 path propaga `exc.headers` via loop pós-TemplateResponse)
+- `tests/unit/test_download_route.py` (substituiu `test_401_endpoint_specifies_www_authenticate_in_exception` Sprint 6.1 source-level workaround por `test_401_includes_www_authenticate_header_in_response` direct response header validation)
+
+**Pytest baseline:** 492 passed + 5 skipped (47.85s) — ZERO regressões (1 test substituído 1:1)
+
+**ACs cumpridos:**
+- ✅ AC-01: 401 header `WWW-Authenticate: Session` accessible cliente (RFC 7235)
+- ✅ AC-02: Test substituído source-level → direct response header validation
+- ✅ AC-03: Middleware HTML s7_error backward compat preservado
+- ⏸️ AC-04: Cross-endpoint consistency check **DEFERRED Sprint 6.3** (handoff Keymaker explicit "opcional Sprint 6.2 OR defer se scope creep")
+- ✅ AC-05: Baseline 492 PASS ZERO regressões
+- ✅ AC-06: Existing test workaround removed
+
+**Handoff yaml:** `.lmas/handoffs/handoff-dev-to-smith-2026-05-14-sprint-6-2-pre-merge.yaml`
+**Próximo:** @smith Skill `*verify sprint-6-2-pre-merge-v0-2-2` (adversarial review pre-merge v0.2.2) ✅ DONE
+
+### Smith Sprint 6.2 Adversarial Review 2026-05-14 — CONTAINED+ ✅ GREENLIGHT
+
+**Report:** [`governance/qa/smith-sprint-6-2-pre-merge-v0-2-2-2026-05-14.md`](./qa/smith-sprint-6-2-pre-merge-v0-2-2-2026-05-14.md)
+**Verdict:** 🕶️ **CONTAINED+** (GREENLIGHT Operator push v0.2.2)
+
+**Findings count (11 total):**
+- CRITICAL: 0 / HIGH: 0
+- MEDIUM: 3 (todos com mitigação documentada)
+  - F-SP62-M01: Branch S7 demais status codes não propaga exc.headers (Sprint 6.3 TD-SP06.3-CROSS-STATUS-HEADER-PROPAGATION candidate)
+  - F-SP62-M02: Header propagation sem whitelist (defense-in-depth recommendation)
+  - F-SP62-M03: Test não valida AC-03 HTML body direct (gap aceitável trade-off Neo 1:1)
+- LOW: 3 (cosméticos / pre-existing: cross-test isolation JOBS, case-sensitive assertion, source-level fix doc gap)
+- POSITIVE: 5 (fix surgical 10 lines, test 1:1 ZERO count change, docstring rastreabilidade, 401+403 cobertura, root cause precision)
+
+**Constitution Art. III/IV/V:** ✅ PASS
+**ACs status:** AC-01..03 + AC-05..06 PASS (AC-04 deferred Sprint 6.3 com justificativa Keymaker)
+
+**CI verification:** ⚠️ OVERRIDE Opção 3 documentado — ambiente Smith local sem deps SQLAlchemy+30 outras; Neo handoff baseline confiável + git diff scope + spot-check empírico. **Operator MUST rodar pytest local pre-push** como mitigation final per TD-PROCESS-02 lesson.
+
+**Tech debt criado:** TD-SP06.3-CROSS-STATUS-HEADER-PROPAGATION (F-SP62-M01 Sprint 6.3 candidate)
+
+**Próximo:** @devops (Operator) Skill `*push v0.2.2` + tag (com pytest local pre-push obrigatório per CI override mitigation)
+
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
 - **ADR canônico:** [`governance/architecture/adr/adr-022-persona-redator-revisional.md`](./architecture/adr/adr-022-persona-redator-revisional.md)
