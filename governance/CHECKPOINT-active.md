@@ -468,6 +468,35 @@ Sprint 6.1 escopo: 5 MEDIUM Smith findings + 4 LOW + 1 NOTE residuais como TD cl
 
 *— Sessão 2026-05-14 encerrada. Sprint 6 entregue. Sprint 6.1 mapeado. Próxima sessão: Neo dev waves.*
 
+---
+
+## ⚠️ PRE-COMPACT METADATA (2026-05-14 session-end)
+
+**Projeto ativo desta sessão:** `revisor-contratual-staging` — PRESERVAR após compaction. NÃO mudar de projeto.
+
+**Contexto Ativo (snapshot pre-compact):**
+- Sprint 6 Bloco γ + δ COMPLETE no origin/main (commits 854debf → bfd16de, 10 commits Sprint 6.x cumulative)
+- Sprint 6.1 planning DONE (5 stories Ready) — dev DEFERRED próxima sessão por Eric decision (context window protection)
+- Working tree limpo (apenas untracked gitignored: `.tmp/`, `documentos-para-teste/`, `orsheva-brandbook.html`, `revisor-contratual-orsheva.html.html`)
+
+**Decisões Tomadas nesta sessão (Eric directive AGGRESSIVE chain):**
+1. Sprint 6 Bloco γ + δ execução autônoma completa via Skills chain estrita (Trinity → Aria → Niobe → Keymaker → Neo → Oracle → Smith → Neo hotfix → Smith re-verify → Operator push)
+2. Smith 2 HIGH findings hotfix AGORA (F-γ-01 audit-first /download + F-γ-02 TIER_TO_MODEL real audit)
+3. Commits split por tema (7 Sprint 6 + 2 Sprint 6.1 planning + 1 closure)
+4. Push após Smith CLEAN re-verify (gate quality-gate-enforcement.md MUST satisfeito)
+5. Sprint 6.1 planning paralelo à advogada externa, mas dev DEFERRED próxima sessão (context window pragmatic)
+6. Aria patch ADR-022 D2 escolheu Opção B (preservar 3-camadas anti-hallucination + spec Layer 3 NLI via story TD-SP06.1-LAYER-3-NLI-VALIDATOR)
+
+**Próximos Passos (próxima sessão):**
+1. **Read** `projects/revisor-contratual-staging/governance/CHECKPOINT-active.md` (full state)
+2. **Invoke Skill** `LMAS:agents:dev` *develop Wave 6.1.1 paralelo (3 stories: QWEN-FALLBACK + PDF-FILENAME-COLLISION + STEP-8-GRACEFUL)
+3. **Cadeia restante:** Neo Wave 6.1.1 + Wave 6.1.3 paralelo → Wave 6.1.2 NLI serial → Oracle smoke → Smith review CONTAINED+ → Operator push v0.2.1
+4. **External paralelo:** Eric forward `governance/qa/handoff-eric-advogada-externa-bloco-gamma-2026-05-14.md` para advogada externa (AC-PRD-γ-05 BLOQUEANTE process externo — não bloqueia Sprint 6.1 técnico)
+
+**Regra preservada:** Sprint 6.1 dev DEVE usar Skills corretas (Niobe drafts → Keymaker validates → Neo develops → Oracle smokes → Smith reviews → Operator pushes). Eric directive `feedback_workflow_via_skill_strict` + `feedback_agents_via_skill_only` em vigor.
+
+**Status pytest baseline (próxima sessão verificará):** 478 passed + 5 skipped ZERO regressões (Smith CLEAN re-verify 2026-05-14).
+
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
 - **ADR canônico:** [`governance/architecture/adr/adr-022-persona-redator-revisional.md`](./architecture/adr/adr-022-persona-redator-revisional.md)
