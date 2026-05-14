@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.1-DOWNLOAD-EDGE-CASES
 title: "Download endpoint refinements — WWW-Authenticate + 404 distinct + size limit 413"
-status: Ready
+status: Ready for Review
 priority: 3
 sprint: "6.1 hotfix TD cleanup"
 validated_by: "@po (Keymaker)"
@@ -225,3 +225,5 @@ def test_413_oversized_pdf_blocked(authed_client, monkeypatch):
 | Data | Autor | Mudança |
 |------|-------|---------|
 | 2026-05-14 | @sm (River) | Draft Sprint 6.1 Wave 6.1.3 — Download endpoint refinements (Smith F-γ-08+09+10 LOW consolidated) |
+| 2026-05-14 | @po (Keymaker) | Validation GO 10/10 — flip Draft → Ready |
+| 2026-05-14 | @dev (Neo) | Implementação completa Wave 6.1.3 — F-γ-08 WWW-Authenticate header em 401 (HTTPException kwarg headers, middleware swallow TD-SP06.2 catalogado) + F-γ-09 constants DOWNLOAD_404_JOB_NOT_FOUND/PDF_NOT_GENERATED/PDF_FILE_MISSING distinct + F-γ-10 MAX_PDF_BYTES=50MB size limit antes read_bytes() + 4 novos unit tests — pytest 484 → 488 PASS ZERO regressão — flip Ready → Ready for Review. Files: bloco_interface/web/app.py + tests/unit/test_download_route.py |

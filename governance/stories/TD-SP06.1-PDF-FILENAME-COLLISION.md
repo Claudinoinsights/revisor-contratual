@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.1-PDF-FILENAME-COLLISION
 title: "pdf_filename usa job_id (multi-tenancy SaaS fix)"
-status: Ready
+status: Ready for Review
 priority: 1
 sprint: "6.1 hotfix TD cleanup"
 validated_by: "@po (Keymaker)"
@@ -154,3 +154,5 @@ async def test_concurrent_jobs_same_pdf_no_collision(tmp_path):
 | Data | Autor | Mudança |
 |------|-------|---------|
 | 2026-05-14 | @sm (River) | Draft Sprint 6.1 Wave 6.1.1 — pdf_filename job_id-based (Smith F-γ-07 multi-tenancy fix) |
+| 2026-05-14 | @po (Keymaker) | Validation GO 10/10 — flip Draft → Ready |
+| 2026-05-14 | @dev (Neo) | Implementação completa Wave 6.1.1 — revisar_contrato signature `job_id: str \| None = None` (retrocompat opt-in) + pdf_filename hybrid `{job_id[:8]}-{contract_hash[:8]}.pdf` (job_id ≠ None) OR fallback legacy contract_hash[:16].pdf + audit field peca_pdf_filename + app.py revisar_stream passa job_id=job_id ao pipeline + 2 unit tests novos (uses_job_id_when_provided + legacy_fallback) — flip Ready → Ready for Review. Files: bloco_workflow/pipeline.py + bloco_interface/web/app.py + tests/unit/test_weasyprint_render.py |

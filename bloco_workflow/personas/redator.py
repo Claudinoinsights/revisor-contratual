@@ -28,13 +28,33 @@ from bloco_contratos.personas import (
     PecaRevisional,
     RelatorioInviabilidade,
     TeseAdvogado,
+    ValidacaoSemantica,
     VeredictoJuiz,
 )
-from bloco_workflow.personas.llm_factory import get_advogado_llm
+from bloco_workflow.personas.llm_factory import (
+    DEFAULT_HOST_ADVOGADO,
+    TIER_TO_MODEL_ADVOGADO,
+    get_advogado_llm,
+)
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 InvokeFn = Callable[[str], Awaitable[str]]
 
 TemplateVariant = Literal["completa", "com_hitl", "inviabilidade"]
+
+# Sprint 6.1 Story TD-SP06.1-QWEN-FALLBACK-WIRING (Smith F-γ-03):
+# Fallback chain real per tier — ADR-022 D1 + ADR-010 Sabia Q4 mitigation honesty.
+# lean: degraded mode sem fallback (qwen2.5:3b only).
+# balanced (DEFAULT): qwen2.5:7b primary → sabia-7b-instruct fallback.
+# premium: sabia-7b-instruct primary → qwen2.5:7b fallback.
+FALLBACK_MAP: dict[LLMTier, str | None] = {
+    "lean": None,
+    "balanced": "sabia-7b-instruct",
+    "premium": "qwen2.5:7b",
+}
 
 
 class PecaHallucinationError(Exception):
@@ -185,6 +205,81 @@ def _build_prompt(
     )
 
 
+# Sprint 6.1 TD-SP06.1-LAYER-3-NLI-VALIDATOR (Smith F-γ-04 + ADR-022 D2 patch):
+# NLIValidatorFn signature — recebe (citacao_textual, ementa_real) retorna ValidacaoSemantica.
+# Default real implementation (sentence-transformers + BERT NLI) fica Sprint 7+ TD-SP07-NLI-HYBRID-REAL.
+NLIValidatorFn = Callable[[str, str], Awaitable[ValidacaoSemantica]]
+
+
+async def validar_citacoes_nli(
+    peca: PecaRevisional,
+    vault_docs: list[JurisprudenciaItem],
+    *,
+    nli_validator_fn: NLIValidatorFn | None = None,
+) -> list[ValidacaoSemantica]:
+    """Layer 3 anti-hallucination — NLI semantic validation citações textuais.
+
+    Para cada fundamentos_invocados[].citacao_textual em PecaRevisional, executa
+    NLI híbrido (cosine + BERT NLI) contra ementa real Súmula vault para detectar
+    interpretação invertida.
+
+    Distinção vs Layer 2:
+    - Layer 2 (validar_citacoes_vault) captura "Súmula 999 não existe no vault" (ID fantasma)
+    - Layer 3 (this function) captura "Súmula 539 existe mas peça afirma o oposto" (semantic)
+
+    Args:
+        peca: PecaRevisional com fundamentos_invocados (opt-in Bloco γ schema extension Sprint 6.1).
+        vault_docs: jurisprudência do vault para lookup ementa real por id_doc.
+        nli_validator_fn: dependency injection. None default raises NotImplementedError
+            (real implementation cabe Sprint 7+ TD-SP07-NLI-HYBRID-REAL).
+
+    Returns:
+        list[ValidacaoSemantica] com NLI label para cada citação.
+        Empty list se peca.fundamentos_invocados is None (Layer 3 skipped — Bloco γ retrocompat).
+
+    Raises:
+        PecaHallucinationError se algum nli_label == "contradiction" (interpretação invertida).
+        NotImplementedError se nli_validator_fn is None (Sprint 7+ TD).
+    """
+    if peca.fundamentos_invocados is None:
+        # Layer 3 opt-in — Bloco γ originals (sem fundamentos_invocados field) skipped
+        return []
+
+    if nli_validator_fn is None:
+        raise NotImplementedError(
+            "Sprint 6.1 MVP scope: real NLI validator (sentence-transformers + BERT) fica "
+            "TD-SP07-NLI-HYBRID-REAL Sprint 7+. Pass nli_validator_fn explicit (mock OR real)."
+        )
+
+    vault_lookup = {d.id_doc: d for d in vault_docs}
+    validations: list[ValidacaoSemantica] = []
+    fantasmas_semanticos: list[str] = []
+
+    for fundamento in peca.fundamentos_invocados:
+        vault_doc = vault_lookup.get(fundamento.id_doc)
+        if vault_doc is None:
+            # Layer 2 já captura este caso — Layer 3 defensive skip
+            continue
+        validacao = await nli_validator_fn(
+            fundamento.citacao_textual,
+            vault_doc.ementa,
+        )
+        validations.append(validacao)
+        if validacao.nli_label == "contradiction":
+            fantasmas_semanticos.append(
+                f"id_doc={fundamento.id_doc} citacao='{fundamento.citacao_textual[:80]}...' "
+                f"reason='{validacao.razao}'"
+            )
+
+    if fantasmas_semanticos:
+        raise PecaHallucinationError(
+            f"Layer 3 NLI bloqueou interpretação invertida: {'; '.join(fantasmas_semanticos)}. "
+            f"FR-PECA-05 traceability semantic — peça REJEITADA."
+        )
+
+    return validations
+
+
 def validar_citacoes_vault(
     peca: PecaRevisional,
     vault_doc_ids: list[str],
@@ -209,14 +304,53 @@ def validar_citacoes_vault(
         )
 
 
-async def _default_invoke(prompt: str, tier: LLMTier) -> str:
-    """Default invoke via ChatOllama (não chamado em testes)."""
-    llm = get_advogado_llm(tier=tier)
-    response = await llm.ainvoke(prompt)
-    content = response.content
-    if isinstance(content, list):
-        content = "".join(str(c) for c in content)
-    return str(content)
+async def _default_invoke(prompt: str, tier: LLMTier) -> tuple[str, str]:
+    """Default invoke via ChatOllama com fallback chain (Sprint 6.1 F-γ-03 fix).
+
+    Returns:
+        (content_str, actual_model_used) — actual_model_used captura primary OR fallback model name.
+        Forense pós-incident pode identificar modelo ACTUAL via audit chain.
+
+    Raises:
+        Exception original do primary se fallback_model is None (lean degraded mode)
+        OR se fallback_model também falha (cascading failure).
+    """
+    primary_model = TIER_TO_MODEL_ADVOGADO[tier]
+    fallback_model = FALLBACK_MAP.get(tier)
+
+    try:
+        llm = get_advogado_llm(tier=tier)
+        response = await llm.ainvoke(prompt)
+        content = response.content
+        if isinstance(content, list):
+            content = "".join(str(c) for c in content)
+        return str(content), primary_model
+    except Exception as exc:  # noqa: BLE001 — fallback é por design
+        if fallback_model is None:
+            # lean degraded mode — sem fallback configurado
+            logger.warning(
+                "Redator tier=%s primary %s falhou: %s — sem fallback (lean degraded)",
+                tier, primary_model, exc,
+            )
+            raise
+
+        logger.warning(
+            "Redator tier=%s primary %s falhou: %s — tentando fallback %s",
+            tier, primary_model, exc, fallback_model,
+        )
+        from langchain_ollama import ChatOllama  # type: ignore[import-not-found]
+        fallback_llm = ChatOllama(
+            model=fallback_model,
+            base_url=DEFAULT_HOST_ADVOGADO,
+            temperature=0.2,
+            timeout=120.0,
+            format="json",
+        )
+        response = await fallback_llm.ainvoke(prompt)
+        content = response.content
+        if isinstance(content, list):
+            content = "".join(str(c) for c in content)
+        return str(content), fallback_model
 
 
 async def redator_invoke(
@@ -230,6 +364,9 @@ async def redator_invoke(
     tier: LLMTier = "balanced",
     template_variant: TemplateVariant | None = None,
     invoke_fn: InvokeFn | None = None,
+    model_capture: dict[str, Any] | None = None,
+    enable_layer_3: bool = False,
+    nli_validator_fn: NLIValidatorFn | None = None,
 ) -> PecaRevisional | RelatorioInviabilidade:
     """Invoca Redator LLM — gera peça revisional ou relatório de inviabilidade.
 
@@ -243,6 +380,9 @@ async def redator_invoke(
         tier: lean/balanced/premium (ADR-022 D1).
         template_variant: completa/com_hitl/inviabilidade. Se None, derivado do veredito.
         invoke_fn: dependency injection para testes (recebe prompt, retorna JSON str).
+        model_capture: dict opt-in (Sprint 6.1 F-γ-03) — preenchido com `actual_model_used`
+            para audit chain forense post-incident saber qual LLM gerou a peça (primary OR fallback).
+            Default `tier` mapped quando invoke_fn provided OR primary used.
 
     Returns:
         PecaRevisional para veredictos APROVADO_*, RelatorioInviabilidade para REJEITADO.
@@ -265,15 +405,24 @@ async def redator_invoke(
     )
 
     if invoke_fn is None:
-        json_str = await _default_invoke(prompt, tier)
+        json_str, actual_model_used = await _default_invoke(prompt, tier)
     else:
         json_str = await invoke_fn(prompt)
+        # invoke_fn é mock/test injection — actual_model é o primary tier mapped
+        actual_model_used = TIER_TO_MODEL_ADVOGADO[tier]
+
+    # Propagar actual_model_used para audit chain (F-γ-03 + F-γ-02 honesty)
+    if model_capture is not None:
+        model_capture["actual_model_used"] = actual_model_used
 
     # Layer 1 anti-hallucination — Pydantic strict validation
     if template_variant == "inviabilidade":
         return RelatorioInviabilidade.model_validate_json(json_str)
     else:
         peca = PecaRevisional.model_validate_json(json_str)
-        # Layer 2 anti-hallucination — vault-restricted citations
+        # Layer 2 anti-hallucination — vault-restricted citations (id_doc)
         validar_citacoes_vault(peca, [d.id_doc for d in docs])
+        # Layer 3 anti-hallucination — NLI semantic validation (Sprint 6.1 opt-in)
+        if enable_layer_3:
+            await validar_citacoes_nli(peca, docs, nli_validator_fn=nli_validator_fn)
         return peca

@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.1-QWEN-FALLBACK-WIRING
 title: "Qwen fallback chain em redator._default_invoke (ADR-022 D1 honesty)"
-status: Ready
+status: Ready for Review
 priority: 1
 sprint: "6.1 hotfix TD cleanup"
 validated_by: "@po (Keymaker)"
@@ -191,3 +191,5 @@ async def test_fallback_chain_when_primary_fails(monkeypatch):
 | Data | Autor | Mudança |
 |------|-------|---------|
 | 2026-05-14 | @sm (River) | Draft Sprint 6.1 Wave 6.1.1 — Qwen fallback wiring (Smith F-γ-03 remediation + ADR-022 D1 honesty) |
+| 2026-05-14 | @po (Keymaker) | Validation GO 10/10 — flip Draft → Ready |
+| 2026-05-14 | @dev (Neo) | Implementação completa Wave 6.1.1 — FALLBACK_MAP per tier + _default_invoke tuple retorno (content, actual_model_used) + model_capture dict param em redator_invoke + pipeline.py audit substituir TIER_TO_MODEL estático por actual_model_used capturado + 3 unit tests novos (model_capture + fallback_map config) + pytest 478 → 484 PASS ZERO regressão — flip Ready → Ready for Review. Files: bloco_workflow/personas/redator.py + bloco_workflow/pipeline.py + tests/unit/test_redator_persona.py |

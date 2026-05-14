@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.1-LAYER-3-NLI-VALIDATOR
 title: "Layer 3 NLI semantic validator citações Súmulas (ADR-022 D2 patch spec)"
-status: Ready
+status: Ready for Review
 priority: 2
 sprint: "6.1 hotfix TD cleanup"
 validated_by: "@po (Keymaker)"
@@ -253,3 +253,5 @@ async def test_layer_3_nli_blocks_inverted_interpretation():
 | Data | Autor | Mudança |
 |------|-------|---------|
 | 2026-05-14 | @sm (River) | Draft Sprint 6.1 Wave 6.1.2 — Layer 3 NLI semantic validator spec ADR-022 D2 patch (Smith F-γ-04 + reuso ADR-004 pattern) |
+| 2026-05-14 | @po (Keymaker) | Validation GO 10/10 — flip Draft → Ready |
+| 2026-05-14 | @dev (Neo) | Implementação completa Wave 6.1.2 MVP — PecaRevisional schema extension `fundamentos_invocados: list[FundamentoInvocado] \| None = None` (opt-in retrocompat Bloco γ) + `validar_citacoes_nli()` async function + `NLIValidatorFn` type alias + redator_invoke kwargs `enable_layer_3: bool = False` + `nli_validator_fn` DI + integração Layer 1 → Layer 2 → Layer 3 sequência completa + default impl raises NotImplementedError (TD-SP07-NLI-HYBRID-REAL Sprint 7+ real sentence-transformers + BERT) + 4 unit tests novos (skipped_when_none + raises_notimplementederror + passes_aligned + blocks_inverted) — pytest 488 → 492 PASS ZERO regressão — flip Ready → Ready for Review. Files: bloco_contratos/personas.py + bloco_workflow/personas/redator.py + tests/unit/test_redator_persona.py |

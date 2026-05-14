@@ -469,3 +469,195 @@ def test_validar_citacoes_vault_passes_when_no_citations():
     """Edge case: peca.citacoes_jurisprudencia=[] → silenciosamente OK."""
     peca = PecaRevisional.model_validate_json(_make_peca_revisional_json(citacoes=[]))
     validar_citacoes_vault(peca, vault_doc_ids=["STJ-S539"])
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Sprint 6.1 F-γ-03: model_capture dict propagation (actual_model_used)
+# ─────────────────────────────────────────────────────────────────────
+
+
+async def test_model_capture_records_tier_when_invoke_fn_provided(
+    contrato_meta, calculo, tese, analise, docs, veredito_aprovado_100
+):
+    """F-γ-03 Sprint 6.1: model_capture dict propaga actual_model_used quando invoke_fn provided.
+
+    Em tests offline (invoke_fn mock injection), redator_invoke registra
+    actual_model_used = TIER_TO_MODEL_ADVOGADO[tier] (primary mapping).
+    """
+    from bloco_workflow.personas.llm_factory import TIER_TO_MODEL_ADVOGADO
+
+    async def mock_invoke(prompt: str) -> str:
+        return _make_peca_revisional_json(citacoes=["STJ-S539"])
+
+    model_capture: dict = {}
+    await redator_invoke(
+        veredito=veredito_aprovado_100,
+        contrato_meta=contrato_meta,
+        calculo=calculo,
+        tese=tese,
+        analise=analise,
+        docs=docs,
+        tier="balanced",
+        invoke_fn=mock_invoke,
+        model_capture=model_capture,
+    )
+
+    assert "actual_model_used" in model_capture
+    assert model_capture["actual_model_used"] == TIER_TO_MODEL_ADVOGADO["balanced"]
+    assert model_capture["actual_model_used"] == "qwen2.5:7b"
+
+
+async def test_model_capture_none_does_not_crash(
+    contrato_meta, calculo, tese, analise, docs, veredito_aprovado_100
+):
+    """F-γ-03 Sprint 6.1: model_capture=None (default) não causa AttributeError."""
+    async def mock_invoke(prompt: str) -> str:
+        return _make_peca_revisional_json(citacoes=["STJ-S539"])
+
+    # Retrocompat — chamada sem model_capture (Bloco γ callers existentes)
+    result = await redator_invoke(
+        veredito=veredito_aprovado_100,
+        contrato_meta=contrato_meta,
+        calculo=calculo,
+        tese=tese,
+        analise=analise,
+        docs=docs,
+        tier="balanced",
+        invoke_fn=mock_invoke,
+        # model_capture=None default
+    )
+    assert isinstance(result, PecaRevisional)
+
+
+def test_fallback_map_configured_per_tier():
+    """F-γ-03 Sprint 6.1: FALLBACK_MAP exposed + configured per tier (ADR-022 D1).
+
+    - lean: None (degraded mode sem fallback)
+    - balanced (DEFAULT): qwen2.5:7b primary → sabia-7b-instruct fallback
+    - premium: sabia-7b-instruct primary → qwen2.5:7b fallback
+    """
+    from bloco_workflow.personas.redator import FALLBACK_MAP
+
+    assert FALLBACK_MAP["lean"] is None
+    assert FALLBACK_MAP["balanced"] == "sabia-7b-instruct"
+    assert FALLBACK_MAP["premium"] == "qwen2.5:7b"
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Sprint 6.1 Wave 6.1.2 — F-γ-04 Layer 3 NLI semantic validator (ADR-022 D2 patch)
+# ─────────────────────────────────────────────────────────────────────
+
+
+async def test_layer_3_skipped_when_fundamentos_invocados_none(docs):
+    """F-γ-04 Sprint 6.1: Layer 3 opt-in retrocompat — peça sem fundamentos_invocados skip."""
+    from bloco_workflow.personas.redator import validar_citacoes_nli
+
+    peca = PecaRevisional.model_validate_json(_make_peca_revisional_json())
+    # peca.fundamentos_invocados is None (default)
+
+    result = await validar_citacoes_nli(peca, docs, nli_validator_fn=None)
+    # NÃO raises NotImplementedError porque fundamentos_invocados=None → early return
+    assert result == []
+
+
+async def test_layer_3_raises_notimplementederror_when_default(docs):
+    """F-γ-04 Sprint 6.1: nli_validator_fn=None + fundamentos_invocados populated → NotImplementedError.
+
+    Real implementation (sentence-transformers + BERT) é Sprint 7+ TD-SP07-NLI-HYBRID-REAL.
+    """
+    from bloco_workflow.personas.redator import validar_citacoes_nli
+    from bloco_contratos.personas import FundamentoInvocado
+
+    peca = PecaRevisional.model_validate_json(_make_peca_revisional_json())
+    # Forçar fundamentos_invocados populated via model_copy
+    peca_with_fundamentos = peca.model_copy(update={
+        "fundamentos_invocados": [
+            FundamentoInvocado(
+                id_doc="STJ-S539",
+                citacao_textual="Capitalização juros exige pactuação expressa",
+                peso_vinculacao=3,
+                court_id="STJ",
+            )
+        ]
+    })
+
+    with pytest.raises(NotImplementedError, match="TD-SP07-NLI-HYBRID-REAL"):
+        await validar_citacoes_nli(peca_with_fundamentos, docs, nli_validator_fn=None)
+
+
+async def test_layer_3_passes_aligned_citation(docs):
+    """F-γ-04 Sprint 6.1: NLI label=entailment → validations retornadas sem raise."""
+    from bloco_workflow.personas.redator import validar_citacoes_nli
+    from bloco_contratos.personas import FundamentoInvocado, ValidacaoSemantica
+
+    async def mock_nli_entailment(citacao_textual: str, ementa: str) -> ValidacaoSemantica:
+        return ValidacaoSemantica(
+            id_doc="STJ-S539",
+            frase_tese=citacao_textual,
+            ementa_real=ementa,
+            similarity_score=0.92,
+            nli_label="entailment",
+            nli_confidence=0.95,
+            veredito="PASS",
+            razao="Citação alinhada com ementa real",
+        )
+
+    peca = PecaRevisional.model_validate_json(_make_peca_revisional_json())
+    peca_with_fundamentos = peca.model_copy(update={
+        "fundamentos_invocados": [
+            FundamentoInvocado(
+                id_doc="STJ-S539",
+                citacao_textual="Capitalização juros exige pactuação expressa",
+                peso_vinculacao=3,
+                court_id="STJ",
+            )
+        ]
+    })
+
+    validations = await validar_citacoes_nli(
+        peca_with_fundamentos, docs, nli_validator_fn=mock_nli_entailment
+    )
+
+    assert len(validations) == 1
+    assert validations[0].nli_label == "entailment"
+    assert validations[0].veredito == "PASS"
+
+
+async def test_layer_3_blocks_inverted_interpretation(docs):
+    """F-γ-04 Sprint 6.1: NLI label=contradiction → PecaHallucinationError raised.
+
+    Cenário: peça afirma o OPOSTO do que a Súmula real diz.
+    Layer 2 (vault id check) passa porque STJ-S539 existe no vault.
+    Layer 3 (semantic NLI) detecta interpretação invertida e bloqueia.
+    """
+    from bloco_workflow.personas.redator import validar_citacoes_nli
+    from bloco_contratos.personas import FundamentoInvocado, ValidacaoSemantica
+
+    async def mock_nli_contradiction(citacao_textual: str, ementa: str) -> ValidacaoSemantica:
+        return ValidacaoSemantica(
+            id_doc="STJ-S539",
+            frase_tese=citacao_textual,
+            ementa_real=ementa,
+            similarity_score=0.85,
+            nli_label="contradiction",
+            nli_confidence=0.93,
+            veredito="FAIL_POLARITY",
+            razao="Citação afirma o oposto do que a Súmula 539 STJ diz",
+        )
+
+    peca = PecaRevisional.model_validate_json(_make_peca_revisional_json())
+    peca_inverted = peca.model_copy(update={
+        "fundamentos_invocados": [
+            FundamentoInvocado(
+                id_doc="STJ-S539",
+                citacao_textual="Súmula 539 PROÍBE capitalização em qualquer hipótese",  # FALSO
+                peso_vinculacao=3,
+                court_id="STJ",
+            )
+        ]
+    })
+
+    with pytest.raises(PecaHallucinationError, match="Layer 3 NLI bloqueou"):
+        await validar_citacoes_nli(
+            peca_inverted, docs, nli_validator_fn=mock_nli_contradiction
+        )

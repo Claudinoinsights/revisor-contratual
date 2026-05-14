@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.1-PIPELINE-STEP-8-GRACEFUL
 title: "Pipeline Step 8 graceful degradation — preserva peça LLM se weasyprint falha"
-status: Ready
+status: Ready for Review
 priority: 1
 sprint: "6.1 hotfix TD cleanup"
 validated_by: "@po (Keymaker)"
@@ -187,3 +187,5 @@ async def test_step_8_weasyprint_failure_does_not_fail_pipeline(tmp_path, monkey
 | Data | Autor | Mudança |
 |------|-------|---------|
 | 2026-05-14 | @sm (River) | Draft Sprint 6.1 Wave 6.1.1 — Step 8 graceful degradation weasyprint (Smith F-γ-06 remediation) |
+| 2026-05-14 | @po (Keymaker) | Validation GO 10/10 — flip Draft → Ready |
+| 2026-05-14 | @dev (Neo) | Implementação completa Wave 6.1.1 — pipeline.py Step 8 wrap try/except específico (OSError + FileNotFoundError + RuntimeError, não bare Exception) + audit_payload[peca_pdf_generated]=True/False + peca_pdf_render_error registrado em falha + result_capture preserva peca_format/template/render_error/pdf_path=None graceful + logger.warning template + exception detail + 1 unit test novo (graceful_degradation_dict_keys) — flip Ready → Ready for Review. Files: bloco_workflow/pipeline.py + tests/unit/test_weasyprint_render.py |

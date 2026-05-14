@@ -239,6 +239,16 @@ class PecaRevisional(BaseModel):
         default=None,
         description="Seção opcional para veredictos APROVADO_COM_RISCO_HITL — riscos identificados pelo Juiz",
     )
+    # Sprint 6.1 TD-SP06.1-LAYER-3-NLI-VALIDATOR (Smith F-γ-04 + ADR-022 D2 patch):
+    # Lista de FundamentoInvocado com citacao_textual + id_doc para Layer 3 NLI semantic
+    # validation. Opt-in retrocompat (default None preserva Bloco γ behavior).
+    # Quando populated + enable_layer_3=True em redator_invoke, validar_citacoes_nli
+    # executa NLI híbrido (cosine + BERT) contra ementa real vault para detectar
+    # interpretação invertida ("Súmula 539 PROÍBE" quando ela PERMITE com pactuação).
+    fundamentos_invocados: list[FundamentoInvocado] | None = Field(
+        default=None,
+        description="Layer 3 anti-hallucination opt-in (Sprint 6.1) — citações textuais para NLI semantic validation",
+    )
 
 
 class RelatorioInviabilidade(BaseModel):

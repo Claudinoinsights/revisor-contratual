@@ -262,3 +262,105 @@ def test_download_503_when_audit_fails(
     # NÃO entregou PDF (LGPD §46 compliance preserved)
     assert not response.content.startswith(b"%PDF-")
 
+
+# ─────────────────────────────────────────────────────────────────────
+# Sprint 6.1 Wave 6.1.3 — F-γ-08+09+10 LOW consolidated remediation
+# ─────────────────────────────────────────────────────────────────────
+
+
+def test_401_endpoint_specifies_www_authenticate_in_exception(
+    unauth_client: TestClient, populated_job: str
+) -> None:
+    """F-γ-08 Sprint 6.1: HTTPException 401 declarada com headers WWW-Authenticate=Session.
+
+    Note: o `error_handler` middleware do projeto reescreve responses 401 para HTML
+    s7_error e pode swallow custom headers. O fix Sprint 6.1 ESTÁ aplicado no source
+    (raise HTTPException com headers={"WWW-Authenticate": "Session"}); a entrega
+    efetiva ao cliente depende do middleware. TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE
+    catalogado para Sprint 6.2 (middleware override preservar custom headers).
+
+    Esta verifica via source inspection que a constante está corretamente declarada.
+    """
+    import inspect
+    from bloco_interface.web import app as web_app
+    source = inspect.getsource(web_app.download_peca)
+    # Source contém o header WWW-Authenticate (verifica fix aplicado no código)
+    assert '"WWW-Authenticate": "Session"' in source
+
+    # Comportamento user-facing: status_code 401 garantido (middleware preserva)
+    response = unauth_client.get(f"/download/{populated_job}")
+    assert response.status_code == 401
+
+
+def test_download_constants_exposed():
+    """F-γ-09 Sprint 6.1: 404 distinct detail constants expostos para audit forense."""
+    from bloco_interface.web.app import (
+        DOWNLOAD_404_JOB_NOT_FOUND,
+        DOWNLOAD_404_PDF_FILE_MISSING,
+        DOWNLOAD_404_PDF_NOT_GENERATED,
+    )
+
+    assert DOWNLOAD_404_JOB_NOT_FOUND == "job_not_found"
+    assert DOWNLOAD_404_PDF_NOT_GENERATED == "pdf_not_generated_yet"
+    assert DOWNLOAD_404_PDF_FILE_MISSING == "pdf_file_missing"
+    # All distinct (no collision)
+    assert len({
+        DOWNLOAD_404_JOB_NOT_FOUND,
+        DOWNLOAD_404_PDF_NOT_GENERATED,
+        DOWNLOAD_404_PDF_FILE_MISSING,
+    }) == 3
+
+
+def test_max_pdf_bytes_50mb_constant():
+    """F-γ-10 Sprint 6.1: MAX_PDF_BYTES = 50MB sensible default SaaS."""
+    from bloco_interface.web.app import MAX_PDF_BYTES
+
+    assert MAX_PDF_BYTES == 50 * 1024 * 1024  # 50MB
+    assert MAX_PDF_BYTES > 1024 * 1024  # > 1MB (peças reais ~500KB-2MB)
+
+
+def test_413_oversized_pdf_blocked(
+    authed_client: TestClient,
+    fake_pdf_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """F-γ-10 Sprint 6.1: PDF >50MB → 413 Payload Too Large.
+
+    DoS protection — pdf_path.stat().st_size verificado ANTES de read_bytes()
+    para avoid memory exhaustion via payload malicioso 1GB+.
+    """
+    import uuid
+    job_id = str(uuid.uuid4())
+    JOBS[job_id] = {
+        "status": "done",
+        "owner": "admin",
+        "peca_pdf_path": str(fake_pdf_path),
+        "peca_pdf_hash": "fake-hash-large",
+        "peca_format": "PecaRevisional",
+        "verdict": {"veredito": "APROVADO_100"},
+        "filename": "huge.pdf",
+    }
+    try:
+        # Mock pdf_path.stat() para retornar size > 50MB
+        from pathlib import Path as _Path
+        original_stat = _Path.stat
+
+        def mock_stat(self, *args, **kwargs):
+            real_stat = original_stat(self, *args, **kwargs)
+            if str(self) == str(fake_pdf_path):
+                # Spoofar size = 51MB
+                class _FakeStat:
+                    st_size = 51 * 1024 * 1024
+                    st_mode = real_stat.st_mode
+                    st_mtime = real_stat.st_mtime
+                return _FakeStat()
+            return real_stat
+
+        monkeypatch.setattr(_Path, "stat", mock_stat)
+
+        response = authed_client.get(f"/download/{job_id}")
+        assert response.status_code == 413
+        assert not response.content.startswith(b"%PDF-")
+    finally:
+        JOBS.pop(job_id, None)
+

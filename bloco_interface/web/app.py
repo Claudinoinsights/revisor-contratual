@@ -866,12 +866,26 @@ async def revisar(
 # ─────────────────────────────────────────────────────────────────────
 
 
+# Sprint 6.1 F-γ-10 — pdf size limit (DoS protection contra payload malicioso)
+MAX_PDF_BYTES = 50 * 1024 * 1024  # 50MB sensible default SaaS revisional
+
+# Sprint 6.1 F-γ-09 — 404 cascade distinct error codes (audit forense + client clarity)
+DOWNLOAD_404_JOB_NOT_FOUND = "job_not_found"
+DOWNLOAD_404_PDF_NOT_GENERATED = "pdf_not_generated_yet"
+DOWNLOAD_404_PDF_FILE_MISSING = "pdf_file_missing"
+
+
 @app.get("/download/{job_id}")
 async def download_peca(request: Request, job_id: str) -> Response:
-    """Baixa a peça revisional PDF gerada pelo pipeline (Sprint 6 Bloco γ).
+    """Baixa a peça revisional PDF gerada pelo pipeline (Sprint 6 Bloco γ + 6.1 refinements).
 
     Authz: session.user == JOBS[job_id]["owner"] (404 se job ausente, 403 se
     non-owner, 401 se não autenticado). Audit entry HMAC-chained `pdf_downloaded`.
+
+    Sprint 6.1 refinements (F-γ-08+09+10 LOW consolidated):
+    - 401 inclui header WWW-Authenticate: Session (HTTP standard compliance)
+    - 404 cascade distinct detail codes (job_not_found vs pdf_not_generated_yet vs pdf_file_missing)
+    - 413 size limit (50MB) protege contra DoS payload malicioso
 
     Args:
         job_id: identificador retornado por POST /revisar (verdict_url).
@@ -880,17 +894,24 @@ async def download_peca(request: Request, job_id: str) -> Response:
         Response 200 com Content-Type=application/pdf + Content-Disposition attachment.
 
     Raises:
-        HTTPException 401 se sem sessão, 403 se non-owner, 404 se job/pdf ausente.
+        HTTPException 401 (sem sessão) / 403 (non-owner) / 404 (job/pdf ausente) /
+        413 (PDF excede MAX_PDF_BYTES) / 503 (audit chain HMAC indisponível LGPD §46).
     """
     import hashlib as _hashlib  # noqa: PLC0415 — scope local
 
     user = request.session.get("user")
     if not user:
-        raise HTTPException(status_code=401, detail="Autenticação requerida")
+        # F-γ-08: WWW-Authenticate header (HTTP standard — clientes podem auto-prompt re-auth)
+        raise HTTPException(
+            status_code=401,
+            detail="Autenticação requerida",
+            headers={"WWW-Authenticate": "Session"},
+        )
 
     job = JOBS.get(job_id)
     if not job:
-        raise HTTPException(status_code=404, detail="Job não encontrado")
+        # F-γ-09: detail string distinta (audit forense pode diferenciar)
+        raise HTTPException(status_code=404, detail=DOWNLOAD_404_JOB_NOT_FOUND)
 
     # AC-02 ownership check — Smith β F-D3-β-06 SSE-OWNERSHIP-CHECK address
     job_owner = job.get("owner")
@@ -899,16 +920,20 @@ async def download_peca(request: Request, job_id: str) -> Response:
 
     pdf_path_str = job.get("peca_pdf_path")
     if not pdf_path_str:
-        raise HTTPException(
-            status_code=404,
-            detail="Peça PDF ainda não gerada — aguarde pipeline complete",
-        )
+        # F-γ-09: distinct detail
+        raise HTTPException(status_code=404, detail=DOWNLOAD_404_PDF_NOT_GENERATED)
 
     pdf_path = Path(pdf_path_str)
     if not pdf_path.exists():
+        # F-γ-09: distinct detail (file removido após pipeline?)
+        raise HTTPException(status_code=404, detail=DOWNLOAD_404_PDF_FILE_MISSING)
+
+    # F-γ-10 Sprint 6.1: size limit ANTES de read_bytes() (avoid memory exhaustion DoS)
+    pdf_size = pdf_path.stat().st_size
+    if pdf_size > MAX_PDF_BYTES:
         raise HTTPException(
-            status_code=404,
-            detail="Peça PDF não disponível no filesystem (arquivo removido?)",
+            status_code=413,
+            detail=f"PDF excede limite ({pdf_size / 1024 / 1024:.1f}MB > 50MB)",
         )
 
     pdf_bytes = pdf_path.read_bytes()
@@ -1018,6 +1043,7 @@ async def revisar_stream(job_id: str) -> StreamingResponse:
                             uf_override=job["uf"] or None,
                             data_override=job["data"],  # date | None (CC.42)
                             modalidade_override=job.get("modalidade_override"),  # TD-SP06-MODE-PASS-01
+                            job_id=job_id,  # Sprint 6.1 F-γ-07 — pdf_filename multi-tenancy
                             tier_advogado=job["tier"],
                             bacen_cache_dir=DEFAULT_BACEN_CACHE,
                             result_capture=pipeline_capture,  # γ.2 — colhe peca_pdf_path

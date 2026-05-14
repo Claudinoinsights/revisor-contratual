@@ -164,6 +164,7 @@ async def revisar_contrato(
     uf_override: str | None = None,
     data_override: date | None = None,
     modalidade_override: str | None = None,  # TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3
+    job_id: str | None = None,  # Sprint 6.1 F-γ-07 — pdf_filename multi-tenancy
     tier_advogado: LLMTier = "premium",
     tier_redator: LLMTier = "balanced",  # Sprint 6 Bloco γ — ADR-022 D1
     top_k_vault: int = 5,
@@ -353,6 +354,9 @@ async def revisar_contrato(
             audit_payload["peca_generated"] = False
             audit_payload["peca_skipped_reason"] = "skip_peca_generation=True"
         else:
+            # Sprint 6.1 F-γ-03 + F-γ-02 honesty: model_capture dict colhe actual_model_used
+            # do redator_invoke (primary OR fallback quando fallback chain acionada).
+            redator_model_capture: dict[str, Any] = {}
             try:
                 peca: PecaRevisional | RelatorioInviabilidade = await redator_invoke(
                     veredito=veredito,
@@ -363,6 +367,7 @@ async def revisar_contrato(
                     docs=docs,
                     tier=tier_redator,
                     invoke_fn=redator_invoke_fn,
+                    model_capture=redator_model_capture,
                 )
             except PecaHallucinationError as exc:
                 # Layer 2 anti-hallucination triggered — propagar como PipelineError
@@ -375,10 +380,14 @@ async def revisar_contrato(
             peca_format = type(peca).__name__
             audit_payload["peca_generated"] = True
             audit_payload["peca_format"] = peca_format
-            # Smith F-γ-02 hotfix: registrar modelo ACTUAL usado, não claim "sabia-or-qwen".
-            # Audit chain integrity — forense pós-incident precisa do nome real do LLM.
-            # Fallback chain entre sabia/qwen NÃO existe arquiteturalmente (ver F-γ-03 TD).
-            audit_payload["redator_persona_used"] = TIER_TO_MODEL_ADVOGADO[tier_redator]
+            # Sprint 6.1 F-γ-03 + F-γ-02 honesty: registrar modelo ACTUAL usado em runtime
+            # (primary OR fallback). Substituiu TIER_TO_MODEL_ADVOGADO[tier] estático que NÃO
+            # refletia fallback chain dinâmica. Audit forense pós-incident agora pode
+            # identificar exatamente qual LLM gerou a peça.
+            audit_payload["redator_persona_used"] = redator_model_capture.get(
+                "actual_model_used",
+                TIER_TO_MODEL_ADVOGADO[tier_redator],  # fallback se invoke_fn provided
+            )
             audit_payload["peca_citacoes_count"] = (
                 len(peca.citacoes_jurisprudencia)
                 if isinstance(peca, PecaRevisional)
@@ -394,11 +403,19 @@ async def revisar_contrato(
             else:  # REJEITADO
                 template_name = "peca/relatorio-inviabilidade.html"
 
-            # Output path: peca_output_dir / {contract_hash[:16]}.pdf (deterministic)
+            # Output path: peca_output_dir / pdf_filename
+            # Sprint 6.1 F-γ-07: pdf_filename hybrid job_id + contract_hash (multi-tenancy safe).
+            # Preserva contract_hash audit trail + job_id uniqueness (2 users mesmo PDF input
+            # produzem outputs distintos sem overwrite).
             if peca_output_dir is None:
                 peca_output_dir = audit_path.parent / "pecas"
-            pdf_filename = f"{parsed.metadata.contract_hash[:16]}.pdf"
+            if job_id is not None:
+                pdf_filename = f"{job_id[:8]}-{parsed.metadata.contract_hash[:8]}.pdf"
+            else:
+                # Legacy fallback (tests/callers sem job_id) — contract_hash determinístico
+                pdf_filename = f"{parsed.metadata.contract_hash[:16]}.pdf"
             pdf_output_path = peca_output_dir / pdf_filename
+            audit_payload["peca_pdf_filename"] = pdf_filename
 
             render_context = {
                 "peca": peca,
@@ -408,38 +425,63 @@ async def revisar_contrato(
                 "gerado_em": datetime.now().isoformat(),
             }
 
-            # DI for tests: pdf_renderer_fn permite mock weasyprint offline
-            if pdf_renderer_fn is None:
-                from bloco_engine.pdf.render import compute_pdf_hash, render_peca_pdf
-                pdf_bytes = await asyncio.to_thread(
-                    render_peca_pdf,
-                    template_name,
-                    render_context,
-                    pdf_output_path,
-                )
-                pdf_hash = compute_pdf_hash(pdf_bytes)
-            else:
-                pdf_bytes = await asyncio.to_thread(
-                    pdf_renderer_fn,
-                    template_name,
-                    render_context,
-                    pdf_output_path,
-                )
-                import hashlib as _hl
-                pdf_hash = _hl.sha256(pdf_bytes).hexdigest()
+            # Sprint 6.1 F-γ-06 graceful degradation: weasyprint render failure
+            # NÃO derruba pipeline inteiro. Peça LLM Step 7 preserved + audit
+            # registra peca_pdf_generated=False + reason. UI pode re-tentar Sprint 7+.
+            try:
+                # DI for tests: pdf_renderer_fn permite mock weasyprint offline
+                if pdf_renderer_fn is None:
+                    from bloco_engine.pdf.render import compute_pdf_hash, render_peca_pdf
+                    pdf_bytes = await asyncio.to_thread(
+                        render_peca_pdf,
+                        template_name,
+                        render_context,
+                        pdf_output_path,
+                    )
+                    pdf_hash = compute_pdf_hash(pdf_bytes)
+                else:
+                    pdf_bytes = await asyncio.to_thread(
+                        pdf_renderer_fn,
+                        template_name,
+                        render_context,
+                        pdf_output_path,
+                    )
+                    import hashlib as _hl
+                    pdf_hash = _hl.sha256(pdf_bytes).hexdigest()
 
-            audit_payload["peca_pdf_path"] = str(pdf_output_path)
-            audit_payload["peca_pdf_hash"] = pdf_hash
-            audit_payload["peca_pdf_size_bytes"] = len(pdf_bytes)
-            audit_payload["peca_template"] = template_name
+                audit_payload["peca_pdf_path"] = str(pdf_output_path)
+                audit_payload["peca_pdf_hash"] = pdf_hash
+                audit_payload["peca_pdf_size_bytes"] = len(pdf_bytes)
+                audit_payload["peca_template"] = template_name
+                audit_payload["peca_pdf_generated"] = True
 
-            # Expor peca_pdf_path para app.py popular JOBS[peca_pdf_path]
-            # (AC-09 WEASYPRINT — opt-in via result_capture dict, retrocompat)
-            if result_capture is not None:
-                result_capture["peca_pdf_path"] = str(pdf_output_path)
-                result_capture["peca_pdf_hash"] = pdf_hash
-                result_capture["peca_format"] = peca_format
-                result_capture["peca_template"] = template_name
+                # Expor peca_pdf_path para app.py popular JOBS[peca_pdf_path]
+                # (AC-09 WEASYPRINT — opt-in via result_capture dict, retrocompat)
+                if result_capture is not None:
+                    result_capture["peca_pdf_path"] = str(pdf_output_path)
+                    result_capture["peca_pdf_hash"] = pdf_hash
+                    result_capture["peca_format"] = peca_format
+                    result_capture["peca_template"] = template_name
+            except (OSError, FileNotFoundError, RuntimeError) as render_exc:
+                # F-γ-06 fix: preserva peca LLM (Step 7) mesmo se PDF render (Step 8) falha.
+                # Pipeline status SUCCESS — peca_pdf_generated=False sinaliza ausência PDF.
+                logger.warning(
+                    "Step 8 weasyprint render falhou (template=%s): %s — peca LLM preserved",
+                    template_name, render_exc,
+                )
+                audit_payload["peca_pdf_generated"] = False
+                audit_payload["peca_pdf_render_error"] = (
+                    f"{type(render_exc).__name__}: {str(render_exc)[:300]}"
+                )
+                audit_payload["peca_template"] = template_name
+
+                if result_capture is not None:
+                    result_capture["peca_format"] = peca_format
+                    result_capture["peca_template"] = template_name
+                    result_capture["peca_pdf_path"] = None
+                    result_capture["peca_pdf_render_error"] = (
+                        f"{type(render_exc).__name__}: {str(render_exc)[:300]}"
+                    )
 
         audit_payload["status"] = "SUCCESS"
         audit_payload["completed_at"] = datetime.now().isoformat()
