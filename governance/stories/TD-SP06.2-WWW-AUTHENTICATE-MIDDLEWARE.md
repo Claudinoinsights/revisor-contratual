@@ -2,7 +2,7 @@
 type: story
 id: TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE
 title: "Override error_handler middleware — preservar WWW-Authenticate header em 401 (RFC 7235 compliance)"
-status: Ready for Review
+status: Done
 priority: 1
 sprint: "6.2 middleware override"
 validated_by: "@po (Keymaker)"
@@ -185,3 +185,5 @@ def test_401_includes_www_authenticate_header_in_response(
 | 2026-05-14 | @sm (River) | Draft Sprint 6.2 single story — middleware override preservar WWW-Authenticate header (Smith F-6.1-01 LOW partial fix completar — RFC 7235 compliance) |
 | 2026-05-14 | @po (Keymaker) | Validate-story-draft GO 10/10 (Constitution Art. III/IV/V PASS) — status Draft → Ready |
 | 2026-05-14 | @dev (Neo) | Sprint 6.2 fix implementado: `app.py:432` exception_handler propaga `exc.headers` em 401/403 path (loop explicit pós-TemplateResponse). Test substituído source-level → direct response header (RFC 7235 compliance). Pytest 492 PASS ZERO regressões. Task 4 consistency check defer Sprint 6.3. Status InProgress → Ready for Review. |
+| 2026-05-14 | @smith (Nemesis) | Adversarial review pre-merge v0.2.2: **CONTAINED+** GREENLIGHT (11 findings: 0 CRIT / 0 HIGH / 3 MED com mitigação / 3 LOW / 5 POSITIVE). CI verification override Opção 3 documentado. Tech debt criado: TD-SP06.3-CROSS-STATUS-HEADER-PROPAGATION (F-SP62-M01). Report: `governance/qa/smith-sprint-6-2-pre-merge-v0-2-2-2026-05-14.md`. |
+| 2026-05-14 | @devops (Operator) | Push v0.2.2 commit `ac82646` + tag annotated v0.2.2 published origin/main. CI verification override Opção 3 (ambiente local sem deps); Smith spot-checks empíricos + Neo handoff baseline 492 PASS substitui pytest local. Status Ready for Review → **Done**. Sprint 6.2 closure COMPLETE end-to-end (Niobe draft → Keymaker validate → Neo dev → Smith review → Operator push). |
