@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-12"
+last_updated: "2026-05-14"
 status: active
-sprint: "04"
-etapa: "Phase 14.1+ — ADR-014 file flip status proposed→accepted 2026-05-12 (A_REAFFIRM Eric, post-Morpheus SPA-backend false-positive alert resolved). ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED 2026-05-09. ADR-INDEX-file drift corrigido. ADR-014 styling cleanup aplicado 2026-05-12 (Smith F-D1 LOWs + Nota glossário PRDs v1.x.x F-D4-LOW-01)."
+sprint: "6.x AGGRESSIVE"
+etapa: "Phase 14.1+ — ADR-021 Dual Content-Type POST /revisar ACCEPTED 2026-05-14 (Sprint 6 Bloco β Wave 2 unblock TD-SP06-SPA-CONNECT-01). ADR-014 file flip status proposed→accepted 2026-05-12. ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED 2026-05-09."
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -105,6 +105,18 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 | [ADR-015](adr/adr-015-vision-ocr-architecture.md) | Vision OCR Architecture — Sonnet 4.6 vision + caching SHA-256 (partial supersede ADR-013) | ✅ Accepted | 2026-05-07 | Atlas v1 vision OCR landscape + Smith CC.41 RAM constraint |
 | ~~[ADR-016](adr/adr-016-multi-doctype-dispatcher.md)~~ | ~~Multi-Doctype Dispatcher Strategy — 4 doctypes (FIES/Veicular/Bancário/Imobiliário)~~ | 🔄 Superseded by ADR-020 | 2026-05-07 | Eric escopo B Phase 1.7.1 + Atlas v2 doctype strategy |
 | [ADR-020](adr/adr-020-multi-doctype-dispatcher-v2.md) | Multi-Doctype Dispatcher v2 — Strategy hierárquica 7 doctypes (CCB/Veículo/Consignado/Cartão/Imobiliário/FIES/Geral) com BancarioBaseStrategy + GeralDispatcher catch-all (level=spec) | ✅ Accepted | 2026-05-09 | Eric SPA OrSheva 7 (DEC-ERIC-DIV-01 + RATIFY Opção A) — supersedes ADR-016 |
+
+### Frontend-Backend Integration (Sprint 6 Bloco β)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-021](adr/adr-021-dual-content-type-post-revisar.md) | Dual Content-Type para POST /revisar — JSON (SPA) + HTML (Jinja2 legacy) — pattern mirror POST /login | ✅ Accepted | 2026-05-14 | TD-SP06-SPA-CONNECT-01 Wave 2 unblock (Sprint 6 AGGRESSIVE) |
+
+### AI/LLM Pipeline (Sprint 6 Bloco γ)
+
+| ADR | Título | Status | Data | Absorve |
+|-----|--------|--------|------|---------|
+| [ADR-022](adr/adr-022-persona-redator-revisional.md) | Persona Redator Revisional — sabia-7b primary + Qwen 2.5 7B fallback + hardening anti-hallucination (Pydantic strict + vault-restricted citations + validador post-LLM) | ✅ Accepted | 2026-05-14 | PRD-SP06-GAMMA v0.1.0 + Smith Fase 7-A gap (backend não gera peça revisional formal) + Smith Bloco β F-D3-β-06 SSE-OWNERSHIP-CHECK |
 
 ### SaaS Pricing & Billing (Sprint 04)
 

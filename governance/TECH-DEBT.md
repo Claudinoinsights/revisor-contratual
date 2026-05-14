@@ -1,7 +1,7 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-10T02:30"
+last_updated: "2026-05-14T01:35"
 project: revisor-contratual
 sprint: "01 (closure)"
 tags:
@@ -15,6 +15,26 @@ tags:
 > **Sprint 01 closure consolidation** — STORY 15 (sessão 81, Neo).
 > Consolidação de 13 tech debts catalogados em 4+ QA gates Oracle (sessões 60-77) + 1 finding ativo + 5 findings RESOLVED.
 > Formato: 7 campos obrigatórios (ID, Source, Sev, Description, Est. Effort, Owner, Added).
+
+---
+
+## 🆕 Sprint 6.x AGGRESSIVE — Tech Debts Catalogados 2026-05-14
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP06-MARKER-DEFERRED** | Operator Fase α (R-01 materialized) | HIGH | Marker OCR install falha em Python 3.14.3 Windows sem Visual Studio Build Tools (regex + Pillow C extensions). Fallback Bloco α: PDFs born-digital sintéticos via fpdf2. Marker exige: (a) instalar VS Build Tools (~5GB) OR (b) downgrade Python 3.12 venv dedicado. Sprint 6+ resolver para usuários com PDFs scanner-output reais. | 4h | @devops + Eric decisão | 2026-05-14 |
+| **TD-SP06-SMITH-FALSE-POSITIVE-FASE-7A** | Operator descoberta | LOW | Smith Fase 7-A reportou F-D1-05 (audit vazio) + F-D1-06 (vault vazio) como falsos positivos. Smith escaneou `./data/` mas DEFAULT_DATA_DIR é `Path.home() / ".local" / "share"`. Smith Methodology v6 deve incluir verificação Path.home() defaults. | 30min | @smith | 2026-05-14 |
+| **TD-SP06-VAULT-ONLY-10-DOCS** | Operator probe Fase α | MEDIUM | Vault.db tem apenas 10 jurisprudências (bundled) — vault populate real STJ/STF nunca executado completamente. Pipeline pode retornar busca pobre. Re-populate via `--source all` requer Internet + tempo. | 1h | @devops | 2026-05-14 |
+| **TD-SP06-SENTENCE-TRANSFORMERS-MISSING** | Operator probe | MEDIUM | sentence-transformers ausente — vault usa zero embeddings (BM25-only). Busca degradada vs RRF k=60 design. Install pesado (~2GB pytorch). | 2h | @devops | 2026-05-14 |
+| **TD-SP06-PYTEST-DEPS-PYTHON-3-14** | Neo probe baseline | MEDIUM | Pytest collection: 16 errors em tests/unit/auth + tests/integration por PyJWT + SQLAlchemy ausentes no env Python 3.14.3 atual. Tests não-auth: 248 passed + 2 failures pré-existentes (`bloco_interface.web has no attribute 'app'`). Não é regressão Sprint 6. Resolver: instalar deps OR usar Python 3.13 venv dedicado. | 1h | @devops | 2026-05-14 |
+| **TD-SP06-BLOCO-INTERFACE-WEB-APP-IMPORT** | Neo pytest baseline | LOW | `module 'bloco_interface.web' has no attribute 'app'` em test_ec08/ec09 ollama_manager_edge_cases. Issue pré-existente — ImportError ao subir test fixture web.app. | 1h | @dev | 2026-05-14 |
+| **TD-SP06-FIXTURE-GENERATOR-01** | Neo Skill Bloco α (Sprint 6 AGGRESSIVE) | RESOLVED | scripts/generate_test_pdfs.py born-digital sintéticos (4 modalidades CCB/Veiculo/Imobiliario/FIES). Marker OCR fallback. AC-01/02/03/04/06 PASS empirically. Fidelity 1.000 (max). | DONE | @dev (Neo) | 2026-05-14 |
+| **TD-SP06-SQLITE-THREADING-FIX** | Operator probe Bloco α | RESOLVED | bloco_vault/schema.py:78 — added check_same_thread=False em sqlite3.connect. Permite asyncio.to_thread + pipeline async. Pytest 248 passed mantido. | DONE | @dev (Neo) | 2026-05-14 |
+| **TD-SP06-CLI-DISPLAY-UTF8-WIN-CP1252** | Operator AC-05 smoke | LOW | bloco_interface/output.py:25,90 imprime "✅" (✅) mas Windows console cp1252 não suporta — UnicodeEncodeError no display final SUCCESS. Pipeline real terminou SUCCESS (audit.jsonl evidence). Fix: `sys.stdout.reconfigure(encoding="utf-8")` no CLI entry OR substituir ✅ por "[OK]" texto. | 1h | @dev | 2026-05-14 |
+| **TD-SP06-MVP-MODALIDADES-RESTRITAS** | Operator AC-05 smoke | MEDIUM | Pipeline BACEN apenas suporta CDC_VEICULOS_PF (DP-03 codigos_bacen.yaml). CDC_BENS_PF, CDC_IMOBILIARIO, CARTAO_ROTATIVO → NotImplementedError. Sprint 6+ expandir suporte modalidades via ADRs específicos por modalidade. | 4-8h | @architect | 2026-05-14 |
+| **TD-SP06-AC-05-PIPELINE-REAL-VEICULO-SUCCESS** | Operator Bloco α smoke v2 (pós sqlite fix) | RESOLVED | Pipeline real end-to-end PASS com contrato_veiculo_synthetic.pdf: parser fidelity 1.0 + cálculo anatocismo LICITO + BACEN SGS 25471 taxa real 1.99% + Vault 5 docs STJ + Personas LLM (Advogado conf 0.9 + Economista) + Juiz APROVADO_100 100% aderência + audit HMAC chained. Tempo ~3.5min. | DONE | @devops (Operator) | 2026-05-14 |
+
+---
 
 ---
 
@@ -907,6 +927,61 @@ Referenciar Smith report Section 5 findings F-004, F-005, F-010, F-018, F-020, F
 **Total TD-ANALYTICS Sprint 5+/6+ debt:** 3 LOW + 1 MEDIUM = ~11h Sprint 5+/6+ effort.
 
 *Smith Fase 4.5b PATCH closure (sessão 2026-05-13) · Neo endereçou 2 CRIT + 4 HIGH + 2 MED + 3 LOW (L2/L3 cataloged aqui; L1 dead code deleted) · **Foundation P0 Sati Eixo 5 v0.3.0 release MANDATORY** complete pos-PATCH.*
+
+---
+
+## Sprint 5+ Bloco 3 Imobiliário — TD catalog Sprint 6+ (Morpheus Fase 8 closure FINAL Ordem 20.1)
+
+> **Origem:** TD-SP04-S4-V1-IMOBILIARIO-WIREFRAME-VARIANT closure 2026-05-14. 14-fase chain integrity preserved. Quadruple reproducibility 444 passed (Neo+Smith+Oracle+Smith independent runs). F-ORACLE-NEO-BL3-CRIT-01 RESOLVED via PATCH. 13/13 ACs FULL. Eric directive "continue pelo recomendado" = ACCEPTANCE Smith FINAL Option A.
+> **Source docs:**
+>   - `governance/qa/smith-midchain-neo-code-fase-4-5-bloco-3.md` (CONTAINED retroactive INFECTED)
+>   - `governance/qa/oracle-g5-quality-gate-bloco-3-imobiliario.md` (FAIL — caught CRITICAL Constitution Art. IV violation)
+>   - `governance/qa/smith-midchain-oracle-g5-verdict-fase-5-5.md` (CONFIRM FAIL + self-assessment)
+>   - `governance/qa/smith-midchain-neo-patch-fase-4-5b-re-verify.md` (CLEAN post-PATCH)
+>   - `governance/qa/oracle-g5b-re-gate-post-patch-bloco-3-imobiliario.md` (PASS triple reproducibility)
+>   - `governance/qa/smith-midchain-oracle-g5b-verdict-fase-5-5b.md` (CONFIRM PASS quadruple reproducibility)
+>   - `governance/qa/smith-final-pre-merge-ci-verify-fase-final-bloco-3.md` (CONTAINED+GREENLIGHT TD-PROCESS-02 empirical)
+
+### Imobiliário Polish (5 TDs)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP06-IMOBILIARIO-IDEMPOTENCY** | Smith Fase 4.5 F-NEO-BL3-01 | MEDIUM | Sem catch `UniqueViolation` em `bloco_contratos/imobiliario_schema.py:122-181` POST handler. Schema SQL sem UNIQUE constraint partial em `(tenant_id, analysis_id) WHERE analysis_id IS NOT NULL`. Duplicate INSERT em retry possível. Pattern reuse Bloco 2 analytics F-01 fix (psycopg.errors.UniqueViolation → HTTP 200 silent). Defer aceitável até FK contracts table existir. | 3h | @dev + @data-engineer | 2026-05-13 |
+| **TD-SP06-IMOBILIARIO-WIRE-SUBMIT** | Smith Fase 4.5 F-NEO-BL3-06 | LOW | SPA fieldset `#imobiliarioFields` (`bloco_interface/web/static/index.html:1246-1313`) captura 4 fields mas SEM client-side JS handler para POST `/api/contracts/imobiliario`. Wireframe MVP aceitável Bloco 3 — Sprint 6+ wire submit + analytics doctype_form_submit event. | 4h | @dev | 2026-05-13 |
+| **TD-SP06-IMOBILIARIO-ARIA-POLISH** | Smith Fase 4.5 F-NEO-BL3-07 | LOW | Inconsistência aria-* em `index.html:1288, 1302` — `imo-garantia` e `imo-indice` (`<select>`) só `aria-describedby` básico, sem `aria-required` nem error states com `role=alert`. matricula_rgi e valor_avaliacao têm completos. Sati spec Section 4.3 parity required. | 1.5h | @ux-design-expert + @dev | 2026-05-13 |
+| **TD-SP06-IMOBILIARIO-POLISH-LOT** | Smith Fase 4.5 F-NEO-BL3-02..05, 08-10 | LOW | Bundle 7 polish items: (02) SQL exception detail leaked client `imobiliario_schema.py:180` sanitize; (03) Decimal sem JSON encoder custom; (04) Pydantic Field sem `max_digits=14` explicit; (05) Duplicação truth Literal+CHECK constraint; (08) Schema sem UNIQUE partial; (09) CLI `Decimal(str(float))` workaround `cli.py:622,649`; (10) COMMENTs Portuguese-only i18n. | 5h | @dev | 2026-05-13 |
+| **TD-SP06-IMOBILIARIO-PROMPT-REVIEW** | Story R-01 HIGH (catalog risk) | HIGH | LLM prompt template `prompts/imobiliario_v1.0.0.md` é placeholder estrutural — Advogada externa Eric DEVE review v1.0.0 antes production deploy. Loop iterativo Eric advogada → identifica gaps substantivos → Neo v1.1.0 patch + jurisprudência STJ/STF → re-review approve. Code SP04-S4-V1 funciona com v1.0.0 (4 markers explicit) mas Sprint 6+ deploy exige texto substantivo advogada-reviewed. | external | @dev (post Eric advogada feedback) | 2026-05-13 |
+
+### Process Methodology Lessons Learned (2 TDs — Smith self-assessment)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-PROCESS-SMITH-CLI-RUNTIME-IMPORT** | Smith Fase 5.5 self-assessment | PROCESS | Smith Probe Methodology v2 mandatory — para CLI/import path probes, runtime import test obrigatório vs grep+Read estático. Fase 4.5 falhou em detectar `format_error` invention (Constitution Art. IV violation) — Oracle G5 caught empirically. Smith Methodology v2 internalized Fase 4.5b/5.5b/FINAL. Atualizar Smith probe playbook documentation. | 1h | @smith (process improvement) | 2026-05-13 |
+| **TD-PROCESS-SMITH-FINAL-METHODOLOGY-V3** | Smith Fase FINAL extension | PROCESS | Smith FINAL Methodology v3 — workflow.conclusion=success NÃO garante todos checks success (external services Cloudflare Pages/Workers Builds podem fail separately). Smith FINAL DEVE inspecionar BOTH `gh run view --json conclusion` (workflow-level) AND `gh api repos/{owner}/{repo}/commits/{sha}/check-runs` (commit-level check-runs incluindo external services). Capturou Workers Builds failure pre-existing forensic investigation Fase FINAL. Atualizar TD-PROCESS-02 rule no `.claude/rules/quality-gate-enforcement.md` para refletir v3 step. | 1h | @smith + @lmas-master | 2026-05-14 |
+| **TD-PROCESS-NEO-PRE-COMMIT-IMPORT-VALIDATION** | Smith Fase 5.5 | PROCESS | Neo pre-commit hook recommended — adicionar Git pre-commit hook `python -c "import {modified_module}"` para todos os módulos modificados, captura `format_error`-style inventions automaticamente before commit. Lesson learned Bloco 3 Constitution Art. IV violation prevention. | 2h | @devops (hook setup) | 2026-05-13 |
+
+### Infrastructure (1 TD)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-INFRA-WORKERS-BUILDS-FIX** | Smith Fase FINAL forensic | LOW | Cloudflare Workers Builds check `revisor-contratual` failure consistent across multiple commits (fe0ff79 Bloco 2 já merged + 9eda237 previous + 0b48350 Bloco 3 current — pattern idêntico, NOT introduced by Bloco 3). Build ID: `20cf5116-a3c0-4d29-961e-7e12c34f4656` Cloudflare service `b8f0b36a82b4624d70f486173671fbcd`. Bloco 2 precedent acceptance = Eric merge already accepted. Sprint 6+ investigate Cloudflare Workers infrastructure (separate stream non-blocking Python app code). | 2h | @devops + Eric (Cloudflare auth) | 2026-05-14 |
+
+### Output Module Polish (1 TD)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP06-OUTPUT-UNUSED-ANY-IMPORT** | Oracle Fase 5b ruff lint pre-existing | LOW | `bloco_interface/output.py:10` `from typing import Any` unused import (ruff detection F401). Pre-existing condition NOT introduced by Bloco 3 PATCH (verificado via git diff 4b7d7da..576d74c). Cleanup oportunidade Sprint 6+ polish bundle. | 0.5h | @dev | 2026-05-13 |
+
+**Total Sprint 6+ Bloco 3 closure debt:** 1 HIGH (external advogada) + 1 MEDIUM + 5 LOW + 3 PROCESS = **~21h Sprint 6+/posterior effort** (excluindo advogada review HIGH externa Eric-driven).
+
+### Decisões Closure Morpheus Fase 8
+
+- **D-MORPHEUS-S05-Bloco-3-001:** Closure FINAL Ordem 20.1 — Story TD-SP04-S4-V1 status Done, 13/13 ACs FULL, chain integrity 14 fases preserved
+- **D-MORPHEUS-S05-Bloco-3-002:** Sprint 6+ catalog ATIVO — 9 TDs cataloged (5 imobiliario + 2 process + 1 infra + 1 output) + 1 HIGH advogada external
+- **D-MORPHEUS-S05-Bloco-3-003:** Chain integrity record preserved — quadruple reproducibility (4 agentes independentes 444 passed) é o nível mais alto de evidência empirical Sprint 5+ até esta data
+- **D-MORPHEUS-S05-Bloco-3-004:** PRD v2.0.5.1 ACTIVE → v2.0.6.0 bump trigger Sprint posterior — F-SMITH-TR-L2 defer condition met (Bloco 3 Imobiliário SHIPPED) + Delta section update Sprint 6+ V2 FIES + V3 Geral wireframe variants pull-forward consideration
+
+*Sprint 5+ Bloco 3 SHIPPED · Morpheus closure FINAL (2026-05-14, Ordem 20.1) · **3rd doctype Imobiliário ALIVE em main** (sp06_001 schema RLS + Pydantic strict + SPA fieldset + LLM template v1.0.0 + CLI revisor imobiliario validate + 31 tests parametrized + chain 14 fases) · **Foundation v0.3.0 pré-release** 2 of 4 blockers UNBLOCKED (1/4 Wireframe variants + 1/4 PATCH cycle lessons learned).*
 
 ---
 

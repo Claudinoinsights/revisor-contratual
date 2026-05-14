@@ -2,7 +2,7 @@
 type: dashboard
 title: "PRD Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-13"
+last_updated: "2026-05-14"
 tags:
   - project/revisor-contratual
   - prd-index
@@ -16,7 +16,8 @@ tags:
 
 | Versão | Status | Bump | Arquivo | Data | Razão |
 |---|---|---|---|---|---|
-| **v2.0.5.1** | ⭐ **ACTIVE** | MICRO-PATCH | [prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md](./prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md) (file inplace bump 2.0.5.0→2.0.5.1) | 2026-05-13 | Sprint 5+ Ordem 19.2 Fase 1.6 — Smith mid-chain INFECTED 15 findings endereçado: 6 MUST (C1 tenant_id JWT + C2 HMAC recovery + H1 3 NFRs + H2 effort 14-16h honest + H3 9 PII vectors + H4 REUSE line numbers) + 4 SHOULD inline (M1-M4) + 5 LOW catalog Section 11 |
+| **PRD-SP06-GAMMA v0.1.0** | 📋 **DRAFT** (Sprint 6 Bloco γ) | NOVO escopo Bloco γ | [prd-sp06-bloco-gamma-peca-revisional-ai-v0.1.0.md](./prd-sp06-bloco-gamma-peca-revisional-ai-v0.1.0.md) | 2026-05-14 | Resolver passos 5-6 fluxo ideal Eric — peça revisional AI via persona Redator + PDF backend weasyprint + download routes. Smith Fase 7-A confirmou gap arquitetural. MVP CDC_VEICULOS_PF only. Aria ADR-022 pending. |
+| **v2.0.5.1** | ⭐ **ACTIVE** (Sprint 5+) | MICRO-PATCH | [prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md](./prd-v2.0.5.0-PATCH-ANALYTICS-EIXO-5.md) (file inplace bump 2.0.5.0→2.0.5.1) | 2026-05-13 | Sprint 5+ Ordem 19.2 Fase 1.6 — Smith mid-chain INFECTED 15 findings endereçado: 6 MUST (C1 tenant_id JWT + C2 HMAC recovery + H1 3 NFRs + H2 effort 14-16h honest + H3 9 PII vectors + H4 REUSE line numbers) + 4 SHOULD inline (M1-M4) + 5 LOW catalog Section 11 |
 | v2.0.5.0 | superseded by v2.0.5.1 | PATCH | (same file inplace) | 2026-05-13 | Sprint 5+ Ordem 19.2 Fase 1 — TD-SP04-04-ANALYTICS Sati Eixo 5 MANDATORY pre-release v0.3.0 initial alignment (Trinity initial 5 FRs + 3 NFRs); INFECTED por Smith mid-chain → v2.0.5.1 supersede |
 | v2.0.4.1 | superseded by v2.0.5.0/v2.0.5.1 | PATCH | [prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md](./prd-v2.0.1-DOCTYPE-CONTENT-PATCH.md) | 2026-05-12 | Sprint 04 cumulative (v2.0.1 + v2.0.1.1 + v2.0.2 + v2.0.3 + v2.0.4 + v2.0.4.1) — Doctype Content Brief 32 prompts + LLM Provider BYOK + Orsheva glossary + Smith CRITICAL fixes + Smith Round 2 cleanup |
 | v1.1.2 | superseded | PATCH | [prd-v1.1.2-PATCH.md](./prd-v1.1.2-PATCH.md) | 2026-05-05 | Smith re-review CC.1A' endereçado (6/6 findings) — defense-in-depth LGPD (CSRF+CSP+encryption-at-rest) + cross-platform backup (APScheduler) + SOP-005 fallback Tema 1378 + D3 Apelação reestimado 6-8h. Eric escolheu opção B perfeição |
