@@ -1,0 +1,209 @@
+{
+  "agent": "Oracle (Guardian)",
+  "story_id": "TD-SP06-FIDELITY-01",
+  "wave": "γ.3 (Bloco γ quality gate)",
+  "date": "2026-05-14",
+  "approach": "Opção A+C — Jinja2 HTML standalone + Pydantic strict + vault cross-ref",
+  "vault_docs_available": [
+    "STJ-S539",
+    "STJ-S472",
+    "STJ-S297",
+    "STF-SV4",
+    "STJ-S381"
+  ],
+  "scenarios": [
+    {
+      "veredito_tipo": "APROVADO_100",
+      "template_name": "peca/inicial-revisional-veiculos.html",
+      "peca_type": "PecaRevisional",
+      "html_output": "data\\test-fixtures\\synthetic\\peca-output-aprovado-100.html",
+      "pdf_output": null,
+      "html_size_chars": 7392,
+      "pdf_size_bytes": null,
+      "render_latency_ms": 10.5,
+      "scenario_verdict": "PASS",
+      "ac_02_cfoab": {
+        "applicable": true,
+        "passed": true,
+        "details": {
+          "cabecalho": true,
+          "qualificacao_partes": true,
+          "dos_fatos": true,
+          "do_direito": true,
+          "do_pedido": true,
+          "do_valor_causa": true,
+          "fecho": true,
+          "disclaimer_lgpd_oab": true
+        },
+        "count": 8,
+        "of": 8
+      },
+      "ac_03_disclaimer": {
+        "passed": true,
+        "details": {
+          "insumo_tecnico_juridico": true,
+          "nao_substitui_responsabilidade": true,
+          "oab_provimento_209_2021": true,
+          "lgpd_mention": true
+        },
+        "count": 4,
+        "of": 4
+      },
+      "ac_04_valor_causa": {
+        "applicable": true,
+        "passed": true,
+        "matches": [
+          "R$ 50.000,00",
+          "R$ 1.300,40",
+          "R$ 200,40"
+        ],
+        "has_extenso": true
+      },
+      "ac_05_citacoes_vault": {
+        "applicable": true,
+        "passed": true,
+        "cited": [
+          "STJ-S539",
+          "STJ-S472"
+        ],
+        "fantasmas_detected": [],
+        "vault_available_subset": [
+          "STJ-S539",
+          "STJ-S472"
+        ],
+        "validation_passed": true,
+        "validation_error": null
+      },
+      "ac_06_metadata": {
+        "html_title_populated": true,
+        "html_title_value": "Excelentíssimo Senhor Doutor Juiz de Direito da Vara Cível d",
+        "html_brand_revisor_contratual": true,
+        "html_subject_hint_peca_revisional": true,
+        "pdf_render_skipped": "TD-SP06-WEASYPRINT-WIN-GTK-DEPS — GTK libs ausentes",
+        "passed": true
+      }
+    },
+    {
+      "veredito_tipo": "APROVADO_COM_RISCO_HITL",
+      "template_name": "peca/inicial-revisional-com-hitl.html",
+      "peca_type": "PecaRevisional",
+      "html_output": "data\\test-fixtures\\synthetic\\peca-output-com-hitl.html",
+      "pdf_output": null,
+      "html_size_chars": 8146,
+      "pdf_size_bytes": null,
+      "render_latency_ms": 6.54,
+      "scenario_verdict": "PASS",
+      "ac_02_cfoab": {
+        "applicable": true,
+        "passed": true,
+        "details": {
+          "cabecalho": true,
+          "qualificacao_partes": true,
+          "dos_fatos": true,
+          "do_direito": true,
+          "do_pedido": true,
+          "do_valor_causa": true,
+          "fecho": true,
+          "disclaimer_lgpd_oab": true
+        },
+        "count": 8,
+        "of": 8
+      },
+      "ac_03_disclaimer": {
+        "passed": true,
+        "details": {
+          "insumo_tecnico_juridico": true,
+          "nao_substitui_responsabilidade": true,
+          "oab_provimento_209_2021": true,
+          "lgpd_mention": true
+        },
+        "count": 4,
+        "of": 4
+      },
+      "ac_04_valor_causa": {
+        "applicable": true,
+        "passed": true,
+        "matches": [
+          "R$ 50.000,00",
+          "R$ 1.300,40",
+          "R$ 200,40"
+        ],
+        "has_extenso": true
+      },
+      "ac_05_citacoes_vault": {
+        "applicable": true,
+        "passed": true,
+        "cited": [
+          "STJ-S539",
+          "STJ-S472"
+        ],
+        "fantasmas_detected": [],
+        "vault_available_subset": [
+          "STJ-S539",
+          "STJ-S472"
+        ],
+        "validation_passed": true,
+        "validation_error": null
+      },
+      "ac_06_metadata": {
+        "html_title_populated": true,
+        "html_title_value": "Excelentíssimo Senhor Doutor Juiz de Direito da Vara Cível d",
+        "html_brand_revisor_contratual": true,
+        "html_subject_hint_peca_revisional": true,
+        "pdf_render_skipped": "TD-SP06-WEASYPRINT-WIN-GTK-DEPS — GTK libs ausentes",
+        "passed": true
+      }
+    },
+    {
+      "veredito_tipo": "REJEITADO",
+      "template_name": "peca/relatorio-inviabilidade.html",
+      "peca_type": "RelatorioInviabilidade",
+      "html_output": "data\\test-fixtures\\synthetic\\peca-output-rejeitado.html",
+      "pdf_output": null,
+      "html_size_chars": 6150,
+      "pdf_size_bytes": null,
+      "render_latency_ms": 3.27,
+      "scenario_verdict": "PASS",
+      "ac_02_cfoab": {
+        "applicable": false,
+        "reason": "Relatório inviabilidade tem estrutura distinta (NÃO petição)"
+      },
+      "ac_03_disclaimer": {
+        "passed": true,
+        "details": {
+          "insumo_tecnico_juridico": true,
+          "nao_substitui_responsabilidade": true,
+          "oab_provimento_209_2021": true,
+          "lgpd_mention": true
+        },
+        "count": 4,
+        "of": 4
+      },
+      "ac_04_valor_causa": {
+        "applicable": false,
+        "reason": "Relatório inviabilidade não tem valor causa (não é petição)"
+      },
+      "ac_05_citacoes_vault": {
+        "applicable": false,
+        "reason": "Relatório inviabilidade não cita Súmulas"
+      },
+      "ac_06_metadata": {
+        "html_title_populated": true,
+        "html_title_value": "Relatório de Inviabilidade Revisional",
+        "html_brand_revisor_contratual": true,
+        "html_subject_hint_peca_revisional": true,
+        "pdf_render_skipped": "TD-SP06-WEASYPRINT-WIN-GTK-DEPS — GTK libs ausentes",
+        "passed": true
+      }
+    }
+  ],
+  "layer_2_hallucination_guard": {
+    "passed": true,
+    "test_citations": [
+      "STJ-S539",
+      "STJ-S999-FANTASMA"
+    ]
+  },
+  "verdict_global": "PASS",
+  "weasyprint_pdf_render_status": "skipped_windows_gtk_deps_missing"
+}

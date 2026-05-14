@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Inviabilidade Revisional</title>
+  <style>
+    /* Sprint 6 Bloco γ — Template REJEITADO (relatório de inviabilidade — NÃO petição).
+       Tokens OrSheva 7 inline + variant visual (cinza/dim em vez de Or-500 forte) para
+       comunicar que NÃO é peça protocolável — é análise técnica. */
+
+    @font-face { font-family: 'Manrope'; font-weight: 400; src: url('fonts/manrope-400.woff2') format('woff2'); }
+    @font-face { font-family: 'Manrope'; font-weight: 600; src: url('fonts/manrope-600.woff2') format('woff2'); }
+    @font-face { font-family: 'Fraunces'; font-weight: 500; src: url('fonts/fraunces-500.woff2') format('woff2'); }
+
+    @page {
+      size: A4 portrait;
+      margin: 25mm 22mm 22mm 22mm;
+      @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font-family: 'Manrope', sans-serif; font-size: 9pt; color: #6B6457;
+      }
+      @bottom-left {
+        content: "RELATÓRIO TÉCNICO — NÃO É PETIÇÃO — Não protocolar";
+        font-family: 'Manrope', sans-serif; font-size: 8pt; color: #B43D3D; font-weight: 600;
+      }
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1A1816;
+      margin: 0;
+    }
+
+    header.relatorio-header {
+      border-bottom: 2pt solid #B43D3D;
+      padding-bottom: 8mm;
+      margin-bottom: 10mm;
+    }
+
+    .badge-inviabilidade {
+      display: inline-block;
+      background: #FBEAEA;
+      color: #B43D3D;
+      font-family: 'Manrope', sans-serif;
+      font-size: 8.5pt;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 1.5mm 4mm;
+      border: 1pt solid #B43D3D;
+      border-radius: 1mm;
+    }
+
+    header.relatorio-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 18pt;
+      font-weight: 500;
+      color: #1A1816;
+      margin: 4mm 0 2mm 0;
+    }
+
+    header.relatorio-header .meta {
+      font-size: 9pt;
+      color: #6B6457;
+    }
+
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 13pt;
+      color: #6B6457;
+      border-bottom: 1pt solid #E8E4DC;
+      padding-bottom: 1mm;
+      margin: 6mm 0 3mm 0;
+      page-break-after: avoid;
+    }
+
+    section { margin-bottom: 6mm; page-break-inside: avoid; }
+    section p { margin: 0 0 2mm 0; text-align: justify; }
+
+    .diagnostico-bloco {
+      background: #F5F4F0;
+      border-left: 3pt solid #6B6457;
+      padding: 4mm 5mm;
+      margin: 3mm 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5pt;
+    }
+
+    ul.motivos {
+      padding-left: 5mm;
+      margin: 3mm 0;
+    }
+    ul.motivos li {
+      margin-bottom: 2mm;
+    }
+
+    .recomendacao-bloco {
+      background: #FBEAEA;
+      border: 1pt solid #B43D3D;
+      border-radius: 2mm;
+      padding: 5mm 6mm;
+      margin: 6mm 0;
+    }
+
+    .recomendacao-bloco h2 {
+      color: #B43D3D;
+      border-bottom: none;
+      margin-top: 0;
+    }
+
+    footer.disclaimer {
+      margin-top: 12mm;
+      padding-top: 4mm;
+      border-top: 1pt solid #E8E4DC;
+      font-size: 9pt;
+      color: #6B6457;
+      line-height: 1.45;
+      text-align: justify;
+    }
+  </style>
+</head>
+<body>
+  <header class="relatorio-header">
+    <span class="badge-inviabilidade">⚠ Inviabilidade Revisional — Não Protocolar</span>
+    <h1>Relatório de Inviabilidade Revisional — Contrato CDC Veículos PF / Hash oracle...0000</h1>
+    <div class="meta">
+      Modalidade: CDC_VEICULOS_PF ·
+      Contrato hash: <code>oracleffffffffff…</code>
+    </div>
+  </header>
+
+  <section>
+    <h2>Síntese da Análise</h2>
+    <p>A análise técnica do contrato concluiu pela inviabilidade da ação revisional. Não foram identificados fundamentos consistentes para questionamento judicial da taxa praticada ou da capitalização dos juros.</p>
+  </section>
+
+  <section>
+    <h2>Diagnóstico Técnico</h2>
+    <div class="diagnostico-bloco">Scores apurados pelo Juiz Revisor (sistema Python puro auditável): C1=0.00 (divergência BACEN abaixo de 0,5 pontos percentuais — taxa contratual coerente com média de mercado para o período de assinatura); C2=0.50 (peso vinculação Súmulas insuficiente — máximo 3, sem Súmula Vinculante STF ou Tema Repetitivo STJ aplicável); C3=1.00 (doc da jurisdição BA presente no vault). Aderência consolidada: 50.0% — abaixo do threshold mínimo de 70% definido pela metodologia FR-JUIZ-01 para emissão de peça revisional formal.</div>
+  </section>
+
+  <section>
+    <h2>Motivos da Inviabilidade</h2>
+    <ul class="motivos">
+      
+      <li>Taxa contratual 1,99% a.m. coerente com média BACEN do período (1,85% a.m.)</li>
+      
+      <li>Ausência de Súmulas Vinculantes ou Repercussão Geral aplicáveis ao caso</li>
+      
+      <li>Cálculo de anatocismo não evidencia abusividade material relevante</li>
+      
+      <li>Diferença entre PMT composto e simples dentro do esperado SFN</li>
+      
+    </ul>
+  </section>
+
+  <div class="recomendacao-bloco">
+    <h2>Recomendação ao Advogado</h2>
+    <p>Recomenda-se NÃO protocolar ação revisional com base na presente análise técnica. Sugere-se buscar outros fundamentos jurídicos ou aguardar evolução jurisprudencial favorável. O cliente deve ser informado sobre a viabilidade técnica antes de qualquer decisão judicial. A presente análise não vincula o advogado constituído.</p>
+  </div>
+
+  <footer class="disclaimer">
+    <strong>Aviso Legal — LGPD / OAB Provimento 209/2021.</strong>
+    Este documento é insumo técnico-jurídico gerado por sistema de inteligência artificial e não substitui a responsabilidade do advogado constituído conforme OAB Provimento 209/2021. Dados pessoais tratados sob égide da LGPD (Lei 13.709/2018), art. 11 e art. 46 — proteção e confidencialidade. Revisão humana obrigatória pré-decisão. Sistema não fornece aconselhamento jurídico autônomo.
+    <p style="margin-top: 4mm; font-size: 8.5pt; color: #9A9082;">
+      Gerado por <strong>Revisor Contratual</strong> SaaS — Insumo técnico-jurídico
+      (Peça Revisional · Relatório Inviabilidade). Sistema brandbook OrSheva 7.
+    </p>
+  </footer>
+</body>
+</html>
