@@ -389,7 +389,84 @@ Sprint 6.1 escopo: 5 MEDIUM Smith findings + 4 LOW + 1 NOTE residuais como TD cl
 **Wave map confirmado:** 6.1.1 (3 paralelo) + 6.1.3 (1 paralelo independent) + 6.1.2 (1 serial pós-QWEN) = ~8.5h Neo total
 
 **Handoff yaml:** `.lmas/handoffs/handoff-po-to-dev-2026-05-14-sprint-6-1-wave-execution.yaml`
-**Próximo:** @dev (Neo) Skill `*develop` — Sprint 6.1 Wave 6.1.1 paralelo (3 stories) + Wave 6.1.3 paralelo (1 story) + Wave 6.1.2 serial pós-QWEN
+**Próximo:** @dev (Neo) Skill `*develop` — Sprint 6.1 Wave 6.1.1 paralelo (3 stories) + Wave 6.1.3 paralelo (1 story) + Wave 6.1.2 serial pós-QWEN — **DEFERRED próxima sessão (Eric decision context window protection)**
+
+### Operator Sprint 6.1 Planning Push 2026-05-14 — 2 commits origin/main ✅ + SESSION CLOSURE
+
+**Push timestamp:** 2026-05-14
+**Remote URL:** https://github.com/Claudinoinsights/revisor-contratual.git
+**Branch:** main
+
+**Commits pushed (Sprint 6.1 planning):**
+
+| # | SHA | Tema |
+|---|------|------|
+| 8 | `811bce7` | docs(adr): patch ADR-022 D2+D4 Sprint 6.1 — Layer 3 NLI spec + Manrope/Fraunces real [Smith F-γ-04 + F-γ-05] |
+| 9 | `760b116` | docs(sprint-6-1-planning): 5 stories TD-SP06.1-* drafts + Keymaker batch validate GO 5/5 |
+
+**Cumulative origin/main Sprint 6 + 6.1 planning:** 9 commits (7 Sprint 6 Bloco α/β/γ/δ + 2 Sprint 6.1 planning).
+
+---
+
+## SESSION CLOSURE 2026-05-14 — Sprint 6.x AGGRESSIVE FINAL STATUS
+
+### Sprint 6 Bloco γ + δ — COMPLETE ✅ (v0.2.0 origin/main)
+
+| Wave | Stories | Status |
+|------|---------|--------|
+| γ.1 paralelo | REDATOR + WEASYPRINT | Ready for Review |
+| γ.2 | DOWNLOAD-ROUTES | Ready for Review |
+| γ.3 | Oracle FIDELITY smoke | Ready for Review |
+| δ hotfix | F-γ-01 + F-γ-02 (Neo) | DONE |
+| δ closure | Smith re-verify CLEAN | DONE |
+
+**Pytest baseline:** 248 → **478 passed + 5 skipped** ZERO regressões.
+
+### Sprint 6.1 hotfix TD cleanup — PLANNING ✅ (DEV DEFERRED)
+
+| Step | Status |
+|------|--------|
+| Aria patches ADR-022 D2+D4 | DONE pushed |
+| Niobe 5 stories drafts | DONE pushed |
+| Keymaker batch validate GO 5/5 | DONE pushed |
+| Neo dev Wave 6.1.1 + 6.1.3 paralelo | **DEFERRED próxima sessão** |
+| Neo dev Wave 6.1.2 serial (NLI) | **DEFERRED próxima sessão** |
+| Oracle + Smith + Operator v0.2.1 | **DEFERRED próxima sessão** |
+
+### Próxima Sessão — Handoff
+
+**Quick start próxima sessão:**
+
+1. **Read this CHECKPOINT** — full Sprint 6 + Sprint 6.1 planning state
+2. **Invoke Neo Skill:** `LMAS:agents:dev *develop sprint-6-1-wave-6-1-1-parallel` (3 stories Wave 6.1.1 paralelo: QWEN-FALLBACK + PDF-FILENAME-COLLISION + STEP-8-GRACEFUL)
+3. Após Wave 6.1.1 done → Wave 6.1.3 (DOWNLOAD-EDGE-CASES paralelo independent) → Wave 6.1.2 serial (LAYER-3-NLI-VALIDATOR pós QWEN-FALLBACK)
+4. Cadeia Skills estrita: Neo → Oracle smoke → Smith review CONTAINED+ → Operator push v0.2.1
+
+**Stories Ready (Keymaker GO 5/5 10/10):**
+- `governance/stories/TD-SP06.1-QWEN-FALLBACK-WIRING.md`
+- `governance/stories/TD-SP06.1-PDF-FILENAME-COLLISION.md`
+- `governance/stories/TD-SP06.1-PIPELINE-STEP-8-GRACEFUL.md`
+- `governance/stories/TD-SP06.1-LAYER-3-NLI-VALIDATOR.md`
+- `governance/stories/TD-SP06.1-DOWNLOAD-EDGE-CASES.md`
+
+**External process Eric (BLOQUEANTE paralelo):**
+- AC-PRD-γ-05 advogada externa review — handoff template pré-preenchido em `governance/qa/handoff-eric-advogada-externa-bloco-gamma-2026-05-14.md` (Eric forward para advogada)
+
+### Métricas Finais Sessão 2026-05-14
+
+| Métrica | Valor |
+|---------|-------|
+| Commits pushed origin/main | **9 commits** (7 Sprint 6 + 2 Sprint 6.1 planning) |
+| Stories Ready | **9 stories** (4 Sprint 6 Bloco γ + 5 Sprint 6.1) |
+| Skills chain executed | Trinity → Aria → Niobe → Keymaker → Neo (γ.1+γ.2) → Oracle → Smith → Neo hotfix → Smith re-verify CLEAN → Operator (Sprint 6 push) → Aria patch → Niobe → Keymaker → Operator (Sprint 6.1 planning push) |
+| Pytest baseline | 248 → **478 passed + 5 skipped** · ZERO regressões |
+| Smith findings | 12 → 2 HIGH eliminados hotfix + 10 residuais TD planned Sprint 6.1 |
+| Constitution | Art. III ✅ · Art. IV ✅ (F-γ-05 ADR patched) · Art. V ✅ |
+
+**Working tree pós-push (untracked legítimo — gitignored):**
+- `.tmp/` + `documentos-para-teste/` + `orsheva-brandbook.html` + `revisor-contratual-orsheva.html.html`
+
+*— Sessão 2026-05-14 encerrada. Sprint 6 entregue. Sprint 6.1 mapeado. Próxima sessão: Neo dev waves.*
 
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
