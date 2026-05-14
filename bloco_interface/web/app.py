@@ -33,7 +33,7 @@ from pathlib import Path
 from typing import Any, Literal, TypedDict
 
 from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
@@ -489,74 +489,124 @@ async def global_exception_handler(request: Request, exc: Exception) -> HTMLResp
 # ── Routes ────────────────────────────────────────────────────────────────
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
-    """SP04-UI-SPA-01 chunk 1 + chunk 1.7 H4 — SPA OrSheva 7 com dual-protection.
+    """UX-LOGIN-UNIFIED — SPA single source of truth.
 
-    Preserva MVP-LEAN-01 Task 2 redirect /login (defense-in-depth) E serve SPA static.
-    SPA decide screen-login OR screen-app client-side conforme cookie/state.
-    Templates Jinja2 antigos preserved como .legacy para rollback (SP04-UI-CLEANUP-01).
-    Pós SP04-AUTH-01 chunks 4 done (JWT cookie httpOnly), session check pode ser dropped.
+    Sempre serve SPA `static/index.html`. SPA decide screen-login OR screen-app
+    via `GET /api/me` on-load (sem session → screen-login; com session → screen-app).
     """
-    # MVP-LEAN-01 Task 2 — AC-MVP-01: route protection (sem session válida → /login)
-    if not request.session.get("user"):
-        return RedirectResponse("/login", status_code=303)
     spa_path = STATIC_DIR / "index.html"
     return HTMLResponse(content=spa_path.read_text(encoding="utf-8"))
 
 
-# MVP-LEAN-01 Task 2 — AC-MVP-01: S1 Login + C1 Login form
-@app.get("/login", response_class=HTMLResponse)
-async def login_get(request: Request) -> HTMLResponse:
-    if request.session.get("user"):
-        return RedirectResponse("/", status_code=303)
+# ── API: Session + CSRF endpoints (UX-LOGIN-UNIFIED) ──────────────────────
+@app.get("/api/me")
+async def api_me(request: Request) -> JSONResponse:
+    """SPA on-load session check. Sempre 200 com `authenticated` flag + csrf_token.
+
+    Issues fresh CSRF se sessão sem csrf_token (primeira chamada).
+    """
+    user = request.session.get("user")
+    csrf = request.session.get("csrf_token")
+    if not csrf:
+        csrf = auth.generate_csrf_token()
+        request.session["csrf_token"] = csrf
+    if user:
+        return JSONResponse({
+            "authenticated": True,
+            "user": {
+                "email": user,
+                "name": user.split("@")[0].replace(".", " ").title() if "@" in user else user.title(),
+            },
+            "csrf_token": csrf,
+        })
+    return JSONResponse({
+        "authenticated": False,
+        "csrf_token": csrf,
+    })
+
+
+@app.get("/api/csrf-token")
+async def api_csrf_token(request: Request) -> JSONResponse:
+    """Refresh CSRF token (SPA pre-fetch antes de login submit)."""
     csrf = auth.generate_csrf_token()
     request.session["csrf_token"] = csrf
-    context = _layout_context(request)
-    context["tema_1378"] = {"nivel": "oculto"}  # ux-spec §3 S1: sem banner pré-auth
-    context["session_user"] = None  # ux-spec §3 S1: sem nome usuário pré-auth
-    context["csrf_token"] = csrf
-    context["error"] = None
-    return templates.TemplateResponse(
-        request=request,
-        name="s1_login.html",
-        context=context,
-    )
+    return JSONResponse({"csrf_token": csrf})
 
 
-@app.post("/login", response_class=HTMLResponse)
-async def login_post(
-    request: Request,
-    username: str = Form(...),
-    password: str = Form(...),
-    csrf_token: str = Form(...),
-) -> HTMLResponse:
+@app.post("/login")
+async def login_post(request: Request) -> Any:
+    """UX-LOGIN-UNIFIED — accepts JSON (SPA preferred) + form-data (backward compat htmx).
+
+    JSON body: {email|username, password, csrf_token}
+    Form-data: username, password, csrf_token (legacy)
+
+    Returns:
+      - JSON {success, user|error} se Content-Type: application/json (SPA)
+      - HTMLResponse + HX-Redirect (legacy htmx)
+    """
+    content_type = request.headers.get("content-type", "").lower()
+    is_json = "application/json" in content_type
+
+    # Extract credentials
+    if is_json:
+        try:
+            body = await request.json()
+        except json.JSONDecodeError:
+            return JSONResponse({"success": False, "error": "JSON inválido."}, status_code=400)
+        username = body.get("email") or body.get("username") or ""
+        password = body.get("password") or ""
+        csrf_token = body.get("csrf_token") or ""
+    else:
+        form = await request.form()
+        username = form.get("email") or form.get("username") or ""
+        password = form.get("password") or ""
+        csrf_token = form.get("csrf_token") or ""
+
     # CSRF verify (constant-time compare)
     session_csrf = request.session.get("csrf_token")
     if not auth.verify_csrf_token(session_csrf, csrf_token):
-        return _render_login_error(request, "Sessão expirada. Recarregue a página.", status=403)
+        return _login_error_response(request, "Sessão expirada. Recarregue a página.", 403, is_json)
+
     # Auth (anti-enumeration: mesma resposta para user errado vs senha errada)
     if not auth.authenticate(username, password):
-        return _render_login_error(request, "Usuário ou senha inválidos.", status=401)
-    # Success: regenera session (mitiga session fixation), grava user, redirect
+        return _login_error_response(request, "Usuário ou senha inválidos.", 401, is_json)
+
+    # Success: regenera session (mitiga session fixation), grava user
     request.session.clear()
     request.session["user"] = username
+    # Re-issue fresh CSRF para próximas chamadas autenticadas
+    new_csrf = auth.generate_csrf_token()
+    request.session["csrf_token"] = new_csrf
+
+    if is_json:
+        return JSONResponse({
+            "success": True,
+            "user": {
+                "email": username,
+                "name": username.split("@")[0].replace(".", " ").title() if "@" in username else username.title(),
+            },
+            "csrf_token": new_csrf,
+        })
+    # Legacy htmx response
     response = HTMLResponse(content="", status_code=200)
     response.headers["HX-Redirect"] = "/"
     return response
 
 
-def _render_login_error(request: Request, message: str, status: int) -> HTMLResponse:
-    """Re-renderiza S1 com erro auth — refresh CSRF para próxima tentativa."""
+def _login_error_response(
+    request: Request, message: str, status: int, is_json: bool
+) -> Any:
+    """Login error: refresh CSRF + render JSON ou HTML conforme caller."""
     csrf = auth.generate_csrf_token()
     request.session["csrf_token"] = csrf
-    context = _layout_context(request)
-    context["tema_1378"] = {"nivel": "oculto"}
-    context["session_user"] = None
-    context["csrf_token"] = csrf
-    context["error"] = message
-    return templates.TemplateResponse(
-        request=request,
-        name="s1_login.html",
-        context=context,
+    if is_json:
+        return JSONResponse(
+            {"success": False, "error": message, "csrf_token": csrf},
+            status_code=status,
+        )
+    # Legacy: return minimal error HTML (s1_login.html template removed UX-LOGIN-UNIFIED)
+    return HTMLResponse(
+        content=f"<div class='error'>{message}</div>",
         status_code=status,
     )
 
@@ -1006,7 +1056,7 @@ def _format_deliverables_for_c5(
 async def verdict(request: Request, job_id: str = "") -> HTMLResponse:
     """MVP-LEAN-01 Task 5: renderiza S6 Resultado consolidado (3 deliverables + D3 condicional)."""
     if not request.session.get("user"):
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse("/", status_code=303)
 
     if job_id and job_id in JOBS and JOBS[job_id].get("verdict"):
         verdict_data = JOBS[job_id]["verdict"]
@@ -1062,7 +1112,7 @@ async def revisar_d3(
     re-run apenas D3 sem reprocessar D1+D2 (pós-MVP).
     """
     if not request.session.get("user"):
-        return RedirectResponse("/login", status_code=303)
+        return RedirectResponse("/", status_code=303)
     if job_id not in JOBS:
         raise HTTPException(status_code=404, detail="Job não encontrado")
     if not (pdf_decisao_adversa and pdf_decisao_adversa.size):

@@ -1508,33 +1508,41 @@ body::before{
     b.addEventListener('click', () => applyTheme(b.getAttribute('data-theme-set')));
   });
 
-  // ============ AUTH (mock) ============
+  // ============ AUTH (UX-LOGIN-UNIFIED — real backend, single screen) ============
   const screenLogin = document.getElementById('screen-login');
   const screenApp   = document.getElementById('screen-app');
+  let CSRF_TOKEN = '';  // refreshed via /api/me ou /api/csrf-token
+
   function showLogin(){ screenLogin.classList.add('active'); screenApp.classList.remove('active'); document.body.style.overflow='auto'; }
   function showApp(){ screenLogin.classList.remove('active'); screenApp.classList.add('active'); document.body.style.overflow='hidden'; }
 
-  function bootstrapSession(){
-    const saved = localStorage.getItem(KEY_USER);
-    if (saved){
-      try{
-        const u = JSON.parse(saved);
-        applyUser(u);
+  async function bootstrapSession(){
+    // UX-LOGIN-UNIFIED: SPA on-load chama /api/me — session via httpOnly cookie backend
+    try {
+      const resp = await fetch('/api/me', { credentials: 'same-origin' });
+      const data = await resp.json();
+      CSRF_TOKEN = data.csrf_token || '';
+      if (data.authenticated && data.user){
+        applyUser(data.user);
         showApp();
+        if (typeof refreshApiKeyStatus === 'function') refreshApiKeyStatus();
         return;
-      }catch(e){}
+      }
+    } catch(e){
+      console.warn('bootstrapSession /api/me falhou — fallback showLogin:', e);
     }
     showLogin();
   }
 
   function applyUser(u){
-    document.getElementById('userName').textContent      = u.name || u.email.split('@')[0];
-    document.getElementById('userNameFull').textContent  = u.name || u.email.split('@')[0];
-    document.getElementById('userEmailFull').textContent = u.email;
-    document.getElementById('userAvatar').textContent    = (u.email || '·')[0].toUpperCase();
+    const displayName = u.name || (u.email ? u.email.split('@')[0] : 'usuario');
+    document.getElementById('userName').textContent      = displayName;
+    document.getElementById('userNameFull').textContent  = displayName;
+    document.getElementById('userEmailFull').textContent = u.email || '';
+    document.getElementById('userAvatar').textContent    = (u.email || u.name || '·')[0].toUpperCase();
   }
 
-  // Login form
+  // Login form — real backend POST /login JSON
   const loginForm    = document.getElementById('loginForm');
   const errBanner    = document.getElementById('loginError');
   const errText      = document.getElementById('loginErrorText');
@@ -1544,21 +1552,21 @@ body::before{
     inp.type = inp.type === 'password' ? 'text' : 'password';
   });
 
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     errBanner.classList.remove('show');
     const email = document.getElementById('email').value.trim();
     const pass  = document.getElementById('password').value;
-    const remember = document.getElementById('remember').checked;
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
-      errText.textContent = 'Informe um e-mail válido.';
+    // Validação mínima cliente (backend faz verificação real)
+    if (!email){
+      errText.textContent = 'Informe um usuário ou e-mail.';
       errBanner.classList.add('show');
       document.getElementById('email').classList.add('error');
       return;
     }
-    if (pass.length < 4){
-      errText.textContent = 'A senha precisa ter pelo menos 4 caracteres.';
+    if (pass.length < 1){
+      errText.textContent = 'Informe a senha.';
       errBanner.classList.add('show');
       document.getElementById('password').classList.add('error');
       return;
@@ -1566,23 +1574,63 @@ body::before{
     document.getElementById('email').classList.remove('error');
     document.getElementById('password').classList.remove('error');
 
-    const user = { email, name: email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) };
-    if (remember){
-      localStorage.setItem(KEY_USER, JSON.stringify(user));
-    } else {
-      sessionStorage.setItem(KEY_USER, JSON.stringify(user));
+    // Garantir CSRF token fresco
+    if (!CSRF_TOKEN){
+      try {
+        const ct = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+        const ctData = await ct.json();
+        CSRF_TOKEN = ctData.csrf_token || '';
+      } catch(e){
+        console.error('csrf-token fetch falhou:', e);
+      }
     }
-    applyUser(user);
-    showApp();
-    refreshApiKeyStatus();
+
+    try {
+      const resp = await fetch('/login', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email,
+          password: pass,
+          csrf_token: CSRF_TOKEN,
+        }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.success){
+        CSRF_TOKEN = data.csrf_token || CSRF_TOKEN;
+        applyUser(data.user);
+        showApp();
+        if (typeof refreshApiKeyStatus === 'function') refreshApiKeyStatus();
+      } else {
+        CSRF_TOKEN = data.csrf_token || CSRF_TOKEN;  // backend re-emite após erro
+        errText.textContent = data.error || 'Falha na autenticação.';
+        errBanner.classList.add('show');
+        document.getElementById('password').classList.add('error');
+      }
+    } catch(err) {
+      console.error('login fetch falhou:', err);
+      errText.textContent = 'Erro de conexão. Tente novamente.';
+      errBanner.classList.add('show');
+    }
   });
 
-  // Logout
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem(KEY_USER);
-    sessionStorage.removeItem(KEY_USER);
+  // Logout — real backend POST /logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+      await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch(e){ /* best-effort */ }
     document.getElementById('userDropdown').classList.remove('open');
     showLogin();
+    // Re-fetch CSRF para próximo login
+    try {
+      const ct = await fetch('/api/csrf-token', { credentials: 'same-origin' });
+      const ctData = await ct.json();
+      CSRF_TOKEN = ctData.csrf_token || '';
+    } catch(e){ /* best-effort */ }
   });
 
   // ============ USER MENU ============
