@@ -493,9 +493,19 @@ async def index(request: Request) -> HTMLResponse:
 
     Sempre serve SPA `static/index.html`. SPA decide screen-login OR screen-app
     via `GET /api/me` on-load (sem session → screen-login; com session → screen-app).
+
+    UX-LOGIN-FIX (Smith F-LOGIN-BROKEN-01): Cache-Control no-store força browser
+    refetch sempre — evita stale SPA HTML após refactor JS/CSS.
     """
     spa_path = STATIC_DIR / "index.html"
-    return HTMLResponse(content=spa_path.read_text(encoding="utf-8"))
+    return HTMLResponse(
+        content=spa_path.read_text(encoding="utf-8"),
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0",
+        },
+    )
 
 
 # ── API: Session + CSRF endpoints (UX-LOGIN-UNIFIED) ──────────────────────
