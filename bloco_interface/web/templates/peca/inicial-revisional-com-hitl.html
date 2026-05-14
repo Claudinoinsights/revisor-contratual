@@ -1,0 +1,59 @@
+{% extends "peca/_base_peca.html" %}
+
+{# Sprint 6 Bloco γ — Template APROVADO_COM_RISCO_HITL (peça + seção Pontos de Atenção).
+   Veredito aderência 70-99% — riscos do Juiz incluídos para revisão humana pré-protocolo. #}
+
+{% block conteudo %}
+  <section class="secao cabecalho">
+    <p>{{ peca.cabecalho }}</p>
+  </section>
+
+  <section class="secao qualificacao">
+    <h2>Da Qualificação das Partes</h2>
+    <p>{{ peca.qualificacao_partes }}</p>
+  </section>
+
+  <section class="secao fatos">
+    <h2>Dos Fatos</h2>
+    <p>{{ peca.dos_fatos }}</p>
+  </section>
+
+  <section class="secao direito">
+    <h2>Do Direito</h2>
+    <p>{{ peca.do_direito }}</p>
+  </section>
+
+  {% if peca.pontos_atencao %}
+  <div class="pontos-atencao-bloco">
+    <h2>⚠ Pontos de Atenção (HITL — Human-in-the-Loop)</h2>
+    <p>{{ peca.pontos_atencao }}</p>
+    <p style="margin-top: 3mm; font-size: 9pt; color: #6B6457;">
+      <em>Veredito do Juiz: APROVADO_COM_RISCO_HITL — recomenda-se revisão pelo advogado responsável antes do protocolo.</em>
+    </p>
+  </div>
+  {% endif %}
+
+  <section class="secao pedido">
+    <h2>Do Pedido</h2>
+    <p>{{ peca.do_pedido }}</p>
+  </section>
+
+  <section class="secao valor-causa">
+    <h2>Do Valor da Causa</h2>
+    <div class="valor-causa-bloco">
+      <p>Atribui-se à causa o valor de <strong>{{ peca.valor_causa }}</strong>
+      ({{ peca.valor_causa_extenso }}).</p>
+    </div>
+  </section>
+
+  <section class="secao fecho">
+    <p>{{ peca.fecho }}</p>
+  </section>
+
+  {% if peca.citacoes_jurisprudencia %}
+  <div class="meta-citacoes">
+    <strong>Jurisprudência citada (vault-restricted, FR-PECA-05):</strong>
+    {% for cit in peca.citacoes_jurisprudencia %}<code>{{ cit }}</code>{% if not loop.last %} · {% endif %}{% endfor %}
+  </div>
+  {% endif %}
+{% endblock %}

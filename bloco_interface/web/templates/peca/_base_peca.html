@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ peca.cabecalho[:60] }}</title>
+  <style>
+    /* Sprint 6 Bloco γ — Tokens OrSheva 7 inline (weasyprint render isolated).
+       Fontes self-hosted via base_url: bloco_interface/web/static/.
+       Brandbook OrSheva 7 v1.1.2 — Manrope (sans/UI) + Fraunces (display/serif) + Or-500 accent. */
+
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 400;
+      src: url('fonts/manrope-400.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-weight: 600;
+      src: url('fonts/manrope-600.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Fraunces';
+      font-weight: 500;
+      src: url('fonts/fraunces-500.woff2') format('woff2');
+    }
+
+    @page {
+      size: A4 portrait;
+      margin: 25mm 22mm 22mm 22mm;
+      @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font-family: 'Manrope', sans-serif;
+        font-size: 9pt;
+        color: #6B6457;
+      }
+      @bottom-left {
+        content: "Revisor Contratual SaaS — Insumo técnico-jurídico (não substitui responsabilidade do advogado)";
+        font-family: 'Manrope', sans-serif;
+        font-size: 8pt;
+        color: #9A9082;
+      }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1A1816;
+      margin: 0;
+      padding: 0;
+    }
+
+    header.peca-header {
+      border-bottom: 2pt solid #EE6B20;
+      padding-bottom: 8mm;
+      margin-bottom: 10mm;
+    }
+
+    header.peca-header .mark {
+      font-family: 'Fraunces', serif;
+      font-size: 18pt;
+      font-weight: 500;
+      color: #EE6B20;
+      letter-spacing: -0.02em;
+    }
+
+    header.peca-header .brand {
+      font-family: 'Manrope', sans-serif;
+      font-size: 9pt;
+      color: #6B6457;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 2mm;
+    }
+
+    h1, h2 {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      color: #1A1816;
+      page-break-after: avoid;
+    }
+
+    h1 {
+      font-size: 16pt;
+      margin: 8mm 0 4mm 0;
+      letter-spacing: -0.01em;
+    }
+
+    h2 {
+      font-size: 13pt;
+      margin: 6mm 0 2mm 0;
+      color: #AC4408;
+      border-bottom: 1pt solid #E8E4DC;
+      padding-bottom: 1mm;
+    }
+
+    section.secao {
+      margin-bottom: 6mm;
+      page-break-inside: avoid;
+    }
+
+    section.secao p {
+      margin: 0 0 2mm 0;
+      text-align: justify;
+    }
+
+    .valor-causa-bloco {
+      background: #FFF4EC;
+      border-left: 3pt solid #EE6B20;
+      padding: 4mm 5mm;
+      margin: 4mm 0;
+      page-break-inside: avoid;
+    }
+
+    .valor-causa-bloco strong {
+      font-family: 'Fraunces', serif;
+      font-size: 13pt;
+      color: #AC4408;
+    }
+
+    .pontos-atencao-bloco {
+      background: #FFF6E5;
+      border: 1pt solid #8B5A0B;
+      border-radius: 2mm;
+      padding: 5mm 6mm;
+      margin: 6mm 0;
+      page-break-inside: avoid;
+    }
+
+    .pontos-atencao-bloco h2 {
+      color: #8B5A0B;
+      border-bottom: none;
+      margin-top: 0;
+      font-size: 12pt;
+    }
+
+    .pontos-atencao-bloco p {
+      font-size: 10pt;
+      color: #1A1816;
+    }
+
+    footer.peca-disclaimer {
+      margin-top: 12mm;
+      padding-top: 4mm;
+      border-top: 1pt solid #E8E4DC;
+      font-size: 9pt;
+      color: #6B6457;
+      line-height: 1.45;
+      text-align: justify;
+    }
+
+    footer.peca-disclaimer strong {
+      color: #1A1816;
+    }
+
+    .meta-citacoes {
+      margin-top: 4mm;
+      font-size: 8.5pt;
+      color: #9A9082;
+      font-family: 'Manrope', sans-serif;
+    }
+
+    .meta-citacoes code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #F5F4F0;
+      padding: 0.5mm 1.5mm;
+      border-radius: 1mm;
+      color: #1A1816;
+    }
+
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+  <header class="peca-header">
+    <div class="mark">⚖ Revisor Contratual</div>
+    <div class="brand">OrSheva 7 · Peça Revisional CDC · {{ contrato.modalidade|default('CDC_VEICULOS_PF') }}</div>
+  </header>
+
+  {% block conteudo %}{% endblock %}
+
+  <footer class="peca-disclaimer">
+    <strong>Aviso Legal — LGPD / OAB Provimento 209/2021.</strong>
+    {{ peca.disclaimer_lgpd_oab }}
+  </footer>
+</body>
+</html>

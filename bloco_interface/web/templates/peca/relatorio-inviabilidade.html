@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Inviabilidade Revisional</title>
+  <style>
+    /* Sprint 6 Bloco γ — Template REJEITADO (relatório de inviabilidade — NÃO petição).
+       Tokens OrSheva 7 inline + variant visual (cinza/dim em vez de Or-500 forte) para
+       comunicar que NÃO é peça protocolável — é análise técnica. */
+
+    @font-face { font-family: 'Manrope'; font-weight: 400; src: url('fonts/manrope-400.woff2') format('woff2'); }
+    @font-face { font-family: 'Manrope'; font-weight: 600; src: url('fonts/manrope-600.woff2') format('woff2'); }
+    @font-face { font-family: 'Fraunces'; font-weight: 500; src: url('fonts/fraunces-500.woff2') format('woff2'); }
+
+    @page {
+      size: A4 portrait;
+      margin: 25mm 22mm 22mm 22mm;
+      @bottom-right {
+        content: counter(page) " / " counter(pages);
+        font-family: 'Manrope', sans-serif; font-size: 9pt; color: #6B6457;
+      }
+      @bottom-left {
+        content: "RELATÓRIO TÉCNICO — NÃO É PETIÇÃO — Não protocolar";
+        font-family: 'Manrope', sans-serif; font-size: 8pt; color: #B43D3D; font-weight: 600;
+      }
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      font-size: 11pt;
+      line-height: 1.55;
+      color: #1A1816;
+      margin: 0;
+    }
+
+    header.relatorio-header {
+      border-bottom: 2pt solid #B43D3D;
+      padding-bottom: 8mm;
+      margin-bottom: 10mm;
+    }
+
+    .badge-inviabilidade {
+      display: inline-block;
+      background: #FBEAEA;
+      color: #B43D3D;
+      font-family: 'Manrope', sans-serif;
+      font-size: 8.5pt;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 1.5mm 4mm;
+      border: 1pt solid #B43D3D;
+      border-radius: 1mm;
+    }
+
+    header.relatorio-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 18pt;
+      font-weight: 500;
+      color: #1A1816;
+      margin: 4mm 0 2mm 0;
+    }
+
+    header.relatorio-header .meta {
+      font-size: 9pt;
+      color: #6B6457;
+    }
+
+    h2 {
+      font-family: 'Fraunces', serif;
+      font-weight: 500;
+      font-size: 13pt;
+      color: #6B6457;
+      border-bottom: 1pt solid #E8E4DC;
+      padding-bottom: 1mm;
+      margin: 6mm 0 3mm 0;
+      page-break-after: avoid;
+    }
+
+    section { margin-bottom: 6mm; page-break-inside: avoid; }
+    section p { margin: 0 0 2mm 0; text-align: justify; }
+
+    .diagnostico-bloco {
+      background: #F5F4F0;
+      border-left: 3pt solid #6B6457;
+      padding: 4mm 5mm;
+      margin: 3mm 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5pt;
+    }
+
+    ul.motivos {
+      padding-left: 5mm;
+      margin: 3mm 0;
+    }
+    ul.motivos li {
+      margin-bottom: 2mm;
+    }
+
+    .recomendacao-bloco {
+      background: #FBEAEA;
+      border: 1pt solid #B43D3D;
+      border-radius: 2mm;
+      padding: 5mm 6mm;
+      margin: 6mm 0;
+    }
+
+    .recomendacao-bloco h2 {
+      color: #B43D3D;
+      border-bottom: none;
+      margin-top: 0;
+    }
+
+    footer.disclaimer {
+      margin-top: 12mm;
+      padding-top: 4mm;
+      border-top: 1pt solid #E8E4DC;
+      font-size: 9pt;
+      color: #6B6457;
+      line-height: 1.45;
+      text-align: justify;
+    }
+  </style>
+</head>
+<body>
+  <header class="relatorio-header">
+    <span class="badge-inviabilidade">⚠ Inviabilidade Revisional — Não Protocolar</span>
+    <h1>{{ peca.cabecalho }}</h1>
+    <div class="meta">
+      Modalidade: {{ contrato.modalidade|default('CDC_VEICULOS_PF') }} ·
+      Contrato hash: <code>{{ (contrato.contract_hash|default(''))[:16] }}…</code>
+    </div>
+  </header>
+
+  <section>
+    <h2>Síntese da Análise</h2>
+    <p>{{ peca.sintese_analise }}</p>
+  </section>
+
+  <section>
+    <h2>Diagnóstico Técnico</h2>
+    <div class="diagnostico-bloco">{{ peca.diagnostico_tecnico }}</div>
+  </section>
+
+  <section>
+    <h2>Motivos da Inviabilidade</h2>
+    <ul class="motivos">
+      {% for motivo in peca.motivos_rejeicao %}
+      <li>{{ motivo }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <div class="recomendacao-bloco">
+    <h2>Recomendação ao Advogado</h2>
+    <p>{{ peca.recomendacao }}</p>
+  </div>
+
+  <footer class="disclaimer">
+    <strong>Aviso Legal — LGPD / OAB Provimento 209/2021.</strong>
+    {{ peca.disclaimer_lgpd_oab }}
+    <p style="margin-top: 4mm; font-size: 8.5pt; color: #9A9082;">
+      Gerado por <strong>Revisor Contratual</strong> SaaS — Insumo técnico-jurídico
+      (Peça Revisional · Relatório Inviabilidade). Sistema brandbook OrSheva 7.
+    </p>
+  </footer>
+</body>
+</html>

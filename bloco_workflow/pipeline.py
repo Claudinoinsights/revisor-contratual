@@ -38,7 +38,14 @@ from bloco_contratos.contrato import (
     ResultadoCalculo,
 )
 from bloco_contratos.jurisprudencia import JurisprudenciaItem
-from bloco_contratos.personas import AnaliseMacroEconomica, LLMTier, TeseAdvogado, VeredictoJuiz
+from bloco_contratos.personas import (
+    AnaliseMacroEconomica,
+    LLMTier,
+    PecaRevisional,
+    RelatorioInviabilidade,
+    TeseAdvogado,
+    VeredictoJuiz,
+)
 from bloco_engine.bacen.client import BacenClient
 from bloco_engine.ferramentas_calculo.anatocismo import (
     classificar_anatocismo,
@@ -54,6 +61,11 @@ from bloco_engine.parsing.orchestrator import parse_contract
 from bloco_vault.busca import buscar_hibrida
 from bloco_workflow.orchestrator import run_personas_paralelas
 from bloco_workflow.personas.juiz import juiz_revisar
+from bloco_workflow.personas.llm_factory import TIER_TO_MODEL_ADVOGADO
+from bloco_workflow.personas.redator import (
+    PecaHallucinationError,
+    redator_invoke,
+)
 
 
 class PipelineError(Exception):
@@ -151,11 +163,17 @@ async def revisar_contrato(
     pdf_bytes: bytes | None = None,
     uf_override: str | None = None,
     data_override: date | None = None,
+    modalidade_override: str | None = None,  # TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3
     tier_advogado: LLMTier = "premium",
+    tier_redator: LLMTier = "balanced",  # Sprint 6 Bloco γ — ADR-022 D1
     top_k_vault: int = 5,
     audit_secret_key: bytes | None = None,
     genesis_lock_path: Path | None = None,
     bacen_cache_dir: Path | None = None,
+    # Sprint 6 Bloco γ — Step 7+8 (Redator + Weasyprint)
+    peca_output_dir: Path | None = None,
+    skip_peca_generation: bool = False,
+    result_capture: dict[str, Any] | None = None,
     # Injections (testes offline)
     pymupdf_fn: Any = None,
     marker_fn: Any = None,
@@ -163,6 +181,8 @@ async def revisar_contrato(
     embedder_fn: Any = None,
     advogado_invoke_fn: Any = None,
     economista_invoke_fn: Any = None,
+    redator_invoke_fn: Any = None,
+    pdf_renderer_fn: Any = None,
 ) -> VeredictoJuiz:
     """Pipeline end-to-end: PDF → VeredictoJuiz + audit log persistido.
 
@@ -171,6 +191,11 @@ async def revisar_contrato(
         audit_path: caminho do audit.jsonl (caller decide; testes usam tmp_path)
         vault_conn: connection sqlite com vault inicializado (open_vault)
         uf_override / data_override: overrides metadata se parsing falhar
+        modalidade_override: TD-SP06-MODE-PASS-01 — override explícito de
+            ContratoMetadata.modalidade após parsing (substitui heurística regex
+            _extract_modalidade). Valor deve ser literal válido ModalidadeContrato
+            (CDC_VEICULOS_PF, CDC_BENS_PF, CDC_IMOBILIARIO, CARTAO_ROTATIVO).
+            None preserva extração via regex parser.
         tier_advogado: lean/balanced/premium (FR-TESE-02)
         top_k_vault: docs do vault para personas
         audit_secret_key / genesis_lock_path: opcionais para audit (default env)
@@ -205,6 +230,22 @@ async def revisar_contrato(
             pymupdf_fn=pymupdf_fn,
             marker_fn=marker_fn,
         )
+
+        # TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3:
+        # Override modalidade explícito SPA sidebar → backend (substitui regex
+        # _extract_modalidade que pode errar em PDFs ambíguos). Mutation via
+        # Pydantic model_copy para preservar imutabilidade contract.
+        if modalidade_override is not None:
+            parsed = parsed.model_copy(
+                update={
+                    "metadata": parsed.metadata.model_copy(
+                        update={"modalidade": modalidade_override}
+                    )
+                }
+            )
+            audit_payload["modalidade_override_used"] = True
+            audit_payload["modalidade_override_value"] = modalidade_override
+
         audit_payload["parsing"] = {
             "parser_used": parsed.parser_used,
             "pages_count": parsed.pages_count,
@@ -303,6 +344,103 @@ async def revisar_contrato(
             "aderencia": veredito.aderencia,
             "veredito": veredito.veredito,
         }
+
+        # ─── Step 7 — Redator LLM (Sprint 6 Bloco γ — ADR-022 D1+D2) ────
+        # FR-PECA-01: gera peça revisional formal CFOAB 8 seções OU
+        # relatório de inviabilidade conforme veredito (FR-PECA-07 filter).
+        # Hardening 3-camadas anti-hallucination embutido em redator_invoke.
+        if skip_peca_generation:
+            audit_payload["peca_generated"] = False
+            audit_payload["peca_skipped_reason"] = "skip_peca_generation=True"
+        else:
+            try:
+                peca: PecaRevisional | RelatorioInviabilidade = await redator_invoke(
+                    veredito=veredito,
+                    contrato_meta=parsed.metadata,
+                    calculo=calculo,
+                    tese=tese,
+                    analise=analise,
+                    docs=docs,
+                    tier=tier_redator,
+                    invoke_fn=redator_invoke_fn,
+                )
+            except PecaHallucinationError as exc:
+                # Layer 2 anti-hallucination triggered — propagar como PipelineError
+                # mas preservar contexto para audit/diagnose downstream.
+                logger.warning("Redator hallucination detectada: %s", exc)
+                raise PipelineError(
+                    f"Redator produziu peça com citações fora do vault: {exc}"
+                ) from exc
+
+            peca_format = type(peca).__name__
+            audit_payload["peca_generated"] = True
+            audit_payload["peca_format"] = peca_format
+            # Smith F-γ-02 hotfix: registrar modelo ACTUAL usado, não claim "sabia-or-qwen".
+            # Audit chain integrity — forense pós-incident precisa do nome real do LLM.
+            # Fallback chain entre sabia/qwen NÃO existe arquiteturalmente (ver F-γ-03 TD).
+            audit_payload["redator_persona_used"] = TIER_TO_MODEL_ADVOGADO[tier_redator]
+            audit_payload["peca_citacoes_count"] = (
+                len(peca.citacoes_jurisprudencia)
+                if isinstance(peca, PecaRevisional)
+                else 0
+            )
+
+            # ─── Step 8 — Weasyprint render PDF (ADR-022 D4+D5) ─────────
+            # FR-PECA-02: render 3 templates Jinja2 OrSheva 7 + chmod LGPD §46
+            if veredito.veredito == "APROVADO_100":
+                template_name = "peca/inicial-revisional-veiculos.html"
+            elif veredito.veredito == "APROVADO_COM_RISCO_HITL":
+                template_name = "peca/inicial-revisional-com-hitl.html"
+            else:  # REJEITADO
+                template_name = "peca/relatorio-inviabilidade.html"
+
+            # Output path: peca_output_dir / {contract_hash[:16]}.pdf (deterministic)
+            if peca_output_dir is None:
+                peca_output_dir = audit_path.parent / "pecas"
+            pdf_filename = f"{parsed.metadata.contract_hash[:16]}.pdf"
+            pdf_output_path = peca_output_dir / pdf_filename
+
+            render_context = {
+                "peca": peca,
+                "contrato": parsed.metadata,
+                "veredito": veredito,
+                "calculo": calculo,
+                "gerado_em": datetime.now().isoformat(),
+            }
+
+            # DI for tests: pdf_renderer_fn permite mock weasyprint offline
+            if pdf_renderer_fn is None:
+                from bloco_engine.pdf.render import compute_pdf_hash, render_peca_pdf
+                pdf_bytes = await asyncio.to_thread(
+                    render_peca_pdf,
+                    template_name,
+                    render_context,
+                    pdf_output_path,
+                )
+                pdf_hash = compute_pdf_hash(pdf_bytes)
+            else:
+                pdf_bytes = await asyncio.to_thread(
+                    pdf_renderer_fn,
+                    template_name,
+                    render_context,
+                    pdf_output_path,
+                )
+                import hashlib as _hl
+                pdf_hash = _hl.sha256(pdf_bytes).hexdigest()
+
+            audit_payload["peca_pdf_path"] = str(pdf_output_path)
+            audit_payload["peca_pdf_hash"] = pdf_hash
+            audit_payload["peca_pdf_size_bytes"] = len(pdf_bytes)
+            audit_payload["peca_template"] = template_name
+
+            # Expor peca_pdf_path para app.py popular JOBS[peca_pdf_path]
+            # (AC-09 WEASYPRINT — opt-in via result_capture dict, retrocompat)
+            if result_capture is not None:
+                result_capture["peca_pdf_path"] = str(pdf_output_path)
+                result_capture["peca_pdf_hash"] = pdf_hash
+                result_capture["peca_format"] = peca_format
+                result_capture["peca_template"] = template_name
+
         audit_payload["status"] = "SUCCESS"
         audit_payload["completed_at"] = datetime.now().isoformat()
 
@@ -329,7 +467,9 @@ async def revisar_contrato(
             )
         raise
 
-    # ─── Step 7 — audit (sucesso) ───────────────────────────────────────
+    # ─── Step 9 — audit (sucesso) ───────────────────────────────────────
+    # (Sprint 6 Bloco γ renumeração: Steps 7+8 são Redator+Weasyprint;
+    # audit final é Step 9 — preserva ordering temporal post-emission.)
     append_audit_entry(
         "pipeline_revisar_contrato",
         audit_payload,
