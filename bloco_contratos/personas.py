@@ -147,3 +147,136 @@ class ValidacaoSemantica(BaseModel):
     nli_confidence: float = Field(..., ge=0.0, le=1.0)
     veredito: ValidacaoVeredito
     razao: str = Field(..., min_length=5)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# P-INT-05 — Redator Revisional (Sprint 6 Bloco γ — ADR-022)
+# ──────────────────────────────────────────────────────────────────────────────
+#
+# Hardening anti-hallucination 3-camadas (ADR-022 D2):
+#   1. Pydantic strict extra="forbid" + min_length por field
+#   2. Vault-restricted citations (validar_citacoes_vault em redator.py)
+#   3. Validador post-LLM (regex valor_causa + length checks)
+#
+# Filtro veredito FR-PECA-07:
+#   APROVADO_100              → PecaRevisional (peça completa)
+#   APROVADO_COM_RISCO_HITL   → PecaRevisional (com seção Pontos de Atenção)
+#   REJEITADO                 → RelatorioInviabilidade (NÃO petição — análise técnica)
+
+PecaFormat = Literal["PecaRevisional", "RelatorioInviabilidade"]
+
+
+class PecaRevisional(BaseModel):
+    """Peça revisional formal CDC veículos — output do Redator LLM (FR-PECA-01).
+
+    Estrutura CFOAB 8 seções (OAB Provimento 209/2021):
+      1. Cabeçalho (Excelentíssimo Sr. Juiz)
+      2. Qualificação das Partes
+      3. Dos Fatos
+      4. Do Direito
+      5. Do Pedido
+      6. Do Valor da Causa (numerado + por extenso)
+      7. Fecho (data + cidade + assinatura placeholder)
+      8. Disclaimer LGPD/OAB (Insumo técnico-jurídico — não substitui responsabilidade)
+
+    Layer 1 anti-hallucination: extra="forbid" + min_length por field hard-fail.
+    Layer 2: citacoes_jurisprudencia validada vs vault em validar_citacoes_vault.
+    Layer 3: regex valor_causa (R$ X,YZ) + post-LLM checks no Redator.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    cabecalho: str = Field(
+        ...,
+        min_length=50,
+        description="Excelentíssimo Sr. Juiz da Vara... — cabeçalho da petição",
+    )
+    qualificacao_partes: str = Field(
+        ...,
+        min_length=100,
+        description="Identificação Autor + Ré com qualificação completa CFOAB",
+    )
+    dos_fatos: str = Field(
+        ...,
+        min_length=200,
+        description="Narrativa cronológica dos fatos do contrato",
+    )
+    do_direito: str = Field(
+        ...,
+        min_length=300,
+        description="Fundamentação jurídica com citações Súmulas STJ vault-restricted",
+    )
+    do_pedido: str = Field(
+        ...,
+        min_length=100,
+        description="Pedidos formais (revisional + restituição em dobro)",
+    )
+    valor_causa: str = Field(
+        ...,
+        pattern=r"R\$\s*[\d\.]+,\d{2}",
+        description="Valor causa numerado formato BR (ex: 'R$ 5.107,00')",
+    )
+    valor_causa_extenso: str = Field(
+        ...,
+        min_length=10,
+        description="Valor causa por extenso (ex: 'cinco mil cento e sete reais')",
+    )
+    fecho: str = Field(
+        ...,
+        min_length=50,
+        description="Termos em que pede deferimento + data + cidade + assinatura placeholder",
+    )
+    disclaimer_lgpd_oab: str = Field(
+        ...,
+        min_length=200,
+        description="Disclaimer LGPD + OAB Provimento 209/2021 (Insumo técnico-jurídico)",
+    )
+    citacoes_jurisprudencia: list[str] = Field(
+        default_factory=list,
+        description="IDs das jurisprudências citadas (rastreáveis ao vault) — ex: ['STJ-S539', 'STJ-S472']",
+    )
+    pontos_atencao: str | None = Field(
+        default=None,
+        description="Seção opcional para veredictos APROVADO_COM_RISCO_HITL — riscos identificados pelo Juiz",
+    )
+
+
+class RelatorioInviabilidade(BaseModel):
+    """Relatório de Inviabilidade — output do Redator quando veredito=REJEITADO.
+
+    NÃO é petição — é análise técnica explicando por que a revisional não é viável.
+    Mitiga risco de protocolar peça inadequada (ética OAB).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    cabecalho: str = Field(
+        ...,
+        min_length=30,
+        description="Título 'Relatório de Inviabilidade Revisional' + identificação contrato",
+    )
+    sintese_analise: str = Field(
+        ...,
+        min_length=100,
+        description="Síntese executiva: por que a revisional foi rejeitada",
+    )
+    diagnostico_tecnico: str = Field(
+        ...,
+        min_length=200,
+        description="Análise técnica: scores C1/C2/C3 + aderência + razões objetivas",
+    )
+    motivos_rejeicao: list[str] = Field(
+        ...,
+        min_length=1,
+        description="Lista enumerada de motivos da inviabilidade",
+    )
+    recomendacao: str = Field(
+        ...,
+        min_length=100,
+        description="Recomendação ao advogado (não protocolar / buscar outros fundamentos)",
+    )
+    disclaimer_lgpd_oab: str = Field(
+        ...,
+        min_length=200,
+        description="Disclaimer LGPD + OAB Provimento 209/2021",
+    )
