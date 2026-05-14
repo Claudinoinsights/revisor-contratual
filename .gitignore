@@ -63,3 +63,9 @@ models/
 
 # Worker (Cloudflare deploy artifact)
 worker.js
+
+# Sprint 6 — local runtime artifacts (Eric local dev, NUNCA commitar)
+.tmp/                              # contém secrets: admin-password-hash.txt, auth-cookie-key.txt, cookies.txt
+documentos-para-teste/             # PDFs locais de teste (LGPD — dados pessoais Eric)
+orsheva-brandbook.html             # brandbook local artifact
+revisor-contratual-orsheva.html.html  # local artifact

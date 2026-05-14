@@ -2,7 +2,13 @@
 type: story
 id: TD-SP04-S4-V1-IMOBILIARIO-WIREFRAME-VARIANT
 title: "Imobiliário Wireframe Variant — Campos Específicos SFH/SFI Pré-Release v0.3.0 (Sati Eixo 4 NEEDS CHANGES pull-forward)"
-status: Ready for Review
+status: Done
+closed_at: "2026-05-14"
+closed_by: "@lmas-master (Morpheus) Fase 8 closure FINAL Ordem 20.1"
+final_commits: ["4b7d7da feat", "576d74c fix PATCH", "0b48350 docs governance"]
+chain_phases_executed: 14
+empirical_reproducibility: "quadruple (Neo+Smith+Oracle+Smith 444 passed)"
+ci_status: "completed/success (CI workflow 25833385660, 3/4 check-runs success + 1 pre-existing Workers Builds NOT introduced)"
 priority: 3
 sprint: "5+"
 epic: "Sprint-5-plus-pre-release-v0.3.0"
@@ -465,6 +471,12 @@ Story Ready for Review → **Smith Fase 4.5 mid-chain Neo code review** obrigat�
 
 | Data | Quem | Mudança |
 |------|------|---------|
+| 2026-05-14 | @lmas-master (Morpheus) | **Fase 8 CLOSURE FINAL Ordem 20.1** — Story status Ready for Review → InReview → **Done**. 14 fases chain integrity preserved (Eric rigor heavy). Quadruple reproducibility 444 passed (Neo 48.29s + Smith 48.39s + Oracle 48.71s + Smith 51.06s, variance 2.77s noise). CI workflow 25833385660 conclusion success (pytest 3.11 + 3.12 + Cloudflare Pages green). Workers Builds failure pre-existing NÃO introduced by Bloco 3 (Bloco 2 fe0ff79 precedent acceptance). F-ORACLE-NEO-BL3-CRIT-01 RESOLVED via PATCH Opção A. 13/13 ACs FULL. Sprint 6+ catalog ATIVO: 9 TDs (5 imobiliario polish + 2 process methodology + 1 output ruff + 1 infra workers builds) + R-01 HIGH advogada review external. PRD v2.0.5.1 → v2.0.6.0 bump trigger Sprint posterior. D-MORPHEUS-S05-Bloco-3-001..004. |
+| 2026-05-14 | @smith (Smith FINAL) | **Fase FINAL CONTAINED+GREENLIGHT** TD-PROCESS-02 MUST satisfied empirically — `gh run view 25833385660` + `gh api check-runs` 3/4 success + 1 pre-existing Workers Builds failure forensic analysis (fe0ff79 + 9eda237 same pattern, NOT introduced by Bloco 3). Methodology v3 cataloged. Review `governance/qa/smith-final-pre-merge-ci-verify-fase-final-bloco-3.md`. Handoff Smith→Eric Option A recommended. |
+| 2026-05-13 | @devops (Operator) | **Fase 6 PUSH SUCCESS** — 3 commits → origin/main (4b7d7da + 576d74c + 0b48350). CI workflow 25833385660 triggered. Handoff Operator→Smith FINAL per TD-PROCESS-02 MUST. |
+| 2026-05-13 | @smith (Smith) | **Fase 5.5b CONFIRM PASS** — quadruple reproducibility 444 passed (4th independent run 51.06s). Chain integrity 13 fases preserved. Methodology v2 internalized. Handoff Smith→Operator. |
+| 2026-05-13 | @qa (Oracle) | **Fase 5b G5 RE-GATE PASS** — 444 passed empirical (Oracle 3rd run 48.71s triple reproducibility). 3 executable checks green + 1 pre-existing polish + 4 defer post-push CI. NFR Reliability + Maintainability upgraded CONCERNS→PASS. Review `governance/qa/oracle-g5b-re-gate-post-patch-bloco-3-imobiliario.md`. |
+| 2026-05-13 | @smith (Smith) | **Fase 4.5b CLEAN** — PATCH validated Methodology v2 3/3 PASS. 444 passed em 48.39s. F-ORACLE-NEO-BL3-CRIT-01 RESOLVED. Review `governance/qa/smith-midchain-neo-patch-fase-4-5b-re-verify.md`. |
 | 2026-05-13 | @dev (Neo) | **Fase 6.patch v0.7 PATCH** F-ORACLE-NEO-BL3-CRIT-01 fix — Smith Fase 5.5 CONFIRM Oracle G5 FAIL. Added `format_error(message: str) -> str` em [`bloco_interface/output.py:93-101`](../../bloco_interface/output.py#L93) simétrico `format_success`/`format_info` pattern (Constitution Art. IV rastreabilidade restored — Sprint 5+ Bloco 3 PATCH cataloged). cli.py:660,669 NÃO modificado (Opção A preserva intent original). **Empirical Smith Methodology v2 validation:** (1) `python -c "from bloco_interface.output import format_error"` OK; (2) `pytest test_cli.py --collect-only` 20 tests collected; (3) `pytest tests/unit/` **444 passed em 48.29s** (+20 test_cli.py restored vs pre-PATCH 424). Zero regression empirical. AC-11 + AC-12 ✅ FULL re-verification. Status: Needs Patch → Ready for Review (re-verify). D-NEO-S05-Bloco-3-PATCH-001 Opção A + D-NEO-S05-Bloco-3-PATCH-002 empirical Smith v2 methodology. |
 | 2026-05-13 | @smith (Smith) | **Fase 5.5 mid-chain Oracle G5 verdict** ✅ **CONFIRM Oracle FAIL** — 3 probes empíricas (symbols dump + git diff + Constitutional + self-assessment). Smith Fase 4.5 retroactive verdict CONTAINED → INFECTED (Probe 4 oversight ACKNOWLEDGED — runtime import test missed). 12 findings consolidados (1 CRIT + 1 MED + 9 LOW + 1 PROCESS). TD-PROCESS-SMITH-CLI-RUNTIME-IMPORT + TD-PROCESS-NEO-PRE-COMMIT-IMPORT-VALIDATION cataloged. Smith Probe Methodology v2 mandatory CLI/import paths. Review `governance/qa/smith-midchain-oracle-g5-verdict-fase-5-5.md`. Handoff Smith→Neo PATCH Fase 6 (Opção A). |
 | 2026-05-13 | @qa (Oracle) | **Fase 5 G5 Quality Gate** 🔴 **FAIL** — 1 CRITICAL F-ORACLE-NEO-BL3-CRIT-01 Constitution Art. IV (No Invention) violation. Neo inventou `format_error` em `cli.py:669` commit 4b7d7da. Empirical: `bloco_interface.output` exporta apenas echo_error/format_info/format_success/format_veredito. Pytest `test_cli.py` collection ImportError. Baseline 425 → 424 (delta -1). AC-11 + AC-12 FAIL. 7 G5 checks: 1 FAIL + 4 PASS + 2 DEFER. NFR security/coverage PASS, reliability/maintainability CONCERNS. Review `governance/qa/oracle-g5-quality-gate-bloco-3-imobiliario.md`. Handoff Oracle→Smith Fase 5.5 mid-chain verdict review. D-ORACLE-S05-Bloco-3-001..005. |

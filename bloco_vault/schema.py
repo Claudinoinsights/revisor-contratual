@@ -74,8 +74,14 @@ def open_vault(db_path: str = ":memory:") -> sqlite3.Connection:
     """Abre conexão sqlite + carrega sqlite-vec extension + inicializa schema.
 
     Helper conveniente para testes e produção.
+
+    check_same_thread=False permite reuso entre threads — necessário porque
+    pipeline.py chama buscar_hibrida via asyncio.to_thread (worker thread
+    diferente do main onde open_vault foi invocado). Safe contextualmente:
+    pipeline usa connection read-only durante revisão; populate-vault (writes)
+    é fase separada upfront sem concorrência.
     """
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, check_same_thread=False)
     conn.enable_load_extension(True)
     init_vault(conn)
     return conn
