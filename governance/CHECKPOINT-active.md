@@ -598,7 +598,79 @@ Eric directive "continue da forma como planejado" pós pre-compact signal — Ne
 **Constitution compliance:** Art. III ✅ + Art. IV ✅ + Art. V ✅
 
 **Handoff yaml:** `.lmas/handoffs/handoff-smith-to-operator-2026-05-14-sprint-6-1-push-v021.yaml`
-**Próximo:** @devops (Operator) Skill `*push split-commits-sprint-6-1-v0-2-1` — 4 commits temáticos + tag v0.2.1 + push origin main
+**Próximo:** @devops (Operator) Skill `*push split-commits-sprint-6-1-v0-2-1` — 4 commits temáticos + tag v0.2.1 + push origin main ✅ DONE
+
+### Operator Sprint 6.1 v0.2.1 Push 2026-05-14 — 2 commits + tag origin/main ✅
+
+**Push timestamp:** 2026-05-14 (final sessão)
+**Remote URL:** https://github.com/Claudinoinsights/revisor-contratual.git
+**Branch:** main + tag v0.2.1
+
+**Commits pushed:**
+
+| # | SHA | Tema |
+|---|------|------|
+| 15 | `15cdcd9` | feat(sprint-6-1): hotfix TD cleanup — 5 stories Wave 6.1.1/6.1.2/6.1.3 [v0.2.1] |
+| 16 | `7caa633` | docs(sprint-6-1): closure v0.2.1 — Smith CLEAN review + CHECKPOINT session-end |
+| tag | **v0.2.1** | Sprint 6.1 hotfix release — 8/10 Bloco γ findings remediated (Smith CLEAN, pytest 492 PASS ZERO regressões) |
+
+**Cumulative tags Sprint 6.x:**
+- `v0.2.0` Sprint 6 Bloco γ + δ launch (7 commits cumulative)
+- `v0.2.0-alpha` (intermediate)
+- `v0.2.1` Sprint 6.1 hotfix release (+2 commits = 16 commits Sprint 6.x cumulative)
+
+---
+
+## 🎯 SPRINT 6.x AGGRESSIVE — TOTALMENTE COMPLETO ✅ (FINAL SESSION 2026-05-14)
+
+### Métricas cumulative Sprint 6.x
+
+| Métrica | Valor |
+|---------|-------|
+| **Pytest baseline cumulative** | 248 (pre-Bloco γ) → **492 passed + 5 skipped** (+244 cumulative) · ZERO regressões |
+| **Stories Ready for Review** | 4 Bloco γ (REDATOR + WEASYPRINT + DOWNLOAD + FIDELITY) + 5 Sprint 6.1 (QWEN-FALLBACK + PDF-FILENAME + STEP-8-GRACEFUL + LAYER-3-NLI + DOWNLOAD-EDGE-CASES) = **9 stories** |
+| **Commits Sprint 6.x origin/main** | 16 commits (7 Sprint 6 + 2 Sprint 6.1 planning + 1 session closure + 1 pre-compact + 2 Sprint 6.1 v0.2.1 + 3 prior session closures) |
+| **Tags release** | v0.2.0 (Bloco γ launch) + v0.2.1 (hotfix release) |
+| **Smith findings** | 12 originais Bloco γ → 8/10 remediados Sprint 6.1 → 1 LOW + 2 TD residual Sprint 6.2/7+ |
+| **Constitution** | Art. III ✅ · Art. IV ✅ (F-γ-05 ADR patched) · Art. V ✅ |
+| **LGPD §46** | ✅ audit-first pattern /download (Bloco δ hotfix) |
+| **Skills chain executed** | Trinity → Aria → Niobe → Keymaker → Neo (γ.1 paralelo) → Neo (γ.2) → Oracle (γ.3) → Smith CONTAINED → Neo hotfix → Smith CLEAN → Operator push v0.2.0 → Aria patch → Niobe → Keymaker → Neo (6.1.1+6.1.3+6.1.2) → Smith CLEAN → Operator push v0.2.1 |
+
+### Tech debts catalogados próximos sprints
+
+| TD | Sprint target | Origem | Status |
+|----|---------------|--------|--------|
+| TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE | 6.2 | F-γ-08 partial Sprint 6.1 (middleware swallow custom headers) | Catalogado source-level fix done |
+| TD-SP07-NLI-HYBRID-REAL | 7+ | F-γ-04 MVP Sprint 6.1 (real sentence-transformers + BERT) | Interface done, real impl pending |
+| TD-SP07-JOBS-PERSISTENCE | 7+ | F-γ-12 NOTE Bloco γ Smith (Redis/sqlite-backed JOBS dict) | Pre-existing pattern |
+| TD-SP06.1-WEASYPRINT-WIN-GTK-DEPS | Linux deploy | Bloco γ.1 Neo (weasyprint Windows GTK ausente) | VPS Linux deploy resolverá |
+
+### Pre-compact Metadata FINAL — Projeto Ativo Preservado
+
+**Projeto ativo desta sessão:** `revisor-contratual-staging` — preservar pós-compaction.
+
+**Contexto Ativo (final session):** Sprint 6.x AGGRESSIVE COMPLETO. v0.2.0 + v0.2.1 origin/main. 9 stories Ready for Review. Pytest 492 PASS ZERO regressões.
+
+**Decisões Tomadas nesta sessão (Eric directive AGGRESSIVE chain):**
+1. Sprint 6 Bloco γ + δ execução autônoma completa via Skills chain estrita
+2. Smith 2 HIGH findings hotfix AGORA (F-γ-01 audit-first /download + F-γ-02 TIER_TO_MODEL real)
+3. Sprint 6.1 hotfix paralelo à advogada externa (5 stories TD cleanup)
+4. Aria ADR-022 D2 OPÇÃO B (preservar 3-camadas + spec Layer 3 NLI)
+5. Pre-compact pause + retomada Eric "continue" para Sprint 6.1 dev complete
+6. Tag v0.2.1 PATCH semantic versioning (hotfix scope)
+
+**Próximos Passos (próxima sessão — Eric decide):**
+- **Opção A:** Sprint 6.2 — endereçar TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE (override error_handler middleware preservar custom headers)
+- **Opção B:** Sprint 7 features — instalar sentence-transformers + BERT real (TD-SP07-NLI-HYBRID-REAL) + multi-tenancy SaaS proper + deploy VPS Linux
+- **Opção C:** Pause técnico até advogada externa review (AC-PRD-γ-05 BLOQUEANTE process externo)
+- **Opção D:** Forward handoff template advogada externa AGORA + paralelo iniciar Sprint 6.2 OR 7
+
+**External process Eric (BLOQUEANTE paralelo — process externo):**
+- AC-PRD-γ-05 advogada externa review v0.2.x launch oficial — handoff pre-preenchido em `governance/qa/handoff-eric-advogada-externa-bloco-gamma-2026-05-14.md` + 3 HTMLs anexos + checklist OAB 5 blocos × 28 items
+
+**Regra preservada:** Próxima sessão DEVE usar Skills corretas (Eric directive `feedback_workflow_via_skill_strict` + `feedback_agents_via_skill_only`).
+
+*— Sessão 2026-05-14 SELADA. Sprint 6.x AGGRESSIVE entregue. 16 commits no remoto. v0.2.1 tag pública. Eric advogada externa coordination paralelo external. Próximo sprint depende de decisão estratégica Eric.*
 
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
