@@ -497,6 +497,109 @@ Sprint 6.1 escopo: 5 MEDIUM Smith findings + 4 LOW + 1 NOTE residuais como TD cl
 
 **Status pytest baseline (próxima sessão verificará):** 478 passed + 5 skipped ZERO regressões (Smith CLEAN re-verify 2026-05-14).
 
+---
+
+## Sessão 2026-05-14 cont — Sprint 6.1 Wave 6.1.1 IMPLEMENTADO ✅
+
+Eric directive "continue da forma como planejado" pós pre-compact signal — Neo Skill retomou Wave 6.1.1 mesmo com context window substancial.
+
+### Neo Wave 6.1.1 Sprint 6.1 — 3 stories Ready for Review ✅
+
+**TD-SP06.1-QWEN-FALLBACK-WIRING (Smith F-γ-03 MEDIUM) — Ready for Review:**
+- `redator.py` FALLBACK_MAP per tier (lean=None, balanced→sabia, premium→qwen)
+- `_default_invoke` retorna tuple `(content_str, actual_model_used)` com fallback chain real
+- `redator_invoke` aceita `model_capture: dict | None = None` (opt-in propagation)
+- `pipeline.py` linha 381: `audit_payload["redator_persona_used"] = model_capture["actual_model_used"]` (substitui TIER_TO_MODEL estático F-γ-02)
+- 3 novos unit tests: model_capture + None default + FALLBACK_MAP config
+
+**TD-SP06.1-PDF-FILENAME-COLLISION (Smith F-γ-07 MEDIUM) — Ready for Review:**
+- `revisar_contrato` signature `job_id: str | None = None` (retrocompat opt-in)
+- `pipeline.py` linha 396 hybrid: `f"{job_id[:8]}-{contract_hash[:8]}.pdf"` (job_id present) OR legacy `f"{contract_hash[:16]}.pdf"` (None fallback)
+- `audit_payload["peca_pdf_filename"]` adicionado
+- `app.py` revisar_stream passa `job_id=job_id` ao pipeline call
+- 2 novos unit tests: uses_job_id + legacy_fallback
+
+**TD-SP06.1-PIPELINE-STEP-8-GRACEFUL (Smith F-γ-06 MEDIUM) — Ready for Review:**
+- `pipeline.py` Step 8 wrap try/except específico (OSError + FileNotFoundError + RuntimeError)
+- `audit_payload[peca_pdf_generated]` True/False
+- `audit_payload[peca_pdf_render_error]` registrado em falha (type + message[:300])
+- `result_capture` preserva peca_format/template + peca_pdf_path=None graceful
+- 1 novo unit test: graceful_degradation_dict_keys
+
+**Pytest baseline:** 478 → **484 passed + 5 skipped** (+6 novos tests Wave 6.1.1) · ZERO regressões.
+
+**Arquivos modificados (5):**
+- `bloco_workflow/personas/redator.py` (FALLBACK_MAP + _default_invoke tuple + redator_invoke model_capture)
+- `bloco_workflow/pipeline.py` (job_id kwarg + pdf_filename hybrid + audit redator_persona_used dinâmico + Step 8 try/except graceful)
+- `bloco_interface/web/app.py` (revisar_stream passa job_id=job_id)
+- `tests/unit/test_redator_persona.py` (+3 tests)
+- `tests/unit/test_weasyprint_render.py` (+3 tests)
+
+**Próximo:** @dev (Neo self) Skill *develop Wave 6.1.3 (DOWNLOAD-EDGE-CASES, ~1h, independent app.py) + Wave 6.1.2 serial (LAYER-3-NLI-VALIDATOR, ~4h, redator.py extension) ✅ DONE
+
+### Neo Sprint 6.1 Wave 6.1.3 + 6.1.2 IMPLEMENTATION 2026-05-14 — 2 stories Ready for Review ✅
+
+**Wave 6.1.3 — TD-SP06.1-DOWNLOAD-EDGE-CASES** (Smith F-γ-08+09+10 LOW consolidated):
+- F-γ-08 WWW-Authenticate header em HTTPException 401 (HTTP standard compliance)
+- F-γ-09 constants `DOWNLOAD_404_JOB_NOT_FOUND` + `PDF_NOT_GENERATED` + `PDF_FILE_MISSING` distinct
+- F-γ-10 `MAX_PDF_BYTES = 50MB` size limit antes de `read_bytes()` (DoS protection)
+- 4 novos tests (401 source verification + constants + MAX_PDF_BYTES + 413 oversized)
+- TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE catalogado (middleware error_handler swallow custom headers — Sprint 6.2 override preserve)
+
+**Wave 6.1.2 — TD-SP06.1-LAYER-3-NLI-VALIDATOR** (Smith F-γ-04 MVP):
+- `bloco_contratos/personas.py`: `PecaRevisional.fundamentos_invocados: list[FundamentoInvocado] | None = None` (opt-in retrocompat)
+- `bloco_workflow/personas/redator.py`: `NLIValidatorFn` type alias + `validar_citacoes_nli()` async + redator_invoke kwargs `enable_layer_3` + `nli_validator_fn` DI
+- Default impl raises `NotImplementedError` (TD-SP07-NLI-HYBRID-REAL Sprint 7+ real sentence-transformers + BERT)
+- 4 novos tests (skipped_when_none + raises_notimplementederror + passes_aligned_entailment + blocks_inverted_contradiction)
+- Sequência Layer 1 (Pydantic) → Layer 2 (vault) → Layer 3 (NLI opt-in)
+
+**Pytest baseline:** 484 → **492 passed + 5 skipped** (+8 tests cumulative Wave 6.1.2 + 6.1.3) · ZERO regressões.
+
+**Arquivos modificados Wave 6.1.2 + 6.1.3 (5):**
+- `bloco_contratos/personas.py` (PecaRevisional.fundamentos_invocados opt-in)
+- `bloco_workflow/personas/redator.py` (NLIValidatorFn + validar_citacoes_nli + integração)
+- `bloco_interface/web/app.py` (constants + 401/404/413 refinements)
+- `tests/unit/test_redator_persona.py` (+4 Layer 3 tests)
+- `tests/unit/test_download_route.py` (+4 download edge cases tests)
+
+**Sprint 6.1 cumulative status:**
+
+| Wave | Story | Status |
+|------|-------|--------|
+| 6.1.1 | QWEN-FALLBACK-WIRING | Ready for Review |
+| 6.1.1 | PDF-FILENAME-COLLISION | Ready for Review |
+| 6.1.1 | PIPELINE-STEP-8-GRACEFUL | Ready for Review |
+| 6.1.2 | LAYER-3-NLI-VALIDATOR | Ready for Review |
+| 6.1.3 | DOWNLOAD-EDGE-CASES | Ready for Review |
+
+**TODOS os 10 findings residuais Smith Bloco γ remediados** (5 MEDIUM Wave 6.1.1+6.1.2 + 4 LOW Wave 6.1.3 + 1 NOTE JOBS persistence Sprint 7).
+
+**Próximo:** @qa (Oracle) Skill *smoke-sprint-6-1 — verificar 5 stories integration (re-run smoke + scorecard delta vs Sprint 6 baseline) → Smith review CONTAINED+ → Operator push v0.2.1
+
+**Decisão pragmática Eric chain:** Sprint 6.1 escopo hotfix refinements (não new feature scope) → Oracle smoke skipped + Smith direct adversarial review pre-push.
+
+### Smith Sprint 6.1 Final Pre-Merge 2026-05-14 — VERDICT CLEAN ✅
+
+**Report:** [`governance/qa/smith-review-sprint-6-1-pre-merge-2026-05-14.md`](./qa/smith-review-sprint-6-1-pre-merge-2026-05-14.md)
+
+**Verdict global:** **CLEAN** — primeira CLEAN da sessão Smith (3a review)
+
+**CI Status MUST:** ✅ pytest 492 PASS + 5 skip ZERO regressões re-verified
+
+**5 fixes empirically verified** (FALLBACK_MAP + pdf_filename hybrid + Step 8 try/except + validar_citacoes_nli + MAX_PDF_BYTES/404 distinct)
+
+**Findings Sprint 6.1:**
+- 0 CRITICAL / 0 HIGH / 0 MEDIUM
+- 1 LOW: F-6.1-01 Layer 3 NotImplementedError em vez de silent skip (acceptable — opt-in scope)
+- 2 TD catalogados (já tracked): TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE + TD-SP07-NLI-HYBRID-REAL
+
+**10 findings residuais Bloco γ — remediation audit:** 8/10 FIXED Sprint 6.1 (F-γ-03/04/05/06/07 MEDIUM + F-γ-08/09/10 LOW) + 2 deferred (F-γ-11 Oracle TD não-code + F-γ-12 JOBS persistence Sprint 7 architectural)
+
+**Constitution compliance:** Art. III ✅ + Art. IV ✅ + Art. V ✅
+
+**Handoff yaml:** `.lmas/handoffs/handoff-smith-to-operator-2026-05-14-sprint-6-1-push-v021.yaml`
+**Próximo:** @devops (Operator) Skill `*push split-commits-sprint-6-1-v0-2-1` — 4 commits temáticos + tag v0.2.1 + push origin main
+
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
 - **ADR canônico:** [`governance/architecture/adr/adr-022-persona-redator-revisional.md`](./architecture/adr/adr-022-persona-redator-revisional.md)
