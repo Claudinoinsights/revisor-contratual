@@ -259,7 +259,137 @@ tags:
 **Constitution compliance pós-hotfix:** Art. III ✅ + Art. IV ⚠️ (mesma ressalva F-γ-05 ADR-022 D4 persiste como TD) + Art. V ✅
 
 **Handoff yaml:** `.lmas/handoffs/handoff-smith-to-operator-2026-05-14-bloco-delta-push-split-commits.yaml`
-**Próximo:** @devops (Operator) Skill *push split commits temáticos (6 commits: Wave γ.1 REDATOR + Wave γ.1 WEASYPRINT + Wave γ.2 DOWNLOAD + Wave γ.3 Oracle + Bloco δ hotfix + governance docs)
+**Próximo:** @devops (Operator) Skill *push split commits temáticos (6 commits: Wave γ.1 REDATOR + Wave γ.1 WEASYPRINT + Wave γ.2 DOWNLOAD + Wave γ.3 Oracle + Bloco δ hotfix + governance docs) ✅ DONE — 7 commits pushed origin/main
+
+### Operator Bloco δ Push Split-Commits 2026-05-14 — origin/main ✅
+
+**Push timestamp:** 2026-05-14 (UTC)
+**Remote URL:** https://github.com/Claudinoinsights/revisor-contratual.git
+**Branch:** main
+**Commits pushed (7 temáticos sequenciais):**
+
+| # | SHA | Type | Title (truncado) |
+|---|------|------|------------------|
+| 1 | `854debf` | chore(repo) | gitignore local artifacts + vault sqlite threading fix [Bloco α residual] |
+| 2 | `f47d9eb` | feat(redator) | persona Redator LLM + Pydantic schemas + Step 7 pipeline [TD-SP06-REDATOR-LLM-01] |
+| 3 | `2b6f85b` | feat(weasyprint) | render PDF + 4 templates OrSheva 7 + Step 7+8 + F-γ-02 hotfix [TD-SP06-WEASYPRINT-PECA-01 + Smith F-γ-02] |
+| 4 | `d70288b` | feat(download) | GET /download/{job_id} + JOBS[owner] + SPA refactor + F-γ-01 hotfix + Bloco β tests [TD-SP06-DOWNLOAD/CLASSIC/MODE-PASS + Smith F-γ-01] |
+| 5 | `a9bac11` | test(oracle-fidelity) | Oracle smoke 3 vereditos + scorecard + handoff Eric advogada [TD-SP06-FIDELITY-01] |
+| 6 | `660eadc` | docs(sprint-6) | governance Bloco αβγδ — PRDs + ADRs + 8 stories + Smith/Oracle/Keymaker reviews + CHECKPOINT |
+| 7 | `ede4120` | chore(bloco-alpha-beta) | residual test fixtures + fpdf2 generator + dual-content-type test [Bloco α + β leftovers] |
+
+**Cumulative Sprint 6 baseline:** 478 PASS + 5 skip ZERO regressões preservadas pelo push (working tree state que Smith re-verify CLEAN confirmed).
+
+**Working tree pós-push (untracked legítimo — local artifacts gitignored):**
+- `.tmp/` (secrets — admin-password-hash.txt + auth-cookie-key.txt)
+- `documentos-para-teste/` (PDFs locais Eric)
+- `orsheva-brandbook.html` + `revisor-contratual-orsheva.html.html` (local artifacts)
+
+**Handoff yaml:** `.lmas/handoffs/handoff-operator-to-claudino-2026-05-14-bloco-delta-final-closure.yaml`
+**Próximo:** @claudino (Claudino) Skill — Bloco δ closure final + Eric advogada externa coordination (handoff template pré-preenchido em `governance/qa/handoff-eric-advogada-externa-bloco-gamma-2026-05-14.md` — Eric forward para advogada externa AC-PRD-γ-05 BLOQUEANTE process externo)
+
+### Sprint 6.x AGGRESSIVE Bloco γ + δ — COMPLETE ✅
+
+**Cadeia Skills autônoma executada conforme Eric directive "Skills corretas inegociável + paralelo + autonomia chain":**
+
+```
+Trinity PRD γ → Aria ADR-022 → Niobe 4 stories Draft → Keymaker 4/4 GO 10/10
+  → Neo Wave γ.1 paralelo (REDATOR + WEASYPRINT)
+  → Neo Wave γ.2 (DOWNLOAD-ROUTES)
+  → Oracle Wave γ.3 (FIDELITY smoke PASS 3/3)
+  → Smith review CONTAINED 12 findings (0 CRIT / 2 HIGH / 5 MED / 4 LOW / 1 NOTE)
+  → Neo hotfix F-γ-01 + F-γ-02
+  → Smith re-verify CLEAN (2 HIGH eliminados)
+  → Operator push 7 commits → origin/main
+  → (Eric advogada externa process externo paralelo BLOQUEANTE — AC-PRD-γ-05)
+```
+
+**Métricas finais Sprint 6 Bloco γ + δ:**
+- 4 stories Ready for Review (REDATOR + WEASYPRINT + DOWNLOAD + FIDELITY)
+- Pytest baseline: 248 → **478 passed + 5 skipped** (+230 cumulative, ZERO regressões)
+- 7 commits temáticos pushed origin/main
+- Smith findings cumulative: 12 originais → 10 residuais (após hotfix HIGH) TD Sprint 6.1+
+- 0 CRITICAL / 0 HIGH active (2 HIGH eliminated hotfix)
+- Constitution Art. III ✅ + Art. IV ⚠️ (F-γ-05 ADR-022 D4 fonts TD) + Art. V ✅
+- Eric advogada externa review BLOQUEANTE AC-PRD-γ-05 — handoff template pré-preenchido + 28 itens checklist OAB
+
+## Sessão 2026-05-14 (cont) — Sprint 6.1 INICIADO ⚙️
+
+### Eric Decision (post-Sprint 6 Bloco γ+δ COMPLETE)
+
+> "Iniciar Sprint 6.1 (hotfix MEDIUMs/LOWs residuais) paralelo à advogada"
+
+Sprint 6.1 escopo: 5 MEDIUM Smith findings + 4 LOW + 1 NOTE residuais como TD cleanup paralelo ao process externo advogada (gate BLOQUEANTE AC-PRD-γ-05).
+
+### Aria PATCH ADR-022 Sprint 6.1 — Smith F-γ-04 + F-γ-05 remediation ✅
+
+**Patches aplicados em [ADR-022](./architecture/adr/adr-022-persona-redator-revisional.md):**
+
+**D2 (Hardening anti-hallucination) — Smith F-γ-04:**
+- Clarificação 3-camadas com table distinct Layer 1/2/3
+- Layer 1 Pydantic strict ✅ implementado
+- Layer 2 vault-restricted citation IDs ✅ implementado (`validar_citacoes_vault`)
+- Layer 3 NLI semantic validator 🟡 spec Sprint 6.1 — story TD-SP06.1-LAYER-3-NLI-VALIDATOR
+- Distinção semântica: Layer 2 captura "ID fantasma" (Súmula 999 ausente), Layer 3 captura "interpretação invertida" (Súmula 539 existe mas peça afirma o oposto)
+- Reuso pattern ADR-004 NLI híbrido (ValidacaoSemantica) já em uso para TeseAdvogado — extensão natural Redator
+
+**D4 (Template HTML CSS) — Smith F-γ-05:**
+- Substituição fontes Lora/Outfit → Manrope (sans) + Fraunces (serif)
+- Tokens OrSheva 7 v1.1.2 real (`tokens.css` linhas 13-62)
+- Cores Or-500 #EE6B20 accent + #1A1816 text + #6B6457 muted + #AC4408 h2 accent
+- Page settings refinados (margin 25mm 22mm 22mm 22mm)
+- Comment explícito Lora/Outfit descontinuadas (skeleton original NÃO existem em static/fonts/)
+
+**Status ADR mantido `accepted`** — patch é refinement não supersede.
+
+**Change Log entry adicionado** em Histórico ADR-022.
+
+### Sprint 6.1 Stories Candidatas (Niobe próximo draft batch)
+
+| Story ID | Smith finding | Effort | Owner |
+|----------|---------------|--------|-------|
+| TD-SP06.1-QWEN-FALLBACK-WIRING | F-γ-03 MEDIUM | ~2h | @dev (Neo) |
+| TD-SP06.1-LAYER-3-NLI-VALIDATOR | F-γ-04 MEDIUM (NEW spec ADR-022 D2 patch) | ~4h | @dev (Neo) |
+| TD-SP06.1-PIPELINE-STEP-8-GRACEFUL | F-γ-06 MEDIUM | ~1h | @dev (Neo) |
+| TD-SP06.1-PDF-FILENAME-COLLISION | F-γ-07 MEDIUM | ~30min | @dev (Neo) |
+| TD-SP06.1-DOWNLOAD-EDGE-CASES | F-γ-08+09+10 LOW (consolidated) | ~1h | @dev (Neo) |
+
+**Total Sprint 6.1:** ~8h Neo + Oracle smoke (~1h) + Smith review (~30min) + Operator push
+
+**Handoff yaml:** `.lmas/handoffs/handoff-aria-to-sm-2026-05-14-sprint-6-1-stories-batch.yaml`
+**Próximo:** @sm (Niobe) Skill `*draft sprint-6-1-stories-batch` — draftar 5 stories Sprint 6.1 conforme ACs adendos ADR-022 D2 patch + Smith findings residuais ✅ DONE
+
+### Niobe Sprint 6.1 Stories Drafts 2026-05-14 — 5 stories Draft ✅
+
+**Wave 6.1.1 (foundation paralelo — independent files, ~3.5h Neo):**
+- [TD-SP06.1-QWEN-FALLBACK-WIRING](./stories/TD-SP06.1-QWEN-FALLBACK-WIRING.md) (MEDIUM, ~2h) — redator._default_invoke try/except + fallback chain real (Smith F-γ-03)
+- [TD-SP06.1-PDF-FILENAME-COLLISION](./stories/TD-SP06.1-PDF-FILENAME-COLLISION.md) (MEDIUM, ~30min) — pipeline.py linha 396 job_id-based (Smith F-γ-07 multi-tenancy)
+- [TD-SP06.1-PIPELINE-STEP-8-GRACEFUL](./stories/TD-SP06.1-PIPELINE-STEP-8-GRACEFUL.md) (MEDIUM, ~1h) — Step 8 try/except weasyprint failure preserva peça LLM (Smith F-γ-06)
+
+**Wave 6.1.2 (serial pós-6.1.1 — depends QWEN-FALLBACK done, ~4h Neo):**
+- [TD-SP06.1-LAYER-3-NLI-VALIDATOR](./stories/TD-SP06.1-LAYER-3-NLI-VALIDATOR.md) (MEDIUM, ~4h) — validar_citacoes_nli ADR-022 D2 patch spec (Smith F-γ-04 + reuso ADR-004 pattern)
+
+**Wave 6.1.3 (paralelo independent app.py, ~1h Neo):**
+- [TD-SP06.1-DOWNLOAD-EDGE-CASES](./stories/TD-SP06.1-DOWNLOAD-EDGE-CASES.md) (LOW consolidated, ~1h) — WWW-Authenticate + 404 distinct + 413 size limit (Smith F-γ-08+09+10)
+
+**Total Sprint 6.1:** ~8.5h Neo dev + Oracle smoke (~1h) + Smith review (~30min) + Operator push v0.2.1 = ~11h end-to-end (vs Sprint 6 Bloco γ que foi 17h+, Sprint 6.1 é hotfix-style focado)
+
+**Frontmatter compliance:** 5 stories com status `Draft` + priority + sprint=6.1 + related_adrs (ADR-022 D2/D4 patches + ADR-004 NLI pattern reuse) + related_findings (Smith F-γ-XX) + tags + wave grouping documented
+
+**Handoff yaml:** `.lmas/handoffs/handoff-sm-to-po-2026-05-14-sprint-6-1-stories-batch.yaml`
+**Próximo:** @po (Keymaker) Skill `*validate-story-draft sprint-6-1-batch` — batch validate 5 stories Sprint 6.1 (mirror Bloco γ Keymaker GO 4/4 pattern) ✅ DONE
+
+### Keymaker Sprint 6.1 Batch Validation 2026-05-14 — 5/5 GO 10/10 ✅
+
+**Report:** [`governance/qa/keymaker-validate-sprint-6-1-5-stories-2026-05-14.md`](./qa/keymaker-validate-sprint-6-1-5-stories-2026-05-14.md)
+
+**Verdict global:** GO 5/5 stories — validation_score 10/10 cada (mirror Bloco γ Keymaker pattern)
+**Constitution compliance:** Art. III + Art. IV + Art. V PASS
+**Status flips:** 5 stories Draft → Ready + validation fields adicionados (validated_by/at/score/verdict)
+**Wave map confirmado:** 6.1.1 (3 paralelo) + 6.1.3 (1 paralelo independent) + 6.1.2 (1 serial pós-QWEN) = ~8.5h Neo total
+
+**Handoff yaml:** `.lmas/handoffs/handoff-po-to-dev-2026-05-14-sprint-6-1-wave-execution.yaml`
+**Próximo:** @dev (Neo) Skill `*develop` — Sprint 6.1 Wave 6.1.1 paralelo (3 stories) + Wave 6.1.3 paralelo (1 story) + Wave 6.1.2 serial pós-QWEN
 
 ### Aria ADR-022 Persona Redator Revisional 2026-05-14 ACCEPTED ✅
 
