@@ -1,55 +1,568 @@
 {
   "schema_version": "1.0",
   "source": "stf",
-  "last_updated": "2026-05-05T22:00:00Z",
-  "last_refresh_method": "seed",
-  "last_refresh_audit_log": "bloco_vault/data/DATASET-CHANGELOG.md",
-  "total_entries": 5,
+  "last_updated": "2026-05-15T02:59:53+00:00",
+  "last_refresh_method": "manual_import",
+  "last_refresh_audit_log": "governance/stories/TD-VAULT-CURATED-DATASET-01.md",
+  "total_entries": 62,
   "entries": [
     {
+      "numero": 1,
+      "texto": "Ofende a garantia constitucional do ato jurídico perfeito a decisão que, sem ponderar as circunstâncias do caso concreto, desconsidera a validez e a eficácia de acordo constante de termo de adesão instituído pela Lei Complementar nº 110/2001.",
+      "data_aprovacao": "2007-05-30",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "6258df6579af040c039ab625f8cdfc329898c3ff9784b8b9e9a8a27b1b05a048"
+    },
+    {
+      "numero": 2,
+      "texto": "É inconstitucional a lei ou ato normativo estadual ou distrital que disponha sobre sistemas de consórcios e sorteios, inclusive bingos e loterias.",
+      "data_aprovacao": "2007-05-30",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "ce2dee51e4fd3ba37f4eefe4a699b9ded567f464803a227a9020e219f6f0d338"
+    },
+    {
+      "numero": 3,
+      "texto": "Nos processos perante o Tribunal de Contas da União (TCU) asseguram-se o contraditório e a ampla defesa quando da decisão puder resultar anulação ou revogação de ato administrativo que beneficie o interessado, excetuada a apreciação da legalidade do ato de concessão inicial de aposentadoria, reforma e pensão.",
+      "data_aprovacao": "2007-05-30",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "8f4ccbfa8b70f4d151e7ca5903ac80a1f646fc49e78927d10bc186c32c8e6c67"
+    },
+    {
+      "numero": 4,
+      "texto": "Salvo nos casos previstos na Constituição, o salário mínimo não pode ser usado como indexador de base de cálculo de vantagem de servidor público ou de empregado, nem ser substituído por decisão judicial.",
+      "data_aprovacao": "2008-04-30",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "c7805ec45645290c7e9a989f9d76d1c972315f757af2f1620d2f753502d71b3b"
+    },
+    {
+      "numero": 5,
+      "texto": "A falta de defesa técnica por advogado no processo administrativo disciplinar não ofende a Constituição.",
+      "data_aprovacao": "2008-05-07",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "7cb6ebd36d56f4100da7c7178529754cc1454102a47851febd595693bddc6023"
+    },
+    {
+      "numero": 6,
+      "texto": "Não viola a Constituição o estabelecimento de remuneração inferior ao salário mínimo para as praças prestadoras de serviço militar inicial.",
+      "data_aprovacao": "2008-05-07",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "acdce98aae85fa08132df522f1a0f91f34a51647a41b9332c08d62143f4a8f78"
+    },
+    {
       "numero": 7,
-      "texto": "A norma do §3º do artigo 192 da Constituição, revogada pela Emenda Constitucional nº 40/2003, que limitava a taxa de juros reais a 12% ao ano, tinha sua aplicação condicionada à edição de lei complementar.",
+      "texto": "A norma do § 3º do artigo 192 da Constituição, revogada pela Emenda Constitucional nº 40/2003, que limitava a taxa de juros reais a 12% ao ano, tinha sua aplicação condicionada à edição de lei complementar.",
+      "data_aprovacao": "2008-06-11",
+      "revogada": true,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "9fbcf195b274d9fceb0f640248f88d6f439cf67ee2bc810325f0df6f3767ed32"
+    },
+    {
+      "numero": 8,
+      "texto": "São inconstitucionais o parágrafo único do artigo 5º do Decreto-Lei nº 1.569/1977 e os artigos 45 e 46 da Lei nº 8.212/1991, que tratam de prescrição e decadência de crédito tributário.",
       "data_aprovacao": "2008-06-12",
       "revogada": false,
-      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1217",
-      "fetched_at": "2026-05-05T22:00:00Z",
-      "hash_sha256": "bc640fd5ee67d81acde8d32cd09bafb4b94c3b641aaea8111cd326f84a2c90b3"
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "500cda2f3f74cc201a4f49069194b39f13252acb1f6db873ee9eaf89601b9133"
+    },
+    {
+      "numero": 9,
+      "texto": "O disposto no artigo 127 da Lei nº 7.210/1984 ( Lei de Execução Penal ) foi recebido pela ordem constitucional vigente, e não se lhe aplica o limite temporal previsto no caput do artigo 58.",
+      "data_aprovacao": "2008-06-12",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "4dcbc63dbaa220219abb27ee68c3e354f208668687768aee36ccfc3846b106bb"
+    },
+    {
+      "numero": 10,
+      "texto": "Viola a cláusula de reserva de plenário (CF, artigo 97) a decisão de órgão fracionário de Tribunal que embora não declare expressamente a inconstitucionalidade de lei ou ato normativo do poder público, afasta sua incidência, no todo ou em parte.",
+      "data_aprovacao": "2008-06-18",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "ef8e2c1febe98a6eec150ed3ebdbfcf3667570ab37f680ed167c46e2e75616bb"
+    },
+    {
+      "numero": 11,
+      "texto": "Só é lícito o uso de algemas em casos de resistência e de fundado receio de fuga ou de perigo à integridade física própria ou alheia, por parte do preso ou de terceiros, justificada a excepcionalidade por escrito, sob pena de responsabilidade disciplinar, civil e penal do agente ou da autoridade e de nulidade da prisão ou do ato processual a que se refere, sem prejuízo da responsabilidade civil do Estado.",
+      "data_aprovacao": "2008-08-13",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "fb50bb253cd8de8e88eaf3f6ed674d030de8a0a2c3e809d944a50c6d61f276e2"
+    },
+    {
+      "numero": 12,
+      "texto": "A cobrança de taxa de matrícula nas universidades públicas viola o disposto no art. 206, IV, da Constituição Federal .",
+      "data_aprovacao": "2008-08-13",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "485a47c04200cb3da88129d948d79457202ae68f69de8532f3dd55a1a44efe67"
+    },
+    {
+      "numero": 13,
+      "texto": "A nomeação de cônjuge, companheiro ou parente em linha reta, colateral ou por afinidade, até o terceiro grau, inclusive, da autoridade nomeante ou de servidor da mesma pessoa jurídica investido em cargo de direção, chefia ou assessoramento, para o exercício de cargo em comissão ou de confiança ou, ainda, de função gratificada na administração pública direta e indireta em qualquer dos Poderes da União, dos Estados, do Distrito Federal e dos Municípios, compreendido o ajuste mediante designações recíprocas, viola a Constituição Federal.",
+      "data_aprovacao": "2008-08-21",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "513c03a865d85fd0c8102e93ce3356588b5a431146562778f8828649aee5873a"
+    },
+    {
+      "numero": 14,
+      "texto": "É direito do defensor, no interesse do representado, ter acesso amplo aos elementos de prova que, já documentados em procedimento investigatório realizado por órgão com competência de polícia judiciária, digam respeito ao exercício do direito de defesa.",
+      "data_aprovacao": "2009-02-02",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "a11feb8bcc88ddaa9457cb4fdbf6ea08ae0a263890cfd1ce3d1ae9e6714e194f"
+    },
+    {
+      "numero": 15,
+      "texto": "O cálculo de gratificações e outras vantagens do servidor público não incide sobre o abono utilizado para se atingir o salário mínimo.",
+      "data_aprovacao": "2009-06-25",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "7c3192899ca237ec020deb4887719c027ba4ae95c25465ea893a31fefd92b50d"
+    },
+    {
+      "numero": 16,
+      "texto": "Os artigos 7º, IV, e 39, § 3º (redação da EC 19/98), da Constituição, referem-se ao total da remuneração percebida pelo servidor público.",
+      "data_aprovacao": "2009-06-25",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "617f2f6b905253f9854e083cbf330c09df43209f6fd8e41de673988cee0c11da"
+    },
+    {
+      "numero": 17,
+      "texto": "Durante o período previsto no parágrafo 1º do artigo 100 da Constituição, não incidem juros de mora sobre os precatórios que nele sejam pagos.",
+      "data_aprovacao": "2009-10-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "1cc0ed2c2394ca0775be0c70e868756761f80067c35016380a98df315e1b8501"
+    },
+    {
+      "numero": 18,
+      "texto": "A dissolução da sociedade ou do vínculo conjugal, no curso do mandato, não afasta a inelegibilidade prevista no § 7º do artigo 14 da Constituição Federal.",
+      "data_aprovacao": "2009-10-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "741f71fa9ff188d0404dec6dbac07b3f75cb6a9bf10f0e961f018581da5b6bf3"
+    },
+    {
+      "numero": 19,
+      "texto": "A taxa cobrada exclusivamente em razão dos serviços públicos de coleta, remoção e tratamento ou destinação de lixo ou resíduos provenientes de imóveis, não viola o artigo 145, II, da Constituição Federal.",
+      "data_aprovacao": "2009-10-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "035f3df4cdef11d16fe24e347e1568a00caa900fdffa05d39a3b9ee90910b9ae"
+    },
+    {
+      "numero": 20,
+      "texto": "A Gratificação de Desempenho de Atividade Técnico-Administrativa - GDATA, instituída pela Lei nº 10.404/2002, deve ser deferida aos inativos nos valores correspondentes a 37,5 (trinta e sete vírgula cinco) pontos no período de fevereiro a maio de 2002 e, nos termos do artigo 5º, parágrafo único, da Lei nº 10.404/2002, no período de junho de 2002 até a conclusão dos efeitos do último ciclo de avaliação a que se refere o artigo 1º da Medida Provisória no 198/2004, a partir da qual passa a ser de 60 (sessenta) pontos.",
+      "data_aprovacao": "2009-10-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "0998a4f4dde273065de5bb63c1378d3205a9cee14d0d891f6c4053290aa757c2"
+    },
+    {
+      "numero": 21,
+      "texto": "É inconstitucional a exigência de depósito ou arrolamento prévios de dinheiro ou bens para admissibilidade de recurso administrativo.",
+      "data_aprovacao": "2009-10-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "ddb5b0e605330836fd2b6183e7481969c8bb5251ff94170b2d92135301792727"
+    },
+    {
+      "numero": 22,
+      "texto": "A Justiça do Trabalho é competente para processar e julgar as ações de indenização por danos morais e patrimoniais decorrentes de acidente de trabalho propostas por empregado contra empregador, inclusive aquelas que ainda não possuíam sentença de mérito em primeiro grau quando da promulgação da Emenda Constitucional nº 45/04.",
+      "data_aprovacao": "2009-12-02",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "6612a58f5a06982efa2ddef671f029272460db5410434b058ff0556100d41f3d"
+    },
+    {
+      "numero": 23,
+      "texto": "A Justiça do Trabalho é competente para processar e julgar ação possessória ajuizada em decorrência do exercício do direito de greve pelos trabalhadores da iniciativa privada.",
+      "data_aprovacao": "2009-12-02",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "dd9def97f7070b05514d90b598b29c06424ff450a8e6075e649e9a3d86aa9440"
+    },
+    {
+      "numero": 24,
+      "texto": "Não se tipifica crime material contra a ordem tributária, previsto no art. 1º, incisos I a IV, da Lei nº 8.137/90, antes do lançamento definitivo do tributo.",
+      "data_aprovacao": "2009-12-02",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "9226c25614d05924b3a04f00b0838187e04a415f3153d70f1b3e8cb848eeea53"
     },
     {
       "numero": 25,
-      "texto": "É ilícita a prisão civil de depositário infiel, qualquer que seja a modalidade do depósito.",
+      "texto": "É ilícita a prisão civil de depositário infiel , qualquer que seja a modalidade do depósito.",
       "data_aprovacao": "2009-12-16",
       "revogada": false,
-      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1264",
-      "fetched_at": "2026-05-05T22:00:00Z",
-      "hash_sha256": "4cca238c5cc2983bfd9506cd6d197cb31b0de7a1629900ed177a696064f5be32"
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "1d7d669425debe5039e21644186c0e711ae8a5b938427aea4cbcc2a5ef8d054e"
+    },
+    {
+      "numero": 26,
+      "texto": "Para efeito de progressão de regime no cumprimento de pena por crime hediondo, ou equiparado, o juízo da execução observará a inconstitucionalidade do art. 2º da Lei n. 8.072, de 25 de julho de 1990, sem prejuízo de avaliar se o condenado preenche, ou não, os requisitos objetivos e subjetivos do benefício, podendo determinar, para tal fim, de modo fundamentado, a realização de exame criminológico.",
+      "data_aprovacao": "2009-12-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "c21c87ff0a5bf426fb4ed5afc45fe09be3f080a26645571fc0a46960d67040e1"
     },
     {
       "numero": 27,
-      "texto": "Compete à Justiça estadual julgar causas entre consumidor e concessionária de serviço público de telefonia, quando a ANATEL não seja litisconsorte passiva necessária, assistente, nem opoente.",
-      "data_aprovacao": "2010-02-16",
+      "texto": "Compete à Justiça estadual julgar causas entre consumidor e concessionária de serviço público de telefonia, quando a Agência Nacional de Telecomunicações (ANATEL) não seja litisconsorte passiva necessária, assistente, nem opoente.",
+      "data_aprovacao": "2009-12-18",
       "revogada": false,
-      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1266",
-      "fetched_at": "2026-05-05T22:00:00Z",
-      "hash_sha256": "3eafa3bb145190074e2260400c83c4359f80d00893c2cab2d47345200751247c"
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "28ed36019e2e7fb8e86675ab3c8742dbff639438208ec206ef06a79aca72bb04"
     },
     {
       "numero": 28,
       "texto": "É inconstitucional a exigência de depósito prévio como requisito de admissibilidade de ação judicial na qual se pretenda discutir a exigibilidade de crédito tributário.",
-      "data_aprovacao": "2010-02-17",
+      "data_aprovacao": "2010-02-03",
       "revogada": false,
-      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1267",
-      "fetched_at": "2026-05-05T22:00:00Z",
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
       "hash_sha256": "e5117b2f3fab1f553c42c17a0b6b7f3aa9738e7cb8c3524c1bebb66ea869b66f"
     },
     {
+      "numero": 29,
+      "texto": "É constitucional a adoção, no cálculo do valor de taxa, de um ou mais elementos da base de cálculo própria de determinado imposto, desde que não haja integral identidade entre uma base e outra.",
+      "data_aprovacao": "2010-02-03",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "2bb4dc4500bd0d34e94a76071ff5bf0315f8ad8a16b2d67c991b662b62296f89"
+    },
+    {
+      "numero": 30,
+      "texto": "É inconstitucional lei estadual que, a título de incentivo fiscal, retém parcela do Imposto sobre Circulação de Mercadorias e Serviços (ICMS) pertencente aos municípios Não foi publicada",
+      "data_aprovacao": "2010-02-03",
+      "revogada": true,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "0c84288fa1607a4e6bede4bd856b84e52968246b8345beb45e5a3261fcdc742d"
+    },
+    {
+      "numero": 31,
+      "texto": "É inconstitucional a incidência do Imposto sobre Serviços de Qualquer Natureza (ISS) sobre operações de locação de bens móveis.",
+      "data_aprovacao": "2010-02-04",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "88426d2d123027a722372335af7e5cfa2385ce57b177915ad719a70ebe21a2e0"
+    },
+    {
       "numero": 32,
-      "texto": "É inconstitucional o cobranca de inscrição em concurso público de candidatos, antes da aprovação da lei orçamentária correspondente.",
+      "texto": "O ICMS não incide sobre alienação de salvados de sinistro pelas seguradoras.",
       "data_aprovacao": "2011-02-16",
       "revogada": false,
-      "fonte_url": "https://portal.stf.jus.br/jurisprudencia/sumariosumulas.asp?base=26&sumula=1271",
-      "fetched_at": "2026-05-05T22:00:00Z",
-      "hash_sha256": "5ec70ef820804b0d5a215f6639f72abcb94454a8bc83b33ff4d0a7db1359b1c9"
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "c2766b8359ac977b322e442ca5cf0c7f8cb638c0048d9e08de2a44d95077244a"
+    },
+    {
+      "numero": 33,
+      "texto": "Aplicam-se ao servidor público, no que couber, as regras do regime geral da previdência social sobre aposentadoria especial de que trata o artigo 40, § 4º, inciso III da Constituição Federal, até a edição de lei complementar específica.",
+      "data_aprovacao": "2014-04-09",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "9e7e1fa8b3b82c387b5513252182497705908354a61a578fc3e141c85677b23c"
+    },
+    {
+      "numero": 34,
+      "texto": "A Gratificação de Desempenho de Atividade de Seguridade Social e do Trabalho – GDASST, instituída pela Lei 10.483/2002, deve ser estendida aos inativos no valor correspondente a 60 (sessenta) pontos, desde o advento da Medida Provisória 198/2004, convertida na Lei 10.971/2004, quando tais inativos façam jus à paridade constitucional (EC 20/1998, 41/2003 e 47/2005).",
+      "data_aprovacao": "2014-10-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "f2cca82ce671789d2f5d3fc90d9ee6d58b206582e0c6eca4322c7c41387f29fb"
+    },
+    {
+      "numero": 35,
+      "texto": "A homologação da transação penal prevista no artigo 76 da Lei 9.099/1995 não faz coisa julgada material e, descumpridas suas cláusulas, retoma-se a situação anterior, possibilitando-se ao Ministério Público a continuidade da persecução penal mediante oferecimento de denúncia ou requisição de inquérito policial.",
+      "data_aprovacao": "2014-10-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "a2212bba3c2579599dae058abdf4c66bb9fede11e55da56007c6f2c3ee5b45f5"
+    },
+    {
+      "numero": 36,
+      "texto": "Compete à Justiça Federal comum processar e julgar civil denunciado pelos crimes de falsificação e de uso de documento falso quando se tratar de falsificação da Caderneta de Inscrição e Registro (CIR) ou de Carteira de Habilitação de Amador (CHA), ainda que expedidas pela Marinha do Brasil.",
+      "data_aprovacao": "2014-10-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "6c1920b73a3630e681b3c3c406f17a9ddf61c8aa3abc3754be436b8b86a440f2"
+    },
+    {
+      "numero": 37,
+      "texto": "Não cabe ao Poder Judiciário, que não tem função legislativa, aumentar vencimentos de servidores públicos sob o fundamento de isonomia.",
+      "data_aprovacao": "2014-10-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "e60176383543d1a86228c5665ef3ad4d75f42283e26d8c8b3f5d8496d723d392"
+    },
+    {
+      "numero": 38,
+      "texto": "É competente o Município para fixar o horário de funcionamento de estabelecimento comercial.",
+      "data_aprovacao": "2015-03-11",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "e3916c19f25b5d7512584b81a02f20293c5ef24fe2e31fee4d5b470bcec96b13"
+    },
+    {
+      "numero": 39,
+      "texto": "Compete privativamente à União legislar sobre vencimentos dos membros das polícias civil e militar e do corpo de bombeiros militar do Distrito Federal.",
+      "data_aprovacao": "2015-03-11",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "9da35ec9ed896ca55cbc7e79c58fb51a420a30cff4170d234af0065f6bbc4427"
+    },
+    {
+      "numero": 40,
+      "texto": "A contribuição confederativa de que trata o art. 8º, IV, da Constituição Federal, só é exigível dos filiados ao sindicato respectivo.",
+      "data_aprovacao": "2015-03-11",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "cce112e3e8be81c22edbcee4b7c9be5d3b0a66f1f9cb1893221c904a04719a16"
+    },
+    {
+      "numero": 41,
+      "texto": "O serviço de iluminação pública não pode ser remunerado mediante taxa.",
+      "data_aprovacao": "2015-03-11",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "b83cedff6c61f7fc031a86b27e30fba31926a05bd525ad650fa622b02e37fd2a"
+    },
+    {
+      "numero": 42,
+      "texto": "É inconstitucional a vinculação do reajuste de vencimentos de servidores estaduais ou municipais a índices federais de correção monetária.",
+      "data_aprovacao": "2015-03-11",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "5227611ba2f848ff6cd30548444a11e2fd68d168e400cfd54f9aa273123c75a1"
+    },
+    {
+      "numero": 43,
+      "texto": "É inconstitucional toda modalidade de provimento que propicie ao servidor investir-se, sem prévia aprovação em concurso público destinado ao seu provimento, em cargo que não integra a carreira na qual anteriormente investido.",
+      "data_aprovacao": "2015-04-08",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "c4b565cd4d0eecd9f6cf87bcf9dfa335418af62f894ae1d67f7d43edb0c701fc"
+    },
+    {
+      "numero": 44,
+      "texto": "Só por lei se pode sujeitar a exame psicotécnico a habilitação de candidato a cargo público.",
+      "data_aprovacao": "2015-04-08",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "a8091720f44e7f367308e7526c4fc39132e8f6dfda1a3caa96031213935d3ae8"
+    },
+    {
+      "numero": 45,
+      "texto": "A competência constitucional do Tribunal do Júri prevalece sobre o foro por prerrogativa de função estabelecido exclusivamente pela constituição estadual.",
+      "data_aprovacao": "2015-04-08",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "224c368d14ba425cb856f6bf623991ac0863612c794610508b0e9e17d711b2c4"
+    },
+    {
+      "numero": 46,
+      "texto": "A definição dos crimes de responsabilidade e o estabelecimento das respectivas normas de processo e julgamento são da competência legislativa privativa da União.",
+      "data_aprovacao": "2015-04-09",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "bbf12f47ef9057e16324f1fe08f031a20f8608c2747f6849fb5ead1608d84f0b"
+    },
+    {
+      "numero": 47,
+      "texto": "Os honorários advocatícios incluídos na condenação ou destacados do montante principal devido ao credor consubstanciam verba de natureza alimentar cuja satisfação ocorrerá com a expedição de precatório ou requisição de pequeno valor, observada ordem especial restrita aos créditos dessa natureza.",
+      "data_aprovacao": "2015-05-27",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "85ea260f69c8ff3a54685738eb70b1b1c9c1f25f763859b9d10d662443b7c6a5"
+    },
+    {
+      "numero": 48,
+      "texto": "Na entrada de mercadoria importada do exterior, é legítima a cobrança do ICMS por ocasião do desembaraço aduaneiro.",
+      "data_aprovacao": "2015-05-27",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "6cbd10bd8e2f1bc2637b3d10528b1b016aa265ecfbb7d587a6e67d127c670541"
+    },
+    {
+      "numero": 49,
+      "texto": "Ofende o princípio da livre concorrência lei municipal que impede a instalação de estabelecimentos comerciais do mesmo ramo em determinada área.",
+      "data_aprovacao": "2015-06-17",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "b5a1865b2837b3c3f133b28031802d39d2e04386eb2d5e23740990e334d1c574"
+    },
+    {
+      "numero": 50,
+      "texto": "Norma legal que altera o prazo de recolhimento de obrigação tributária não se sujeita ao princípio da anterioridade.",
+      "data_aprovacao": "2015-06-17",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "4e82c698f725e9dfe36e751aa91119df5e51e88cedfa6601bd10a5fecbf19c75"
+    },
+    {
+      "numero": 51,
+      "texto": "O reajuste de 28,86%, concedido aos servidores militares pelas Leis 8622/1993 e 8627/1993, estende-se aos servidores civis do poder executivo, observadas as eventuais compensações decorrentes dos reajustes diferenciados concedidos pelos mesmos diplomas legais.",
+      "data_aprovacao": "2015-06-18",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "5bf081ea02a8d6d9707cb1e39aaf28a491e7e39882b119b94da50b1c58204f05"
+    },
+    {
+      "numero": 52,
+      "texto": "Ainda quando alugado a terceiros, permanece imune ao Imposto sobre a Propriedade Predial e Territorial Urbana (IPTU) o imóvel pertencente a qualquer das entidades referidas pelo art. 150, VI, “c”, da Constituição Federal, desde que o valor dos aluguéis seja aplicado nas atividades para as quais tais entidades foram constituídas.",
+      "data_aprovacao": "2015-06-18",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "21db59f40966dd1aeab0de9c112ba0cf4b326aacfd9f2abd5b4670dec57d6de3"
+    },
+    {
+      "numero": 53,
+      "texto": "A competência da Justiça do Trabalho prevista no art. 114, VIII, da Constituição Federal alcança a execução de ofício das contribuições previdenciárias relativas ao objeto da condenação constante das sentenças que proferir e acordos por ela homologados.",
+      "data_aprovacao": "2015-06-18",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "f7f227e5687b9882dc9bed9a13f9787e82645e339c5259113d60f1573523c494"
+    },
+    {
+      "numero": 54,
+      "texto": "A medida provisória não apreciada pelo congresso nacional podia, até a Emenda Constitucional 32/2001, ser reeditada dentro do seu prazo de eficácia de trinta dias, mantidos os efeitos de lei desde a primeira edição.",
+      "data_aprovacao": "2016-03-17",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "e0a367dc0cf794c8895899ab343876bb600ec05a4a216e277950ff5cc941bfc1"
+    },
+    {
+      "numero": 55,
+      "texto": "O direito ao auxílio-alimentação não se estende aos servidores inativos.",
+      "data_aprovacao": "2016-03-17",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "310a6a7676f135a7be121fd8a08894b7f119763ef6038dba6c499041bf6c788d"
+    },
+    {
+      "numero": 56,
+      "texto": "A falta de estabelecimento penal adequado não autoriza a manutenção do condenado em regime prisional mais gravoso, devendo-se observar, nessa hipótese, os parâmetros fixados no RE 641.320/RS.",
+      "data_aprovacao": "2016-06-29",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "2e3619b9208284e026889f70ef5a633491f35cf34340cafcf04983999fcc921c"
+    },
+    {
+      "numero": 57,
+      "texto": "A imunidade tributária constante do art. 150, VI, d, da CF/88 aplica-se à importação e comercialização, no mercado interno, do livro eletrônico (ebook) e dos suportes exclusivamente utilizados para fixá-los, como leitores de livros eletrônicos (e-readers), ainda que possuam funcionalidades acessórias.",
+      "data_aprovacao": "2020-04-24",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "976e4c15681538f89efb50aa04a35429a030774329e49e0dd4ce3986de42f5e1"
+    },
+    {
+      "numero": 58,
+      "texto": "Inexiste direito a crédito presumido de IPI relativamente à entrada de insumos isentos, sujeitos à alíquota zero ou não tributáveis, o que não contraria o princípio da não cumulatividade.",
+      "data_aprovacao": "2020-05-07",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "e055b29b8c943e53a96abcb1e78fc5afac49ba79a46d40fe5203fe9b5192106b"
+    },
+    {
+      "numero": 59,
+      "texto": "É impositiva a fixação do regime aberto e a substituição da pena privativa de liberdade por restritiva de direitos quando reconhecida a figura do tráfico privilegiado (art. 33, § 4º, da Lei 11.343/06) e ausentes vetores negativos na primeira fase da dosimetria (art. 59 do CP) , observados os requisitos do art. 33, § 2º, alínea c e do art. 44, ambos do Código Penal .",
+      "data_aprovacao": "2023-05-12",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "43713d85e62f4a23fef876111ab49fa7c5e8b75e1915d86b4ac0177d1080bf9d"
+    },
+    {
+      "numero": 60,
+      "texto": "O pedido e a análise administrativos de fármacos na rede pública de saúde, a judicialização do caso, bem ainda seus desdobramentos (administrativos e jurisdicionais), devem observar os termos dos 3 (três) acordos interfederativos (e seus fluxos) homologados pelo Supremo Tribunal Federal, em governança judicial colaborativa, no tema 1.234 da sistemática da repercussão geral RE 1.366.243 .",
+      "data_aprovacao": "2024-09-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "682a9f727639424ddee2a5bbde4437893a9072db2949f52f0631648d80a60830"
+    },
+    {
+      "numero": 61,
+      "texto": "A concessão judicial de medicamento registrado na ANVISA , mas não incorporado às listas de dispensação do Sistema Único de Saúde , deve observar as teses firmadas no julgamento do Tema 6 da Repercussão Geral (RE 566.471).",
+      "data_aprovacao": "2024-09-20",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "46079090603cda7881bda21a33640b412e5a92f772566d5df225f3c030ce444b"
+    },
+    {
+      "numero": 62,
+      "texto": "É legítima a revogação da isenção estabelecida no art. 6º, II, da Lei Complementar 70/1991 pelo art. 56 da Lei 9.430/1996, dado que a LC 70/1991 é apenas formalmente complementar, mas materialmente ordinária com relação aos dispositivos concernentes à contribuição social por ela instituída.",
+      "data_aprovacao": "2024-12-16",
+      "revogada": false,
+      "fonte_url": "https://pt.wikipedia.org/wiki/Lista_de_s%C3%BAmulas_vinculantes_editadas_pelo_Supremo_Tribunal_Federal_do_Brasil",
+      "fetched_at": "2026-05-15T02:59:53+00:00",
+      "hash_sha256": "6b3b29f6333575dc46f4695a71ebe230b3188391335fbeb7757d06db83237185"
     }
   ]
 }

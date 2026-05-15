@@ -30,8 +30,11 @@ def test_populate_when_vault_missing(tmp_path: Path) -> None:
     )
 
     assert result["populated"] is True
-    assert result["stj_count"] == 5
-    assert result["stf_count"] == 5
+    # DATASET-CHANGELOG v1.2.0 (Story TD-VAULT-CURATED-DATASET-01):
+    # STF SV expanded 5→62 (Wikipedia parse); STJ expanded 5→637 (Tesseract OCR
+    # via VPS container revisor-prod-app on official STJ VerbetesSTJ.pdf)
+    assert result["stj_count"] == 637
+    assert result["stf_count"] == 62
     assert result["skipped_reason"] is None
     assert vault_db.exists()
 
@@ -58,7 +61,8 @@ def test_populate_idempotent_second_call(tmp_path: Path) -> None:
     assert second["stj_count"] == 0
     assert second["stf_count"] == 0
     assert second["skipped_reason"] is not None
-    assert "10 entries" in second["skipped_reason"]
+    # DATASET-CHANGELOG v1.2.0 — 637 STJ + 62 STF SV = 699 entries
+    assert "699 entries" in second["skipped_reason"]
 
 
 def test_populate_when_vault_empty(tmp_path: Path) -> None:
@@ -77,8 +81,9 @@ def test_populate_when_vault_empty(tmp_path: Path) -> None:
         embedder_fn=zero_embedder,
     )
     assert result["populated"] is True
-    assert result["stj_count"] == 5
-    assert result["stf_count"] == 5
+    # DATASET-CHANGELOG v1.2.0 — STJ 637 + STF SV 62
+    assert result["stj_count"] == 637
+    assert result["stf_count"] == 62
 
 
 def test_populate_when_vault_already_populated(tmp_path: Path) -> None:

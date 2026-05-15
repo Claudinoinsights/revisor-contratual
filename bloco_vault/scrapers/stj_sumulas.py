@@ -1,10 +1,28 @@
 """Scraper STJ — extrai súmulas do site oficial (FR-VAULT-03).
 
-URL canônica: https://www.stj.jus.br/sites/portalp/Paginas/Comunicacao/Noticias/Sumulas-do-STJ.aspx
-(o link real exato é fora do escopo deste MVP — usamos parsing genérico de HTML).
+⚠️ ORFÃO — NÃO USADO EM RUNTIME (preservado para futuro)
+─────────────────────────────────────────────────────────
+Diagnose Neo 2026-05-15 (Story TD-VAULT-CURATED-DATASET-01): WAF anti-bot
+(Cloudflare `Cf-Mitigated: challenge` + F5 BIG-IP cookie challenge) bloqueia
+deterministicamente scrape direto STJ — independente de URL atual ou parser.
 
-Parsing minimal: extrai elementos com classe "sumula" ou estrutura similar.
-HTML real evolui — robustez via fallback patterns.
+Endpoints testados:
+- `www.stj.jus.br/sumulas` → 404
+- `www.stj.jus.br/sites/portalp/.../Sumulas-do-STJ.aspx` → 401 (F5 cookie)
+- `www.stj.jus.br/publicacoes/sumulas` → 403 Cf-Mitigated
+- `scon.stj.jus.br/SCON/sumstj/*.jsp` → 200 mas conteúdo vazio (session UI)
+
+Fonte alternativa adotada (offline curation): PDF oficial STJ + Wikipedia
+cross-validate → `bloco_vault/data/sumulas-stj.json` (bundled, não scrape live).
+
+Este módulo é preservado para uso futuro caso STJ disponibilize API oficial OR
+WAF rules sejam relaxadas. Para popular vault, usar `bloco_vault.populate.populate_vault_if_needed()`.
+
+Ver: governance/stories/TD-VAULT-CURATED-DATASET-01.md +
+     bloco_vault/data/DATASET-CHANGELOG.md (v1.1.0 entry)
+─────────────────────────────────────────────────────────
+
+URL canônica histórica: https://www.stj.jus.br/sumulas (Sprint 03 — agora 404)
 """
 
 from __future__ import annotations

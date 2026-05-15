@@ -1,6 +1,29 @@
 """Scraper STF — Súmulas Vinculantes (FR-VAULT-03).
 
-URL canônica: https://www.stf.jus.br/portal/cms/verTexto.asp?servico=jurisprudenciaSumulaVinculante
+⚠️ ORFÃO — NÃO USADO EM RUNTIME (preservado para futuro)
+─────────────────────────────────────────────────────────
+Diagnose Neo 2026-05-15 (Story TD-VAULT-CURATED-DATASET-01): WAF anti-bot AWS
+(`Server: awselb/2.0` + `x-amzn-waf-action: challenge` em jurisprudencia.stf.jus.br)
+bloqueia deterministicamente scrape direto STF.
+
+Endpoints testados:
+- `www.stf.jus.br/sumulas-vinculantes` → 403 (awselb)
+- `www.stf.jus.br/portal/cms/verTexto.asp?servico=...` → 403
+- `portal.stf.jus.br/sumulasVinculantes/` → 200 mas SPA "erro-404"
+- `jurisprudencia.stf.jus.br/` → 202 WAF challenge
+
+Fonte alternativa adotada (offline curation): Wikipedia `Lista_de_súmulas_vinculantes`
+(estruturado wikitable, comunidade jurídica curada) parsed via BeautifulSoup →
+`bloco_vault/data/sumulas-stf-vinculantes.json` (62 SVs bundled, não scrape live).
+
+Este módulo é preservado para uso futuro caso STF disponibilize API oficial OR
+WAF rules sejam relaxadas. Para popular vault, usar `bloco_vault.populate.populate_vault_if_needed()`.
+
+Ver: governance/stories/TD-VAULT-CURATED-DATASET-01.md +
+     bloco_vault/data/DATASET-CHANGELOG.md (v1.1.0 entry)
+─────────────────────────────────────────────────────────
+
+URL canônica histórica: https://www.stf.jus.br/sumulas-vinculantes (Sprint 03 — agora 403)
 """
 
 from __future__ import annotations
