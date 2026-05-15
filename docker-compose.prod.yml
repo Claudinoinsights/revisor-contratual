@@ -97,7 +97,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 4G
+          memory: 6G   # F-PROD-NEW-20 fix (D-SMITH-S06-034 OOM CONFIRMED): 4G→6G — Tesseract OCR PDF complexo + Python + Ollama clients peak ~4.13 GiB anon-rss confirmado via dmesg 6 kills; 6G dá ~50% buffer + cabe em VPS 7.8 GiB total preservando OS + Ollama runtime ~1.8 GiB
     networks:
       - revisor-internal
       - proxy
