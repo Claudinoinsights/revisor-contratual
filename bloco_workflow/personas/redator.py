@@ -32,12 +32,16 @@ from bloco_contratos.personas import (
     VeredictoJuiz,
 )
 from bloco_workflow.personas.llm_factory import (
-    DEFAULT_HOST_ADVOGADO,
+    MODEL_ECONOMISTA as MODEL_ECONOMISTA_REDATOR,
     TIER_TO_MODEL_ADVOGADO,
-    get_advogado_llm,
+    TIER_TO_MODEL_REDATOR,
+    get_advogado_llm,  # ADR-025 mantém import para test_no_cascade spy + future Sprint 7+
+    get_economista_llm,
 )
 
+import json
 import logging
+import warnings
 
 logger = logging.getLogger(__name__)
 
@@ -46,10 +50,16 @@ InvokeFn = Callable[[str], Awaitable[str]]
 TemplateVariant = Literal["completa", "com_hitl", "inviabilidade"]
 
 # Sprint 6.1 Story TD-SP06.1-QWEN-FALLBACK-WIRING (Smith F-γ-03):
-# Fallback chain real per tier — ADR-022 D1 + ADR-010 Sabia Q4 mitigation honesty.
+# Fallback chain per tier — ADR-022 D1 + ADR-010 Sabia Q4 mitigation honesty.
 # lean: degraded mode sem fallback (qwen2.5:3b only).
 # balanced (DEFAULT): qwen2.5:7b primary → sabia-7b-instruct fallback.
 # premium: sabia-7b-instruct primary → qwen2.5:7b fallback.
+#
+# DEPRECATED em D-DEV-S06-021 (F-PROD-NEW-19 fix):
+#   `_default_invoke` agora roteia primary=qwen2.5:3b (economista host) + fallback=qwen2.5:7b
+#   (advogado host) independente de tier. FALLBACK_MAP retido apenas para backward-compat de
+#   imports externos + audit forense histórico. Removal scheduled via TD-SP07-FALLBACK-MAP-REMOVAL
+#   (governance/TECH-DEBT.md) — depende de Sprint 7+ tier-strategy decision (Eric + Aria).
 FALLBACK_MAP: dict[LLMTier, str | None] = {
     "lean": None,
     "balanced": "sabia-7b-instruct",
@@ -304,53 +314,170 @@ def validar_citacoes_vault(
         )
 
 
-async def _default_invoke(prompt: str, tier: LLMTier) -> tuple[str, str]:
-    """Default invoke via ChatOllama com fallback chain (Sprint 6.1 F-γ-03 fix).
+def _build_degraded_synthetic_response(reason: str) -> str:
+    """Constrói RelatorioInviabilidade synthetic Pydantic-valid (ADR-025 graceful degradation).
+
+    Sprint 6.x ADR-025 (D-ARIA-S06-025 + D-DEV-S06-026): quando primary economista do
+    Redator falhar em `_default_invoke`, retornar este synthetic JSON em vez de retry
+    com qwen2.5:7b (F-PROD-NEW-19 cascade source). Pipeline atomicity preserved + UX
+    honest + LGPD audit trail completo via `audit_marker` rastreável.
+
+    Args:
+        reason: motivo da degradação (string da exception). Truncado para 200 chars
+                em fields visíveis para evitar audit chain bloat — full reason em logger.
 
     Returns:
-        (content_str, actual_model_used) — actual_model_used captura primary OR fallback model name.
-        Forense pós-incident pode identificar modelo ACTUAL via audit chain.
+        JSON string Pydantic-valid contra RelatorioInviabilidade schema (extra="forbid").
+        Todos fields obedecem min_length constraints + model_validate_json passa sem erro.
+    """
+    reason_safe = reason[:200] if reason else "unknown"
+    payload = {
+        "cabecalho": (
+            "Relatório de Degradação Operacional — Sistema temporariamente "
+            "indisponível para geração de peça revisional formal"
+        ),
+        "sintese_analise": (
+            "Sistema temporariamente indisponível para gerar peça revisional formal. "
+            "Análise técnica completa (parsing + cálculo + BACEN + jurisprudência + "
+            "tese Advogado + análise Economista + veredito Juiz) foi PRESERVADA em "
+            "audit chain. Apenas a geração de peça revisional formal foi adiada por "
+            "falha transitiva no LLM Redator (ADR-025 graceful degradation)."
+        ),
+        "diagnostico_tecnico": (
+            f"Falha transitiva no LLM Redator (motivo registrado: {reason_safe}). "
+            "ADR-025 graceful degradation: pipeline NÃO falha cataclismicamente, "
+            "preserva atomicidade Steps 1-6 e retorna este relatório honesto em vez "
+            "de tentar fallback com qwen2.5:7b (modelo que crashou produção 2026-05-15 "
+            "F-PROD-NEW-19). Análise jurídica + econômica + veredito Juiz disponíveis "
+            "em audit chain para investigação manual ou re-submissão. Audit marker: "
+            "ADR-025-degraded-synthetic. Probabilidade falha transitiva (network blip "
+            "/ memory pressure intra-container): alta. Probabilidade falha estrutural "
+            "(OOM persistente / cascade Steps 5-6): baixa — Steps anteriores passaram."
+        ),
+        "motivos_rejeicao": [
+            f"Redator LLM economista (qwen2.5:3b) indisponível: {reason_safe}",
+            (
+                "Cascade fallback eliminado (ADR-025) — evita re-invocação qwen2.5:7b "
+                "problemático que crashou produção em F-PROD-NEW-19"
+            ),
+            (
+                "Pipeline atomicity preserved — Steps 1-6 audit registrados normalmente; "
+                "apenas Step 7 (Redator) entrou em modo degraded synthetic"
+            ),
+        ],
+        "recomendacao": (
+            "Re-submeter PDF após 2-5 minutos (provável falha transitiva, ADR-025 "
+            "assume blip). Se persistir após 3 tentativas, contatar suporte informando "
+            "job_id do sistema para investigação. Alternativa: solicitar análise manual "
+            "baseada no veredito Juiz + tese Advogado disponíveis em audit chain — "
+            "análise técnica completa preservada, apenas peça revisional formal adiada."
+        ),
+        "disclaimer_lgpd_oab": (
+            "Este relatório é insumo técnico-operacional gerado automaticamente em modo "
+            "de degradação graciosa (ADR-025 Caminho A — Graceful Degradation Synthetic). "
+            "LGPD §11 §46 — dados pessoais processados localmente sem retenção indevida; "
+            "audit chain registra evento completo via marker 'ADR-025-degraded-synthetic'. "
+            "OAB Provimento 209/2021 — não substitui responsabilidade profissional do "
+            "advogado. Conforme arquitetura ADR-025, o sistema escolhe honestamente "
+            "informar indisponibilidade transitiva em vez de gerar peça sob memory "
+            f"pressure que poderia comprometer qualidade jurídica. Reason: {reason_safe[:100]}."
+        ),
+    }
+    # Smith F-S28-08 MEDIUM fix (D-DEV-S06-029): synthetic gera UTF-8 string (ensure_ascii=False
+    # preserva caracteres unicode em reason). Consumers DEVEM `open(path, "w", encoding="utf-8")`
+    # se escreverem em arquivo — Windows cp1252 default raise UnicodeEncodeError. Audit chain
+    # HMAC write usa bytes diretos via json.dumps(...).encode("utf-8") — sem issue. Log files
+    # Windows: usar encoding explicit OU substituir caracteres unicode antes do write.
+    return json.dumps(payload, ensure_ascii=False)
+
+
+async def _default_invoke(prompt: str, tier: LLMTier) -> tuple[str, str]:
+    """Default invoke — tier audit-honored + graceful degradation (ADR-024 + ADR-025).
+
+    Sprint 6.x evolution chain:
+      D-DEV-S06-021 (F-PROD-NEW-19): tier-down qwen2.5:7b → qwen2.5:3b primary
+      D-DEV-S06-023 (S21 fixes): DeprecationWarning band-aid + audit integrity
+      D-ARIA-S06-025 (ADRs): formalização band-aids em decisões arquiteturais
+      D-DEV-S06-026 (THIS): implementação ADR-024 + ADR-025
+
+    ADR-024 Audit-Honored Tier (Caminho C):
+        Parâmetro `tier` preservado para backward-compat E como AUDIT INTENT capture.
+        Selection logic usa `TIER_TO_MODEL_REDATOR[tier]` (currently all-3b mapping —
+        Sprint 7+ pode promover via map mutation sem refactor). DeprecationWarning
+        runtime sinaliza API surface ambiguity para tier != "balanced".
+
+    ADR-025 Graceful Degradation Synthetic (Caminho A):
+        Se primary economista falhar, retornar `RelatorioInviabilidade` synthetic
+        Pydantic-valid via `_build_degraded_synthetic_response(reason)` em vez de
+        cascade fallback qwen2.5:7b (F-PROD-NEW-19 root cause eliminado).
+        Pipeline atomicity preserved + UX honest + LGPD audit trail completo.
+
+    Trade-off: Redator tier nominal "balanced" agora roda em qwen2.5:3b. Qualidade
+    peça revisional pode degradar marginalmente vs 7b — mas pipeline COMPLETO funcional
+    > peça premium teórica nunca entregue. Sprint 7+ reconsiderar quando VPS escalada.
+
+    Args:
+        prompt: prompt completo (PROMPT_REDATOR_PECA ou PROMPT_INVIABILIDADE).
+        tier: AUDIT-HONORED — registra intent original do caller em audit chain
+              (`audit_payload[redator_tier_consumed]`). Model selection via
+              TIER_TO_MODEL_REDATOR[tier] (currently all-3b — ADR-024).
+              Audit chain registra `actual_model_used` (real model) + `tier_consumed`
+              (intent) separadamente para forense post-incident.
+
+    Returns:
+        (content_str, actual_model_used) — actual_model_used = "qwen2.5:3b" em sucesso,
+        OR f"{primary_model}-degraded-synthetic" em ADR-025 graceful degradation mode.
+        Synthetic mode preserva pipeline atomicity — pipeline.py detecta via suffix
+        e registra `peca_format="degraded_synthetic"` + `degraded_reason` em audit.
 
     Raises:
-        Exception original do primary se fallback_model is None (lean degraded mode)
-        OR se fallback_model também falha (cascading failure).
+        NUNCA raise em produção normal — ADR-025 graceful degradation captura
+        qualquer Exception do primary economista e retorna synthetic JSON.
     """
-    primary_model = TIER_TO_MODEL_ADVOGADO[tier]
-    fallback_model = FALLBACK_MAP.get(tier)
+    # ADR-024 Audit-Honored Tier (D-DEV-S06-026): tier é IGNORED para model selection
+    # desde D-DEV-S06-021 F-PROD-NEW-19, mas registrado em audit_payload[redator_tier_consumed]
+    # via pipeline.py. DeprecationWarning runtime alerta API consumers que tier != "balanced"
+    # ainda passa silently para qwen2.5:3b. Sprint 7+ pode promover tier semantic real
+    # via TIER_TO_MODEL_REDATOR map mutation (ver ADR-024 Reconsideration Triggers).
+    if tier != "balanced":
+        warnings.warn(
+            f"Redator `tier={tier!r}` é AUDIT-HONORED desde ADR-024 (D-DEV-S06-026) — "
+            f"todas as invocações usam {TIER_TO_MODEL_REDATOR[tier]} (ADR-024 audit-honored-v1). "
+            f"Tier registrado em audit_payload[redator_tier_consumed] para análise forense.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    # ADR-024 tier mapping — TIER_TO_MODEL_REDATOR documenta reality all-3b pós F-PROD-NEW-19
+    primary_model = TIER_TO_MODEL_REDATOR[tier]  # qwen2.5:3b (todos tiers atualmente)
 
     try:
-        llm = get_advogado_llm(tier=tier)
+        llm = get_economista_llm()
         response = await llm.ainvoke(prompt)
         content = response.content
         if isinstance(content, list):
             content = "".join(str(c) for c in content)
         return str(content), primary_model
-    except Exception as exc:  # noqa: BLE001 — fallback é por design
-        if fallback_model is None:
-            # lean degraded mode — sem fallback configurado
-            logger.warning(
-                "Redator tier=%s primary %s falhou: %s — sem fallback (lean degraded)",
-                tier, primary_model, exc,
-            )
-            raise
-
-        logger.warning(
-            "Redator tier=%s primary %s falhou: %s — tentando fallback %s",
-            tier, primary_model, exc, fallback_model,
+    except Exception as exc:  # noqa: BLE001 — graceful degradation é por design (ADR-025)
+        # ADR-025 Caminho A — Graceful Degradation Synthetic (D-DEV-S06-026):
+        # NÃO retry com qwen2.5:7b (cascade risk F-PROD-NEW-19 root cause). Retornar
+        # RelatorioInviabilidade synthetic Pydantic-valid via helper module-level.
+        # Pipeline atomicity preserved + UX honest + LGPD audit trail completo.
+        # Logger.ERROR (não WARNING) — degraded mode é evento operacional para alerting.
+        logger.error(
+            "Redator ADR-025 graceful degradation — primary economista (%s) falhou: %s. "
+            "Retornando synthetic RelatorioInviabilidade (degraded mode). "
+            "Audit marker: ADR-025-degraded-synthetic. NÃO acionando fallback qwen2.5:7b "
+            "(cascade risk F-PROD-NEW-19 eliminado).",
+            primary_model, exc,
         )
-        from langchain_ollama import ChatOllama  # type: ignore[import-not-found]
-        fallback_llm = ChatOllama(
-            model=fallback_model,
-            base_url=DEFAULT_HOST_ADVOGADO,
-            temperature=0.2,
-            timeout=120.0,
-            format="json",
-        )
-        response = await fallback_llm.ainvoke(prompt)
-        content = response.content
-        if isinstance(content, list):
-            content = "".join(str(c) for c in content)
-        return str(content), fallback_model
+        # Smith F-S28-02 MEDIUM fix (D-DEV-S06-029): propagar reason real via suffix do
+        # actual_model_used para audit chain forensic distinguish (Ollama EOF vs OOM vs
+        # network blip vs timeout). Reason truncado a 100 chars no suffix para evitar
+        # audit chain bloat — full reason permanece em logger.ERROR acima.
+        reason_safe = str(exc).replace("\n", " ").replace(":", "_")[:100]
+        synthetic_json = _build_degraded_synthetic_response(reason=str(exc))
+        return synthetic_json, f"{primary_model}-degraded-synthetic:{reason_safe}"
 
 
 async def redator_invoke(
@@ -408,8 +535,13 @@ async def redator_invoke(
         json_str, actual_model_used = await _default_invoke(prompt, tier)
     else:
         json_str = await invoke_fn(prompt)
-        # invoke_fn é mock/test injection — actual_model é o primary tier mapped
-        actual_model_used = TIER_TO_MODEL_ADVOGADO[tier]
+        # ADR-024 Audit-Honored Tier (D-DEV-S06-026): invoke_fn é mock/test injection,
+        # mas o actual_model_used DEVE refletir TIER_TO_MODEL_REDATOR[tier] (mesmo mapping
+        # que `_default_invoke` real usa internamente). Mantém audit chain consistente
+        # entre production path (real _default_invoke) e test paths (mock injection).
+        # Sprint 7+ pode promover TIER_TO_MODEL_REDATOR["premium"] = qwen2.5:7b sem
+        # quebrar este test path — tier mapping fica em single source of truth.
+        actual_model_used = TIER_TO_MODEL_REDATOR[tier]
 
     # Propagar actual_model_used para audit chain (F-γ-03 + F-γ-02 honesty)
     if model_capture is not None:

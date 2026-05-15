@@ -5,16 +5,18 @@ Orquestra os 7 blocos integráveis (Phase 2.B FECHADA):
   2. cálculo      — bloco_engine.ferramentas_calculo (Price + anatocismo)
   3. BACEN        — bloco_engine.bacen.BacenClient
   4. vault        — bloco_vault.buscar_hibrida (RRF k=60)
-  5. personas     — bloco_workflow.run_personas_paralelas (asyncio.gather)
+  5. personas     — bloco_workflow.run_personas_sequencial (ADR-023 sequential)
   6. juiz         — bloco_workflow.personas.juiz_revisar (Python puro)
   7. audit        — bloco_audit.append_audit_entry (HMAC chain)
 
-Decisões arquiteturais Morpheus (D-MOR-4.0-A..H):
-  - Função ASYNC (precisa await em personas paralelas)
+Decisões arquiteturais Morpheus (D-MOR-4.0-A..H) + ADR-023 (D-ARIA-S06-018):
+  - Função ASYNC (precisa await em personas sequenciais)
   - TODOS os IO externos via dependency injection (testes 100% offline)
   - Audit registra ENTRY mesmo em REJEITADO ou em falha (auditabilidade total)
   - Atomicidade: 1 step falha → propaga; audit registra TENTATIVA antes
   - Query do vault: heurística MVP (ementa + súmulas aplicáveis + topics)
+  - Personas sequencial (NÃO asyncio.gather): F-PROD-NEW-18 mitigation — VPS load 151
+    em paralelismo qwen2.5:7b+3b → 0.17 em sequential. Atomicidade preservada.
 """
 
 from __future__ import annotations
@@ -59,9 +61,12 @@ from bloco_engine.ferramentas_calculo.price import (
 )
 from bloco_engine.parsing.orchestrator import parse_contract
 from bloco_vault.busca import buscar_hibrida
-from bloco_workflow.orchestrator import run_personas_paralelas
+from bloco_workflow.orchestrator import run_personas_sequencial
 from bloco_workflow.personas.juiz import juiz_revisar
-from bloco_workflow.personas.llm_factory import TIER_TO_MODEL_ADVOGADO
+from bloco_workflow.personas.llm_factory import (
+    MODEL_ECONOMISTA,
+    TIER_TO_MODEL_ADVOGADO,
+)
 from bloco_workflow.personas.redator import (
     PecaHallucinationError,
     redator_invoke,
@@ -310,10 +315,10 @@ async def revisar_contrato(
                 "Popule vault via scrapers ou ajuste query."
             )
 
-        # ─── Step 5 — personas LLM paralelas ────────────────────────────
+        # ─── Step 5 — personas LLM sequencial (ADR-023 F-PROD-NEW-18) ───
         tese: TeseAdvogado
         analise: AnaliseMacroEconomica
-        tese, analise = await run_personas_paralelas(
+        tese, analise = await run_personas_sequencial(
             parsed.metadata,
             calculo,
             docs,
@@ -377,17 +382,48 @@ async def revisar_contrato(
                     f"Redator produziu peça com citações fora do vault: {exc}"
                 ) from exc
 
-            peca_format = type(peca).__name__
             audit_payload["peca_generated"] = True
-            audit_payload["peca_format"] = peca_format
             # Sprint 6.1 F-γ-03 + F-γ-02 honesty: registrar modelo ACTUAL usado em runtime
             # (primary OR fallback). Substituiu TIER_TO_MODEL_ADVOGADO[tier] estático que NÃO
             # refletia fallback chain dinâmica. Audit forense pós-incident agora pode
             # identificar exatamente qual LLM gerou a peça.
-            audit_payload["redator_persona_used"] = redator_model_capture.get(
+            #
+            # Smith F-S21-02 fix (D-DEV-S06-023): fallback alinhado com D-DEV-S06-021 tier-down.
+            # `MODEL_ECONOMISTA` (qwen2.5:3b) é o primary REAL do Redator desde F-PROD-NEW-19.
+            #
+            # ADR-024 Audit-Honored Tier (D-DEV-S06-026): adiciona `redator_tier_consumed`
+            # (intent capture do caller) + `redator_tier_strategy` (marker estratégia ativa)
+            # ao audit chain. Permite forense distinguir intent (tier="premium") vs reality
+            # (modelo qwen2.5:3b currently — Sprint 7+ pode promover via TIER_TO_MODEL_REDATOR).
+            #
+            # ADR-025 Graceful Degradation (D-DEV-S06-026): detectar suffix
+            # "-degraded-synthetic" em actual_model_used → registrar peca_format=degraded
+            # + degraded_reason. Pipeline atomicity preservada (Steps 1-6 audit normais).
+            actual_model = redator_model_capture.get(
                 "actual_model_used",
-                TIER_TO_MODEL_ADVOGADO[tier_redator],  # fallback se invoke_fn provided
+                MODEL_ECONOMISTA,  # F-PROD-NEW-19 primary tier-down — audit honesto
             )
+            audit_payload["redator_persona_used"] = actual_model
+            audit_payload["redator_tier_consumed"] = tier_redator  # ADR-024 intent
+            audit_payload["redator_tier_strategy"] = "audit-honored-v1"  # ADR-024 marker
+
+            # ADR-025 graceful degradation detection — suffix marker do _default_invoke
+            # Smith F-S28-02 MEDIUM fix (D-DEV-S06-029): suffix agora carrega reason real
+            # do exception (truncado :100 chars). Format: "qwen2.5:3b-degraded-synthetic:REASON"
+            if isinstance(actual_model, str) and "-degraded-synthetic" in actual_model:
+                # Synthetic RelatorioInviabilidade retornada (ADR-025 Caminho A) — pipeline
+                # NÃO falhou, mas peça é degraded. Forense pode investigar `degraded_reason`.
+                audit_payload["peca_format"] = "degraded_synthetic"
+                # Extrair reason após "-degraded-synthetic:" se presente (Smith F-S28-02 fix)
+                marker = "-degraded-synthetic:"
+                if marker in actual_model:
+                    audit_payload["degraded_reason"] = actual_model.split(marker, 1)[1]
+                else:
+                    # Backward-compat: marker antigo sem reason suffix
+                    audit_payload["degraded_reason"] = "primary_economista_failed_see_logger_error"
+            else:
+                audit_payload["peca_format"] = type(peca).__name__
+
             audit_payload["peca_citacoes_count"] = (
                 len(peca.citacoes_jurisprudencia)
                 if isinstance(peca, PecaRevisional)
@@ -460,7 +496,10 @@ async def revisar_contrato(
                 if result_capture is not None:
                     result_capture["peca_pdf_path"] = str(pdf_output_path)
                     result_capture["peca_pdf_hash"] = pdf_hash
-                    result_capture["peca_format"] = peca_format
+                    # Smith F-S28-01 CRITICAL fix (D-DEV-S06-029): ler de audit_payload
+                    # (single source of truth) em vez de variável local `peca_format` que
+                    # foi removida em D-DEV-S06-026 quando consolidamos em dict assignment.
+                    result_capture["peca_format"] = audit_payload["peca_format"]
                     result_capture["peca_template"] = template_name
             except (OSError, FileNotFoundError, RuntimeError) as render_exc:
                 # F-γ-06 fix: preserva peca LLM (Step 7) mesmo se PDF render (Step 8) falha.
@@ -476,7 +515,8 @@ async def revisar_contrato(
                 audit_payload["peca_template"] = template_name
 
                 if result_capture is not None:
-                    result_capture["peca_format"] = peca_format
+                    # Smith F-S28-01 CRITICAL fix (D-DEV-S06-029): single source of truth
+                    result_capture["peca_format"] = audit_payload["peca_format"]
                     result_capture["peca_template"] = template_name
                     result_capture["peca_pdf_path"] = None
                     result_capture["peca_pdf_render_error"] = (

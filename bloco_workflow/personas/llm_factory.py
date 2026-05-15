@@ -55,6 +55,19 @@ TIER_TO_MODEL_ADVOGADO: dict[LLMTier, str] = {
 # Economista FIXO (ADR-003 PATCH SUB-C)
 MODEL_ECONOMISTA = "qwen2.5:3b"
 
+# Redator tier mapping (ADR-024 — Audit-Honored Tier Strategy)
+# Documenta REALITY pós F-PROD-NEW-19 (D-DEV-S06-021 tier-down qwen2.5:7b→3b):
+# todos os 3 tiers resolvem para qwen2.5:3b (economista host porta 11435).
+# `tier` parameter preservado em `_default_invoke` apenas para AUDIT INTENT capture
+# (registrado em audit_payload["redator_tier_consumed"]) — NÃO influencia model selection.
+# Sprint 7+ pode promover `premium` → qwen2.5:7b quando VPS escalada para ≥16 CPU cores
+# (ver ADR-024 Sprint 7+ Reconsideration Triggers).
+TIER_TO_MODEL_REDATOR: dict[LLMTier, str] = {
+    "lean": "qwen2.5:3b",      # consistente F-PROD-NEW-19 tier-down
+    "balanced": "qwen2.5:3b",  # default — pós tier-down (era qwen2.5:7b crashou prod)
+    "premium": "qwen2.5:3b",   # ADR-024 trade-off — promover Sprint 7+ se VPS escalada
+}
+
 
 def get_advogado_llm(
     *,

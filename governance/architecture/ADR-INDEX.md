@@ -2,10 +2,10 @@
 type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
-last_updated: "2026-05-14"
+last_updated: "2026-05-15"
 status: active
 sprint: "6.x AGGRESSIVE"
-etapa: "Phase 14.1+ — ADR-021 Dual Content-Type POST /revisar ACCEPTED 2026-05-14 (Sprint 6 Bloco β Wave 2 unblock TD-SP06-SPA-CONNECT-01). ADR-014 file flip status proposed→accepted 2026-05-12. ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED 2026-05-09."
+etapa: "Phase 14.1+ Sprint 6.x — ADR-023/024/025 ACCEPTED 2026-05-15 (Sequential LLM Inference + Redator Tier Strategy audit-honored + Cascade Fallback graceful degradation — Eric directive 'nível melhor que adequado'). ADR-021 Dual Content-Type POST /revisar ACCEPTED 2026-05-14. ADR-020 Multi-Doctype Dispatcher v2 ACCEPTED 2026-05-09."
 maintained_by: "@architect (Aria)"
 tags:
   - project/revisor-contratual
@@ -117,6 +117,9 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 | ADR | Título | Status | Data | Absorve |
 |-----|--------|--------|------|---------|
 | [ADR-022](adr/adr-022-persona-redator-revisional.md) | Persona Redator Revisional — sabia-7b primary + Qwen 2.5 7B fallback + hardening anti-hallucination (Pydantic strict + vault-restricted citations + validador post-LLM) | ✅ Accepted | 2026-05-14 | PRD-SP06-GAMMA v0.1.0 + Smith Fase 7-A gap (backend não gera peça revisional formal) + Smith Bloco β F-D3-β-06 SSE-OWNERSHIP-CHECK |
+| [ADR-023](adr/adr-023-sequential-llm-inference.md) | Sequential LLM Inference (Advogado → Economista) — F-PROD-NEW-18 Capacity Resolution | ✅ Accepted | 2026-05-15 | F-PROD-NEW-18 (VPS load 151 → 0.17 baseline) + Smith D-SMITH-S06-015 + Operator D-OPS-S06-017b capacity discovery |
+| [ADR-024](adr/adr-024-redator-tier-strategy.md) | Redator Tier Strategy — Audit-Honored Tier Parameter (Caminho C) — TIER_TO_MODEL_REDATOR all-3b mapping + audit chain `redator_tier_consumed` intent capture | ✅ Accepted | 2026-05-15 | Smith F-S21-03 HIGH + TD-SP07-TIER-SEMANTIC-DECISION + Neo D-DEV-S06-023 DeprecationWarning band-aid |
+| [ADR-025](adr/adr-025-redator-cascade-fallback-strategy.md) | Redator Cascade Fallback Strategy — Graceful Degradation Synthetic (Caminho A) — synthetic RelatorioInviabilidade em vez de fallback qwen2.5:7b cascade risk | ✅ Accepted | 2026-05-15 | Smith F-S21-05 MEDIUM + TD-SP07-REDATOR-FALLBACK-CASCADE-RISK + F-PROD-NEW-19 audit evidence 2026-05-15T15:55:43 |
 
 ### SaaS Pricing & Billing (Sprint 04)
 

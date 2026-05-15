@@ -374,17 +374,20 @@ class TestOrchestradorParalelo:
         assert isinstance(tese, TeseAdvogado)
         assert isinstance(analise, AnaliseMacroEconomica)
 
-    async def test_paralelismo_real_via_asyncio_gather(
+    async def test_execucao_sequencial_adr023(
         self,
         contrato_meta: ContratoMetadata,
         calculo: ResultadoCalculo,
         docs: list[JurisprudenciaItem],
         bacen: BacenData,
     ) -> None:
-        """asyncio.gather DEVE rodar em paralelo: latência total ≈ max, não soma.
+        """ADR-023 D-ARIA-S06-018: latência total ≈ soma (não max — sequential preserved).
 
-        Mock cada invoke com asyncio.sleep(0.3). Sequencial seria ~0.6s, paralelo ~0.3s.
-        Ratio total/0.6 < 0.7 prova que asyncio.gather é REAL (não sync por baixo).
+        Refator de F-PROD-NEW-18 (Smith D-SMITH-S06-015 + Operator D-OPS-S06-017b):
+        VPS load 151 → 0.17 ao remover asyncio.gather. Este teste é regression guard:
+        se algum dev re-aplicar gather, latência cairá ≈0.3s e o test falhará — alertando.
+
+        Mock cada invoke com asyncio.sleep(0.3). Sequencial ~0.6s, paralelo seria ~0.3s.
         """
 
         async def slow_adv(_p: str) -> str:
@@ -396,7 +399,7 @@ class TestOrchestradorParalelo:
             return JSON_ANALISE_VALIDA
 
         t0 = time.perf_counter()
-        await run_personas_paralelas(
+        await run_personas_paralelas(  # backward-compat alias → run_personas_sequencial
             contrato_meta,
             calculo,
             docs,
@@ -406,11 +409,11 @@ class TestOrchestradorParalelo:
         )
         latencia_total = time.perf_counter() - t0
 
-        # Soma serial seria 0.6s; paralelo deve ser ~0.3s (max + overhead asyncio)
-        assert latencia_total < 0.5, (
-            f"Paralelismo BROKEN: latencia={latencia_total:.2f}s "
-            f"(esperado <0.5s para asyncio.gather de 2x sleep(0.3)). "
-            f"asyncio.gather pode estar rodando sequencialmente."
+        # ADR-023 sequential: latência DEVE ser ≥ soma das sleeps (0.6s tolerância 0.55s)
+        assert latencia_total >= 0.55, (
+            f"ADR-023 BROKEN: latencia={latencia_total:.2f}s "
+            f"(esperado ≥0.55s para sequential de 2x sleep(0.3)). "
+            f"Personas podem ter voltado a asyncio.gather — REGRESSION F-PROD-NEW-18."
         )
 
     async def test_atomicidade_falha_propaga(

@@ -61,7 +61,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 3G
+          memory: 6G   # F-PROD-NEW-17 fix (D-OPS-S06-017): qwen2.5:3b OOM com 3G — bump matching advogado para evitar model runner crash em inference
 
   app:
     build:
