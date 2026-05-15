@@ -3746,3 +3746,32 @@ Set-Cookie: session=eyJ1c2VyIjogImFkbWluIn0=...; httpOnly; samesite=lax; Max-Age
 - Foundation v0.3.0 pre-release: 2/4 blockers UNBLOCKED (1/4 wireframe Imobiliário shipped + chain integrity lessons learned)
 
 — Operator, deployando com precisão cirúrgica 🚀
+
+
+### DNS + HTTPS PRODUCTION LIVE 2026-05-14 — `https://revisor.claudinoinsights.com` ✅
+
+**Cloudflare API token encontrado em `~/.config/claudino-insights/cloudflare.env`** (zone DNS Edit only).
+
+**DNS A record criado via API:**
+
+- ID: `646f89615a6538c0e0bbf1c82a1eac6f`
+- `revisor.claudinoinsights.com → 91.108.126.149`
+- Proxied: false (DNS only — Let's Encrypt SNI direto)
+- TTL: 300
+
+**Let's Encrypt cert obtido:**
+
+- Subject: CN=revisor.claudinoinsights.com
+- Issuer: C=US, O=Let's Encrypt, CN=R13
+- Traefik auto-ACME challenge OK após SIGHUP reload
+
+**Validation final:**
+
+```text
+$ curl -s -o /dev/null -w "HTTPS=%{http_code}" https://revisor.claudinoinsights.com/
+HTTPS=200
+```
+
+**Eric pode acessar AGORA:** https://revisor.claudinoinsights.com (login admin / senha temp `MpNutDXoedVu2YQ8VggALA` → mudar)
+
+**Limitação real:** vault prod 0 rows (scrapers STJ 404 + STF SSL fail Linux) — pipeline tecnicamente funciona end-to-end mas qualidade peça gerada será degradada até bulk import jurisprudência.
