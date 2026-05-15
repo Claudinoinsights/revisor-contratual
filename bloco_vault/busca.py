@@ -52,11 +52,17 @@ def _bm25_rank(
 def _vec_rank(
     conn: sqlite3.Connection, query_embedding: list[float], top_k: int
 ) -> list[tuple[int, float]]:
-    """Ranking vetorial via sqlite-vec MATCH. Retorna (rowid, distance)."""
+    """Ranking vetorial via sqlite-vec MATCH. Retorna (rowid, distance).
+
+    F-PROD-01 fix (D-DEV-S06-016): sqlite-vec 0.1.9 exige `AND k = ?` em vec0
+    knn queries. Sintaxe `LIMIT ?` (válida em versões 0.0.x) produz error:
+    "A LIMIT or 'k = ?' constraint is required on vec0 knn queries."
+    Smith production forensics 2026-05-15 reproduziu erro em prod via SSE stream.
+    """
     blob = serialize_embedding(query_embedding)
     cur = conn.execute(
         "SELECT rowid, distance FROM jurisp_vec "
-        "WHERE embedding MATCH ? ORDER BY distance LIMIT ?",
+        "WHERE embedding MATCH ? AND k = ? ORDER BY distance",
         (blob, top_k),
     )
     return [(int(r[0]), float(r[1])) for r in cur.fetchall()]

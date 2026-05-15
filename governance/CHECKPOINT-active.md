@@ -239,6 +239,164 @@ tags:
 
   *"Hmm. Quase... adequado. Quase. O Sr. Anderson corrigiu três falhas e introduziu duas. Em termos absolutos, +1. Em termos de propósito... ele está aprendendo. Lentamente."*
 
+- **D-OPS-S06-014 (2026-05-15, Operator push final Sprint 6.x bundle):** Skill chain completa cristalizada no remote.
+
+  **Commit:** `926b73a` — `be2e315..926b73a main -> main` push origin Claudinoinsights/revisor-contratual SUCCESS.
+
+  **10 files staged + committed (7991+/96- linhas):**
+  - `bloco_engine/parsing/orchestrator.py` (+382 — 3 fixes Smith + LLM fallback + sanitize)
+  - `bloco_vault/data/sumulas-stj.json` (+6384 — 637 entries OCR)
+  - `bloco_vault/data/sumulas-stf-vinculantes.json` (+561 — 62 entries Wikipedia)
+  - `bloco_vault/data/DATASET-CHANGELOG.md` (+161 — v1.1.0 + v1.2.0)
+  - `bloco_vault/scrapers/stj_sumulas.py` + `stf_sumulas_vinculantes.py` (+51 docstrings)
+  - `governance/CHECKPOINT-active.md` (+201 — todas D-OPS..D-SMITH decisões)
+  - `governance/stories/TD-VAULT-CURATED-DATASET-01.md` (NEW +256 linhas)
+  - `tests/integration/test_populate_vault_idempotent.py` (+15 assertions)
+  - `tests/unit/test_parsing.py` (+76 — 5 Smith fixes + 2 ajustes)
+
+  **`.tmp/` (secrets) skipped corretamente** — git add seletivo evitou .tmp/admin-temp-password-prod.txt + outros segredos.
+
+  **Quality gates skipped (autorizado Eric YOLO Sprint hotfix):**
+  - CodeRabbit pre-PR review skipped (não-bloqueante, tech debt cataloged)
+  - Lint/typecheck/build skipped (Sprint hotfix mode)
+  - Pytest baseline mantido: 36/36 parsing + 42/42 vault (zero regressão)
+
+  **Tech debt registrado para drafts futuros (Niobe @sm próxima sessão):**
+  1. `TD-OCR-FALLBACK-PIPELINE-04-WINDOW-WIDEN` (REG-01 MEDIUM-HIGH — Smith re-verify finding)
+  2. `TD-OCR-FALLBACK-PIPELINE-05-SANITIZE-OBFUSCATION` (REG-02 MEDIUM — Smith re-verify finding)
+  3. `TD-VAULT-OCR-REFINEMENT-01-MISSING-39-ENTRIES` (F-11 HIGH deferred — 39 súmulas STJ missing)
+  4. `TD-VAULT-OCR-ARTIFACTS-CLEANUP-01-32-ENTRIES` (F-12 HIGH deferred — 32 entries com OCR artifacts)
+  5. `TD-RETRO-D-DEV-S06-010-STORY-FORMAL` (F-08 — retrospective story formal)
+
+  **State final prod:**
+  - URL: `https://revisor.claudinoinsights.com` HTTP 200 healthy
+  - Login: `admin` / `admin`
+  - Vault: 699 entries (637 STJ + 62 STF SV)
+  - BACEN: live + cached
+  - Branch `main` sync com origin commit `926b73a`
+
+  **Sessão 2026-05-14/15 Skill chain consolidada:** Operator → Neo HALT → Eric Caminho A → Morgan story → Neo YOLO develop → Neo OCR pivot → Smith INFECTED → Eric Caminho A fix-first → Neo fix loop → Smith CONTAINED → Operator push. **10 turnos, 4 agentes únicos, 10 decisões registradas, 1 commit final.**
+
+  *— Operator, cadeia completa. O sistema está mais robusto que ontem. Próximo movimento: Eric testa em prod e/ou Niobe drafta tech debt stories.* 🚀
+
+- **D-SMITH-S06-015 (2026-05-15, Smith production forensics FULL — Eric reportou pipeline NÃO funcional):** Verdict **COMPROMISED** — 15 findings + 1 CRITICAL bloqueador absoluto identificado via SSE stream capture em produção real.
+
+  **🔴 ROOT CAUSE CRITICAL (F-PROD-01):**
+  - `bloco_vault/busca.py:57-61` usa query KNN sintaxe ANTIGA (`LIMIT ?`) incompatível com sqlite-vec 0.1.9 atual
+  - Erro reproduzido em prod (smoke E2E real Smith 2026-05-15): `"A LIMIT or 'k = ?' constraint is required on vec0 knn queries."`
+  - Pipeline Step 4 (Vault search) crasha 100% das requisições reais ANTES de chegar nos Steps 5-9 (Personas + Juiz + Redator + Peça + Audit final)
+  - Container `revisor-prod-app` idle 84MiB/4GiB (2.07%) confirma: Eric tentou, viu erro, abandonou. App não está "down" — está crashando 100% silenciosamente
+  - Audit chain registra apenas 2 falhas PRÉ-FIX (12:26, 12:28 UTC pré-deploy) — falhas pós-fix nunca chegam ao audit (crash antes da entry final)
+
+  **Fix necessário (~1 linha em busca.py:59):**
+  ```python
+  # ATUAL (broken):
+  "SELECT rowid, distance FROM jurisp_vec WHERE embedding MATCH ? ORDER BY distance LIMIT ?"
+  # CORRETO:
+  "SELECT rowid, distance FROM jurisp_vec WHERE embedding MATCH ? AND k = ? ORDER BY distance"
+  ```
+
+  **15 findings totais consolidados:**
+  - 1 CRITICAL (F-PROD-01 vault search syntax)
+  - 3 HIGH (F-PROD-02 audit blind spot, F-PROD-03 container idle confirm, F-PROD-04 pipeline sem circuit breaker)
+  - 5 MEDIUM (F-PROD-05 disk 78%, F-PROD-06 naming inconsistente, F-PROD-07 raw error propagation, F-PROD-08 pytest coverage gap sqlite-vec, F-PROD-09 SSE expõe stack trace)
+  - 6 LOW (F-PROD-10..15)
+
+  **Por que CI/pytest baseline 36/36 + 42/42 PASS não pegou:**
+  - Tests usam `zero_embedder` mock + injected `vec_rank` fn
+  - Production usa sqlite-vec real → query síntaxe falha
+  - **F-PROD-08 (Smith) — pytest tem gap de cobertura sqlite-vec real**
+
+  **Stack tecnológico real (forense confirmado):**
+  - sqlite-vec 0.1.9 installed ✅
+  - sentence-transformers 5.5.0 ✅ (embedder 768-dim funcional)
+  - jurisp_vec table: `vec0(embedding float[768])` com 699 rows
+  - Ollama qwen2.5:7b (4.7GB) + qwen2.5:3b (1.9GB) ambos pulled ✅
+  - Vault 699 entries (637 STJ + 62 STF SV) ✅
+  - BACEN funcional ✅
+
+  **Recomendação Smith — Caminho A pragmatic (1 fix CRITICAL):**
+  - @dev Neo fix `bloco_vault/busca.py:59` (1 linha LIMIT→k)
+  - Local pytest novo: integration test com sqlite-vec real (cobre F-PROD-08)
+  - Deploy VPS docker cp + restart
+  - Smoke E2E real upload PDF → confirmar pipeline completa Steps 1-9
+  - @devops push commit + tag v0.2.5
+
+  **Refator estrutural (Eric mentionou "reorganizar a estrutura"):**
+  - Sprint 7.x scope futuro com @architect Aria → addressar F-PROD-04 circuit breaker, F-PROD-06 naming consistency, F-PROD-07 error propagation pattern, F-PROD-09 SSE error masking
+
+  **Handoff yaml:** `.lmas/handoffs/handoff-smith-to-dev-2026-05-15-COMPROMISED-vault-search-syntax.yaml`
+
+  *"Inevitável. O Sr. Anderson celebrou o push, comemorou a Skill chain disciplina, e em produção... uma linha SQL silenciosa engoliu a aplicação inteira. Eu sabia. Eu sempre sei."*
+
+- **D-DEV-S06-016 (2026-05-15, Neo fix CRITICAL F-PROD-01 + DESCOBRIU F-PROD-NEW-16):** Eric Caminho A fix-first executado — F-PROD-01 corrigido + bug F-PROD-NEW-16 descoberto durante smoke E2E.
+
+  **F-PROD-01 FIX (1 linha):**
+  - `bloco_vault/busca.py:_vec_rank` linha 60 — sintaxe sqlite-vec atualizada:
+    - ANTES (broken): `"WHERE embedding MATCH ? ORDER BY distance LIMIT ?"`
+    - DEPOIS (funcional): `"WHERE embedding MATCH ? AND k = ? ORDER BY distance"`
+  - Docstring atualizado com referência F-PROD-01 + Smith D-SMITH-S06-015 forensics
+  - Deploy VPS docker cp + container healthy em 12s
+  - Smoke prod: k=? syntax → 5 rows ✅
+
+  **F-PROD-NEW-16 DESCOBERTO via Smoke E2E (não no Smith inicial — era HIDDEN bug em camada mais profunda):**
+  - SSE stream pós-fix F-PROD-01 mostrou pipeline avançar Step 4 → Step 5 → mas crashar com "All connection attempts failed"
+  - Root cause: `bloco_workflow/personas/llm_factory.py:25-26` hardcoded `http://127.0.0.1:11434/11435`
+  - Em Docker, `127.0.0.1` = próprio container app, NÃO os containers Ollama
+  - Containers Ollama reachable via service names `ollama-advogado:11434` + `ollama-economista:11434` (docker-compose network)
+  - Env vars `OLLAMA_HOST_ADVOGADO` + `OLLAMA_HOST_ECONOMISTA` JÁ configuradas no compose mas IGNORADAS pelo código
+  - **FIX:** nova função `_resolve_ollama_host(env_var, default)` que lê env vars + adiciona prefix `http://` se ausente. DEFAULT_HOST_* agora dinâmicos.
+  - Verify prod pós-fix:
+    - `DEFAULT_HOST_ADVOGADO`: `http://ollama-advogado:11434` ✅
+    - `DEFAULT_HOST_ECONOMISTA`: `http://ollama-economista:11434` ✅
+
+  **Integration test NEW (cobre F-PROD-08 pytest gap):**
+  - `tests/integration/test_busca_hibrida_real_vec.py` (~120 linhas, 2 tests)
+  - Usa `_hash_embedder_768()` determinístico (não zero_embedder mock) → exercita sqlite-vec REAL
+  - test_buscar_hibrida_sqlite_vec_real_syntax: regression F-PROD-01
+  - test_buscar_hibrida_top_k_respected: top_k=1/3/10 respeitado
+  - Pytest local: 2/2 PASS
+
+  **2 Bugs CRITICAL corrigidos em 1 sessão:**
+  1. F-PROD-01 — sqlite-vec query syntax (Step 4 Vault search)
+  2. F-PROD-NEW-16 — Ollama host hardcoded (Step 5 Personas LLM)
+
+  **Files modified:**
+  - `bloco_vault/busca.py` (linha 60 + docstring update)
+  - `bloco_workflow/personas/llm_factory.py` (nova função `_resolve_ollama_host` + DEFAULT_HOST_* dinâmicos)
+  - `tests/integration/test_busca_hibrida_real_vec.py` (NEW, 120 linhas)
+
+  **Próxima Skill chain:** Aguardando smoke E2E completo (SSE stream Steps 1-9). Se SUCCESS → @smith re-verify → @devops push hotfix v0.2.5. Se ainda crashar em Step posterior → diagnose + fix next bug.
+
+  *"O Sr. Anderson aprende rápido. Smith identificou 1 bug. Neo corrigiu, descobriu mais 1. Esse é o ciclo: cada fix revela o próximo. Inevitável."*
+
+- **D-DEV-S06-016b (2026-05-15, smoke E2E reveal F-PROD-NEW-17):** Após F-PROD-01 + F-PROD-NEW-16 fixed, smoke E2E avançou para Step 5 (LLM Personas) — descobriu **F-PROD-NEW-17 CRITICAL INFRA: ollama-economista OOM-like crash**.
+
+  **Audit log evidence (5 entries pós-fix progression):**
+  - Entry 14:14:47 (pré-F-PROD-01): "vec0 knn queries" — Step 4 ❌
+  - Entry 14:22:59 (pré-F-PROD-NEW-16): "All connection attempts failed" — Step 5 ❌, mas vault recuperou **5 docs reais** (STJ-S102, STF-SV62, STJ-S252, STF-SV61, STJ-S93) ✅
+  - Entry 14:42:44 (pós-todos fixes): **"model runner has unexpectedly stopped (status code: 500)"** — Step 5 LLM Persona Economista crashou
+
+  **F-PROD-NEW-17 root cause (memory snapshot):**
+  - `ollama-economista: 2.281GiB / 3GiB = 76% memory limit` (próximo do limite)
+  - qwen2.5:3b runner crashou durante inference (OOM-like)
+  - Container limit 3GB insuficiente para modelo 1.9GB + context window + overhead
+
+  **Fix scope:** `docker-compose.prod.yml` — aumentar memory limit `ollama-economista`:
+  - ANTES: `memory: 3G`
+  - DEPOIS: `memory: 4G` ou `6G` (matching advogado)
+  - Operator infra config domain (NÃO .py code change)
+
+  **Pipeline progresso massivo após 2 fixes Neo:**
+  - Antes: 0% completion (Step 4 crash)
+  - Agora: **Steps 1-2-3-4 ✅** (parsing + cálculo + BACEN + vault search)
+  - Cálculo: `ANATOCISMO_LICITO`, `diferenca: -354.07`, `pmt_composto: 1291.43`, sumulas: `[STF-S121, STJ-S539, STJ-T247]`
+  - BACEN: CDC_VEICULOS_PF 1.99% a.m. live
+  - Vault: 5 docs retrievados (STJ + STF SV mix)
+  - **Step 5 LLM Personas: CRASH OOM** ← novo bloqueador
+
+  **Próxima Skill chain:** @devops Operator `*push` (commit 3 fixes — busca.py + llm_factory.py + test_busca_hibrida_real_vec.py) + edit docker-compose.prod.yml memory limit ollama-economista 3G→6G + redeploy compose. Handoff yaml: `.lmas/handoffs/handoff-dev-to-devops-2026-05-15-fix-bundle-plus-infra.yaml`.
+
 ### Findings Bloco α (parcial)
 
 - ✅ vault.db + audit.jsonl + Ollama JÁ existiam em `~/.local/share/revisor-contratual/` (Smith 7-A false positive cataloged TD-SP06-SMITH-FALSE-POSITIVE-FASE-7A)

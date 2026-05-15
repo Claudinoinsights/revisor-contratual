@@ -17,13 +17,33 @@ NFR-LGPD-01: ambos rodam local (127.0.0.1) — nenhuma comunicação fora localh
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from bloco_contratos.personas import LLMTier
 
+
+def _resolve_ollama_host(env_var: str, default: str) -> str:
+    """Resolve OLLAMA host env var com fallback default.
+
+    F-PROD-NEW-16 fix (Smith D-SMITH-S06-015 + D-DEV-S06-016 smoke E2E):
+    em Docker, 127.0.0.1 = próprio container app (não Ollama hosts).
+    Containers Ollama são reachable via service names da docker-compose network
+    (ex: ollama-advogado:11434, ollama-economista:11434).
+
+    Lê env var (configurada em docker-compose.prod.yml) com fallback localhost
+    para dev local. Adiciona prefix http:// se ausente.
+    """
+    host = os.environ.get(env_var, default)
+    if not host.startswith(("http://", "https://")):
+        host = f"http://{host}"
+    return host
+
+
 # Portas distintas obrigatórias para paralelismo real (F-MIN-01)
-DEFAULT_HOST_ADVOGADO = "http://127.0.0.1:11434"
-DEFAULT_HOST_ECONOMISTA = "http://127.0.0.1:11435"
+# F-PROD-NEW-16 fix: respeitar OLLAMA_HOST_* env vars (Docker production)
+DEFAULT_HOST_ADVOGADO = _resolve_ollama_host("OLLAMA_HOST_ADVOGADO", "127.0.0.1:11434")
+DEFAULT_HOST_ECONOMISTA = _resolve_ollama_host("OLLAMA_HOST_ECONOMISTA", "127.0.0.1:11435")
 
 # Mapping tier → modelo Advogado (ADR-010 Path C: Qwen 2.5 default em CPU; Sabia opt-in para GPU)
 TIER_TO_MODEL_ADVOGADO: dict[LLMTier, str] = {
