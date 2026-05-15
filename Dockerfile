@@ -58,6 +58,13 @@ RUN useradd -m -u 1000 revisor && \
     mkdir -p /home/revisor/.local/share/revisor-contratual && \
     chown -R revisor:revisor /app /home/revisor
 
+# F-PROD-NEW-21 Option D fix (Smith D-SMITH-S06-038 root cause):
+# surya-ocr (dep marker-pdf 1.10.2) settings.py:31 tenta mkdir/write em
+# /usr/local/lib/python3.13/site-packages/static/fonts mas dir não existe
+# e container roda como user revisor (non-root). Pre-create + chown resolve.
+RUN mkdir -p /usr/local/lib/python3.13/site-packages/static/fonts && \
+    chown -R revisor:revisor /usr/local/lib/python3.13/site-packages/static
+
 USER revisor
 
 EXPOSE 8501
