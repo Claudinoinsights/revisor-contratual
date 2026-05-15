@@ -1101,6 +1101,45 @@ App rodando atualmente (PID 21044 :8501 + reloader 22384) pode ser usado para va
 
 **Smith re-review opcional** após Eric upload 1 PDF real + receber output PDF — Smith valida output real qualidade vs estado COMPROMISED prévio.
 
+### Operator VPS Production Deploy 2026-05-14 — LIVE ✅
+
+**Eric directive:** "Execute tudo via Skill. execute caminho B. dominio claudinoinsights.revisor.com. Atualize GitHub. Plano de refatoração."
+
+**Resultados:**
+
+1. **Aria Plano Refator** ✅ — `governance/architecture/refactor-plan-2026-05-14.md` (7 eixos, 4 fases, target image <1GB lean / <3.5GB standard)
+
+2. **GitHub push v0.2.3** ✅ — commit `6025e41` + tag `v0.2.3` em origin/main (Sprint 6.x cumulative Docker-aware)
+
+3. **VPS Deploy LIVE** ✅:
+   - URL: `https://revisor.claudinoinsights.com` (DNS pending Eric — testado via curl --resolve HTTPS 200 124KB SPA OK)
+   - Stack: 3 containers Docker (revisor-prod-app + revisor-prod-ollama-advogado + revisor-prod-ollama-economista) todos healthy
+   - Traefik existing VPS reverse proxy (rede `proxy`) com HTTPS Let's Encrypt + security headers
+   - Resource limits: app 4GB / ollama-advogado 6GB / ollama-economista 3GB
+   - Models pulled: qwen2.5:7b + qwen2.5:3b dentro containers VPS
+   - Audit genesis criado VPS hash `31491051fc6a...`
+   - Secrets prod NOVOS segregados de dev (.env.docker.prod chmod 600)
+
+**Pendente Eric:**
+
+- ⚠️ **DNS A record:** `revisor.claudinoinsights.com → 91.108.126.149` no DNS provider do Eric. Sem isso navegador browser não resolve.
+- ⚠️ **Senha admin temporária:** `MpNutDXoedVu2YQ8VggALA` (em `.tmp/admin-temp-password-prod.txt` local, NÃO commitada). Mude no primeiro login.
+
+**Tech debt VPS-specific cataloged:**
+
+- TD-VPS-VAULT-POPULATE: vault prod 0 rows (volume Docker fresh) — scrapers STJ 404 + STF SSL ainda fail. Sprint 6.3+ fix scrapers OR bulk import manual jurisprudência (BL-VAULT-BULK-IMPORT).
+- TD-TRAEFIK-RELOAD-AUTO: Traefik precisou SIGHUP manual após `docker compose up` para detectar novos containers. Investigar `watch: true` provider behavior.
+
+**Limitação:** vault 0 rows → qualidade peça gerada será MUITO degradada até bulk import. Pipeline tecnicamente funciona end-to-end.
+
+**Next actions Eric:**
+
+1. Configurar DNS A record
+2. Acessar `https://revisor.claudinoinsights.com` (após DNS propagation ~5-30min)
+3. Login `admin` / `MpNutDXoedVu2YQ8VggALA` → mudar senha
+4. Upload PDF teste → validar pipeline end-to-end
+5. Reportar resultado (Smith re-review opcional)
+
 ### Trinity External Handoff Advogada 2026-05-14 — Templates Ready ✅
 
 **Eric request:** "quero que faça isso" (gerar texto pronto para forward advogada externa).
