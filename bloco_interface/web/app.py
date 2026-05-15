@@ -24,6 +24,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import tempfile
 import uuid
 from collections.abc import AsyncIterator
@@ -37,8 +38,18 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, Stre
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from dotenv import load_dotenv
 
-from bloco_audit.chain import AuditChainError, append_audit_entry  # noqa: F401  (compat checks)
+# ── .env load (D-OPERATOR-LOGIN-FIX TD — Sprint 6.x hotfix 2026-05-14) ──────
+# Python NÃO carrega .env automaticamente. Sem isto, ADMIN_PASSWORD_HASH +
+# outras vars críticas caem em DEFAULT_PASSWORD_HASH (auth.py:27) inválido
+# (TD-AUTH-DEFAULT-HASH-INVALID HIGH). override=False preserva env shell em CI.
+# Guard pytest: tests usam fixtures explícitas, NÃO devem ler .env real
+# (evita acoplamento estado fs com test isolation — community standard).
+if "pytest" not in sys.modules:
+    load_dotenv(Path(__file__).resolve().parent.parent.parent / ".env")
+
+from bloco_audit.chain import AuditChainError, append_audit_entry  # noqa: F401, E402  (compat checks)
 from bloco_auth import analytics as sp05_analytics
 from bloco_contratos import imobiliario_schema as sp06_imobiliario
 from bloco_auth import api as sp04_auth_api
@@ -232,39 +243,79 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Etapa 2 — cleanup orphan ollama processes (EC-06)
         ollama_manager.cleanup_orphans_on_startup()
 
-        # Etapa 3 — detect ollama binary (EC-01)
-        binary = ollama_manager.detect_ollama_binary()
-        if binary is None:
-            raise ollama_manager.OllamaBinaryNotFound(
-                "Ollama binary não encontrado. "
-                "Instale via https://ollama.ai/download "
-                "ou aponte OLLAMA_BINARY_PATH no .env."
-            )
-        logger.info("Lifespan startup: ollama binary -> %s", binary)
+        # Etapa 3+4 — Docker-aware OR local spawn (TD-OLLAMA-DOCKER-AWARE-REFACTOR 2026-05-14)
+        # Se OLLAMA_HOST_ADVOGADO + OLLAMA_HOST_ECONOMISTA env vars setadas (Docker pattern):
+        #   → SKIP binary detect + spawn local; apenas verifica HTTP healthy nos hosts external.
+        # Senão (dev local Windows/Mac):
+        #   → comportamento original (detect binary + spawn local).
+        advogado_external = ollama_manager._parse_ollama_host_env("advogado")
+        economista_external = ollama_manager._parse_ollama_host_env("economista")
+        use_external = advogado_external is not None and economista_external is not None
 
-        # Etapa 4 — detect-then-spawn 2 instâncias
-        host = ollama_manager.DEFAULT_HOST
-        for role, port in (
-            ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
-            ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
-        ):
-            if await ollama_manager.detect_running_ollama(host, port):
-                logger.info(
-                    "Lifespan startup: REUSE existing ollama %s:%d (role=%s)",
-                    host,
-                    port,
-                    role,
+        if use_external:
+            assert advogado_external is not None  # type narrowing
+            assert economista_external is not None
+            logger.info(
+                "Lifespan startup: Docker-aware mode — Ollama external "
+                "(advogado=%s:%d, economista=%s:%d)",
+                advogado_external[0],
+                advogado_external[1],
+                economista_external[0],
+                economista_external[1],
+            )
+            for role, (ext_host, ext_port) in (
+                ("advogado", advogado_external),
+                ("economista", economista_external),
+            ):
+                if await ollama_manager.detect_running_ollama(ext_host, ext_port):
+                    logger.info(
+                        "Lifespan startup: VERIFIED external ollama %s:%d (role=%s)",
+                        ext_host,
+                        ext_port,
+                        role,
+                    )
+                else:
+                    raise ollama_manager.OllamaSpawnFailed(
+                        f"Ollama external {ext_host}:{ext_port} (role={role}) "
+                        f"NÃO reachable. Verifique Docker compose service '{ext_host}' healthy."
+                    )
+            # Docker mode: Etapas 3+4 done via external verification.
+            # Etapas 5-7 (vault populate + model pull + chmod + scheduler) prosseguem normal abaixo.
+        else:
+            # Local dev path (Windows/Mac/Linux sem env vars Docker) — comportamento original
+            # Etapa 3 — detect ollama binary (EC-01)
+            binary = ollama_manager.detect_ollama_binary()
+            if binary is None:
+                raise ollama_manager.OllamaBinaryNotFound(
+                    "Ollama binary não encontrado. "
+                    "Instale via https://ollama.ai/download "
+                    "ou setar OLLAMA_HOST_ADVOGADO + OLLAMA_HOST_ECONOMISTA env vars (Docker mode)."
                 )
-            else:
-                pid = ollama_manager.spawn_ollama(binary, host, port)
-                spawned_pids[role] = pid
-                logger.info(
-                    "Lifespan startup: SPAWNED ollama %s:%d PID=%d (role=%s)",
-                    host,
-                    port,
-                    pid,
-                    role,
-                )
+            logger.info("Lifespan startup: local mode — ollama binary -> %s", binary)
+
+            # Etapa 4 — detect-then-spawn 2 instâncias
+            host = ollama_manager.DEFAULT_HOST
+            for role, port in (
+                ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
+                ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
+            ):
+                if await ollama_manager.detect_running_ollama(host, port):
+                    logger.info(
+                        "Lifespan startup: REUSE existing ollama %s:%d (role=%s)",
+                        host,
+                        port,
+                        role,
+                    )
+                else:
+                    pid = ollama_manager.spawn_ollama(binary, host, port)
+                    spawned_pids[role] = pid
+                    logger.info(
+                        "Lifespan startup: SPAWNED ollama %s:%d PID=%d (role=%s)",
+                        host,
+                        port,
+                        pid,
+                        role,
+                    )
 
         # Etapa 5 — persist PID file se spawned algo
         if spawned_pids:
@@ -714,36 +765,62 @@ async def revisar(
     modalidade_override: str = Form(default=""),  # TD-SP06-MODE-PASS-01: sidebar SPA → backend
 ) -> Any:
     # Phase E / AC-7: on-demand health check + lazy respawn (EC-08 Ollama crash mid-revisar)
-    host = ollama_manager.DEFAULT_HOST
-    for role, port in (
-        ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
-        ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
-    ):
-        if not await ollama_manager.detect_running_ollama(host, port):
-            try:
-                binary = ollama_manager.detect_ollama_binary()
-                if binary is None:
-                    raise HTTPException(
-                        status_code=503,
-                        detail="Ollama indisponível (binary não localizado)",
-                        headers={"Retry-After": "60"},
-                    )
-                pid = ollama_manager.spawn_ollama(binary, host, port)
-                logger.warning(
-                    "revisar: lazy respawn ollama %s:%d PID=%d (role=%s)",
-                    host, port, pid, role,
+    # Docker-aware (Sprint 6.x TD-OLLAMA-DOCKER-AWARE PART2): respeita OLLAMA_HOST_*
+    advogado_external = ollama_manager._parse_ollama_host_env("advogado")
+    economista_external = ollama_manager._parse_ollama_host_env("economista")
+    use_external_revisar = advogado_external is not None and economista_external is not None
+
+    if use_external_revisar:
+        assert advogado_external is not None  # type narrowing
+        assert economista_external is not None
+        # Verify external hosts apenas (sem fallback spawn local)
+        for role, (ext_host, ext_port) in (
+            ("advogado", advogado_external),
+            ("economista", economista_external),
+        ):
+            if not await ollama_manager.detect_running_ollama(ext_host, ext_port):
+                logger.error(
+                    "revisar: Ollama external %s:%d (role=%s) unreachable durante request",
+                    ext_host, ext_port, role,
                 )
-                # Atualizar PID file para tracking shutdown lifespan
-                current_pids = ollama_manager.read_pid_file_safely()
-                current_pids[role] = pid
-                ollama_manager.write_pid_file_atomic(current_pids)
-            except (OllamaSpawnFailed, OllamaBinaryNotFound) as exc:
-                logger.error("revisar: lazy respawn falhou: %s", exc)
                 raise HTTPException(
                     status_code=503,
-                    detail=f"Ollama indisponível e respawn falhou: {exc}",
+                    detail=f"Ollama service {ext_host}:{ext_port} (role={role}) "
+                           f"indisponível. Verifique Docker compose service health.",
                     headers={"Retry-After": "60"},
-                ) from exc
+                )
+    else:
+        # Local dev — lazy respawn comportamento original
+        host = ollama_manager.DEFAULT_HOST
+        for role, port in (
+            ("advogado", ollama_manager.DEFAULT_PORT_ADVOGADO),
+            ("economista", ollama_manager.DEFAULT_PORT_ECONOMISTA),
+        ):
+            if not await ollama_manager.detect_running_ollama(host, port):
+                try:
+                    binary = ollama_manager.detect_ollama_binary()
+                    if binary is None:
+                        raise HTTPException(
+                            status_code=503,
+                            detail="Ollama indisponível (binary não localizado)",
+                            headers={"Retry-After": "60"},
+                        )
+                    pid = ollama_manager.spawn_ollama(binary, host, port)
+                    logger.warning(
+                        "revisar: lazy respawn ollama %s:%d PID=%d (role=%s)",
+                        host, port, pid, role,
+                    )
+                    # Atualizar PID file para tracking shutdown lifespan
+                    current_pids = ollama_manager.read_pid_file_safely()
+                    current_pids[role] = pid
+                    ollama_manager.write_pid_file_atomic(current_pids)
+                except (OllamaSpawnFailed, OllamaBinaryNotFound) as exc:
+                    logger.error("revisar: lazy respawn falhou: %s", exc)
+                    raise HTTPException(
+                        status_code=503,
+                        detail=f"Ollama indisponível e respawn falhou: {exc}",
+                        headers={"Retry-After": "60"},
+                    ) from exc
 
     # Phase D / AC-8: 503 retry-after se modelos LLM ainda baixando (auto-pull background)
     if not ollama_manager.is_ready():

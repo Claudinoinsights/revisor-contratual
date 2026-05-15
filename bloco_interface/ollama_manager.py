@@ -70,6 +70,36 @@ MIN_DISK_SPACE_GB = 7.0  # qwen2.5:7b 4.7GB + qwen2.5:3b 1.9GB + buffer 0.4GB
 PID_FILE_SCHEMA_VERSION = "1.0"
 
 
+# ── Docker-aware helper (TD-OLLAMA-DOCKER-AWARE-REFACTOR 2026-05-14) ──────
+
+
+def _parse_ollama_host_env(role: str) -> tuple[str, int] | None:
+    """Parse `OLLAMA_HOST_{ROLE}` env var para Docker compose deploy.
+
+    Format: ``"hostname:port"`` (ex: ``"ollama-advogado:11434"`` Docker network
+    OR ``"127.0.0.1:11434"`` local). Apenas hostname sem porta assume 11434.
+
+    Returns:
+        ``(host, port)`` tuple se env var setada com formato válido,
+        ``None`` caso contrário (dev local sem override).
+
+    Sprint 6.x Docker-aware support — quando ambos OLLAMA_HOST_ADVOGADO
+    e OLLAMA_HOST_ECONOMISTA setadas, ``lifespan`` SKIP binary detect/spawn
+    local e usa Ollama external (Docker compose service network).
+    """
+    env_var = f"OLLAMA_HOST_{role.upper()}"
+    val = os.environ.get(env_var)
+    if not val:
+        return None
+    if ":" not in val:
+        return val, 11434
+    host, port_str = val.rsplit(":", 1)
+    try:
+        return host, int(port_str)
+    except ValueError:
+        return None
+
+
 # ── Custom Exceptions ─────────────────────────────────────────────────────
 
 
@@ -681,6 +711,21 @@ async def ensure_models_pulled(required: list[str]) -> None:
         Não levanta exceções para o caller — falhas são registradas em
         ``_pull_status["state"] = "error"`` para serem visíveis via SSE/banner.
     """
+    # Docker-aware (Sprint 6.x TD-OLLAMA-DOCKER-AWARE PART3):
+    # Em Docker compose, Ollama é serviço external + modelos pre-pulled via
+    # `docker exec ollama pull`. Subprocess `ollama list/pull` local FALHA
+    # (binary não instalado no container app). Marcar ready + skip.
+    if _parse_ollama_host_env("advogado") is not None:
+        async with _pull_lock:
+            _pull_status.update(
+                {"state": "ready", "model": None, "percent": 100, "eta_seconds": 0}
+            )
+        logger.info(
+            "ensure_models_pulled: Docker mode detected (OLLAMA_HOST_* set) — "
+            "skip subprocess, assume modelos pre-pulled em external containers"
+        )
+        return
+
     # Identifica missing via `ollama list`
     try:
         list_proc = await asyncio.create_subprocess_exec(

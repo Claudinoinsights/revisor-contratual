@@ -1,0 +1,90 @@
+# Sprint 6.x Caminho B Docker — exclusões build context
+# Reduz contexto enviado ao Docker daemon + previne leak de secrets/dados pessoais.
+
+# ── SECRETS (NUNCA copiar para layer) ───────────────────────────────────────
+.env
+.env.bak
+.env.bak-*
+.tmp/
+**/admin-password-hash.txt
+**/auth-cookie-key.txt
+**/cookies.txt
+
+# ── Dados pessoais LGPD §11 (NÃO levar em imagem) ───────────────────────────
+documentos-para-teste/
+**/.local/share/revisor-contratual/audit.jsonl*
+**/.local/share/revisor-contratual/vault.db
+**/.local/share/revisor-contratual/.audit-genesis.lock*
+
+# ── Git/CI/IDE ──────────────────────────────────────────────────────────────
+.git/
+.gitignore
+.github/
+.lmas/
+.lmas-installation-config.yaml
+.vscode/
+.idea/
+
+# ── Python build artifacts ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# ── Testes (não rodar em production image) ──────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+tests/
+
+# ── Virtual envs ────────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Governance docs (não precisam no container runtime) ─────────────────────
+governance/
+docs/
+landing/
+
+# ── Local artifacts ─────────────────────────────────────────────────────────
+orsheva-brandbook.html
+revisor-contratual-orsheva.html.html
+*.log
+*.bak
+
+# ── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker meta (não copiar para dentro do container) ───────────────────────
+Dockerfile
+docker-compose*.yml
+.dockerignore
+README-DOCKER.md

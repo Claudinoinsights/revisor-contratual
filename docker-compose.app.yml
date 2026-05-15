@@ -1,0 +1,117 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Revisor Contratual — docker-compose.app.yml (Sprint 6.x Caminho B Docker deploy)
+#
+# Stack app + 2 Ollama servers (complementar ao docker-compose.yml Postgres-only).
+#
+# Resolve Smith F-CRIT-01: WeasyPrint GTK no Linux container (não Windows host).
+#
+# Uso:
+#   # Subir só app + Ollama (sem Postgres SP04):
+#   docker compose -f docker-compose.app.yml up -d
+#
+#   # Subir tudo (Postgres + app + Ollama):
+#   docker compose -f docker-compose.yml -f docker-compose.app.yml up -d
+#
+#   # Pull modelos Ollama dentro container (primeira vez):
+#   docker exec revisor-ollama-advogado ollama pull qwen2.5:7b
+#   docker exec revisor-ollama-economista ollama pull qwen2.5:3b
+#
+#   # Acesso: http://localhost:8501 (login admin/admin do .env)
+#   # Stop: docker compose -f docker-compose.app.yml down
+# ════════════════════════════════════════════════════════════════════════════
+
+name: revisor-contratual
+
+services:
+  ollama-advogado:
+    image: ollama/ollama:latest
+    container_name: revisor-ollama-advogado
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+    volumes:
+      - ollama-models-advogado:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - revisor-net
+
+  ollama-economista:
+    image: ollama/ollama:latest
+    container_name: revisor-ollama-economista
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11435:11434"
+    volumes:
+      - ollama-models-economista:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - revisor-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: revisor-contratual:latest
+    container_name: revisor-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      # Override hosts Ollama para internal network (não localhost host)
+      OLLAMA_HOST_ADVOGADO: "ollama-advogado:11434"
+      OLLAMA_HOST_ECONOMISTA: "ollama-economista:11434"
+      # Docker workaround: app tenta detect ollama binary local antes de checar HTTP hosts.
+      # Em Docker, Ollama é serviço separado — binary local não existe. Apontar /bin/true
+      # como placeholder executável faz binary detection passar; Etapa 4 detect_running_ollama
+      # via HTTP confirma Ollama containers external e pula spawn local.
+      # TD-OLLAMA-DOCKER-AWARE-REFACTOR (Sprint 6.3+ Neo refator lifespan).
+      OLLAMA_BINARY_PATH: "/bin/true"
+      REVISOR_HTTPS_ONLY: "0"
+      PYTHONIOENCODING: "utf-8"
+      PYTHONUNBUFFERED: "1"
+    env_file:
+      # .env.docker = .env com $ escapado para $$ (compose interpolation safe)
+      # Operator workaround Sprint 6.x — bcrypt hash com $ chars era mutilado por compose
+      # interpolation. .env.docker preserva valores literais.
+      - .env.docker
+    volumes:
+      # Persistir vault.db + audit.jsonl + GENESIS lock entre restarts
+      - revisor-data:/home/revisor/.local/share/revisor-contratual
+      # Optional: mount documentos-para-teste readonly se Eric quiser
+      # - ./documentos-para-teste:/documentos-input:ro
+    depends_on:
+      ollama-advogado:
+        condition: service_healthy
+      ollama-economista:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - revisor-net
+
+volumes:
+  ollama-models-advogado:
+    name: revisor-contratual_ollama-models-advogado
+  ollama-models-economista:
+    name: revisor-contratual_ollama-models-economista
+  revisor-data:
+    name: revisor-contratual_revisor-data
+
+networks:
+  revisor-net:
+    name: revisor-contratual_net
+    driver: bridge

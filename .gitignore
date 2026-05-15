@@ -69,3 +69,5 @@ worker.js
 documentos-para-teste/             # PDFs locais de teste (LGPD — dados pessoais Eric)
 orsheva-brandbook.html             # brandbook local artifact
 revisor-contratual-orsheva.html.html  # local artifact
+.env.docker
+.env.docker.prod

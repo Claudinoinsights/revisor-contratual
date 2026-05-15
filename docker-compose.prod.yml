@@ -1,0 +1,139 @@
+# ════════════════════════════════════════════════════════════════════════════
+# Revisor Contratual — docker-compose.prod.yml (VPS production deploy)
+#
+# Resolve Smith F-CRIT-01 + Eric directive Caminho B deploy completo.
+# Usa Traefik EXISTING no VPS (rede `proxy`) — não cria reverse proxy novo.
+#
+# Pré-requisitos VPS:
+#   1. Docker 29+ instalado (✓ confirmed)
+#   2. Network `proxy` criada (Traefik existing — ✓ confirmed)
+#   3. DNS A record `revisor.claudinoinsights.com → 91.108.126.149` (Eric configura)
+#   4. /opt/revisor-contratual/ existe + .env.docker.prod com 600 perms
+#
+# Uso:
+#   docker compose -f docker-compose.prod.yml build
+#   docker compose -f docker-compose.prod.yml up -d
+#   docker exec revisor-prod-ollama-advogado ollama pull qwen2.5:7b
+#   docker exec revisor-prod-ollama-economista ollama pull qwen2.5:3b
+#   docker exec revisor-prod-app revisor init-audit
+# ════════════════════════════════════════════════════════════════════════════
+
+name: revisor-prod
+
+services:
+  ollama-advogado:
+    image: ollama/ollama:latest
+    container_name: revisor-prod-ollama-advogado
+    restart: unless-stopped
+    expose:
+      - "11434"
+    volumes:
+      - ollama-models-advogado:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - revisor-internal
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+
+  ollama-economista:
+    image: ollama/ollama:latest
+    container_name: revisor-prod-ollama-economista
+    restart: unless-stopped
+    expose:
+      - "11434"
+    volumes:
+      - ollama-models-economista:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - revisor-internal
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: revisor-contratual:prod
+    container_name: revisor-prod-app
+    restart: unless-stopped
+    expose:
+      - "8501"
+    environment:
+      OLLAMA_HOST_ADVOGADO: "ollama-advogado:11434"
+      OLLAMA_HOST_ECONOMISTA: "ollama-economista:11434"
+      OLLAMA_BINARY_PATH: "/bin/true"
+      REVISOR_HTTPS_ONLY: "1"
+      PYTHONIOENCODING: "utf-8"
+      PYTHONUNBUFFERED: "1"
+    env_file:
+      - .env.docker.prod
+    volumes:
+      - revisor-data:/home/revisor/.local/share/revisor-contratual
+    depends_on:
+      ollama-advogado:
+        condition: service_healthy
+      ollama-economista:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 180s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    networks:
+      - revisor-internal
+      - proxy
+    labels:
+      # Traefik existing (VPS) auto-HTTPS via Let's Encrypt
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.revisor.rule=Host(`revisor.claudinoinsights.com`)"
+      - "traefik.http.routers.revisor.entrypoints=websecure"
+      - "traefik.http.routers.revisor.tls=true"
+      - "traefik.http.routers.revisor.tls.certresolver=letsencrypt"
+      - "traefik.http.services.revisor.loadbalancer.server.port=8501"
+      # Redirect HTTP → HTTPS
+      - "traefik.http.routers.revisor-http.rule=Host(`revisor.claudinoinsights.com`)"
+      - "traefik.http.routers.revisor-http.entrypoints=web"
+      - "traefik.http.routers.revisor-http.middlewares=https-redirect"
+      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
+      # Security headers
+      - "traefik.http.middlewares.revisor-sec.headers.framedeny=true"
+      - "traefik.http.middlewares.revisor-sec.headers.sslredirect=true"
+      - "traefik.http.middlewares.revisor-sec.headers.stsseconds=31536000"
+      - "traefik.http.middlewares.revisor-sec.headers.contenttypenosniff=true"
+      - "traefik.http.routers.revisor.middlewares=revisor-sec"
+
+volumes:
+  ollama-models-advogado:
+    name: revisor-prod_ollama-models-advogado
+  ollama-models-economista:
+    name: revisor-prod_ollama-models-economista
+  revisor-data:
+    name: revisor-prod_revisor-data
+
+networks:
+  revisor-internal:
+    name: revisor-prod_internal
+    driver: bridge
+  proxy:
+    external: true
+    name: proxy
