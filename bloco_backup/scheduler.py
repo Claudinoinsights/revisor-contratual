@@ -27,7 +27,33 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DATA_DIR = Path.home() / ".local" / "share" / "revisor-contratual"
 DEFAULT_BACKUP_DIR = DEFAULT_DATA_DIR / "backups"
-RETENTION_DAYS = 7
+
+
+def _resolve_retention_days() -> int:
+    """Sprint 8 Story #14 (Smith F-HIGH-08 + ADR-029): retention configurable via env.
+
+    Smith ultrathink F-HIGH-08: backups retention 7 dias insuficiente para DR.
+    ADR-029 spec: REVISOR_BACKUP_RETENTION_DAYS env override, default 30 dias.
+
+    Defensive: env unset OR malformed (non-int) OR < 1 OR > 365 → default 30.
+    """
+    raw = os.environ.get("REVISOR_BACKUP_RETENTION_DAYS", "30")
+    try:
+        value = int(raw)
+    except ValueError:
+        logger.warning(
+            "REVISOR_BACKUP_RETENTION_DAYS=%r invalid (not int) — using default 30", raw
+        )
+        return 30
+    if value < 1 or value > 365:
+        logger.warning(
+            "REVISOR_BACKUP_RETENTION_DAYS=%d out of range [1,365] — using default 30", value
+        )
+        return 30
+    return value
+
+
+RETENTION_DAYS = _resolve_retention_days()
 
 
 def _data_dir() -> Path:

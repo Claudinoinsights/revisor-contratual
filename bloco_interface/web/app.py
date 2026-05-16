@@ -511,8 +511,24 @@ HTTP_STATUS_TO_C6_VARIANT = {
 }
 
 
+def _wants_json_response(request: Request) -> bool:
+    """Sprint 8 Story #12 (Smith F-HIGH-07): detect API client expecting JSON.
+
+    Returns True if:
+    - Accept header inclui 'application/json' (explicit API client signal)
+    - Path starts /api/ (programmatic endpoint convention)
+    Browser users (Accept: text/html OR default) → False → HTML preserved.
+    """
+    accept = request.headers.get("accept", "").lower()
+    if "application/json" in accept:
+        return True
+    if request.url.path.startswith("/api/"):
+        return True
+    return False
+
+
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLResponse:
+async def http_exception_handler(request: Request, exc: HTTPException) -> Response:
     """MVP-LEAN-01 Task 6: renderiza S7 Error pane com C6 component.
 
     HTTPException → variant_key via HTTP_STATUS_TO_C6_VARIANT; fallback infra_unknown.
@@ -521,7 +537,25 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLRe
     Sprint 6.2 F-6.1-01 fix (TD-SP06.2-WWW-AUTHENTICATE-MIDDLEWARE): preserva
     `exc.headers` em TemplateResponse para que custom headers (WWW-Authenticate
     em 401, etc) cheguem ao cliente HTTP conforme RFC 7235.
+
+    Sprint 8 Story #12 (Smith F-HIGH-07): Accept: application/json OR /api/ path →
+    JSON response (API consumers). Browser default Accept: text/html → HTML preserved.
     """
+    # Sprint 8 Story #12: API clients receive JSON
+    if _wants_json_response(request):
+        json_response = JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": True,
+                "status_code": exc.status_code,
+                "detail": str(exc.detail) if exc.detail else "Error",
+            },
+        )
+        if exc.headers:
+            for header_name, header_value in exc.headers.items():
+                json_response.headers[header_name] = header_value
+        return json_response
+
     # Auth errors mantêm fluxo legacy (não convertem para S7)
     if exc.status_code in (401, 403):
         error_type = ERROR_TYPE_MAP.get(exc.status_code, "pipeline_failure")
@@ -555,14 +589,28 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> HTMLRe
 
 # MVP-LEAN-01 Task 6 — global Exception handler para catch-all infra_unknown
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> HTMLResponse:
+async def global_exception_handler(request: Request, exc: Exception) -> Response:
     """Catch-all para exceptions não-HTTPException (Task 6 catch-all infra_unknown).
 
     Classifica via error_handler.classify_exception → renderiza S7 com C6 correto.
+    Sprint 8 Story #12: API clients (Accept: application/json) → JSON response.
     """
     if isinstance(exc, HTTPException):
         # Já tratado por http_exception_handler — não chamado aqui em prática
         return await http_exception_handler(request, exc)
+
+    # Sprint 8 Story #12: API clients receive JSON
+    if _wants_json_response(request):
+        logger.error("global_exception_handler JSON: exc=%s", exc, exc_info=True)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": True,
+                "status_code": 500,
+                "detail": "Internal Server Error",
+                "exception_type": type(exc).__name__,
+            },
+        )
 
     variant_key = error_handler.classify_exception(exc)
     logger.error("global_exception_handler: variant=%s exc=%s", variant_key, exc, exc_info=True)
@@ -578,6 +626,85 @@ async def global_exception_handler(request: Request, exc: Exception) -> HTMLResp
 
 
 # ── Routes ────────────────────────────────────────────────────────────────
+
+
+# Sprint 8 Story #13 (Smith F-HIGH-04): /health endpoint para monitoring tools.
+# Returns JSON com system health snapshot (no auth required — Uptime-Kuma/curl friendly).
+@app.get("/health")
+async def health_endpoint() -> JSONResponse:
+    """Sprint 8 Story #13 (Smith F-HIGH-04): JSON health endpoint para monitoring.
+
+    Returns {status, version, ollama, audit_chain_age_hours, backup_age_hours}.
+    NO auth required (monitoring tool friendly — Uptime-Kuma, curl, k8s probes).
+    """
+    import json as _json
+    import time as _time
+    from datetime import datetime as _dt
+    from pathlib import Path as _Path
+
+    health: dict[str, Any] = {
+        "status": "ok",
+        "version": "0.2.10.0",
+        "ollama": "unknown",
+        "audit_chain_age_hours": None,
+        "backup_age_hours": None,
+    }
+    issues: list[str] = []
+
+    # audit chain age
+    try:
+        audit_path = _Path(os.environ.get("REVISOR_DATA_DIR", str(Path.home() / ".local/share/revisor-contratual"))) / "audit.jsonl"
+        if audit_path.exists():
+            with audit_path.open() as _f:
+                last_line = ""
+                for _line in _f:
+                    if _line.strip():
+                        last_line = _line
+            if last_line:
+                entry = _json.loads(last_line)
+                ts_str = entry.get("ts", "")
+                if ts_str:
+                    last_ts = _dt.fromisoformat(ts_str.replace("Z", "+00:00"))
+                    now = _dt.now(last_ts.tzinfo)
+                    health["audit_chain_age_hours"] = round((now - last_ts).total_seconds() / 3600, 2)
+    except Exception as _exc:  # noqa: BLE001
+        issues.append(f"audit_age_unknown: {_exc}")
+
+    # backup age
+    try:
+        backup_dir = _Path(os.environ.get("REVISOR_DATA_DIR", str(Path.home() / ".local/share/revisor-contratual"))) / "backups"
+        if backup_dir.is_dir():
+            entries = sorted(backup_dir.iterdir(), key=lambda p: p.stat().st_mtime, reverse=True)
+            if entries:
+                latest_mtime = entries[0].stat().st_mtime
+                health["backup_age_hours"] = round((_time.time() - latest_mtime) / 3600, 2)
+    except Exception as _exc:  # noqa: BLE001
+        issues.append(f"backup_age_unknown: {_exc}")
+
+    # ollama check (lightweight — just verify env var set, full TCP check too expensive para /health)
+    ollama_host = os.environ.get("OLLAMA_HOST_ADVOGADO", "")
+    health["ollama"] = "configured" if ollama_host else "missing_config"
+
+    if issues:
+        health["status"] = "degraded"
+        health["issues"] = issues
+
+    return JSONResponse(content=health, status_code=200)
+
+
+# Sprint 8 Story #13 (Smith F-HIGH-05): HEAD / handler — mirror GET / response (no body).
+# FastAPI default NÃO inclui HEAD automaticamente quando @app.get registered.
+# HEAD / é usado por load balancers, CDN cache validators, Uptime-Kuma probes (curl -I).
+@app.head("/")
+async def head_root() -> Response:
+    """Sprint 8 Story #13 (Smith F-HIGH-05): HEAD / returns 200 OK headers only.
+
+    Mirrors GET / response status (200) sem body. Para monitoring tools que usam HEAD.
+    NO auth required (Uptime-Kuma + load balancer friendly).
+    """
+    return Response(status_code=200)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request) -> HTMLResponse:
     """UX-LOGIN-UNIFIED — SPA single source of truth.
