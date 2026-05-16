@@ -8664,3 +8664,45 @@ C) **Pause for Eric direction** — Sprint 8 Phase C scope clarification (Phase 
 **Commit pendente Operator push** (Atlas governance-only, no deploy).
 
 **Próximo Skill:** Eric review research doc + decide Priority 1 (TECH-DEBT.md formalization) + Priority 2+3 (Sprint 9+ planning).
+
+---
+
+### 🔒 SESSION CLOSE 2026-05-16 — Save State for Eric Return
+
+**Documento principal para próxima sessão:** `governance/PROJECT-STATUS-NEXT-SESSION-2026-05-16.md` (~600 lines comprehensive resume guide).
+
+**Por que:** Eric desligando computador. Snapshot completo preservado para retomar com clareza total.
+
+**Quando Eric retornar deve:**
+
+1. ✅ Ler `governance/PROJECT-STATUS-NEXT-SESSION-2026-05-16.md` PRIMEIRO (5 min)
+2. ✅ Revisar análise extrema da MAIOR DIFICULDADE (validação real CDC PDF gap)
+3. ✅ Decidir Priority 1 (real CDC PDF validation) ANTES Sprint 9+ feature work
+4. ✅ Decidir 4 Atlas Priorities per `governance/research/phase-1-3-lows-cataloging-2026-05-16.md`
+
+**Production state empirical (snapshot save state):**
+
+| Component | State |
+|-----------|-------|
+| revisor-prod-app | NEW SHA `591a6dee4dec` healthy |
+| ollama-shared | uptime preserved (ADR-026) |
+| Image SOP N=2 | prod + bak-pre-aria-neo-final |
+| Disk VPS | 65% (35GB free) |
+| revisor.claudinoinsights.com/ | HTTP 200 real SPA OrSheva 7 |
+| Backup encryption | restic AES-256-CTR active |
+| APScheduler | 4 jobs (co-existence ADR-031) |
+| /health | 200 JSON v0.2.10.0 |
+
+**🎯 ANÁLISE EXTREMA — MAIOR DIFICULDADE DO PROJETO:**
+
+**VALIDAÇÃO CONTRA REALIDADE AUSENTE.** Produto inteiro construído + deployed + tested + audited + encrypted + monitored, mas NUNCA validado contra contrato CDC veículo REAL de cliente. Story #1 real CDC PDF fixture pendente desde Sprint 7 Phase 4 (3 sprints atrás). TODOS testes E2E baseiam-se em PDFs sintéticos (fpdf2 generated).
+
+**Implicação:** Engineering ~93/100. Product validation ~20/100. Gap entre estes números é a maior dificuldade existencial.
+
+**Risk:** Primeiro contrato real em produção pode quebrar pipeline OR retornar análise inferior. Sem validação real, qualquer Sprint 9+ feature work é arquitetar castelos sobre areia.
+
+**Recommendation:** Eric procura UM contrato CDC real (anonimizado, próprio OR conhecido) + 1-2h teste E2E + compara com análise jurídica humana. ROI máximo dessa única action. Sem isso, Sprint 9+ NÃO recomendado.
+
+**Sprint 8 Phase B+C arc 13 commits pushed origin/main (todos auditáveis em git log).**
+
+**Status global projeto:** ~93/100 engineering excellence + ~20/100 product validation gap = **maior tensão estrutural**.
