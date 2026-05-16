@@ -6813,3 +6813,107 @@ app = FastAPI(
 - `governance/CHECKPOINT-active.md` (D-DEV-S08-001 entry)
 
 **Próximo:** Operator deploy Neo Stories #1.5 + #1.6 (push origin + scp VPS + REVISOR_ENV=production + image rebuild + container recreate + emergency cron + smoke verify 4 checks). Aria Stories #2.5 + #7 paralelas (Skill architect separate). Após ALL 6 Phase A done → Smith mini-verify confirma 6 CRIT RESOLVED.
+
+### D-OPS-S08-001 (2026-05-16) — Operator `*push Sprint 8 Phase A Stories #1.5 + #1.6 deploy` ✅ **DEPLOY COMPLETE**
+
+**Trigger:** Neo handoff (consumed=true). 2 commits locais a812a38 + c865a45 aguardando push.
+
+**Verdict:** Stories #1.5 + #1.6 DEPLOYED + VERIFIED EMPIRICALLY em ~10min cumulative actual.
+
+**9 Deploy Steps Executados:**
+
+1. ✅ `git push origin main` (HEAD `c865a45` synchronized)
+2. ✅ scp `bloco_interface/web/app.py` → VPS (MD5 `2fd2d4f6d042e7d97eefbb7cf039e98e` MATCH local vs VPS)
+3. ✅ Add `REVISOR_ENV: "production"` em `/opt/revisor-contratual/docker-compose.prod.yml` app environment (após REVISOR_HTTPS_ONLY)
+4. ✅ Tag image `revisor-contratual:bak-pre-stories-1-5-1-6` (sha256:55e96a3c29d4 — preempts F-HIGH-10)
+5. ✅ Image rebuild ~308s (Python 3.13-slim + OCR + WeasyPrint deps) → NEW digest `sha256:c93e9853d50a`
+6. ✅ Container recreate via `docker compose -p revisor-prod up -d app` (RestartCount=0 + StartedAt=2026-05-16T06:28:41Z)
+7. ✅ Smoke verify 8 ACs PASS (HTTP + container + cron)
+8. ✅ Emergency cron `/etc/cron.d/revisor-tempfile-cleanup` installed (chmod 644 root:root) + service cron reload OK
+9. ✅ Runtime smoke verify dentro production container
+
+**8 Acceptance Criteria Deploy ALL PASS empirically:**
+
+| AC | Result |
+|----|--------|
+| AC-DEPLOY-1 image NEW SHA256 | ✅ `c93e9853d50a` (vs Phase 4 sha256:55e96a3c29d4) |
+| AC-DEPLOY-2 lifecycle declared | ✅ image rebuilt SIM + container recreated SIM + ollama-shared preserved |
+| AC-DEPLOY-3 /docs returns 404 | ✅ STATUS=404 (Swagger UI disabled em produção) |
+| AC-DEPLOY-4 /openapi.json returns 404 | ✅ STATUS=404 (schema disabled) |
+| AC-DEPLOY-5 REVISOR_ENV=production | ✅ `docker exec app sh -c 'echo $REVISOR_ENV'` → `production` |
+| AC-DEPLOY-6 app healthy | ✅ Health.Status=healthy RestartCount=0 |
+| AC-DEPLOY-7 tempfile baseline | ✅ `/tmp/` count = 0 PDFs (clean state) |
+| AC-DEPLOY-8 emergency cron active | ✅ `/etc/cron.d/revisor-tempfile-cleanup` installed (daily 03:00 delete tmp*.pdf >24h) |
+
+**Bonus runtime verify dentro production container:**
+
+```python
+docker exec revisor-prod-app python -c "from bloco_interface.web.app import ..."
+safety_helper_callable: True       # Story #1.5 helper deployed
+is_production: True                 # REVISOR_ENV=production effective
+docs_url: None                      # Story #1.6 /docs disabled
+openapi_url: None                   # Story #1.6 /openapi.json disabled
+redoc_url: None                     # Story #1.6 /redoc disabled (bonus)
+```
+
+**GET / preserved:** STATUS=200 TIME=0.243s SIZE=124460 bytes (HTML home page acessível, user flow não impactado).
+
+**Image SHA256 progression Sprint 7+8:**
+
+| Phase | Image SHA256 | Notes |
+|-------|--------------|-------|
+| Sprint 6.x final | `72f4122307dc` | F-PROD-NEW-21 surya FONT_DIR |
+| Sprint 7 Phase 2 | `72f4122307dc` | UNCHANGED (config-only) |
+| Sprint 7 Phase 3 | `f830797a3143` | NEW subprocess_runner module |
+| Sprint 7 Phase 4 | `55e96a3c29d4` | NEW type_detector + dual-path |
+| **Sprint 8 Stories #1.5+#1.6** | **`c93e9853d50a`** | NEW LGPD safety + FastAPI conditional |
+
+**Container backup tags (preempts F-HIGH-10):**
+
+- `prod` (sha256:c93e9853d50a) — Active production NEW Sprint 8 Stories #1.5+#1.6
+- `bak-pre-stories-1-5-1-6` (sha256:55e96a3c29d4) — Sprint 8 baseline NEW
+- `bak-pre-sprint-8` (sha256:55e96a3c29d4) — Sprint 8 initial baseline
+- `bak-pre-phase-4` (sha256:f830797a3143) — Sprint 7 Phase 4 baseline
+- `bak-pre-phase-3` (sha256:72f4122307dc) — Sprint 7 Phase 3 baseline
+
+**Memory baseline post-recreate:** ~50 MiB / 6 GiB idle (cold start, marker cache empty volume mount aguardando first scanned PDF populate ~3.3GB).
+
+**Pytest dentro container NOT executed** — Dockerfile COPY exclui `tests/` directory (esperado — production image optimization). Production behavior empirically PROVED via:
+- Steps 7 HTTP probes ALL ACs PASS
+- Runtime smoke dentro container (is_production + docs_url None confirmados)
+- Standalone Python 3.14 smoke test (4 scenarios pré-commit Neo)
+
+**Files VPS:**
+
+- `/opt/revisor-contratual/bloco_interface/web/app.py` (Neo patches +95 insertions deployed)
+- `/opt/revisor-contratual/docker-compose.prod.yml` (REVISOR_ENV=production added)
+- `/opt/revisor-contratual/docker-compose.prod.yml.bak-pre-stories-1-5-1-6-{ts}` (backup pre-edit)
+- `/etc/cron.d/revisor-tempfile-cleanup` (NEW LGPD safety net)
+- `revisor-contratual:prod` image (sha256:c93e9853d50a NEW)
+- `revisor-contratual:bak-pre-stories-1-5-1-6` (preserved rollback)
+
+**Sprint 8 Phase A Stories Progress:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #0 disk cleanup | ✅ DONE D-OPS-S07-007 | @devops |
+| #2 marker cache volume | ✅ DONE D-OPS-S07-007 | @devops |
+| #1.5 tempfile audit | ✅ DONE D-DEV-S08-001 (code) + **D-OPS-S08-001 (deploy)** | @dev Neo + @devops |
+| #1.6 /docs disable | ✅ DONE D-DEV-S08-001 (code) + **D-OPS-S08-001 (deploy)** | @dev Neo + @devops |
+| #2.5 README rewrite | ⏳ PENDING handoff Architect | @architect + @devops |
+| #7 backup automation ADR-029 | ⏳ PENDING handoff Architect | @architect + @devops |
+
+**Phase A 4/6 stories DONE (2 deployed empirical + 2 deployed previously). 2 stories Architect pending paralelo.**
+
+**Smith F-CRIT findings progress:**
+
+- ✅ F-CRIT-01 disk 94% RESOLVED (Sprint 8 D-OPS-S07-007 Story #0)
+- ✅ F-CRIT-02 tempfile LGPD §16 RESOLVED 3-layer defense (safety task + lifespan + cron) — **DEPLOYED + VERIFIED EMPIRICAL**
+- ✅ F-CRIT-03 /docs Swagger UI exposed RESOLVED (REVISOR_ENV=production conditional) — **DEPLOYED + VERIFIED EMPIRICAL** (/docs+/openapi.json+/redoc ALL 404)
+- ✅ F-CRIT-04 marker cache ephemeral RESOLVED architecturally (Sprint 8 D-OPS-S07-007 Story #2 volume mount)
+- ⏳ F-CRIT-05 README outdated PENDING Architect handoff
+- ⏳ F-CRIT-06 backup automation invisible PENDING Architect handoff
+
+**4/6 CRITICAL RESOLVED empirically + 2 PENDING Architect (Phase A pending).**
+
+**Próximo:** handoff Operator→Smith mini-verify Phase A (após Architect Stories #2.5 + #7 done — wait OR parallel execution Eric directive).

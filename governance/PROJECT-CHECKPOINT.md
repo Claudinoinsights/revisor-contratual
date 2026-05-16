@@ -10,11 +10,16 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 v2.0 EXPANDED em execução — Phase A Hybrid A3 (Smith preference).
-  Operator Phase A 2/6 stories DONE (Story #0 disk 94→73% + Story #2 marker cache volume).
-  Pending Phase A: Story #1.5 + #1.6 (Skill dev Neo CRITICAL code) + Story #2.5 + #7 (Skill architect Aria CRITICAL design).
-  Eric directive: "Ambas paralelas (manual coordination)" + "continue sempre pela skill correta".
-  Próxima Skill invocation: Skill dev (Neo) primeiro (Stories #1.5 LGPD tempfile + #1.6 /docs disable são CRITICAL ongoing).
+  Sprint 8 Phase A Operator deploy Stories #1.5 + #1.6 EM CURSO:
+  - Step 1 push origin ✅ (HEAD c865a45)
+  - Step 2 scp app.py ✅ (MD5 match 2fd2d4f6)
+  - Step 3 REVISOR_ENV=production env var ✅
+  - Step 4 bak-pre-stories-1-5-1-6 tagged ✅ (sha256:55e96a3c29d4)
+  - Step 5 image rebuild EM PROGRESSO (docker-buildx PID 2623897, Monitor b42h5o0zm)
+  - Steps 6+7+8+9 PENDING (container recreate + smoke verify + cron + pytest container)
+  Container atual revisor-prod-app preserved (Up 55min healthy) durante build.
+  Após deploy → handoff Operator→Smith mini-verify Phase A.
+  Architect Stories #2.5 + #7 paralelos PENDING (Skill architect separate handoff).
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined
