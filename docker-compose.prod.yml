@@ -21,26 +21,31 @@
 name: revisor-prod
 
 services:
-  ollama-advogado:
+  # Sprint 7 Phase 2 (D-OPS-S07-002): Container consolidation 2→1 (ADR-028).
+  # Substituiu ollama-advogado + ollama-economista por single ollama-shared service.
+  # Memory: 12G reservado (6+6) → 4G = -8 GiB overcommit reduction.
+  # Volume migrated via rsync from advogado (preserva qwen2.5:7b 4.7GB + qwen2.5:3b 1.9GB).
+  # App env vars indirection (OLLAMA_HOST_*=ollama-shared:11434) preserva pipeline.py code.
+  # ADR-028: governance/architecture/adr/adr-028-ollama-single-container-consolidation.md
+  ollama-shared:
     image: ollama/ollama:latest
-    container_name: revisor-prod-ollama-advogado
+    container_name: revisor-prod-ollama-shared
     restart: unless-stopped
-    # Sprint 7 Phase 1 (D-OPS-S07-001): Aria Y++ Ollama optimization — 8 ENV vars
-    # quick wins LOW risk config-only. Memory savings ~600 MB inference + KV cache q8_0
-    # + flash_attention + tier=lean single-model serve 3 personas via KEEP_ALIVE=5m.
+    # Sprint 7 Phase 1 (D-OPS-S07-001) 8 OLLAMA_* env vars absorved em ADR-028.
+    # CRITICAL: OLLAMA_CONTEXT_LENGTH (Ollama 0.5+); OLLAMA_NUM_CTX deprecated.
     environment:
-      OLLAMA_KEEP_ALIVE: "5m"           # mantém modelo loaded entre Step 5a/5b/8 (tier=lean uses qwen2.5:3b for all 3 personas)
-      OLLAMA_NUM_PARALLEL: "1"          # SaaS B2B MVP 1-3 users — sem paralelismo, economiza ~500MB-1GB peak
-      OLLAMA_MAX_LOADED_MODELS: "1"     # tier=lean usa apenas 1 modelo, força sequential load
-      OLLAMA_CONTEXT_LENGTH: "8192"     # CDC veículo ~5600 tokens — eliminate truncação contrato (Ollama 0.5+ env var; OLLAMA_NUM_CTX deprecated)
+      OLLAMA_KEEP_ALIVE: "5m"           # tier=lean usa qwen2.5:3b para 3 personas — single load
+      OLLAMA_NUM_PARALLEL: "1"          # SaaS B2B MVP 1-3 users — sem paralelismo
+      OLLAMA_MAX_LOADED_MODELS: "1"     # 1 modelo por vez (tier=lean qwen2.5:3b OR balanced qwen2.5:7b)
+      OLLAMA_CONTEXT_LENGTH: "8192"     # CDC veículo ~5600 tokens — sem truncação
       OLLAMA_NUM_THREAD: "2"            # match nproc=2 VPS Hetzner
-      OLLAMA_FLASH_ATTENTION: "1"       # Ollama 0.24+ memory efficient attention -10-20% inference
+      OLLAMA_FLASH_ATTENTION: "1"       # Ollama 0.24+ memory efficient attention
       OLLAMA_KV_CACHE_TYPE: "q8_0"      # -50% KV cache memory, <1% quality loss
-      OLLAMA_LOAD_TIMEOUT: "180s"       # faster failure detection (default 5min)
+      OLLAMA_LOAD_TIMEOUT: "180s"       # faster failure detection
     expose:
       - "11434"
     volumes:
-      - ollama-models-advogado:/root/.ollama
+      - ollama-models-shared:/root/.ollama
     healthcheck:
       test: ["CMD-SHELL", "ollama list || exit 1"]
       interval: 30s
@@ -52,39 +57,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 6G
-
-  ollama-economista:
-    image: ollama/ollama:latest
-    container_name: revisor-prod-ollama-economista
-    restart: unless-stopped
-    # Sprint 7 Phase 1 (D-OPS-S07-001): Aria Y++ Ollama optimization — same 8 ENV vars
-    # como ollama-advogado. Phase 2 vai consolidar em 1 container ollama-shared.
-    environment:
-      OLLAMA_KEEP_ALIVE: "5m"
-      OLLAMA_NUM_PARALLEL: "1"
-      OLLAMA_MAX_LOADED_MODELS: "1"
-      OLLAMA_CONTEXT_LENGTH: "8192"
-      OLLAMA_NUM_THREAD: "2"
-      OLLAMA_FLASH_ATTENTION: "1"
-      OLLAMA_KV_CACHE_TYPE: "q8_0"
-      OLLAMA_LOAD_TIMEOUT: "180s"
-    expose:
-      - "11434"
-    volumes:
-      - ollama-models-economista:/root/.ollama
-    healthcheck:
-      test: ["CMD-SHELL", "ollama list || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    networks:
-      - revisor-internal
-    deploy:
-      resources:
-        limits:
-          memory: 6G   # F-PROD-NEW-17 fix (D-OPS-S06-017): qwen2.5:3b OOM com 3G — bump matching advogado para evitar model runner crash em inference
+          memory: 4G   # ADR-028: -2G vs 6G anterior, naturally fits qwen2.5:3b (1.9G) + KV q8_0 (153 MiB) + overhead com 1.5x buffer
 
   app:
     build:
@@ -96,8 +69,10 @@ services:
     expose:
       - "8501"
     environment:
-      OLLAMA_HOST_ADVOGADO: "ollama-advogado:11434"
-      OLLAMA_HOST_ECONOMISTA: "ollama-economista:11434"
+      # Sprint 7 Phase 2 (ADR-028): env vars indirection ollama-shared substituindo 2 containers separados.
+      # pipeline.py code unchanged — apenas hostname mudou para ambas personas.
+      OLLAMA_HOST_ADVOGADO: "ollama-shared:11434"
+      OLLAMA_HOST_ECONOMISTA: "ollama-shared:11434"
       OLLAMA_BINARY_PATH: "/bin/true"
       REVISOR_HTTPS_ONLY: "1"
       PYTHONIOENCODING: "utf-8"
@@ -107,9 +82,8 @@ services:
     volumes:
       - revisor-data:/home/revisor/.local/share/revisor-contratual
     depends_on:
-      ollama-advogado:
-        condition: service_healthy
-      ollama-economista:
+      # Sprint 7 Phase 2 (ADR-028): single ollama-shared dependency (substituindo 2 atuais)
+      ollama-shared:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8501/"]
@@ -146,10 +120,12 @@ services:
       - "traefik.http.routers.revisor.middlewares=revisor-sec"
 
 volumes:
-  ollama-models-advogado:
-    name: revisor-prod_ollama-models-advogado
-  ollama-models-economista:
-    name: revisor-prod_ollama-models-economista
+  # Sprint 7 Phase 2 (ADR-028): consolidated volume substituindo ollama-models-advogado + economista.
+  # Volume migrated via rsync from advogado (preserva qwen2.5:7b 4.7GB + qwen2.5:3b 1.9GB = 6.2 GiB).
+  # Volumes antigos (ollama-models-advogado + economista) preserved no host como backup,
+  # removable em Sprint 7 polish (Phase 5) após Smith verify Phase 2 CLEAN.
+  ollama-models-shared:
+    name: revisor-prod_ollama-models-shared
   revisor-data:
     name: revisor-prod_revisor-data
 
