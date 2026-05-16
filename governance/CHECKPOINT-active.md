@@ -8481,3 +8481,70 @@ Skill smith RE-VERIFY antes new deploys. Provavelmente discovery: 4-5/6 findings
 | F-HIGH-11 dashboard exposed | ⏳ Pending | AUTH-PROTECTED (admin-auth middleware) | **YES (false positive?)** |
 
 **Próximo Skill:** Skill smith adversarial re-verify 6 pending F-HIGH findings against current empirical state — provavelmente 4-5 RESOLVED + 1-2 downgrade severity OR scope to defer.
+
+---
+
+### D-SMITH-S08-003 (2026-05-16) — Smith Phase B FINAL re-verify 🟢 **CONTAINED + CHANGES (Phase B revisor-contratual scope CLOSED)**
+
+**Verdict:** 🟢 **CONTAINED + CHANGES** — Phase B revisor-contratual scope **100% COMPLETE em 5/9 stories empirical**. 5/6 remaining HIGH findings RESOLVED/DOWNGRADE/DEFER. 1 STILL VALID **re-scoped to claudino-insights project** (NOT revisor-contratual).
+
+**9 SSH probes adversarial independent verification — NÃO trust Operator self-report.**
+
+**6 Findings Re-Validation Final Disposition:**
+
+| Finding | Re-Verify Status | Smith Verdict Detail |
+|---------|------------------|---------------------|
+| F-HIGH-01 DNS subdomains | ✅ DOWNGRADE SCOPE | dash.* + status.* JÁ ROUTED (Eric naming convention different than Smith original cockpit.*/uptime.*) |
+| **F-HIGH-02 homepage** | 🚨 **STILL VALID + ESCALATED** | claudinoinsights.com/ → HTTP 404 (pior que placeholder original) — NO traefik router para apex. **Re-scope para claudino-insights project Sprint board** (NÃO revisor-contratual scope) |
+| F-HIGH-03 composite middleware | ✅ RESOLVED EMPIRICAL | 5/5 security headers verified (HSTS + X-Frame + X-Content + Referrer + Permissions) — middleware chain ATIVO |
+| F-HIGH-06 forwardAuth /me | 📋 DEFER Sprint 9+ | Phase 2 oauth2-proxy planned by design (Phase 1 basicAuth interim active). /api/me endpoint EXISTS (HTTP 200) — Operator pode point forwardAuth para /api/me quando Sprint 9+ |
+| F-HIGH-10 backup SOP N≥4 | 🟡 DOWNGRADE to MEDIUM | N=2 enforced (disk 35GB free insuficiente for N=4 = 40.8GB). Sprint 9+ offsite backup (ADR-030 reserved) viabiliza N≥4 |
+| F-HIGH-11 dashboard exposed | ✅ FALSE POSITIVE / RESOLVED | HTTP 401 + www-authenticate Basic realm="traefik" — auth-protected via admin-auth. Smith original claim INCORRECT |
+
+**🚨 Smith NEW finding (find-missing dimension):**
+
+| ID | Severity | Description |
+|----|----------|-------------|
+| F-S8PB-FMV-NEW-01 | LOW | middlewares.yml inline comment references "ADR-018 v1.1" mas ADR-018 actual file é "saas-pricing-billing-event.md" (unrelated topic). Documentation inconsistency. Sprint 9+ doc fix. |
+
+**🎯 Phase B Cumulative FINAL Score (12 stories + 13 findings cataloged):**
+
+- ✅ **8 RESOLVED EMPIRICAL** (5 prior + 3 this re-verify: F-HIGH-01 scope + F-HIGH-03 + F-HIGH-11)
+- ⏳ **1 STILL VALID** but **re-scoped claudino-insights project** (F-HIGH-02 homepage 404)
+- ⏳ **2 DEFERRED Sprint 9+** (F-HIGH-06 oauth2-proxy + F-HIGH-10 offsite for N≥4)
+- ⏳ **1 NEW LOW** (F-S8PB-FMV-NEW-01 doc fix)
+- ⏳ **1 PENDING Eric physical** (F-MED-03 key escrow USB — carryover)
+
+**Phase B Closure: 100% COMPLETE revisor-contratual scope.**
+
+Stories #10/#8/#9 são **MOSTLY claudino-insights project domain** OR Sprint 9+ scope:
+
+- **Story #10 traefik composite** → DONE de facto (F-HIGH-03 RESOLVED empirical já)
+- **Story #8 DNS subdomains** → DONE de facto (dash + status existem)
+- **Story #9 homepage** → REAL gap MAS **claudino-insights project scope** (apex domain), NÃO revisor-contratual
+
+**Smith adversarial methodology empirical:**
+
+- 9 SSH probes independent (NÃO trust Operator self-report)
+- 6 findings re-validated against current state (post-pause)
+- 1 NEW finding discovered (doc inconsistency)
+- Project boundary corretamente clarified
+
+**Files created Sprint 8 D-SMITH-S08-003:**
+
+- governance/qa/smith-verify-sprint-8-phase-b-final-mini-verify-2026-05-16.md (NEW ~14KB Smith report 6 findings + 1 NEW)
+- governance/CHECKPOINT-active.md (D-SMITH-S08-003 entry)
+- .lmas/handoffs/handoff-devops-to-smith-...-final-mini-verify.yaml (consumed=true)
+
+**Eric Action Items Pos-Sprint 8 Phase B:**
+
+1. **F-HIGH-02 homepage 404** — Eric decide scope: (a) re-scope claudino-insights project deploy landing OR (b) traefik redirect apex→www OR (c) accept 404 state. **NÃO bloqueia revisor-contratual progress.**
+2. **F-MED-03 key escrow USB** — Eric physical action (carryover, pending)
+3. **F-S8PB-FMV-NEW-01 wrong ADR ref** — Sprint 9+ Architect/Operator doc fix (low priority)
+4. **Sprint 9+ planning** — ADR-030 offsite backup (resolves F-HIGH-10) + ADR-033 forwardAuth oauth2-proxy SSO (resolves F-HIGH-06) + ADR-032 Docker Secrets (proposed)
+
+**Próximo Skill recomendação:** Sprint 8 Phase B OFFICIALLY CLOSED. Next session can:
+
+- **Sprint 8 Phase C** — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + ADR-027 narrative
+- **Sprint 9+ planning** — multi-tenant SaaS evolution, ADR-030/033 implementation, Smith full ULTRATHINK re-verify
+- **Claudino-insights project** — F-HIGH-02 homepage scope (separate project context)
