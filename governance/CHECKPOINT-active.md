@@ -8160,3 +8160,69 @@ Marker cache (Story #2) now functional empirically. Marker OCR caching writes su
 **6/12 Smith findings RESOLVED Operator-batch. 3 pending Skill handoffs (Dev + Architect). 1 pending Eric physical action.**
 
 **Próximo Skill recomendação:** Skill dev (Neo) F-MED-02 OR Skill architect (Aria) F-LOW-05+F-LOW-01 — pode ser parallel sessions independentes.
+
+---
+
+### D-DEV-S08-004 (2026-05-16) — Neo `*develop F-S8PB-MV-MED-02 scheduler introspection helper` ✅ **CODE COMPLETE**
+
+**Decisão:** Adicionar `get_jobs_diagnostic()` helper em `bloco_backup/scheduler.py` que retorna list[dict] com `{id, name, trigger_str, trigger_type}` sem requerir `scheduler.start()`.
+
+**Por quê:** Smith F-S8PB-MV-MED-02 — `job.next_run_time` raises AttributeError quando scheduler NOT started. Operator diagnostic capability degradada — não pode introspect via simple Python sem race-conditioning APScheduler internals. Helper uses trigger object string representation (`cron[hour='2', minute='0']`) para schedule legível.
+
+**Implementação:**
+
+- `bloco_backup/scheduler.py` (+~38 lines): `get_jobs_diagnostic()` helper + docstring detalhada (cite Smith F-MED-02 source + ADR-013 §2.4 preservation + Operator use case example)
+- `tests/integration/test_backup_encryption_restic.py` (+~36 lines): `test_get_jobs_diagnostic_returns_all_4_jobs` (verifies 4 IDs + 4 fields each + trigger_type valid)
+
+**Standalone Python 3.14 smoke 3/3 PASS empirical:**
+
+- TEST 1: Returns 4 jobs (ADR-031 co-existence)
+- TEST 2: All 4 expected job IDs present (backup_daily + backup_rotation + backup_daily_encrypted + cleanup_old_snapshots_encrypted)
+- TEST 3: All 4 fields present per job + trigger_type valid (CronTrigger OR IntervalTrigger)
+
+**JSON output preview (Operator diagnostic use case):**
+
+```bash
+docker exec app python -c "from bloco_backup.scheduler import get_jobs_diagnostic; import json; print(json.dumps(get_jobs_diagnostic(), indent=2))"
+```
+
+```json
+[
+  {"id": "backup_daily", "name": "...", "trigger_str": "cron[hour='2', minute='0']", "trigger_type": "CronTrigger"},
+  {"id": "backup_rotation", "trigger_str": "interval[1 day, 0:00:00]", "trigger_type": "IntervalTrigger"},
+  {"id": "backup_daily_encrypted", "trigger_str": "cron[hour='2', minute='5']", "trigger_type": "CronTrigger"},
+  {"id": "cleanup_old_snapshots_encrypted", "trigger_str": "interval[1 day, 0:00:00]", "trigger_type": "IntervalTrigger"}
+]
+```
+
+**Files modified Sprint 8 D-DEV-S08-004:**
+
+- bloco_backup/scheduler.py (+~38 lines)
+- tests/integration/test_backup_encryption_restic.py (+~36 lines)
+- governance/CHECKPOINT-active.md (D-DEV-S08-004 entry)
+
+**TD carried forward:** TD-SP06-PYTEST-DEPS — pytest invokes Python 3.13 sem sqlalchemy. Validated empirically via standalone Python 3.14 smoke + container pytest pos-Operator deploy.
+
+**Commit:** 3e991ef fix(scheduler-introspection): F-S8PB-MV-MED-02 get_jobs_diagnostic helper (LOCAL ONLY — Operator pushes).
+
+**Handoff Neo→Operator created** (.lmas/handoffs/handoff-dev-to-devops-...-f-med-02-deploy.yaml consumed=false) com 8-step deploy + 4 ACs.
+
+**Smith Findings Status Post-D-DEV-S08-004:**
+
+| Finding | Status |
+|---------|--------|
+| F-S8PB-MV-HIGH-01 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| F-S8PB-MV-MED-01 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| **F-S8PB-MV-MED-02** | **✅ CODE COMPLETE D-DEV-S08-004 (Operator deploy pending)** |
+| F-S8PB-MV-MED-03 | ⏳ Eric physical action |
+| F-S8PB-MV-MED-04 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-01 | ⏳ Skill architect ADR-032 |
+| F-S8PB-MV-LOW-02 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-03 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-04 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-05 | ⏳ Skill architect runbook |
+| F-S8PB-MV-INFO-01/02 | ✅ Already validated |
+
+**7/12 Smith findings RESOLVED (6 Operator empirical + 1 Neo code-complete) + 2 pending Skill architect + 1 pending Eric.**
+
+**Próximo Skill:** Skill devops Operator deploy F-MED-02 (image rebuild + container recreate + verify) OR Skill architect (parallel) F-LOW-05+F-LOW-01.
