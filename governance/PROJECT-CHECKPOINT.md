@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-16T14:30"
+last_updated: "2026-05-16T15:15"
 status_executive_2026_05_16: |
   Sprint 7 OFICIALMENTE CLOSED 2026-05-16 (commit a1b93c1 origin/main) — Cenário Y++ DoD Architectural 100% atingido empirically.
   4 phases sequenciais (Phase 1-4) + Smith verify CONTAINED+GREENLIGHT cada + 5 git tags + 3 ADRs + 180x speedup born-digital empirical.
@@ -10,16 +10,14 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 Phase B — Neo Story #11 CODE COMPLETE (D-DEV-S08-003). 9/9 standalone Python 3.14 smoke PASS empirical.
-  ADR-031 restic implementation: Dockerfile +5 lines + scheduler.py +130 lines (2 helpers + 2 jobs co-existence) + 5 tests NEW.
-  4 jobs registered (legacy backup_daily 02:00 + backup_rotation 24h + NEW backup_daily_encrypted 02:05 + cleanup_old_snapshots_encrypted 24h).
-  Co-existence ADR-031 §Migration Plan D+0 → D+30 — Operator removes legacy via follow-up deploy after D+30.
-  Story #11 status: DESIGN done + CODE done (Operator deploy pending para empirical F-HIGH-09 RESOLVED).
-  Production state preserved: SHA 7f96948f4fef + healthy + ollama 11h+ + disk 65%.
-  5/9 Phase B stories DONE em code (4 fully deployed + 1 code-ready pending deploy).
-  Próxima invocação: Skill devops (Operator) Story #11 deploy (scp + docker-compose env + /etc/restic password + image rebuild + restic init + key escrow Eric + smoke verify 12 ACs + pytest container).
+  Sprint 8 Phase B — Story #11 FULLY DEPLOYED (D-OPS-S08-005). F-HIGH-09 EMPIRICALLY RESOLVED ⭐.
+  Cryptographic proof empirical: vault.db plaintext `SQLite format 3\0` ≠ restic pack `033 v 023 223...` opaque AES-256-CTR.
+  12/12 ACs PASS + 5/5 pytest container PASS (0.12s) + restic init repo 62a5a1d70f + first snapshot a9e45e53 (3.4MiB → 90KiB dedup 38x).
+  NEW SHA 778a93feedcc + container healthy restart=0 + ollama-shared 13h+ preserved + disk 81%→74% (post-prune).
+  5/9 Phase B stories FULLY DEPLOYED (#14.5 + #14 + #12 + #13 + #11). 5/11 Smith HIGH RESOLVED EMPIRICAL.
+  Próxima invocação: Skill smith Phase B mini-verify (validar 5 HIGH cumulative empirical antes Phase B stories #10/#8/#9).
   Pending Operator Phase B: #10 traefik composite + #8 DNS subdomains + #9 homepage.
-  Após ALL Phase B done → Smith Phase B mini-verify + ultrathink re-verify (target 95+/100).
+  4 TD captured durante deploy: TD-S08-PB-RESTIC-CACHE-PERMS + TD-S08-PB-KEY-ESCROW-ERIC-PENDING + TD-S08-PB-RUNBOOK-RESTIC-UPDATE + TD-S08-PB-PASSWORD-FILE-UID-MAPPING.
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined
@@ -30,12 +28,13 @@ decisoes_tomadas_2026_05_16: |
   - 180x speedup born-digital empirical demonstrado (985ms vs 180s subprocess)
 
 proximos_passos_2026_05_16: |
-  1. Skill devops (Operator) Story #11 deploy — scp Dockerfile+scheduler+tests + /etc/restic password gen + docker-compose env + image rebuild (Dockerfile restic install +25MB) + container recreate (ollama preserved ADR-026) + restic init dentro container + smoke verify (file opaque + snapshots list + check integrity) + pytest container 5 NEW tests + key escrow Eric encrypted USB + runbook update
-  2. Skill devops Operator Phase B remaining: #10 traefik composite + #8 DNS subdomains + #9 homepage
-  3. Skill smith Phase B mini-verify (após ALL Phase B done) — confirma 11/11 HIGH RESOLVED (F-HIGH-04/05/07/08/09 deployed empirical + F-HIGH-01/02/03/06/10/11 via stories #8/9/10)
+  1. Skill smith Phase B mini-verify — validar 5/11 HIGH cumulative resolved empirical (F-HIGH-04/05/07/08/09) antes prosseguir Phase B stories #10/#8/#9 (cadence conservador anti-debt unverified)
+  2. Skill devops Operator Phase B remaining: #10 traefik composite + #8 DNS subdomains + #9 homepage (#8 + #9 podem precisar Architect collaboration DNS/cockpit subdomain design)
+  3. Skill smith Phase B FINAL mini-verify (após ALL Phase B done) — confirma 11/11 HIGH RESOLVED EMPIRICAL
   4. Skill smith ULTRATHINK re-verify Sprint 8 completo — target score 95+/100
-  5. Sprint 8 Phase C — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + 14 Smith LOWs absorption
-  6. Sprint 9+ planning: ADR-030 offsite backup S3/B2 (leverages ADR-031 restic foundation) + ADR-032 backup integrity validation cron (restic check weekly)
+  5. Sprint 8 Phase C — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + 14 Smith LOWs absorption + legacy backup job retirement (D+30 transitional window close)
+  6. Sprint 9+ planning: ADR-030 offsite backup S3/B2 (leverages ADR-031 restic foundation) + ADR-032 backup integrity validation cron (restic check weekly) + 4 TD captured Story #11 deploy (cache perms + key escrow + runbook update + UID mapping)
+  7. Eric manual action pending: key escrow procedure /etc/restic/password.txt → BitLocker USB → physical separate VPS (TD-S08-PB-KEY-ESCROW-ERIC-PENDING)
   4. Se Smith CONTAINED OR CLEAN → Sprint 8 Story #1 priority HIGH (real CDC PDF fixture)
   5. Production readiness assessment empirical (VPS health, monitoring, SLA, scalability)
 active_story: "🎯 ADVOGADO(A) FULFILLMENT 20/32 ABSORVIDO 2026-05-12: Advogado(a) Orsheva entregou Bloco A Bancário Base + B.1 CCB + B.2 Cartão + B.3 Consignado + C Geral = 20 prompts FINAL (62.5% coverage). Artefato canônico PREENCHIMENTO-ADVOGADO-2026-05-12-FINAL.md. BRIEF v2.0.2 + PRD v2.0.4.1 Changelog atualizados. Súmulas/BACEN/Leis validadas pelo profissional (resolve F-D3-HIGH-01 anchor bias). Sprint 04 PRs #3/#4/#5/#6 já merged 2026-05-08/10. CHECKPOINT shard II aplicado (1607 linhas active). 17/19 Smith findings resolved. PRs OPEN: #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING+CI FAIL). **Próximo Eric decide:** A (Neo dispatch SP04-DOCTYPE-01 chunks 5-6 Bancário+Geral funcionais — backend pronto testes) OR B (Aguardar Blocos D/E/F advogado(a) ~6h) OR C (Sprint 04 features secundárias OCR/PDF/APPROVE/DASH/ADMIN/NOTIFY paralelas) OR D (Resolver PRs OPEN #1+#2)"
