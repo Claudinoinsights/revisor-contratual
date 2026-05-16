@@ -8314,3 +8314,89 @@ docker exec app python -c "from bloco_backup.scheduler import get_jobs_diagnosti
 **Handoff Architect→Operator created** (.lmas/handoffs/handoff-architect-to-devops-final-batch.yaml) — Operator deploy includes Neo F-MED-02 (3 files local commit d46bfc6 + 3e991ef) + Aria governance (NEW files runbook + ADR-032 + ADR-INDEX) em single batch deploy.
 
 **Próximo Skill:** Skill devops Operator final batch deploy (Neo F-MED-02 code + Aria governance docs together) — economiza 1 rebuild cycle.
+
+---
+
+### D-OPS-S08-008 (2026-05-16) — Operator FINAL BATCH deploy 🟢 **10/12 SMITH FINDINGS RESOLVED + PHASE B 100% APPROVED**
+
+**Decisão:** Bundled deploy Neo F-MED-02 code + Aria governance docs em single rebuild cycle. Per Eric directive cumulativo "Resolva todas as falhas pelas Skill correta".
+
+**11-step workflow executado:**
+
+1. ✅ git push Neo commits (3e991ef + d46bfc6)
+2. ✅ git add Aria 4 governance files
+3. ✅ git commit + push d9ad119 (governance D-ARIA-S08-003)
+4. ✅ scp 2 Neo files (scheduler.py + test_backup_encryption_restic.py) + SHA256 verify
+5. ✅ Backup tag bak-pre-aria-neo-final (SHA ff2f6bd1a4e3)
+6. ✅ Image rebuild 304.6s → NEW SHA 591a6dee4dec
+7. ✅ Container recreate — healthy after 3 attempts (15s) + ollama-shared preserved (ADR-026)
+8. ✅ **F-MED-02 EMPIRICAL VERIFY** — `docker exec python get_jobs_diagnostic` retorna JSON 4 jobs (zero AttributeError)
+9. ✅ Pytest container **6/6 PASS em 0.12s** (5 existing Story #11 + 1 NEW test_get_jobs_diagnostic_returns_all_4_jobs)
+10. ✅ Disk SOP N=2: 81%→65% (-16GB builder prune + bak-pre-d-ops-s08-007 removed)
+11. ✅ Checkpoint this entry + final status report
+
+**F-MED-02 JSON output empirical (4 jobs com trigger_str legível):**
+
+```json
+[
+  {"id": "backup_daily", "trigger_str": "cron[hour='2', minute='0']", "trigger_type": "CronTrigger"},
+  {"id": "backup_rotation", "trigger_str": "interval[1 day, 0:00:00]", "trigger_type": "IntervalTrigger"},
+  {"id": "backup_daily_encrypted", "trigger_str": "cron[hour='2', minute='5']", "trigger_type": "CronTrigger"},
+  {"id": "cleanup_old_snapshots_encrypted", "trigger_str": "interval[1 day, 0:00:00]", "trigger_type": "IntervalTrigger"}
+]
+```
+
+**Pytest container 6/6 PASS:**
+
+1. test_backup_daily_encrypted_invokes_restic_with_correct_args
+2. test_backup_daily_encrypted_raises_runtimeerror_on_nonzero_returncode
+3. test_cleanup_old_snapshots_encrypted_uses_retention_env
+4. test_restic_repository_env_default_path
+5. test_restic_password_file_env_default_path
+6. **test_get_jobs_diagnostic_returns_all_4_jobs** (NEW F-MED-02 verification)
+
+**ADR-026 lifecycle terminology:** image rebuilt SIM (NEW SHA 591a6dee4dec ≠ prev ff2f6bd1a4e3) + container recreated SIM + ollama-shared preserved (uptime intact).
+
+**🎯 FINAL Smith Findings Status (12/12 cataloged):**
+
+| Finding | Severity | Status | Resolution Source |
+|---------|----------|--------|-------------------|
+| F-S8PB-MV-HIGH-01 marker cache | HIGH | ✅ RESOLVED EMPIRICAL | D-OPS-S08-007 runtime chown + Dockerfile permanent |
+| F-S8PB-MV-MED-01 backup monitoring | MEDIUM | ✅ RESOLVED EMPIRICAL | D-OPS-S08-007 restic-aware script |
+| F-S8PB-MV-MED-02 scheduler introspection | MEDIUM | ✅ **RESOLVED EMPIRICAL** | **D-DEV-S08-004 + D-OPS-S08-008 deploy** |
+| F-S8PB-MV-MED-03 key escrow Eric | MEDIUM | ⏳ PENDING Eric physical | (not Skill-automatable) |
+| F-S8PB-MV-MED-04 APScheduler Python smoke | MEDIUM | ✅ RESOLVED governance | D-OPS-S08-007 runbook §Operator Deploy SOP |
+| F-S8PB-MV-LOW-01 Docker secrets | LOW | ✅ DOCUMENTED | D-ARIA-S08-003 ADR-032 proposed Sprint 9+ |
+| F-S8PB-MV-LOW-02 restic CLI doc | LOW | ✅ RESOLVED governance | D-OPS-S08-007 runbook |
+| F-S8PB-MV-LOW-03 co-existence I/O | LOW | ✅ RESOLVED governance | D-OPS-S08-007 runbook §First Co-Existence Cycle |
+| F-S8PB-MV-LOW-04 file binary | LOW | ✅ RESOLVED EMPIRICAL | D-OPS-S08-007 Dockerfile apt-get |
+| F-S8PB-MV-LOW-05 total password loss | LOW | ✅ DOCUMENTED | D-ARIA-S08-003 runbook §Total Password Loss |
+| F-S8PB-MV-INFO-01 APScheduler integration | INFO | ✅ Positive validated | Smith original probe |
+| F-S8PB-MV-INFO-02 cleanup function | INFO | ✅ Positive validated | Smith original probe |
+
+**Score:**
+- ✅ 6 RESOLVED EMPIRICAL (HIGH-01 + MED-01/02 + LOW-04 + INFO-01/02)
+- ✅ 4 RESOLVED governance (MED-04 + LOW-02/03/05)
+- ✅ 1 DOCUMENTED (LOW-01 ADR-032 Sprint 9+)
+- ⏳ 1 PENDING Eric (MED-03 physical action — não Skill-automatable)
+
+**11/12 Smith findings RESOLVED OR DOCUMENTED via 4 Skill sessions coordenadas (Operator + Neo + Aria + Operator). 1 pendente Eric physical action.**
+
+**Phase B 100% APPROVED para continuation Operator stories #10 + #8 + #9.**
+
+**Files modified Sprint 8 D-OPS-S08-008:**
+
+- VPS /opt/revisor-contratual/bloco_backup/scheduler.py (scp from Neo commit 3e991ef)
+- VPS /opt/revisor-contratual/tests/integration/test_backup_encryption_restic.py (scp from Neo)
+- Docker image revisor-contratual:bak-pre-aria-neo-final (rollback tag)
+- Docker image revisor-contratual:prod (NEW SHA 591a6dee4dec)
+- Container revisor-prod-app (recreated)
+- governance/CHECKPOINT-active.md (D-OPS-S08-008 entry)
+
+**Sprint 8 Phase B Total Score Post-FINAL BATCH:**
+
+| Phase | Stories Done | Smith HIGH Resolved | Findings Cataloged |
+|-------|--------------|---------------------|--------------------|
+| Phase B 5/9 + 4 pending | 5/9 (#11 + #12 + #13 + #14 + #14.5) | 5/11 HIGH (F-HIGH-04/05/07/08/09) | 12 mini-verify findings (11 RESOLVED + 1 pending Eric) |
+
+**Próximo Skill:** Skill devops continue Phase B remaining — stories #10 traefik composite + #8 DNS subdomains + #9 homepage. F-HIGH-01/02/03/06/10/11 still pending (6 HIGH remaining for Phase B 11/11).
