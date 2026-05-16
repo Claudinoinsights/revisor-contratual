@@ -8079,3 +8079,84 @@ Sprint 8 Phase B = 5/9 stories FULLY DEPLOYED EMPIRICAL:
 **5/11 Smith HIGH RESOLVED + 🟢 SMITH MINI-VERIFY CONTAINED+GREENLIGHT + 12 findings cataloged.**
 
 **Próximo Skill recomendação:** Skill devops (Operator) Phase B remaining stories #10/#8/#9 — F-S8PB-MV-HIGH-01 marker cache fix paralelo.
+
+---
+
+### D-OPS-S08-007 (2026-05-16) — Operator post-Smith TD batch — 6 findings RESOLVED EMPIRICAL 🟢 **PHASE A UNBLOCKED**
+
+**Decisão:** Resolver 6/9 Smith findings (Operator-domain) em batch único pré-Phase B continuation. Per Eric: "Resolva todas as falhas pelas Skill correta — NÃO avançar Phase B com Phase A quebrada".
+
+**Por quê:** F-S8PB-MV-HIGH-01 marker cache era Phase A regression bloqueador. Fix imediato (runtime chown) + Dockerfile permanent + 5 outros Operator-domain findings batched em deploy único.
+
+**6 findings RESOLVED EMPIRICAL:**
+
+| Finding | Severity | Fix | Empirical Verification |
+|---------|----------|-----|------------------------|
+| F-S8PB-MV-HIGH-01 | HIGH | Runtime chown + Dockerfile mkdir+chown /home/revisor/.cache/marker | ✅ touch as revisor user → WRITE_OK (was Permission denied) |
+| F-S8PB-MV-LOW-04 | LOW | Dockerfile apt-get install file (~50KB) | ✅ /usr/bin/file present + file-5.44 version |
+| F-S8PB-MV-MED-01 | MEDIUM | revisor-backup-check.sh restic-aware (Layer 1 legacy + Layer 2 encrypted + graceful D+30 handling) | ✅ Exit 0 + journald `backup_ok_both legacy=14h restic=0h count=2` |
+| F-S8PB-MV-LOW-02 | LOW | Runbook documents correct CLI: `restic version` (not `restic --version`) | ✅ Runbook §Operator Deploy SOP includes correct usage |
+| F-S8PB-MV-MED-04 | MEDIUM | Runbook §Operator Deploy SOP — mandatory 3-step Python smoke (CLI + APScheduler subprocess + tag verify) | ✅ Runbook section added |
+| F-S8PB-MV-LOW-03 | LOW | Runbook §First Co-Existence Cycle Monitoring — 4-step verification + mitigation options (offset OR sequence) | ✅ Runbook section added |
+
+**Deploy workflow executado:**
+
+1. Runtime fix marker cache: docker exec --user root chown -R revisor:revisor /home/revisor/.cache/marker
+2. Dockerfile updates committed: mkdir marker + file binary install
+3. revisor-backup-check.sh rewritten (Layer 1+2 architecture) + scp VPS + chmod 755
+4. Runbook 3 NEW sections added
+5. Bug fix em backup-check.sh: timezone parse via python3 fromisoformat (was sed strip Z causing -2h shift)
+6. Backup tag bak-pre-d-ops-s08-007 (SHA 6c4eb78cf2d3)
+7. Image rebuild NEW SHA ff2f6bd1a4e3 (295s build)
+8. Container recreate — healthy after 3 attempts (15s startup) + ollama-shared preserved (ADR-026)
+9. Empirical verify 4/4 fixes pass + backup-check script working
+10. Disk cleanup: builder prune 10GB + bak-pre-td-cache removed → 81%→65%
+
+**ADR-026 lifecycle terminology atingido:**
+
+- ✅ image rebuilt SIM (295s, NEW SHA ff2f6bd1a4e3)
+- ✅ container recreated SIM (15s startup → healthy)
+- ✅ ollama-shared preserved (uptime 14h+ intact)
+
+**Files modified Sprint 8 D-OPS-S08-007:**
+
+- Dockerfile (+9 lines: marker mkdir + file binary + F-S8PB-MV-HIGH-01 explanation comment)
+- governance/runbook-backup-restore.md (+77 lines: 3 new sections — Operator Deploy SOP + First Co-Existence Cycle Monitoring + correct restic CLI usage)
+- VPS /usr/local/bin/revisor-backup-check.sh (REWRITTEN — Layer 1 legacy + Layer 2 restic-aware + python3 timezone parse fix)
+- VPS /opt/revisor-contratual/Dockerfile (synced from local)
+- VPS /home/revisor/.cache/marker/ (runtime chown revisor:revisor)
+- Docker image revisor-contratual:bak-pre-d-ops-s08-007 (rollback tag)
+- Docker image revisor-contratual:prod (NEW SHA ff2f6bd1a4e3)
+- governance/CHECKPOINT-active.md (D-OPS-S08-007 entry)
+
+**Phase A Status: ✅ RESTORED**
+
+Marker cache (Story #2) now functional empirically. Marker OCR caching writes succeed as revisor user. Sprint 7 ADR-026 subprocess isolation value fully realized agora.
+
+**3 Pending Skill Handoffs Created (parallel processing):**
+
+| Handoff | Target Skill | Findings | File |
+|---------|--------------|----------|------|
+| Operator→Neo | Skill dev | F-S8PB-MV-MED-02 scheduler introspection helper | `handoff-devops-to-dev-2026-05-16-sprint-8-phase-b-post-smith-scheduler-introspection.yaml` |
+| Operator→Architect | Skill architect | F-S8PB-MV-LOW-05 disaster recovery doc + F-S8PB-MV-LOW-01 ADR-032 candidate Sprint 9+ | `handoff-devops-to-architect-2026-05-16-sprint-8-phase-b-post-smith-runbook-adr032.yaml` |
+| Eric | Physical action | F-S8PB-MV-MED-03 key escrow USB encryption | (documented runbook §Key Escrow) |
+
+**Smith Findings Status Post-D-OPS-S08-007:**
+
+| Finding | Status |
+|---------|--------|
+| F-S8PB-MV-HIGH-01 marker cache | ✅ RESOLVED EMPIRICAL |
+| F-S8PB-MV-MED-01 backup monitoring restic-aware | ✅ RESOLVED EMPIRICAL |
+| F-S8PB-MV-MED-02 scheduler introspection | ⏳ Skill dev next |
+| F-S8PB-MV-MED-03 key escrow Eric | ⏳ Eric physical action |
+| F-S8PB-MV-MED-04 Python smoke SOP | ✅ RESOLVED (governance) |
+| F-S8PB-MV-LOW-01 SECRET_KEY env | ⏳ Skill architect ADR-032 |
+| F-S8PB-MV-LOW-02 restic CLI doc | ✅ RESOLVED (governance) |
+| F-S8PB-MV-LOW-03 co-existence monitoring | ✅ RESOLVED (governance) |
+| F-S8PB-MV-LOW-04 file binary | ✅ RESOLVED EMPIRICAL |
+| F-S8PB-MV-LOW-05 total password loss doc | ⏳ Skill architect runbook |
+| F-S8PB-MV-INFO-01/02 | ✅ Already validated (positive) |
+
+**6/12 Smith findings RESOLVED Operator-batch. 3 pending Skill handoffs (Dev + Architect). 1 pending Eric physical action.**
+
+**Próximo Skill recomendação:** Skill dev (Neo) F-MED-02 OR Skill architect (Aria) F-LOW-05+F-LOW-01 — pode ser parallel sessions independentes.
