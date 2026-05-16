@@ -6635,3 +6635,80 @@ Sprint 8 OFICIALMENTE CLOSED quando ALL atendidos:
 **Cenário Y++ DoD Final 100%** = architectural (Sprint 7 ✅) + business validation real-world (Sprint 8 Story #1) + production readiness completo (Sprint 8 Phases A+B).
 
 **Próximo:** Eric directive — execution order A1/A2/A3 + Phase A start.
+
+### D-OPS-S07-007 (2026-05-16) — Operator Phase A execução iniciada — Stories #0 + #2 ✅ DONE
+
+**Trigger:** Eric directive Option A3 (Hybrid Smith preference) — Phase A parallel execution.
+
+**Verdict:** Phase A 2/6 stories COMPLETE em ~10min cumulative actual:
+
+#### Story #0 — Disk Cleanup ✅ DONE (~5min actual)
+
+**F-CRIT-01 disk 94% RESOLVED:**
+
+```text
+PRE-CLEANUP:  91G/97G used = 94% (6.7G remaining)
+POST-CLEANUP: 71G/97G used = 73% (27G remaining) [+20GB freed]
+```
+
+**Actions executed:**
+
+- `sudo docker builder prune -af` → reclaimed **27.92GB** build cache
+- `sudo journalctl --vacuum-time=7d` → 0B freed (already clean)
+
+**Conservative approach:** NÃO usei `docker image prune -a` (preservou backup tags `bak-pre-phase-3` + `bak-pre-phase-4` per Smith F-HIGH-10 absorption antecipada).
+
+**Acceptance:** ≥80% buffer atingido com folga (73% << 80%). Sprint 8 Story #0 ✅.
+
+#### Story #2 — Marker Cache Volume Mount ✅ DONE (~10min actual)
+
+**F-CRIT-04 marker cache vazio RESOLVED (architecturally):**
+
+**Actions executed:**
+
+1. Backup `docker-compose.prod.yml.bak-pre-sprint-8-{ts}` ✅
+2. Tag image `revisor-contratual:bak-pre-sprint-8` (sha256:55e96a3c29d4) ✅ (preempts F-HIGH-10)
+3. sed insert `marker-cache:/home/revisor/.cache/marker` em app service volumes ✅
+4. sed insert `marker-cache: name: revisor-prod_marker-cache` em volumes section ✅
+5. `docker compose -p revisor-prod -f docker-compose.prod.yml config` validation PASS ✅
+6. `docker compose -p revisor-prod -f docker-compose.prod.yml up -d app` recreate ✅
+
+**Container lifecycle (terminology precisa per ADR-026):**
+
+- image preserved: `sha256:55e96a3c29d4` (Phase 4)
+- container recreated: SIM (RestartCount=0 reset, StartedAt new 2026-05-16T05:31:36Z)
+- volume `revisor-prod_marker-cache` CREATED (empty, ~3.3GB will populate em first scanned PDF)
+- ollama-shared preserved: `revisor-prod-ollama-shared` Up healthy (unchanged)
+
+**Acceptance:** Volume mount funciona empirically. Próximo scanned PDF (Story #1 Sprint 8 Phase C real CDC PDF) populates cache. Subsequent scanned PDFs warm cache <30s vs ~5min cold start atual.
+
+**Image backup tags now:**
+
+| TAG | SHA256 | Purpose |
+|-----|--------|---------|
+| `prod` | `55e96a3c29d4` | Active production (Sprint 7 Phase 4 final) |
+| `bak-pre-sprint-8` | `55e96a3c29d4` | Sprint 8 baseline (NEW) |
+| `bak-pre-phase-4` | `f830797a3143` | Sprint 7 Phase 4 baseline |
+| `bak-pre-phase-3` | `72f4122307dc` | Sprint 7 Phase 3 baseline |
+
+**Phase A Stories Progress:**
+
+| Story | Status | Actual | Owner |
+|-------|--------|--------|-------|
+| #0 disk cleanup | ✅ DONE | 5min | @devops Operator |
+| #1.5 tempfile audit pipeline.py | ⏳ PENDING handoff Neo | TBD | @dev Neo (Skill required) |
+| #1.6 /docs disable produção | ⏳ PENDING handoff Neo | TBD | @dev Neo (Skill required) |
+| #2 marker cache volume mount | ✅ DONE | 10min | @devops Operator |
+| #2.5 README rewrite v0.2.10.0 SaaS | ⏳ PENDING handoff Architect collab | TBD | @devops + @architect (Skill required) |
+| #7 backup automation explicit | ⏳ PENDING handoff Architect ADR | TBD | @devops + @architect (Skill required) |
+
+**Phase A 2/6 stories DONE. Remaining 4 stories require Neo (Skill dev) + Architect (Skill architect) handoffs paralelos per A3 hybrid pattern.**
+
+**Files:**
+
+- VPS: `/opt/revisor-contratual/docker-compose.prod.yml` (NEW marker-cache volume) + backup `.bak-pre-sprint-8-{ts}`
+- VPS: image tag `revisor-contratual:bak-pre-sprint-8` (NEW)
+- VPS: volume `revisor-prod_marker-cache` (CREATED, empty)
+- governance/CHECKPOINT-active.md (D-OPS-S07-007 entry)
+
+**Próximo:** Eric directive — invocar Skill dev (Neo Stories #1.5 + #1.6 paralelas) OR Skill architect (Aria Stories #2.5 + #7 paralelas) primeiro? Recomendação Operator: invocar Skill dev primeiro (Stories #1.5 tempfile + #1.6 /docs disable são CRITICAL LGPD §16 + security exposure ongoing).
