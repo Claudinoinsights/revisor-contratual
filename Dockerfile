@@ -29,6 +29,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # Backup encryption (ADR-031 Sprint 8 Phase B Story #11 — Smith F-HIGH-09)
     # restic AES-256-CTR + Poly1305 MAC + scrypt KDF — defense-in-depth LGPD §46/§11
     restic \
+    # Diagnostic tool (Smith F-S8PB-MV-LOW-04 resolution): file binary
+    # Enables ad-hoc file format identification during incident response
+    file \
     # Build deps (compile native wheels)
     gcc \
     g++ \
@@ -60,11 +63,17 @@ COPY scripts/ ./scripts/
 RUN useradd -m -u 1000 revisor && \
     mkdir -p /home/revisor/.local/share/revisor-contratual && \
     mkdir -p /home/revisor/.cache/restic && \
+    mkdir -p /home/revisor/.cache/marker && \
     chown -R revisor:revisor /app /home/revisor
 
 # TD-S08-PB-RESTIC-CACHE-PERMS resolution: pre-create restic cache dir owned revisor.
 # Without this, restic logs "unable to open cache: mkdir /home/revisor/.cache/restic: permission denied"
 # every backup run. Cache is optional but eliminating warning improves observability hygiene.
+#
+# F-S8PB-MV-HIGH-01 resolution: pre-create marker cache dir owned revisor.
+# Volume mount marker-cache previously inherited root:root (volume default), silently failing
+# marker OCR caching writes from revisor user. Dockerfile mkdir alone insufficient when volume mounts
+# — runtime chown of marker-cache volume also needed (one-time, per-host). Documented runbook.
 
 # F-PROD-NEW-21 Option D fix (Smith D-SMITH-S06-038 root cause):
 # surya-ocr (dep marker-pdf 1.10.2) settings.py:31 tenta mkdir/write em

@@ -145,6 +145,83 @@ docker exec revisor-prod-app sh -c 'find /home/revisor/.local/share/revisor-cont
 # Expected: opaque bytes like '033 v 023 223 214 375...'  (NOT SQLite, NOT readable)
 ```
 
+### 🔧 Operator Deploy SOP — Post-Deploy Validation (F-S8PB-MV-MED-04)
+
+**Sprint 8 Phase B Smith finding:** Operator Story #11 deploy testou restic via CLI directly (`restic backup`) MAS NÃO testou the APScheduler subprocess invocation pattern that runs em produção. Lucky no bugs, mas próximo deploy DEVE include Python-path smoke obrigatório.
+
+**Mandatory post-deploy validation steps (add to deploy SOP):**
+
+```bash
+# Step N.1: Verify restic CLI works direct (Operator-side)
+docker exec revisor-prod-app restic version
+# Expected: restic X.Y.Z compiled with go1.XX on linux/amd64
+# (Note: restic uses 'version' subcommand, NOT '--version' flag — Smith F-S8PB-MV-LOW-02)
+
+# Step N.2: Verify APScheduler subprocess invocation pattern via Python
+docker exec revisor-prod-app python -c "from bloco_backup.scheduler import backup_daily_encrypted; backup_daily_encrypted(); print('PYTHON_SUBPROCESS_OK')"
+# Expected: PYTHON_SUBPROCESS_OK
+# This proves the EXACT path APScheduler will use at 02:05 UTC daily
+
+# Step N.3: Verify new snapshot created with tag 'daily' (not 'manual-smoke')
+docker exec revisor-prod-app restic -r $RESTIC_REPOSITORY -p $RESTIC_PASSWORD_FILE snapshots --json | python3 -c 'import json,sys; d=json.load(sys.stdin); latest=sorted(d, key=lambda x: x["time"])[-1]; print(f"Latest tag: {latest.get(\"tags\")}")'
+# Expected: Latest tag: ['daily']
+```
+
+**Why this matters:** APScheduler subprocess.run() pattern depends on env var resolution + cmd construction + restic process spawn. Direct CLI test (`restic backup ...`) does NOT exercise the same code path. Future deploys MUST run all 3 steps to declare deploy SUCCESS.
+
+---
+
+### 🔍 First Co-Existence Cycle Monitoring (F-S8PB-MV-LOW-03)
+
+**Sprint 8 Phase B Smith finding:** Legacy `backup_daily` (02:00 UTC) + new `backup_daily_encrypted` (02:05 UTC) execute com apenas **5 minutos de separação**. If legacy backup takes >5min OR holds file locks on vault.db, encrypted backup might encounter I/O contention.
+
+**First-cycle monitoring (Operator action — day after Story #11 deploy):**
+
+```bash
+# Morning after deploy (e.g., 2026-05-17 ~10:00 UTC), verify both jobs executed:
+
+# Step 1: List restic snapshots — expect new entry tagged 'daily' from 02:05
+docker exec revisor-prod-app restic -r $RESTIC_REPOSITORY -p $RESTIC_PASSWORD_FILE snapshots
+
+# Step 2: Verify legacy backup directory has new YYYY-MM-DD entry
+ls -la /var/lib/docker/volumes/revisor-prod_revisor-data/_data/backups/
+
+# Step 3: Check journald for errors during 02:00-02:10 UTC window
+journalctl --since 'yesterday 02:00' --until 'yesterday 02:15' | grep -iE 'revisor|backup|restic|error'
+
+# Step 4: Verify file integrity post-cycle
+docker exec revisor-prod-app restic -r $RESTIC_REPOSITORY -p $RESTIC_PASSWORD_FILE check
+```
+
+**Acceptable outcomes:**
+
+- ✅ Both snapshots present + journald clean → **OK** — co-existence works, no I/O contention
+- ⚠️ Both present but journald shows SQLite lock warnings → **CONTAINED** — works but log noise, consider increasing offset to 02:15 UTC (Sprint 9+)
+- 🔴 ONE missing OR journald shows errors → **INVESTIGATE** — increase offset OR sequence-by-dependency (encrypted waits legacy completion)
+
+**Mitigation if I/O contention detected (Sprint 9+):**
+
+Update `bloco_backup/scheduler.py` cron offset:
+
+```python
+# From:
+scheduler.add_job(backup_daily_encrypted, trigger=CronTrigger(hour=2, minute=5), ...)
+# To:
+scheduler.add_job(backup_daily_encrypted, trigger=CronTrigger(hour=2, minute=15), ...)
+```
+
+OR explicit dependency:
+
+```python
+# Wait for legacy backup_daily completion before triggering encrypted
+def backup_chain():
+    backup_daily()
+    backup_daily_encrypted()  # serialized
+scheduler.add_job(backup_chain, trigger=CronTrigger(hour=2, minute=0), id='backup_chain')
+```
+
+---
+
 ### Verify Integrity (weekly health check recommended)
 
 ```bash
