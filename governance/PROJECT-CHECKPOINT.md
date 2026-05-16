@@ -10,10 +10,11 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Eric directive: Smith ultrathink na aplicação por completo — adversarial deep review aplicação real-world end-to-end + hardware funcional.
-  Goal: 100/100 score até aqui + identificar TODOS os erros/problemas que podem fazer usuário real não funcionar.
-  Phase: pós Sprint 7 closure pre-Sprint 8 start — gate completo production readiness.
-  Smith escopo expected: 12 dimensões (UX real, hardware VPS, code quality, LGPD, security, performance, monitoring, docs, production readiness).
+  Sprint 8 v2.0 EXPANDED em execução — Phase A Hybrid A3 (Smith preference).
+  Operator Phase A 2/6 stories DONE (Story #0 disk 94→73% + Story #2 marker cache volume).
+  Pending Phase A: Story #1.5 + #1.6 (Skill dev Neo CRITICAL code) + Story #2.5 + #7 (Skill architect Aria CRITICAL design).
+  Eric directive: "Ambas paralelas (manual coordination)" + "continue sempre pela skill correta".
+  Próxima Skill invocation: Skill dev (Neo) primeiro (Stories #1.5 LGPD tempfile + #1.6 /docs disable são CRITICAL ongoing).
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined

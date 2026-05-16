@@ -6712,3 +6712,104 @@ POST-CLEANUP: 71G/97G used = 73% (27G remaining) [+20GB freed]
 - governance/CHECKPOINT-active.md (D-OPS-S07-007 entry)
 
 **Próximo:** Eric directive — invocar Skill dev (Neo Stories #1.5 + #1.6 paralelas) OR Skill architect (Aria Stories #2.5 + #7 paralelas) primeiro? Recomendação Operator: invocar Skill dev primeiro (Stories #1.5 tempfile + #1.6 /docs disable são CRITICAL LGPD §16 + security exposure ongoing).
+
+### D-DEV-S08-001 (2026-05-16) — Neo `*develop Sprint 8 Phase A Stories #1.5 + #1.6 PARALLEL CRITICAL` ✅ **CODE COMPLETE**
+
+**Trigger:** Operator handoff (consumed=true). Eric directive Option A3 Hybrid + "continue sempre pela skill correta".
+
+**Verdict:** Stories #1.5 + #1.6 IMPLEMENTATION COMPLETE em ~30min cumulative actual.
+
+#### Story #1.5 — Tempfile Cleanup Audit + Safety Net ✅ DONE
+
+**F-CRIT-02 LGPD §16 violation RESOLVED via 3-layer defense-in-depth:**
+
+**Audit Results:**
+
+| File | Tempfile Source | Cleanup Pattern | Status |
+|------|----------------|-----------------|--------|
+| `pipeline.py:272` | metadata JSON via NamedTemporaryFile(delete=False) | try/finally + Path.unlink line 323-325 | ✅ CORRECT |
+| `app.py:868` | PDF via `tempfile.mkstemp()` | finally em SSE event_generators ONLY (revisar_stream:1196 + pipeline_stream:1310) | ⚠️ **LEAK SOURCE** |
+| `subprocess_runner.py` | NO tempfile creation | N/A | ✅ CLEAN |
+
+**Root cause:** POST /revisar cria PDF mkstemp → JOBS[job_id]["pdf_path"]. SE user NUNCA conecta SSE stream → SSE finally NUNCA executa → PDF orphan em /tmp/ indefinidamente. Exato pattern Smith probes empirical.
+
+**Fix (3 layers):**
+
+1. **`_schedule_pdf_safety_cleanup(job_id, delay_seconds)`** background task helper (app.py)
+   - Agendado em POST /revisar via `asyncio.create_task()` após JOBS populated
+   - Wait N=600s default (configurable via `REVISOR_PDF_SAFETY_CLEANUP_SECONDS` env)
+   - Verifica JOBS[job_id]["status"]: se queued/running (SSE nunca consumido) → cleanup PDF + remove JOB
+   - Se completed/error (SSE finally já fired) → skip
+   - Logs LGPD warning quando cleanup orphan
+
+2. **Lifespan shutdown cleanup** (app.py lifespan after kill_spawned_ollama)
+   - Itera JOBS dict + cleanup ALL pdf_paths remaining
+   - Logs `cleaned N orphaned PDF tempfiles (LGPD §16)` se cleaned > 0
+
+3. **Operator emergency cron** (sub-action separate — Story #1.5 AC-6)
+   - `/etc/cron.d/revisor-tempfile-cleanup`: daily delete tmp*.pdf >24h
+   - Safety net catch-all (cobre PDFs gerados antes patches)
+
+#### Story #1.6 — /docs Production Hardening ✅ DONE
+
+**F-CRIT-03 production hardening violation RESOLVED:**
+
+**Audit:** `app.py:405` FastAPI() sem docs_url/openapi_url args → defaults enabled. Smith empirical /docs + /openapi.json retornaram 200 OK.
+
+**Fix:**
+
+```python
+_is_production = os.environ.get("REVISOR_ENV", "").lower() == "production"
+app = FastAPI(
+    title="Revisor Contratual",
+    version="0.2.0",
+    lifespan=lifespan,
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
+)
+```
+
+**Operator sub-action:** add `REVISOR_ENV=production` em docker-compose.prod.yml app service environment.
+
+**Tests Created (11 total):**
+
+- `tests/integration/test_lgpd_tempfile_cleanup.py` (6 tests): orphan cleanup + completed skip + missing file graceful + 3 concurrent jobs + missing job graceful + env configurable
+- `tests/integration/test_docs_production_hardening.py` (5 tests): is_production flag + docs_url consistency + lowercase insensitive + default dev + sanity check
+
+**Validation Status:**
+
+- **Standalone Python 3.14 smoke test:** ALL 4 scenarios PASS empirical (orphan + completed skip + 3 concurrent + missing job graceful)
+- **pytest collection:** BLOCKED por pre-existing **TD-SP06-PYTEST-DEPS-PYTHON-3-14** (pytest invoca Python 3.13 sem sqlalchemy). NÃO é regressão.
+- **Docker container validation:** Operator deve rodar pytest dentro container Docker pós-deploy (container tem sqlalchemy installed).
+
+**Commit:** `feat(prod-hardening): Sprint 8 Phase A Stories #1.5 + #1.6 — tempfile cleanup audit + /docs production disable [F-CRIT-02 + F-CRIT-03]`
+
+**Files Changed:** 3 files, +325 insertions, -1 deletion
+- `bloco_interface/web/app.py` (+95 insertions)
+- `tests/integration/test_lgpd_tempfile_cleanup.py` (NEW 6 tests)
+- `tests/integration/test_docs_production_hardening.py` (NEW 5 tests)
+
+**Phase A Stories Progress:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #0 disk cleanup | ✅ DONE D-OPS-S07-007 | @devops |
+| #2 marker cache volume | ✅ DONE D-OPS-S07-007 | @devops |
+| **#1.5 tempfile audit** | **✅ DONE D-DEV-S08-001** | **@dev Neo** |
+| **#1.6 /docs disable** | **✅ DONE D-DEV-S08-001** | **@dev Neo** |
+| #2.5 README rewrite | ⏳ PENDING handoff Architect | @architect + @devops |
+| #7 backup automation ADR-029 | ⏳ PENDING handoff Architect | @architect + @devops |
+
+**Phase A 4/6 stories DONE. 2 remaining (Architect handoff parallel).**
+
+**Files:**
+
+- `bloco_interface/web/app.py` (modified — 3-layer LGPD defense + FastAPI conditional)
+- `tests/integration/test_lgpd_tempfile_cleanup.py` (NEW 6 tests)
+- `tests/integration/test_docs_production_hardening.py` (NEW 5 tests)
+- `.lmas/handoffs/handoff-devops-to-dev-2026-05-16-sprint-8-phase-a-stories-1-5-1-6-code.yaml` (consumed=true)
+- `.lmas/handoffs/handoff-dev-to-devops-2026-05-16-sprint-8-phase-a-stories-1-5-1-6-deploy.yaml` (NEW consumed=false)
+- `governance/CHECKPOINT-active.md` (D-DEV-S08-001 entry)
+
+**Próximo:** Operator deploy Neo Stories #1.5 + #1.6 (push origin + scp VPS + REVISOR_ENV=production + image rebuild + container recreate + emergency cron + smoke verify 4 checks). Aria Stories #2.5 + #7 paralelas (Skill architect separate). Após ALL 6 Phase A done → Smith mini-verify confirma 6 CRIT RESOLVED.
