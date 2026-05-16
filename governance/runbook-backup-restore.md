@@ -7,6 +7,7 @@ owner: "@devops (Operator)"
 audience: "Operator (incident response) + Eric (executive overview)"
 related:
   - "ADR-029 governance/architecture/adr/adr-029-backup-strategy.md"
+  - "ADR-031 governance/architecture/adr/adr-031-backup-encryption.md (Sprint 8 Phase B Story #11 — restic encryption layer)"
   - "ADR-013 §2.4 (original APScheduler decision)"
 tags:
   - project/revisor-contratual
@@ -14,6 +15,8 @@ tags:
   - disaster-recovery
   - backup
   - sprint-8
+  - encryption
+  - lgpd-compliance
 ---
 
 # Runbook — Backup & Restore Procedure
@@ -82,6 +85,181 @@ backups/{YYYY-MM-DD}/*   -rw------- revisor:revisor  (600)
 ```
 
 Apenas `revisor` user dentro container pode ler. Volume mount preserva permissions em host.
+
+---
+
+## 🔐 Encrypted Backup Layer (ADR-031 — Sprint 8 Phase B Story #11)
+
+> **Sprint 8 Phase B addition:** Sobre o backup mecânico legacy (cp-based), uma camada de **encryption at-rest** foi adicionada via **restic** (AES-256-CTR + Poly1305 MAC + scrypt KDF). Resolve Smith F-HIGH-09 e implementa LGPD §46/§11 defense-in-depth.
+
+### Co-existence Architecture (D+0 → D+30 Migration Window)
+
+Durante 30-day transition (deploy D-OPS-S08-005 em 2026-05-16):
+
+| Job | Schedule | Type | Status |
+|-----|----------|------|--------|
+| `backup_daily` | 02:00 UTC daily | Legacy cp-based (plaintext) | Active during transition |
+| `backup_rotation` | 24h interval | Legacy rotation | Active during transition |
+| `backup_daily_encrypted` | **02:05 UTC daily** (+5min I/O offset) | **NEW restic AES-256-CTR** | Active primary |
+| `cleanup_old_snapshots_encrypted` | 24h interval | NEW restic forget+prune | Active primary |
+
+**Após D+30 (cerca de 2026-06-15):** Operator follow-up deploy removerá legacy jobs (`backup_daily` + `backup_rotation`) — restic vira única source of truth.
+
+### Cryptographic Guarantees
+
+| Property | Algorithm | Bits |
+|----------|-----------|------|
+| Symmetric encryption | AES-256-CTR | 256 |
+| Authenticated encryption (MAC) | Poly1305 | 128 (one-time auth) |
+| Key derivation | scrypt | N=2^17, r=8, p=1 (~1s CPU) |
+| Content hashing | SHA-256 (dedup) | 256 |
+| Per-snapshot encryption | Yes (master key derivation per repo password) | — |
+
+**Audited externally:** Filippo Valsorda (Apple/Cloudflare cryptography reviewer) — 2018 audit.
+
+### Verify Encrypted Backup State
+
+```bash
+# Container interactive
+docker exec -it revisor-prod-app sh
+
+# Dentro container — list snapshots
+restic -r $RESTIC_REPOSITORY -p $RESTIC_PASSWORD_FILE snapshots
+
+# Esperado:
+# ID        Time                 Host          Tags          Paths
+# --------------------------------------------------------------------
+# a9e45e53  2026-05-16 14:58:55  revisor-prod  manual-smoke  /home/revisor/.local/share/.../audit.jsonl
+#                                                            /home/revisor/.local/share/.../vault.db
+```
+
+### Verify Cryptographic Opacity (anti-leak proof)
+
+```bash
+# Plaintext vault.db (legacy backup OR active runtime) shows SQLite magic bytes
+docker exec revisor-prod-app head -c 16 /home/revisor/.local/share/revisor-contratual/vault.db | od -c | head -2
+# Expected: SQLite format 3\0
+
+# Encrypted restic pack file shows OPAQUE BINARY (zero plaintext signature)
+docker exec revisor-prod-app sh -c 'find /home/revisor/.local/share/revisor-contratual/restic-repo/data -type f | head -1 | xargs head -c 16 | od -c | head -2'
+# Expected: opaque bytes like '033 v 023 223 214 375...'  (NOT SQLite, NOT readable)
+```
+
+### Verify Integrity (weekly health check recommended)
+
+```bash
+docker exec revisor-prod-app restic -r $RESTIC_REPOSITORY -p $RESTIC_PASSWORD_FILE check --read-data-subset 5%
+
+# Expected: "no errors were found"
+# Sprint 9+ TD: Automate as cron weekly + alert on errors
+```
+
+### Storage Architecture
+
+```text
+/home/revisor/.local/share/revisor-contratual/
+├── vault.db                      (plaintext active DB — runtime)
+├── audit.jsonl                   (plaintext active audit — runtime)
+├── restic-repo/                  (encrypted backup repository)
+│   ├── config                    (encrypted repo metadata, 155 bytes)
+│   ├── keys/{key-id}             (encrypted master keys — scrypt KDF)
+│   ├── snapshots/{snapshot-id}   (encrypted snapshot manifests)
+│   ├── data/{prefix}/{pack-id}   (encrypted content-addressable packs ~MiB each)
+│   ├── index/{index-id}          (pack index for fast restore)
+│   └── locks/                    (active operation locks)
+└── backups/                      (LEGACY plaintext — 30d transition only)
+    └── YYYY-MM-DD/
+```
+
+```text
+/etc/restic/
+└── password.txt    (mode 0400, owner uid=1000 deploy↔revisor, contents: 32-byte base64)
+```
+
+### Password Rotation Procedure
+
+**Annual baseline OR post-incident (suspected breach, personnel change):**
+
+```bash
+# 1. Generate new password
+sudo sh -c 'openssl rand -base64 32 > /etc/restic/password.txt.new'
+sudo chmod 400 /etc/restic/password.txt.new
+sudo chown 1000:1000 /etc/restic/password.txt.new
+
+# 2. Add new key to repo (restic supports multiple keys)
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt \
+         key add --new-password-file /etc/restic/password.txt.new
+
+# 3. Verify new key works
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt.new \
+         snapshots
+
+# 4. Remove old key (LIST first to get ID)
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt.new \
+         key list
+# Then remove the old key ID:
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt.new \
+         key remove <old-key-id>
+
+# 5. Atomic swap on host
+sudo mv /etc/restic/password.txt.new /etc/restic/password.txt
+
+# 6. Update key escrow USB (Eric — physical action) — see Key Escrow section
+
+# 7. Document rotation em governance/CHECKPOINT-active.md com data
+```
+
+### 🔑 Key Escrow Procedure (Eric — Manual Physical Action)
+
+**Critical:** Loss of `/etc/restic/password.txt` = LOSS of ALL encrypted backups irreversibly. Key escrow é mandatory para LGPD §46 defensibility + business continuity.
+
+**Procedimento Eric retrieval:**
+
+```bash
+# 1. Eric SSH retrieval
+ssh -i ~/.ssh/claudino-insights eric@91.108.126.149
+
+# 2. Read password (sudo required - file root-permissioned)
+sudo cat /etc/restic/password.txt
+# OR copy to temp staging:
+sudo cp /etc/restic/password.txt /tmp/restic-pw-YYYY-MM-DD.txt
+
+# 3. scp para máquina Eric (Windows local)
+scp eric@91.108.126.149:/tmp/restic-pw-YYYY-MM-DD.txt ~/
+
+# 4. Encrypt USB com BitLocker (Windows native) OU VeraCrypt
+#    - Create encrypted USB volume
+#    - Copy password file dentro
+#    - Note physical location
+
+# 5. Cleanup staging (CRITICAL — não deixar temp file)
+ssh -i ~/.ssh/claudino-insights eric@91.108.126.149 "sudo shred -u /tmp/restic-pw-YYYY-MM-DD.txt"
+
+# 6. Document em PASSWORD-RECOVERY-PLAN.md (LOCAL ONLY — NÃO commit git):
+#    - USB physical location
+#    - Decryption procedure (BitLocker/VeraCrypt steps)
+#    - Last rotation date
+#    - Recovery contact (Eric primary)
+```
+
+**Recovery workflow se VPS unrecoverable:**
+
+```bash
+# Eric retrieve USB → decrypt → cat password.txt → on new VPS:
+sudo mkdir -p /etc/restic
+sudo sh -c 'echo "<password>" > /etc/restic/password.txt'
+sudo chmod 400 /etc/restic/password.txt
+sudo chown 1000:1000 /etc/restic/password.txt
+# Then restore restic-repo via offsite backup (Sprint 9+ ADR-030)
+```
 
 ---
 
@@ -194,6 +372,108 @@ ssh eric@91.108.126.149 "sudo docker exec revisor-prod-app python -c 'from bloco
 - Disk full? → cleanup logs + run `docker builder prune -af` (cross-ref Sprint 8 Story #0)
 - APScheduler crashed? → restart app container: `sudo docker compose -p revisor-prod restart app`
 - Permissions issue? → `sudo chown -R 1000:1000 /var/lib/docker/volumes/revisor-prod_revisor-data/_data/backups/`
+
+### Scenario E: Restore from Encrypted Backup (ADR-031 restic)
+
+**When to use:**
+
+- Legacy plaintext backup ausente OR corrupted (D+30 transition cleanup completed)
+- Encrypted snapshot é primary recovery source (Sprint 8 Phase C+ post-transition)
+- Granular restore needed (specific snapshot by ID)
+
+**Severity:** Variable (depends on incident scope)
+
+**Pre-requirement:** `/etc/restic/password.txt` available em VPS OR Eric key escrow USB recovered.
+
+**Steps:**
+
+```bash
+# 1. SSH to VPS
+ssh -i ~/.ssh/claudino-insights eric@91.108.126.149
+
+# 2. List available snapshots — identify target
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt \
+         snapshots
+
+# Output:
+# ID        Time                 Host          Tags     Paths
+# --------------------------------------------------------------
+# a9e45e53  2026-05-16 14:58:55  revisor-prod  daily    /home/revisor/.local/share/.../vault.db
+#                                                       /home/revisor/.local/share/.../audit.jsonl
+# b3f72c91  2026-05-17 02:05:12  revisor-prod  daily    /home/revisor/.local/share/.../vault.db
+#                                                       /home/revisor/.local/share/.../audit.jsonl
+# ...
+
+# 3. Stop app container (preserve running ollama-shared per ADR-026)
+sudo docker compose -p revisor-prod -f docker-compose.prod.yml stop app
+
+# 4. Restore specific snapshot to /tmp staging (NÃO direto live location)
+sudo docker run --rm \
+  -v revisor-prod_revisor-data:/data \
+  -v /etc/restic:/etc/restic:ro \
+  -e RESTIC_PASSWORD_FILE=/etc/restic/password.txt \
+  revisor-contratual:prod \
+  restic -r /data/restic-repo restore <SNAPSHOT_ID> --target /tmp/restore
+
+# Note: --target /tmp/restore creates /tmp/restore/home/revisor/.local/share/revisor-contratual/{vault.db, audit.jsonl}
+# (restic preserves full path structure)
+
+# 5. Inspect restored files (sanity check sizes + magic bytes)
+sudo docker run --rm \
+  -v revisor-prod_revisor-data:/data \
+  alpine sh -c 'ls -la /tmp/restore/home/revisor/.local/share/revisor-contratual/ && head -c 16 /tmp/restore/home/revisor/.local/share/revisor-contratual/vault.db | od -c | head -1'
+# Expected: SQLite format 3\0 (plaintext restored from encrypted backup)
+
+# 6. Copy restored files → live location (replacing corrupted/lost)
+sudo docker run --rm \
+  -v revisor-prod_revisor-data:/data \
+  alpine sh -c 'cp /tmp/restore/home/revisor/.local/share/revisor-contratual/vault.db /data/vault.db && cp /tmp/restore/home/revisor/.local/share/revisor-contratual/audit.jsonl /data/audit.jsonl && chown 1000:1000 /data/vault.db /data/audit.jsonl && chmod 600 /data/vault.db /data/audit.jsonl'
+
+# 7. Restart app container
+sudo docker compose -p revisor-prod -f docker-compose.prod.yml up -d app
+
+# 8. Verify pipeline + health
+curl https://revisor.claudinoinsights.com/health
+# Esperado: {"status":"ok","version":"0.2.10.0",...}
+
+# 9. Verify audit chain integrity (HMAC chain — ADR-014)
+sudo docker exec revisor-prod-app python -c "
+from bloco_audit.chain import validate_audit_chain
+result = validate_audit_chain()
+print('Chain valid:', result.valid, '| Entries:', result.entry_count)
+"
+# Esperado: Chain valid: True | Entries: <N>
+```
+
+**Restore latest snapshot (shortcut):**
+
+```bash
+# Substitute step 4 com:
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt \
+         restore latest --target /tmp/restore
+```
+
+**Partial restore (single file):**
+
+```bash
+# Restore only vault.db (skip audit.jsonl)
+sudo docker exec revisor-prod-app \
+  restic -r /home/revisor/.local/share/revisor-contratual/restic-repo \
+         -p /etc/restic/password.txt \
+         restore <SNAPSHOT_ID> --target /tmp/restore \
+         --include /home/revisor/.local/share/revisor-contratual/vault.db
+```
+
+**Verify post-restore:**
+
+- ✅ `/health` returns 200 com version + ollama configured
+- ✅ Audit chain HMAC integrity preserved (ADR-014)
+- ✅ Vault DB queryable: `docker exec app python -c 'from bloco_vault.repo import VaultRepo; print(VaultRepo().count_documents())'`
+- ✅ APScheduler jobs still 4 registered (post-restart)
 
 ---
 

@@ -59,7 +59,12 @@ COPY scripts/ ./scripts/
 # Non-root user (LGPD §46 — chmod sensível garantido por uid não-root)
 RUN useradd -m -u 1000 revisor && \
     mkdir -p /home/revisor/.local/share/revisor-contratual && \
+    mkdir -p /home/revisor/.cache/restic && \
     chown -R revisor:revisor /app /home/revisor
+
+# TD-S08-PB-RESTIC-CACHE-PERMS resolution: pre-create restic cache dir owned revisor.
+# Without this, restic logs "unable to open cache: mkdir /home/revisor/.cache/restic: permission denied"
+# every backup run. Cache is optional but eliminating warning improves observability hygiene.
 
 # F-PROD-NEW-21 Option D fix (Smith D-SMITH-S06-038 root cause):
 # surya-ocr (dep marker-pdf 1.10.2) settings.py:31 tenta mkdir/write em

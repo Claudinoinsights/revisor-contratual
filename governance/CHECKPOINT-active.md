@@ -7860,7 +7860,7 @@ Legacy retirement planned Sprint 8 Phase C OR Sprint 9+ separate Operator deploy
 | TD-S08-PB-RESTIC-CACHE-PERMS | restic warning "mkdir /home/revisor/.cache/restic: permission denied" — non-fatal (cache optional, backup continues) | Sprint 9+: Dockerfile pre-create /home/revisor/.cache/restic com chown revisor OR mount cache volume |
 | TD-S08-PB-KEY-ESCROW-ERIC-PENDING | Step 12 key escrow Eric encrypted USB requires physical action — documented but pending Eric execução | Eric: ssh retrieval → BitLocker USB → shred local cleanup → PASSWORD-RECOVERY-PLAN.md doc (não git) |
 | TD-S08-PB-RUNBOOK-RESTIC-UPDATE | governance/runbook-backup-restore.md restore section ainda cp-based — precisa update restic-aware | Architect + Operator collaboration próximo Sprint 8 Phase C |
-| TD-S08-PB-PASSWORD-FILE-UID-MAPPING | /etc/restic/password.txt initial chmod 400 root:root → container uid 1000 cannot read. Resolved via chown 1000:1000 mas é workaround | Sprint 9+: cleaner solution — gid revisor common host+container OR named volume with permissions baked |
+| ~~TD-S08-PB-PASSWORD-FILE-UID-MAPPING~~ | ~~Initial chmod 400 root:root failed — container uid 1000 cannot read~~ | **RECLASSIFIED RESOLVED 2026-05-16:** `chown 1000:1000 /etc/restic/password.txt` é **padrão Docker canônico** para uid-matching host↔container, NÃO workaround. Solução atual está correta. Host shows "deploy deploy" (uid 1000), container shows "revisor:revisor" (uid 1000) — mesmo uid, mesmo acesso. Documentado runbook §Encrypted Backup Layer + Key Escrow. |
 
 **Files modified/created Sprint 8 D-OPS-S08-005:**
 
