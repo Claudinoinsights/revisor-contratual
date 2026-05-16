@@ -400,9 +400,40 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         ollama_manager.release_app_lock(lock_fd)
         logger.info("Lifespan shutdown: app lock released")
 
+    # Sprint 8 Story #1.5 (Smith F-CRIT-02 LGPD §16): cleanup ALL PDF tempfiles
+    # remaining em JOBS dict on shutdown. SSE generators normally cleanup on stream
+    # completion/error, mas se app shutdown durante pipeline ou JOBS órfãos (stream
+    # nunca consumido), tempfiles persistem indefinidamente em /tmp/.
+    cleaned = 0
+    for job_id, job in list(JOBS.items()):
+        pdf_path_str = job.get("pdf_path")
+        if pdf_path_str:
+            pdf_path_obj = Path(pdf_path_str)
+            if pdf_path_obj.exists():
+                try:
+                    pdf_path_obj.unlink()
+                    cleaned += 1
+                except OSError as exc:
+                    logger.warning(
+                        "Lifespan shutdown: cleanup PDF %s falhou: %s", pdf_path_str, exc
+                    )
+    if cleaned > 0:
+        logger.info("Lifespan shutdown: cleaned %d orphaned PDF tempfiles (LGPD §16)", cleaned)
+
 
 # ── App ───────────────────────────────────────────────────────────────────
-app = FastAPI(title="Revisor Contratual", version="0.2.0", lifespan=lifespan)
+# Sprint 8 Story #1.6 (Smith F-CRIT-03): /docs + /openapi.json EXPOSED em produção
+# permite attackers enumerate attack surface. Disable em REVISOR_ENV=production.
+# Em dev (REVISOR_ENV unset OR != "production"), /docs continua acessível.
+_is_production = os.environ.get("REVISOR_ENV", "").lower() == "production"
+app = FastAPI(
+    title="Revisor Contratual",
+    version="0.2.0",
+    lifespan=lifespan,
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
+)
 # MVP-LEAN-01 Task 2: SessionMiddleware (FR-LGPD-MVP-01a defense-in-depth camada 1).
 # https_only=False em dev; toggle via env REVISOR_HTTPS_ONLY=1 em prod.
 app.add_middleware(
@@ -753,6 +784,59 @@ _VALID_MODALIDADES = frozenset(
     {"CDC_VEICULOS_PF", "CDC_BENS_PF", "CDC_IMOBILIARIO", "CARTAO_ROTATIVO"}
 )
 
+# Sprint 8 Story #1.5 (Smith F-CRIT-02 LGPD §16): safety-net cleanup para PDFs
+# orphaned quando user POST /revisar mas nunca conecta SSE stream. SSE generators
+# (revisar_stream + pipeline_stream) normally cleanup em finally, MAS se stream
+# nunca iniciado, PDF persiste em /tmp/ indefinidamente. Background task agendado
+# em POST /revisar checa após N segundos — se JOB ainda "queued" (stream nunca
+# consumido), cleanup PDF + remove JOB entry.
+_PDF_SAFETY_CLEANUP_DELAY_SECONDS = int(
+    os.environ.get("REVISOR_PDF_SAFETY_CLEANUP_SECONDS", "600")  # default 10min
+)
+
+
+async def _schedule_pdf_safety_cleanup(job_id: str, delay_seconds: int | None = None) -> None:
+    """LGPD §16 safety net — cleanup orphaned PDF se SSE stream nunca consumido.
+
+    Args:
+        job_id: ID do job em JOBS dict
+        delay_seconds: tempo wait antes verify (None → usa _PDF_SAFETY_CLEANUP_DELAY_SECONDS)
+    """
+    wait = delay_seconds if delay_seconds is not None else _PDF_SAFETY_CLEANUP_DELAY_SECONDS
+    await asyncio.sleep(wait)
+
+    job = JOBS.get(job_id)
+    if job is None:
+        return  # JOB já removed (normal flow completed)
+
+    status = job.get("status", "unknown")
+    # SSE generator finally já fired se status="completed" OR "error"
+    # Apenas cleanup se "queued" (stream nunca consumido) OR "running" stuck
+    if status not in ("queued", "running"):
+        return
+
+    pdf_path_str = job.get("pdf_path")
+    if pdf_path_str:
+        pdf_path_obj = Path(pdf_path_str)
+        if pdf_path_obj.exists():
+            try:
+                pdf_path_obj.unlink()
+                logger.warning(
+                    "LGPD safety cleanup: orphaned PDF %s removed (job_id=%s status=%s "
+                    "after %ds wait — SSE stream never consumed)",
+                    pdf_path_str,
+                    job_id,
+                    status,
+                    wait,
+                )
+            except OSError as exc:
+                logger.error(
+                    "LGPD safety cleanup: failed remove %s: %s", pdf_path_str, exc
+                )
+
+    # Remove JOB entry para liberar memory + prevent re-cleanup attempts
+    JOBS.pop(job_id, None)
+
 
 @app.post("/revisar")
 async def revisar(
@@ -909,6 +993,15 @@ async def revisar(
         "peca_pdf_hash": None,
         "peca_format": None,
     }
+
+    # Sprint 8 Story #1.5 (Smith F-CRIT-02 LGPD §16): schedule safety-net cleanup
+    # Caso user POST /revisar mas nunca conecte SSE stream (bot probes, abandoned
+    # uploads, client crash antes EventSource init), PDF tempfile persiste em /tmp/.
+    # Background task verifica após N=600s (10min default) — se JOB ainda queued/running,
+    # cleanup PDF + remove JOB. Coexiste com finally cleanup em SSE generators
+    # (não-redundante: SSE finally roda first se stream consumed; safety só fires
+    # se stream nunca chegou).
+    asyncio.create_task(_schedule_pdf_safety_cleanup(job_id))
 
     # ADR-021 dual-content-type Sprint 6 Bloco β Wave 2 (TD-SP06-SPA-CONNECT-01):
     # SPA OrSheva 7 envia `Accept: application/json` → recebe JSON com job_id + stream_url
