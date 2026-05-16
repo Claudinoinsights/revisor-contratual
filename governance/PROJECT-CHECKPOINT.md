@@ -10,16 +10,11 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 Phase A Operator deploy Stories #1.5 + #1.6 EM CURSO:
-  - Step 1 push origin ✅ (HEAD c865a45)
-  - Step 2 scp app.py ✅ (MD5 match 2fd2d4f6)
-  - Step 3 REVISOR_ENV=production env var ✅
-  - Step 4 bak-pre-stories-1-5-1-6 tagged ✅ (sha256:55e96a3c29d4)
-  - Step 5 image rebuild EM PROGRESSO (docker-buildx PID 2623897, Monitor b42h5o0zm)
-  - Steps 6+7+8+9 PENDING (container recreate + smoke verify + cron + pytest container)
-  Container atual revisor-prod-app preserved (Up 55min healthy) durante build.
-  Após deploy → handoff Operator→Smith mini-verify Phase A.
-  Architect Stories #2.5 + #7 paralelos PENDING (Skill architect separate handoff).
+  Sprint 8 Phase A 6/6 FULLY DONE empirically (~2h30min cumulative, ~80% speed bonus mantido).
+  6 Smith F-CRIT ALL RESOLVED: disk 73% + tempfile LGPD §16 3-layer + /docs 404 + marker volume + README v0.2.10.0 SaaS + backup ADR-029 visibility.
+  Phase B caveat: retention env Neo code change Phase B batch (Stories #12+#13+#14 retention).
+  Próxima invocação: Skill smith mini-verify Phase A FULL (17 ACs empirical, ~30min).
+  Após Smith verdict CLEAN/CONTAINED → Phases B+C parallel start (14 stories, ~5-7h actual estimate).
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined

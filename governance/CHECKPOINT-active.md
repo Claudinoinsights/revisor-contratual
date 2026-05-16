@@ -7154,3 +7154,81 @@ Repository:
 - **Total Phase A: ~2h30min actual vs ~10-13h estimate** (~80% speed bonus mantido)
 
 **Próximo:** handoff Operator→Smith full Phase A mini-verify (6 CRITICAL RESOLVED empirical) — Smith adversarial check antes Phases B+C parallel start.
+
+### D-SMITH-S08-001 (2026-05-16) — Smith `*verify mini Sprint 8 Phase A FULL — 6/6 CRIT RESOLVED empirical proof` 🟢 **CONTAINED + GREENLIGHT**
+
+**Trigger:** Operator handoff (consumed=true). 17 mini ACs adversarial check.
+
+**Verdict:** **🟢 CONTAINED + GREENLIGHT — Phases B+C parallel start AUTHORIZED com 1 disk cleanup pré-requisite**
+
+**ACs Results: 16/17 PASS empirical + 1/17 FAIL (disk regression):**
+
+| F-CRIT | Mini ACs | Status |
+|--------|----------|--------|
+| F-CRIT-01 disk | AC-F1: **89% (era 73%)** | 🚨 **FAIL — REGRESSION** |
+| F-CRIT-02 tempfile LGPD | AC-F2: baseline 0 + helper callable True | ✅ PASS (2/2) |
+| F-CRIT-03 /docs hardening | AC-F3: 404+404+404+production+200 | ✅ PASS (5/5) |
+| F-CRIT-04 marker cache | AC-F4: volume exists | ✅ PASS |
+| F-CRIT-05 README v0.2.10 | AC-F5: 8 matches + 0 pending | ✅ PASS (2/2) |
+| F-CRIT-06 backup automation | AC-F6: script+cron+exec+log+ADR+runbook+validation | ✅ PASS (7/7) |
+
+**Findings: 13 total**
+
+- CRITICAL: 0
+- **HIGH: 2** (disk regression + image storage inflation)
+- MEDIUM: 3 (Sprint 7 carryover Phase B confirmed)
+- LOW: 4
+- INFO: 4 (positive)
+
+**Key Finding F-S8PA-MINI-HIGH-01:** Disk 73%→89% REGRESSION. Story #0 acceptance "sustained ≥80% buffer" empirically violated NOW. Sprint 8 Phase A operations (8 image rebuilds + build cache regrew 10GB) consumiram +13GB. 5 backup image tags × 10.1GB each = ~50GB image storage.
+
+**Root cause:** NÃO lie Operator — TIME-SHIFT state (Operator claim 73% true AT-TIME Story #0 finish). Sem disk monitoring + alerting, recurring.
+
+**Mitigation MANDATORY pré-Phase-B:**
+
+```bash
+ssh eric@91.108.126.149 "sudo docker builder prune -af && sudo docker image prune -f && df -h /"
+# Target ≥80% buffer (≤80% used)
+```
+
+**Recommended Phase B NEW Story #14.5:** Disk monitoring + Alertmanager rule ≥80% threshold (prevents recurrence).
+
+**Smith Bonus Verifications:**
+
+- ✅ Audit chain HMAC integrity INTACT 10/10 valid links across 8 deploys
+- ✅ Last audit entry parser_used=pymupdf4llm (Phase 4 preserved)
+- ✅ Sensitive paths (/admin /.git /.env) 404
+- ✅ App healthy + RestartCount=0
+- ✅ Backup cron firing (3 INFO entries em 12min visible journald)
+
+**Operator Honesty Score Phase A:** 5/5 maintained — disk regression é state evolution não lie.
+
+**Phase B+C Authorization:**
+
+✅ APPROVED with conditions:
+
+1. ✅ 5/6 F-CRIT genuinely RESOLVED empirical
+2. ⚠️ Operator MUST disk cleanup re-run ANTES first Phase B deploy
+3. ✅ Architectural integrity preserved
+4. ✅ Phase B scope clear (14 stories ~5-7h actual)
+
+**Phase B prioritization Smith recommendation:**
+
+1. NEW Story #14.5 disk monitoring (Operator 30min) — prevents regression
+2. Story #14 retention env Neo (10min)
+3. Story #10 traefik composite (Operator 3h)
+4. Story #13 /health + HEAD (Neo 1h)
+5. Story #12 JSON validation (Neo 1h)
+6. Story #8 DNS/painel (Operator 2-3h)
+7. Story #9 homepage (Operator 1-2h)
+8. Story #11 backup encryption (Architect + Operator 2-3h)
+9. Stories #8.5 + #8.6 (Operator 1h cumulative)
+
+**Files:**
+
+- `governance/qa/smith-verify-sprint-8-phase-a-mini-2026-05-16.md` (NEW comprehensive mini-verify report)
+- `.lmas/handoffs/handoff-devops-to-smith-2026-05-16-sprint-8-phase-a-full-mini-verify-6-crit.yaml` (consumed=true)
+- `.lmas/handoffs/handoff-smith-to-operator-2026-05-16-sprint-8-phase-b-authorization-disk-cleanup-mandatory.yaml` (NEW consumed=false)
+- `governance/CHECKPOINT-active.md` (D-SMITH-S08-001 entry)
+
+**Próximo:** Operator emergency disk cleanup (~5min) → Phase B Story #14.5 disk monitoring + Phases B+C parallel execution.
