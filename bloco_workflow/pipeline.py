@@ -67,6 +67,7 @@ from bloco_engine.parsing.exceptions import (
     ParsingSubprocessTimeoutError,
 )
 from bloco_engine.parsing.orchestrator import parse_contract
+from bloco_engine.parsing.type_detector import detect_pdf_type
 from bloco_vault.busca import buscar_hibrida
 from bloco_workflow.orchestrator import run_personas_sequencial
 from bloco_workflow.personas.juiz import juiz_revisar
@@ -229,84 +230,99 @@ async def revisar_contrato(
     }
 
     try:
-        # ─── Step 1 — parsing PDF (subprocess isolation ADR-026) ────────
-        # Sprint 7 Phase 3 (D-DEV-S07-001): F-PROD-NEW-22 fix — marker library +
-        # PyMuPDF C extensions executam em subprocess descartável. os._exit()
-        # OR SIGABRT no subprocess NÃO mata parent worker — pipeline captura
-        # via asyncio.subprocess.exec returncode + stderr JSON parse.
+        # ─── Step 1 — parsing PDF dual-path (Phase 4 ADR-027) ───────────
+        # Sprint 7 Phase 4 (D-DEV-S07-002): PyMuPDF born-digital fast path.
+        # Pre-detect PDF type ANTES decidir subprocess vs inline:
+        # - born-digital (~80% CDC veículo): PyMuPDF inline ~10s (asyncio.to_thread)
+        # - scanned (~20%): subprocess marker (Phase 3 ADR-026 preserved como fallback)
         #
-        # Histórico: CC.38 fix F-01 wrappou parse_contract em asyncio.to_thread
-        # (event loop não-blocking). Smith Sprint 6.x final D-SMITH-S06-040
-        # descobriu F-PROD-NEW-22: silent worker exit pós OCR completion. Causa:
-        # marker/surya/torch/PyMuPDF C extension chama os._exit(0) OR SIGABRT
-        # bypassando Python try/except. Subprocess isolation = única cura
-        # process-level (Phase 3 ADR-026).
-        #
-        # NOTA: pymupdf_fn/marker_fn injection params (testability) NÃO passam
-        # via subprocess CLI. Tests substituem via monkeypatch em
-        # subprocess_runner.parse_contract OR usam fixture PDFs reais.
-        metadata_dict = {
-            "uf_override": uf_override,
-            "data_override": data_override.isoformat() if data_override else None,
-        }
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False, encoding="utf-8"
-        ) as metadata_file:
-            json.dump(metadata_dict, metadata_file)
-            metadata_path = metadata_file.name
+        # Phase 3 ADR-026 subprocess isolation cura F-PROD-NEW-22 silent worker exit
+        # (marker/surya/torch C extension os._exit() OR SIGABRT). Phase 4 evita
+        # subprocess overhead unnecessary para born-digital PDFs (PyMuPDF stable).
 
-        try:
-            proc = await asyncio.create_subprocess_exec(
-                sys.executable,
-                "-m",
-                "bloco_engine.parsing.subprocess_runner",
-                str(pdf_path),
-                metadata_path,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
+        pdf_type = await asyncio.to_thread(detect_pdf_type, pdf_path)
+
+        if pdf_type == "born_digital":
+            # Fast path: PyMuPDF inline via asyncio.to_thread (~10s)
+            # PyMuPDF nativo NÃO tem F-PROD-NEW-22 risk (não usa marker/surya/torch).
             try:
-                stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                    proc.communicate(), timeout=180.0
+                parsed: ParsedContract = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        parse_contract,
+                        pdf_path,
+                        pdf_bytes=pdf_bytes,
+                        uf_override=uf_override,
+                        data_override=data_override,
+                        pymupdf_fn=pymupdf_fn,
+                        marker_fn=marker_fn,
+                    ),
+                    timeout=30.0,  # Smart timeout born-digital: 30s suficiente
                 )
             except asyncio.TimeoutError as timeout_exc:
-                # SIGTERM grace period 5s antes SIGKILL fallback
-                proc.terminate()
-                try:
-                    await asyncio.wait_for(proc.wait(), timeout=5.0)
-                except asyncio.TimeoutError:
-                    proc.kill()
-                    await proc.wait()
                 raise ParsingSubprocessTimeoutError(
-                    f"parse_contract subprocess timeout 180s for {pdf_path}"
+                    f"parse_contract born-digital timeout 30s for {pdf_path}"
                 ) from timeout_exc
+        else:
+            # Scanned path: subprocess marker isolation (Phase 3 ADR-026 preserved)
+            # F-PROD-NEW-22 silent exit risk em scanned (marker library load) → subprocess
+            metadata_dict = {
+                "uf_override": uf_override,
+                "data_override": data_override.isoformat() if data_override else None,
+            }
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".json", delete=False, encoding="utf-8"
+            ) as metadata_file:
+                json.dump(metadata_dict, metadata_file)
+                metadata_path = metadata_file.name
 
-            if proc.returncode != 0:
-                # Subprocess failed (os._exit, SIGABRT, OR Python exception)
-                try:
-                    error_data = json.loads(stderr_bytes.decode())
-                    error_type = error_data.get(
-                        "error_type", "ParsingSubprocessFailed"
-                    )
-                    error_msg = error_data.get(
-                        "error_msg", stderr_bytes.decode()[:500]
-                    )
-                except json.JSONDecodeError:
-                    error_type = "ParsingSubprocessFailed"
-                    error_msg = (
-                        f"Subprocess exited code={proc.returncode} "
-                        f"stderr={stderr_bytes.decode()[:500]}"
-                    )
-                raise ParsingSubprocessFailedError(
-                    error_type=error_type, error_msg=error_msg
+            try:
+                proc = await asyncio.create_subprocess_exec(
+                    sys.executable,
+                    "-m",
+                    "bloco_engine.parsing.subprocess_runner",
+                    str(pdf_path),
+                    metadata_path,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
                 )
+                try:
+                    stdout_bytes, stderr_bytes = await asyncio.wait_for(
+                        proc.communicate(), timeout=180.0
+                    )
+                except asyncio.TimeoutError as timeout_exc:
+                    proc.terminate()
+                    try:
+                        await asyncio.wait_for(proc.wait(), timeout=5.0)
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        await proc.wait()
+                    raise ParsingSubprocessTimeoutError(
+                        f"parse_contract subprocess timeout 180s for {pdf_path}"
+                    ) from timeout_exc
 
-            parsed: ParsedContract = ParsedContract.model_validate_json(
-                stdout_bytes.decode()
-            )
-        finally:
-            # LGPD §46: cleanup tempfile metadata (não deixar dados em /tmp)
-            Path(metadata_path).unlink(missing_ok=True)
+                if proc.returncode != 0:
+                    try:
+                        error_data = json.loads(stderr_bytes.decode())
+                        error_type = error_data.get(
+                            "error_type", "ParsingSubprocessFailed"
+                        )
+                        error_msg = error_data.get(
+                            "error_msg", stderr_bytes.decode()[:500]
+                        )
+                    except json.JSONDecodeError:
+                        error_type = "ParsingSubprocessFailed"
+                        error_msg = (
+                            f"Subprocess exited code={proc.returncode} "
+                            f"stderr={stderr_bytes.decode()[:500]}"
+                        )
+                    raise ParsingSubprocessFailedError(
+                        error_type=error_type, error_msg=error_msg
+                    )
+
+                parsed = ParsedContract.model_validate_json(stdout_bytes.decode())
+            finally:
+                # LGPD §46: cleanup tempfile metadata
+                Path(metadata_path).unlink(missing_ok=True)
 
         # TD-SP06-MODE-PASS-01 Sprint 6 Bloco β Wave 3:
         # Override modalidade explícito SPA sidebar → backend (substitui regex
