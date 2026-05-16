@@ -7987,3 +7987,95 @@ Sprint 8 Phase B = 5/9 stories FULLY DEPLOYED EMPIRICAL:
 **Próximo Skill (per Eric "use smith ultrathink para validar"):**
 
 **Skill smith ultrathink Phase B mini-verify** — adversarial revalidation 5/11 HIGH cumulative + TD resolution sanity + regression Phase A check. Espera-se CLEAN ou CONTAINED+CHANGES verdict (não COMPROMISED após este nível de prep work).
+
+---
+
+### D-SMITH-S08-002 (2026-05-16) — Smith `*verify ultrathink Phase B mini-verify Sprint 8 — 5/11 HIGH cumulative` 🟢 **CONTAINED + GREENLIGHT**
+
+**Verdict:** 🟢 **CONTAINED + GREENLIGHT** — Phase B continuation APPROVED for Operator stories #10 + #8 + #9.
+
+**Por quê:** 13 probes empirical independent SSH validated 5/5 Smith HIGH cumulative claims as TRUE RESOLVED. 12 findings emergiram (1 HIGH pre-existing Phase A regression + 4 MEDIUM addressable + 5 LOW improvements + 2 INFO positive). Nenhum finding bloqueia continuação Phase B.
+
+**5/5 HIGH CONFIRMED RESOLVED EMPIRICAL:**
+
+- ✅ F-HIGH-04 /health → 200 JSON v0.2.10.0 (response < 112ms)
+- ✅ F-HIGH-05 HEAD / → HTTP/1.1 200 + 6 security headers preserved (was 405)
+- ✅ F-HIGH-07 POST /revisar Accept:json bad PDF → 400 JSON `{error,status_code,detail}` + UX preserved HTML browser default
+- ✅ F-HIGH-08 REVISOR_BACKUP_RETENTION_DAYS=30 env vars 6/6 present
+- ✅ **F-HIGH-09 CRYPTOGRAPHIC OPACITY EMPIRICALLY PROVEN** ⭐ — vault.db plaintext `SQLite format 3\0` vs restic pack opaque `033 v 023 223...` AES-256-CTR ciphertext + wrong password fails + restic check 10% no errors + APScheduler integration TESTED by Smith (manual trigger created daily snapshot `cf48e53f`)
+
+**12 SMITH FINDINGS:**
+
+| ID | Severity | Description |
+|----|----------|-------------|
+| F-S8PB-MV-HIGH-01 | **HIGH** | Phase A Story #2 marker cache `/home/revisor/.cache/marker` owned root:root — revisor user write **PERMISSION DENIED**. Marker OCR caching silently fails. Pre-existing Phase A regression, NOT caused Story #11. |
+| F-S8PB-MV-MED-01 | MEDIUM | `revisor-backup-check.sh` monitors LEGACY plaintext backups only — BLIND to encrypted restic-repo. After D+30 legacy retirement, encrypted backup failures silent. |
+| F-S8PB-MV-MED-02 | MEDIUM | scheduler.py `job.next_run_time` AttributeError (requires scheduler started). Operator diagnostic capability degraded. |
+| F-S8PB-MV-MED-03 | MEDIUM | Key escrow Eric encrypted USB PENDING. Risk window open — VPS loss = irrecoverable backups. |
+| F-S8PB-MV-MED-04 | MEDIUM | Operator NÃO testou APScheduler integration via Python — only direct restic CLI smoke. Smith disparou and confirmed works. Future deploys add Python smoke. |
+| F-S8PB-MV-LOW-01 | LOW | REVISOR_SECRET_KEY visible em `env` — Docker secrets pattern improvement Sprint 9+. |
+| F-S8PB-MV-LOW-02 | LOW | `restic --version` invalid — uses `restic version` subcommand. Documentation update. |
+| F-S8PB-MV-LOW-03 | LOW | Co-existence 02:00 legacy + 02:05 encrypted = 5min separation — possible I/O contention. Monitor first cycle tomorrow. |
+| F-S8PB-MV-LOW-04 | LOW | `file` binary missing container — reduces diagnostic capability. Add to Dockerfile. |
+| F-S8PB-MV-LOW-05 | LOW | Total password loss recovery scenario não documented em runbook. Add §Disaster Recovery Limitations. |
+| F-S8PB-MV-INFO-01 | INFO | ✅ POSITIVE — APScheduler `backup_daily_encrypted()` integration WORKS (manual trigger created snapshot `cf48e53f` tag daily). |
+| F-S8PB-MV-INFO-02 | INFO | ✅ POSITIVE — `cleanup_old_snapshots_encrypted()` works (`Deleted: 0` correct — no snapshots > 30d retention). |
+
+**TD Resolution Sanity:**
+
+| TD | Operator Claim | Smith Verification | Status |
+|----|----------------|--------------------|---------|
+| TD-S08-PB-RESTIC-CACHE-PERMS | RESOLVED | Probe 10 — dir exists + restic clean | ✅ TRUE RESOLVED |
+| TD-S08-PB-RUNBOOK-RESTIC-UPDATE | RESOLVED | Probe 18 — 4 sections present | ✅ TRUE RESOLVED |
+| TD-S08-PB-PASSWORD-FILE-UID-MAPPING | RECLASSIFIED RESOLVED | Probe 8 — canonical Docker pattern | ✅ TRUE RESOLVED |
+| TD-S08-PB-KEY-ESCROW-ERIC-PENDING | STILL PENDING | Physical action only — F-S8PB-MV-MED-03 | ⏳ PENDING |
+
+**No false-RESOLVED claims detected. Operator transparent about pending TD.**
+
+**Phase A Regression Check:**
+
+| Story | Result |
+|-------|--------|
+| #1.5 tempfile cleanup | ✅ Clean |
+| #1.6 /docs production hardening | ✅ All 404 (preserved) |
+| **#2 marker cache** | 🚨 **BROKEN — F-S8PB-MV-HIGH-01** |
+
+**Phase B Stories #11-#14 NÃO causaram regression. Story #2 was already broken pre-Phase B.**
+
+**Conditional recommendations (não bloqueiam):**
+
+1. **Operator immediate:** Fix marker cache chown (~5min)
+2. **Eric this week:** Execute key escrow USB procedure
+3. **Operator Sprint 9+:** Restic-aware monitoring before D+30 legacy retirement
+4. **Operator monitor tomorrow:** First 02:00→02:05 cycle I/O contention check
+
+**Files created Sprint 8 D-SMITH-S08-002:**
+
+- governance/qa/smith-verify-sprint-8-phase-b-mini-2026-05-16.md (NEW ~14KB Smith report)
+- governance/CHECKPOINT-active.md (D-SMITH-S08-002 entry)
+- .lmas/handoffs/handoff-devops-to-smith-...-mini-verify.yaml (consumed=true)
+
+**Smith methodology empirical:**
+
+- 13 SSH probes independent (NÃO trust Operator self-report)
+- Adversarial guilty-until-proven-innocent posture
+- All 12 dimensions covered (correção + completude + segurança + performance + manutenibilidade + consistência + robustez + dependências + testes + documentação + acessibilidade N/A + design consistency N/A)
+- Cryptographic opacity proven byte-level (od -c head -c 16 comparison)
+- Integration tested via Python introspection + manual trigger
+
+**Phase B Status Post-Smith Verify:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #14.5 disk monitoring | ✅ DONE D-OPS-S08-003 | Operator |
+| #14 retention env | ✅ FULLY DONE | Neo + Operator |
+| #12 JSON validation | ✅ FULLY DONE | Neo + Operator |
+| #13 /health + HEAD | ✅ FULLY DONE | Neo + Operator |
+| #11 backup encryption restic | ✅ FULLY DONE + 🟢 SMITH VERIFIED | Architect + Neo + Operator + Smith |
+| #10 traefik composite | ⏳ PENDING Operator | Operator |
+| #8 DNS subdomains | ⏳ PENDING Operator + Architect | Operator + Architect |
+| #9 homepage | ⏳ PENDING Operator | Operator |
+
+**5/11 Smith HIGH RESOLVED + 🟢 SMITH MINI-VERIFY CONTAINED+GREENLIGHT + 12 findings cataloged.**
+
+**Próximo Skill recomendação:** Skill devops (Operator) Phase B remaining stories #10/#8/#9 — F-S8PB-MV-HIGH-01 marker cache fix paralelo.
