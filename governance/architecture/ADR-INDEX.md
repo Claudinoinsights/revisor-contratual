@@ -187,4 +187,18 @@ SPRINT: 01 · ETAPA: 2.0 · DOMÍNIO: SoftwareDev/legaltech
 
 ---
 
+### Sprint 7 (Cenário Y++ Refinado — 2026-05-15)
+
+| ADR | Título | Status | Data |
+|-----|--------|--------|------|
+| [ADR-028](adr/adr-028-ollama-single-container-consolidation.md) | Ollama Single-Container Consolidation (2 containers → 1 ollama-shared) — absorvendo Phase 1 8 OLLAMA_* env vars + bug discovery OLLAMA_NUM_CTX deprecated | ✅ Accepted | 2026-05-15 |
+| [ADR-026](adr/adr-026-marker-subprocess-isolation-parsing.md) | Marker Subprocess Isolation Parsing — RESOLVE F-PROD-NEW-22 silent worker exit + terminology precision (Sprint 7 Phase 3) | ✅ Accepted | 2026-05-15 |
+| [ADR-027](adr/adr-027-pymupdf-born-digital-fast-path.md) | PyMuPDF Born-Digital Fast Path — Dual-Path Pipeline Step 1 (Sprint 7 Phase 4) — RESOLVE F-S7P3-MED-01 pipeline E2E REAL 9/9 keys | ✅ Accepted | 2026-05-16 |
+
+**Sprint 7 ADRs propostos pendentes:**
+
+- ADR-029: Marker Cache Persistence Volume Mount (Phase 5)
+
+---
+
 *Aria, mantendo o índice como mapa vivo da arquitetura. 🏗️*

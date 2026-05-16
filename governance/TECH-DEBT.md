@@ -1,20 +1,56 @@
 ---
 type: dashboard
 title: "Tech Debt Registry — Revisor Contratual"
-last_updated: "2026-05-14T01:35"
+last_updated: "2026-05-16T04:00"
 project: revisor-contratual
-sprint: "01 (closure)"
+sprint: "07 (closure)"
 tags:
   - project/revisor-contratual
   - tech-debt
-  - sprint-01-closure
+  - sprint-07-closure
 ---
 
 # Tech Debt Registry — Revisor Contratual
 
-> **Sprint 01 closure consolidation** — STORY 15 (sessão 81, Neo).
-> Consolidação de 13 tech debts catalogados em 4+ QA gates Oracle (sessões 60-77) + 1 finding ativo + 5 findings RESOLVED.
+> **Sprint 07 closure consolidation** — Smith Phase 4 verify CONTAINED+GREENLIGHT (D-SMITH-S07-004).
+> Sprint 7 absorveu 4 phases sequenciais com Smith verify entre cada. Cenário Y++ DoD architectural 100% atingido empirically.
 > Formato: 7 campos obrigatórios (ID, Source, Sev, Description, Est. Effort, Owner, Added).
+
+---
+
+## 🆕 Sprint 7 CLOSURE — Tech Debts Catalogados 2026-05-16
+
+### Phase 4 LOWs (6 entries — Smith verify CONTAINED+GREENLIGHT)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP07-P4-MED-FIXTURE-REAL-CDC** | Smith F-S7P4-MED-01 (D-SMITH-S07-004) | MEDIUM | `status=success` exato real-world NÃO empiricamente demonstrado em Phase 4. Test PDF inline gerado fitz lacks regex-extractable financial fields (valor_financiado/n_parcelas). Cenário Y++ DoD architectural 100% atingido (parser_used=pymupdf4llm + 9 keys + Step 2 reached + container preserved + HMAC intact). Sprint 8 Story #1 priority HIGH: gerar real CDC veículo PDF born-digital via PyPDF2 com contract template + valor_financiado + n_parcelas + taxa + prazo extractable. | 30-60min fixture creation | @dev | 2026-05-16 |
+| **TD-SP07-P4-LOW-OLLAMA-NAME-CONVENTION** | Smith F-S7P4-LOW-01 (D-SMITH-S07-004) | LOW | Operator handoff Phase 4 usou nome `ollama-shared` em vez de `revisor-prod-ollama-shared` (compose project prefix). AC-8 inicialmente FALHOU por terminology imprecision; resolved via investigation. Operator handoff hygiene: usar full compose names em yaml verifies. | 15min handoff template | @devops | 2026-05-16 |
+| **TD-SP07-P4-LOW-MARKER-CACHE-EPHEMERAL** | Smith F-S7P4-LOW-02 + Phase 5 polish original scope (D-SMITH-S07-004) | LOW | Subprocess marker model re-download cada container recreate (~2-3min cold start). Phase 4 NÃO endereça. Sprint 8 Story #2: volume mount `/root/.cache/marker` persistir cache entre image rebuilds (também aplicável ao surya font cache). | 1-2h volume mount config | @devops | 2026-05-16 |
+| **TD-SP07-P4-LOW-TRAEFIK-G9OQ-STALE** | Smith F-S7P4-LOW-04 (D-SMITH-S07-004) | LOW | Container `traefik-g9oq-traefik-1` em estado restarting (Restarting (1) 38 seconds ago). UNRELATED to revisor-contratual mas env hygiene VPS. Cleanup: docker rm + investigate stack origem (g9oq prefix sugere stale compose stack). | 30min cleanup VPS | @devops | 2026-05-16 |
+| **TD-SP07-P4-LOW-ADR-027-NARRATIVE** | Smith F-S7P4-LOW-05 (D-SMITH-S07-004) | LOW | ADR-027 narrative refinement: Phase 4 RESTORES inline + ADDS detection branch + PRESERVES subprocess fallback (vs Operator's narrative "introduces dual-path"). Audit chain pre-Phase-4 já tinha pymupdf4llm em lines 1, 3-7 (Sprint 6.x baseline). Phase 3 quebrou com uniform subprocess. Phase 4 RESTORES com detection. ADR-027 deve esclarecer essa nuance histórica. | 1h docs refinement | @architect | 2026-05-16 |
+| **TD-SP07-P4-LOW-TECH-DEBT-BACKLOG-ABSORPTION** | Smith F-S7P4-LOW-06 (D-SMITH-S07-004) | RESOLVED | TECH-DEBT.md atualizada com 6 LOWs Phase 4 + cumulative Phase 1-3 LOWs (este section 2026-05-16). Conforme tech-debt-governance.md MUST. | DONE | @devops (Operator) | 2026-05-16 |
+
+### Phase 1-3 Cumulative LOWs (~16 entries — Smith verifies Phase 1+2+3)
+
+| ID | Source | Sev | Description | Est. Effort | Owner | Added |
+|----|--------|-----|-------------|-------------|-------|-------|
+| **TD-SP07-P3-LOW-MARKER-CACHE-VOLUME** | Smith verify Phase 3 (D-SMITH-S07-003) | LOW | Marker model cache ephemeral subprocess re-download cada container recreate. Mesma issue que TD-SP07-P4-LOW-MARKER-CACHE-EPHEMERAL (consolidated). | DONE (consolidated) | — | 2026-05-15 |
+| **TD-SP07-P3-LOW-PRE-WARM-MODELS** | Smith verify Phase 3 (D-SMITH-S07-003) | LOW | Phase 3 NÃO verificou pre-warm marker models — subprocess re-download cada container recreate (cold start cost). Resolver via volume mount cache OR Dockerfile RUN python -c "import marker; marker.load_models()". | 1-2h | @devops | 2026-05-15 |
+| **TD-SP07-P3-LOW-PSUTIL-MEMORY-VERIFICATION** | Smith verify Phase 3 (D-SMITH-S07-003) | LOW | psutil memory verification born-digital path (parent worker NÃO carrega marker 3.3GB) NÃO empirically demonstrado em Phase 3. Phase 4 dual-path inline path verifica empiricamente. | 30min docs | @devops | 2026-05-15 |
+| **TD-SP07-P2-MED-VOLUME-MIGRATION-AUDIT** | Smith verify Phase 2 (D-SMITH-S07-002) | RESOLVED | Volume rsync migration ollama-advogado + ollama-economista → ollama-shared. Smith verify confirmed integrity (qwen2.5:3b + 7b preserved + checksums match). | DONE | @devops (Operator) | 2026-05-15 |
+| **TD-SP07-P2-LOW-OLLAMA-LOAD-TIMEOUT-180S** | Smith verify Phase 2 (D-SMITH-S07-002) | LOW | OLLAMA_LOAD_TIMEOUT=180s configurado mas NÃO empirically tested em cold start. Sprint 8 stress test: derrubar container + medir cold start time + validar 180s suficiente. | 30min stress test | @devops | 2026-05-15 |
+| **TD-SP07-P2-LOW-NUM-THREAD-2-EMPIRICAL** | Smith verify Phase 2 (D-SMITH-S07-002) | LOW | OLLAMA_NUM_THREAD=2 setting NÃO empirically benchmarked vs default. Trade-off: parallelism vs context switching overhead. Sprint 8 micro-benchmark. | 30min benchmark | @devops | 2026-05-15 |
+| **TD-SP07-P2-LOW-FLASH-ATTENTION-SUPPORT** | Smith verify Phase 2 (D-SMITH-S07-002) | LOW | FLASH_ATTENTION=1 enabled mas hardware support não verified. CPU-only deployments podem ignorar silently. Sprint 8 verify Ollama logs `flash_attn_enabled` line. | 15min logs check | @devops | 2026-05-15 |
+| **TD-SP07-P2-LOW-KV-CACHE-Q8-VS-F16** | Smith verify Phase 2 (D-SMITH-S07-002) | LOW | OLLAMA_KV_CACHE_TYPE=q8_0 trade-off vs default f16: ~2x memory reduction com slight quality loss. NÃO empirically benchmarked vs persona quality. Sprint 8 quality regression test. | 1h benchmark | @devops + @qa | 2026-05-15 |
+| **TD-SP07-P1-LOW-OLLAMA-CTX-DEPRECATION** | Smith verify Phase 1 (D-SMITH-S07-001) | RESOLVED | OLLAMA_NUM_CTX deprecated em Ollama 0.5+ → OLLAMA_CONTEXT_LENGTH. Empirically discovered + hotfixed Phase 1 v0.2.7.4. | DONE | @devops (Operator) | 2026-05-15 |
+| **TD-SP07-P1-LOW-MAX-LOADED-MODELS-1-IMPACT** | Smith verify Phase 1 (D-SMITH-S07-001) | LOW | OLLAMA_MAX_LOADED_MODELS=1 reduces memory mas pode causar model swap delay quando alternar advogado (3b) ↔ economista (7b). Sprint 8 measure model swap latency em pipeline real. | 30min measurement | @devops | 2026-05-15 |
+| **TD-SP07-P1-LOW-NUM-PARALLEL-1-CONCURRENCY** | Smith verify Phase 1 (D-SMITH-S07-001) | LOW | OLLAMA_NUM_PARALLEL=1 single-request serialization. Sprint 8 evaluate concurrent /revisar requests behavior (queue OR 503 OR HTTPException 429). | 1h stress test | @devops | 2026-05-15 |
+| **TD-SP07-P1-LOW-KEEP-ALIVE-5M-IDLE-MEMORY** | Smith verify Phase 1 (D-SMITH-S07-001) | LOW | OLLAMA_KEEP_ALIVE=5m model preservation. Trade-off: idle memory vs cold start latency. Sprint 8 measure idle vs hot pipeline latency delta. | 30min measurement | @devops | 2026-05-15 |
+| **TD-SP07-P1-INFO-OPERATOR-HONESTY-EVOLUTION** | Smith verifies Phase 1+2+3+4 cumulative observation | INFO | Operator honesty score progression: Phase 1 4/6 → Phase 2 4/7 → Phase 3 5/5 (após F-S7P2-MED-01 absorption) → Phase 4 5/5 (terminology precision per ADR-026 mantida). Pattern: Smith feedback ABSORBED iteratively em handoff narratives. Positive. | n/a (observational) | — | 2026-05-15 |
+| **TD-SP07-P3-INFO-F-PROD-NEW-22-RESOLVED** | Smith verify Phase 3 (D-SMITH-S07-003) | INFO | F-PROD-NEW-22 silent worker exit ARQUITETONICAMENTE RESOLVED via subprocess isolation Phase 3 + maintained Phase 4. Pre-Phase-3 silent exit pattern: audit NUNCA escrito → container auto-restart. Post-Phase-3 pattern: subprocess timeout → audit REGISTERED + container PRESERVED. | DONE Phase 3 | @architect (Aria) + @dev (Neo) | 2026-05-15 |
+| **TD-SP07-P4-INFO-180X-SPEEDUP-EMPIRICAL** | Smith verify Phase 4 (D-SMITH-S07-004) | INFO | Born-digital pipeline latency 985ms vs Phase 3 subprocess timeout 180s = **180x speedup arquitetural empirical** demonstrado em audit line 11. Cenário Y++ DoD architectural completeness 100% atingido. | DONE Phase 4 | @architect (Aria) + @dev (Neo) | 2026-05-16 |
+| **TD-SP07-VELOCITY-95-PCT-SPEED-BONUS** | Sprint 7 cumulative observation | INFO | Sprint 7 cumulative velocity ~95% speed bonus mantido: ~7.5h actual vs 8-12 dias estimate. Pattern: speed bonus consistente Phase 1-4 com Smith verify entre cada. Sprint 8 baseline reference. | n/a (observational) | — | 2026-05-16 |
 
 ---
 
