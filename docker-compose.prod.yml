@@ -25,6 +25,18 @@ services:
     image: ollama/ollama:latest
     container_name: revisor-prod-ollama-advogado
     restart: unless-stopped
+    # Sprint 7 Phase 1 (D-OPS-S07-001): Aria Y++ Ollama optimization — 8 ENV vars
+    # quick wins LOW risk config-only. Memory savings ~600 MB inference + KV cache q8_0
+    # + flash_attention + tier=lean single-model serve 3 personas via KEEP_ALIVE=5m.
+    environment:
+      OLLAMA_KEEP_ALIVE: "5m"           # mantém modelo loaded entre Step 5a/5b/8 (tier=lean uses qwen2.5:3b for all 3 personas)
+      OLLAMA_NUM_PARALLEL: "1"          # SaaS B2B MVP 1-3 users — sem paralelismo, economiza ~500MB-1GB peak
+      OLLAMA_MAX_LOADED_MODELS: "1"     # tier=lean usa apenas 1 modelo, força sequential load
+      OLLAMA_NUM_CTX: "8192"            # CDC veículo ~5600 tokens — eliminate truncação contrato
+      OLLAMA_NUM_THREAD: "2"            # match nproc=2 VPS Hetzner
+      OLLAMA_FLASH_ATTENTION: "1"       # Ollama 0.24+ memory efficient attention -10-20% inference
+      OLLAMA_KV_CACHE_TYPE: "q8_0"      # -50% KV cache memory, <1% quality loss
+      OLLAMA_LOAD_TIMEOUT: "180s"       # faster failure detection (default 5min)
     expose:
       - "11434"
     volumes:
@@ -46,6 +58,17 @@ services:
     image: ollama/ollama:latest
     container_name: revisor-prod-ollama-economista
     restart: unless-stopped
+    # Sprint 7 Phase 1 (D-OPS-S07-001): Aria Y++ Ollama optimization — same 8 ENV vars
+    # como ollama-advogado. Phase 2 vai consolidar em 1 container ollama-shared.
+    environment:
+      OLLAMA_KEEP_ALIVE: "5m"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_CTX: "8192"
+      OLLAMA_NUM_THREAD: "2"
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_KV_CACHE_TYPE: "q8_0"
+      OLLAMA_LOAD_TIMEOUT: "180s"
     expose:
       - "11434"
     volumes:
