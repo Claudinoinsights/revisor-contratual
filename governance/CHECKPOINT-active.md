@@ -8400,3 +8400,84 @@ docker exec app python -c "from bloco_backup.scheduler import get_jobs_diagnosti
 | Phase B 5/9 + 4 pending | 5/9 (#11 + #12 + #13 + #14 + #14.5) | 5/11 HIGH (F-HIGH-04/05/07/08/09) | 12 mini-verify findings (11 RESOLVED + 1 pending Eric) |
 
 **Próximo Skill:** Skill devops continue Phase B remaining — stories #10 traefik composite + #8 DNS subdomains + #9 homepage. F-HIGH-01/02/03/06/10/11 still pending (6 HIGH remaining for Phase B 11/11).
+
+---
+
+### D-OPS-S08-009 (2026-05-16) — Operator investigation pre-deploy 🔍 **PAUSE — RE-VERIFY needed (Eric Option A)**
+
+**Decisão:** Pausar Phase B stories #10/#8/#9 implementation. Empirical SSH investigation revelou que **muitos Smith findings podem JÁ estar resolvidos** por trabalho parallel claudino-insights infra. Eric escolheu Option A: Skill smith RE-VERIFY current state antes de novos deploys.
+
+**Por quê:** Operator ultrathink antes de touchear infra crítica (16+ services impact) revelou:
+- traefik shared infrastructure pertence a claudino-insights project (`/opt/the-matrix/infrastructure/`)
+- Múltiplos Smith findings podem refletir estado pre-fix (Smith ultrathink data 2026-05-16 manhã, claudino-insights infra evolved during day)
+- Risk of touching shared infra from revisor-contratual context = unacceptable per Operator "Repository Integrity First"
+
+**Investigation findings (8 SSH probes empirical):**
+
+| Smith Finding (claim) | Empirical Current State | Likely Status |
+|----------------------|--------------------------|---------------|
+| F-HIGH-01 DNS subdomains (uptime+cockpit missing) | `dash.claudinoinsights.com` + `status.claudinoinsights.com` JÁ ROUTED em missing-routers.yml (admin-auth protected) | **LIKELY RESOLVED partial** (different names than Smith expected: dash vs cockpit, status vs uptime) |
+| F-HIGH-02 homepage Cloudflare placeholder | `revisor.claudinoinsights.com` é app revisor working production | **UNCLEAR scope** — Smith ambíguo entre claudinoinsights.com root vs revisor.* |
+| F-HIGH-03 traefik composite middleware missing | revisor-prod-app HAS: revisor-sec + https-redirect labels + global security-headers + rate-limit middlewares applied via websecure entryPoint | **LIKELY RESOLVED** (chain ativo) |
+| F-HIGH-06 forwardAuth /me endpoint missing | Phase 2 oauth2-proxy/forwardAuth documented em middlewares.yml comments — basicAuth Phase 1 active interim (ADR-018 v1.1 planned) | **DEFERRED BY DESIGN** (Sprint 9+ scope) |
+| F-HIGH-10 image backup tag SOP N≥4 | SOP N=2 enforced (prod + bak-pre-aria-neo-final atual) — Smith original wanted N≥4 | **PARTIAL RESOLVED** (Smith original spec N≥4; current acceptable single-tenant) |
+| F-HIGH-11 traefik dashboard `true` exposed | `dash.claudinoinsights.com` requires basicAuth via admin-auth middleware. NÃO externally exposed sem auth. | **AUTH-PROTECTED** (Smith claim "exposed sem auth" incorreto) |
+
+**Multi-project boundary revelado:**
+
+```text
+/opt/the-matrix/infrastructure/docker/traefik/   ← claudino-insights project domain
+├── config/traefik.yml                            ← shared multi-tenant config
+├── config/dynamic/                                ← middleware + router defs
+│   ├── lagoa-de-carapebus.yml                    ← outro tenant project
+│   ├── middlewares.yml                            ← global security middlewares
+│   └── missing-routers.yml                       ← dash + status subdomain routes
+├── users                                          ← basicAuth credentials
+└── certs/                                         ← Let's Encrypt certs
+
+VPS containers (16+):
+- traefik (v2.11 healthy) — shared proxy
+- revisor-prod-app + revisor-prod-ollama-shared — revisor-contratual tenant
+- cockpit + grafana + prometheus + alertmanager + uptime-kuma + redis + alloy + ...
+- traefik-g9oq-traefik-1 (RESTARTING — port :80/:443 conflict — pre-existing orphan)
+```
+
+**Implications:**
+
+1. Stories #10 + #8 + #9 são **claudino-insights project domain** (shared infra), NÃO revisor-contratual project domain
+2. Mudanças traefik afetam ALL 16+ services (multi-tenant impact)
+3. Smith findings ultrathink reflected state em 2026-05-16 manhã; claudino-insights infra evolved during sessions paralelas (missing-routers.yml + middlewares.yml mature config)
+
+**Eric directive (Option A escolhida):**
+
+Skill smith RE-VERIFY antes new deploys. Provavelmente discovery: 4-5/6 findings já RESOLVED/MITIGATED, downgrade severity, scope reduction Sprint 8 Phase B closure cleanly em 5/9 stories empirically deployed.
+
+**TD captured:**
+
+| TD ID | Description | Severity |
+|-------|-------------|----------|
+| TD-OPS-S08-TRAEFIK-DUPLICATE | traefik-g9oq-traefik-1 container RESTARTING loop (port :80/:443 conflict com healthy traefik). Pre-existing orphan from Docker MCP gateway setup. Não bloqueia, mas log noise. | MEDIUM |
+| TD-OPS-S08-MULTI-PROJECT-BOUNDARY | Revisor-contratual checkpoint references "Phase B Operator stories" mas infra mudanças são claudino-insights project. Future: clarify scope OR migrate infra references | LOW |
+
+**Files modified Sprint 8 D-OPS-S08-009:**
+
+- governance/CHECKPOINT-active.md (D-OPS-S08-009 investigation entry)
+- .lmas/handoffs/handoff-devops-to-smith-2026-05-16-sprint-8-phase-b-final-mini-verify.yaml (NEW — Skill smith re-verify request)
+
+**Smith Findings Phase B Cumulative Status Pre-RE-VERIFY:**
+
+| Finding | Pre-Sessão Status | Investigation Suggests | Need Smith Re-Verify? |
+|---------|-------------------|------------------------|----------------------|
+| F-HIGH-04 /health | ✅ RESOLVED EMPIRICAL | Confirmed | NO |
+| F-HIGH-05 HEAD / | ✅ RESOLVED EMPIRICAL | Confirmed | NO |
+| F-HIGH-07 JSON validation | ✅ RESOLVED EMPIRICAL | Confirmed | NO |
+| F-HIGH-08 retention env | ✅ RESOLVED EMPIRICAL | Confirmed | NO |
+| F-HIGH-09 backup encryption | ✅ RESOLVED EMPIRICAL | Confirmed | NO |
+| F-HIGH-01 DNS subdomains | ⏳ Pending | LIKELY partial RESOLVED (dash+status exist) | **YES** |
+| F-HIGH-02 homepage | ⏳ Pending | UNCLEAR scope | **YES (need clarification)** |
+| F-HIGH-03 composite middleware | ⏳ Pending | LIKELY RESOLVED (chain exists) | **YES** |
+| F-HIGH-06 forwardAuth /me | ⏳ Pending | DEFERRED BY DESIGN (Phase 2 ADR-018 v1.1) | **YES (downgrade?)** |
+| F-HIGH-10 image backup SOP | ⏳ Pending | PARTIAL (N=2 enforced; spec wanted N≥4) | **YES (clarify spec)** |
+| F-HIGH-11 dashboard exposed | ⏳ Pending | AUTH-PROTECTED (admin-auth middleware) | **YES (false positive?)** |
+
+**Próximo Skill:** Skill smith adversarial re-verify 6 pending F-HIGH findings against current empirical state — provavelmente 4-5 RESOLVED + 1-2 downgrade severity OR scope to defer.
