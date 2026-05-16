@@ -8495,7 +8495,7 @@ Skill smith RE-VERIFY antes new deploys. Provavelmente discovery: 4-5/6 findings
 | Finding | Re-Verify Status | Smith Verdict Detail |
 |---------|------------------|---------------------|
 | F-HIGH-01 DNS subdomains | ✅ DOWNGRADE SCOPE | dash.* + status.* JÁ ROUTED (Eric naming convention different than Smith original cockpit.*/uptime.*) |
-| **F-HIGH-02 homepage** | 🚨 **STILL VALID + ESCALATED** | claudinoinsights.com/ → HTTP 404 (pior que placeholder original) — NO traefik router para apex. **Re-scope para claudino-insights project Sprint board** (NÃO revisor-contratual scope) |
+| **F-HIGH-02 homepage** | ✅ **SCOPE OUT (Eric clarification 2026-05-16)** | revisor.claudinoinsights.com/ HTTP 200 + 124KB substantive landing "Revisor Contratual · OrSheva 7" — apex claudinoinsights.com/ 404 NÃO é revisor-contratual scope (Eric main brand domain) |
 | F-HIGH-03 composite middleware | ✅ RESOLVED EMPIRICAL | 5/5 security headers verified (HSTS + X-Frame + X-Content + Referrer + Permissions) — middleware chain ATIVO |
 | F-HIGH-06 forwardAuth /me | 📋 DEFER Sprint 9+ | Phase 2 oauth2-proxy planned by design (Phase 1 basicAuth interim active). /api/me endpoint EXISTS (HTTP 200) — Operator pode point forwardAuth para /api/me quando Sprint 9+ |
 | F-HIGH-10 backup SOP N≥4 | 🟡 DOWNGRADE to MEDIUM | N=2 enforced (disk 35GB free insuficiente for N=4 = 40.8GB). Sprint 9+ offsite backup (ADR-030 reserved) viabiliza N≥4 |

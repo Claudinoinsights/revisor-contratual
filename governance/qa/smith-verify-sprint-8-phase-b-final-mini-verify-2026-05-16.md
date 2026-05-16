@@ -69,7 +69,20 @@ curl -I https://uptime.claudinoinsights.com/ → HTTP 000 (DNS NOT exist)
 
 ---
 
-### F-HIGH-02 Homepage Placeholder Cloudflare — 🚨 **STILL VALID + ESCALATED**
+### F-HIGH-02 Homepage Placeholder Cloudflare — ✅ **SCOPE OUT (Eric clarification 2026-05-16)**
+
+> **AMENDMENT 2026-05-16:** Eric clarification post-Smith re-verify: **`revisor.claudinoinsights.com/` é o domínio CORRETO** para revisor-contratual project. Empirical verification confirmou:
+>
+> ```bash
+> curl https://revisor.claudinoinsights.com/
+> HTTP 200 + 124,460 bytes
+> Title: "Revisor Contratual · OrSheva 7"
+> Real SPA com brand OrSheva 7 + LGPD compliance + BYOK messaging
+> ```
+>
+> Apex `claudinoinsights.com/` (404) **NÃO é revisor-contratual project scope** — pertence a Eric's main brand (claudino-insights project OR descartável). F-HIGH-02 **resolves automaticamente** para revisor-contratual project: landing existe e funciona em revisor.* subdomain.
+
+**Original Smith analysis preserved (historical context):**
 
 **Smith original claim:** `claudinoinsights.com/` serves Cloudflare placeholder; deve ter real landing page.
 
@@ -256,7 +269,7 @@ Two options:
 | F-HIGH-08 retention env | HIGH | Already RESOLVED EMPIRICAL | ✅ Done |
 | F-HIGH-09 backup encryption | HIGH | Already RESOLVED EMPIRICAL | ✅ Done |
 | **F-HIGH-01 DNS** | HIGH | **DOWNGRADE SCOPE (naming diff)** | ✅ Close — not real gap |
-| **F-HIGH-02 homepage** | HIGH | **🚨 STILL VALID + ESCALATED** | ⏳ Re-scope claudino-insights project |
+| **F-HIGH-02 homepage** | HIGH | **✅ SCOPE OUT (Eric clarification)** | revisor.claudinoinsights.com/ HTTP 200 substantive landing — apex 404 não é revisor scope |
 | **F-HIGH-03 composite middleware** | HIGH | **RESOLVED EMPIRICAL** | ✅ Done |
 | **F-HIGH-06 forwardAuth /me** | HIGH | **DEFER Sprint 9+** | ⏳ Phase 2 ADR planned |
 | **F-HIGH-10 backup SOP N≥4** | HIGH | **DOWNGRADE to MEDIUM** | ⏳ Sprint 9+ offsite |
