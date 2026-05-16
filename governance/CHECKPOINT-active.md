@@ -6917,3 +6917,118 @@ redoc_url: None                     # Story #1.6 /redoc disabled (bonus)
 **4/6 CRITICAL RESOLVED empirically + 2 PENDING Architect (Phase A pending).**
 
 **Próximo:** handoff Operator→Smith mini-verify Phase A (após Architect Stories #2.5 + #7 done — wait OR parallel execution Eric directive).
+
+### D-ARIA-S08-001 (2026-05-16) — Aria `*spec Sprint 8 Phase A Stories #2.5 + #7 PARALLEL CRITICAL` ✅ **DESIGN COMPLETE**
+
+**Trigger:** Operator handoff (consumed=true). Eric directive Option A3 Hybrid + "Skill architect Stories #2.5 + #7 PARALLEL".
+
+**Verdict:** Architect parts Stories #2.5 + #7 COMPLETE em ~45min cumulative actual. Operator collaborative finish PENDING (cron + Prometheus + README operator sections).
+
+#### Story #7 — Backup Automation ADR-029 + Runbook ✅ DONE
+
+**F-CRIT-06 backup automation INVISIBLE RESOLVED via INVESTIGATION + ADR-029 + runbook:**
+
+**Investigação empirical via SSH probes:**
+
+Backups originam de **APScheduler embedded** em `bloco_backup/scheduler.py` (ADR-013 §2.4 MVP-LEAN-01 Task 8). Smith F-CRIT-06 era **VISIBILITY gap legítimo** — NÃO architectural failure:
+
+- Host `cron`/`systemctl` NÃO veem APScheduler (vive dentro processo Python container)
+- 2 jobs APScheduler: `backup_daily` (cron 02:00 UTC) + `backup_rotation` (interval 24h)
+- Retention 7 dias hardcoded (`RETENTION_DAYS = 7`)
+- Permissions chmod 700 (dir) + 600 (files) — secure
+- Lifespan startup app.py:362-369 inicia + shutdown wait=True para graceful
+
+**Architecture decision (ADR-029):** **Manter APScheduler embedded + 3 enhancements**:
+
+1. **Visibility:** Runbook explícito + Prometheus metric `revisor_backup_last_success_timestamp` + Alertmanager `RevisorBackupStale` rule
+2. **Retention escalation:** 7 dias → 30 dias via env `REVISOR_BACKUP_RETENTION_DAYS` (Neo small code change + Operator env add)
+3. **Encryption deferred Sprint 9+:** Backups ZERO PII (vault.db = jurisprudência pública + audit.jsonl = HMAC hashes apenas) → defesa em profundidade Sprint 9+ ADR-031 (não LGPD §46 obrigatório)
+
+**Alternatives considered + rejected:** cron host, systemd timer, Docker container internal cron — all required refactor + lost cross-platform. APScheduler embedded mantida.
+
+**Sprint 9+ scope:** Offsite backup (S3/B2/Hetzner Storage Box) — separate ADR-030.
+
+**Files NEW:**
+
+- `governance/architecture/adr/adr-029-backup-strategy.md` (~290 linhas, comprehensive spec)
+- `governance/runbook-backup-restore.md` (~250 linhas, DR procedure step-by-step)
+
+**Operator action items embedded em ADR-029 + runbook:**
+
+| # | Action | Owner | Estimate |
+|---|--------|-------|----------|
+| 1 | Neo: `RETENTION_DAYS = int(os.environ.get("REVISOR_BACKUP_RETENTION_DAYS", "30"))` em scheduler.py | @dev | 10min |
+| 2 | Operator: Add `REVISOR_BACKUP_RETENTION_DAYS=30` em docker-compose.prod.yml | @devops | 5min |
+| 3 | Operator: Image rebuild + container recreate | @devops | 5-10min |
+| 4 | Operator: `/usr/local/bin/revisor-backup-exporter.sh` script (Option B textfile-collector) | @devops | 30min |
+| 5 | Operator: Cron `*/15 * * * * root /usr/local/bin/revisor-backup-exporter.sh` | @devops | 5min |
+| 6 | Operator: Alertmanager rule `RevisorBackupStale` | @devops | 30min |
+| 7 | Operator + QA: Test restore procedure empirically | @devops + @qa | 1h |
+| 8 | Operator: `runbook-validation-{date}.md` em governance/qa/ | @devops | 15min |
+
+**Total Operator estimate Story #7:** ~3h cumulative
+
+#### Story #2.5 — README Rewrite v0.2.10.0 SaaS ✅ ARCHITECT PARTS DONE
+
+**F-CRIT-05 README outdated RESOLVED architecturally (Architect collaborative parts):**
+
+**Sections REWRITTEN by Architect:**
+
+| Section | Old (v0.1.0) | New (v0.2.10.0) |
+|---------|--------------|-----------------|
+| Title subtitle | "Sistema LEAN local MVP CDC PF Veículos / TJBA" | "Sistema SaaS B2B BYOK de revisão jurídica de contratos bancários — production deployed em revisor.claudinoinsights.com" |
+| Visão | "Sistema agentic 100% local" | SaaS B2B BYOK positioning + target audience escritórios advocacia + performance empirical Sprint 7 |
+| Estado | "v0.1.0 MVP completo Sprint 01" | "v0.2.10.0 Sprint 7 Closed" + production URL + Smith verdict + Cenário Y++ DoD + architectural milestones |
+| Arquitetura (NEW) | Não existia | Stack production + 7 ADRs key table (010, 013, 014, 026, 027, 028, 029) + ADR-INDEX.md cross-ref |
+| Production Status (NEW) | Não existia | Deployment region + resource limits + monitoring stack + Sprint 8 cleanup checkboxes |
+| LGPD Compliance (NEW) | Não existia | Princípios §16/§46/§11 + production hardening + audit verification empirical |
+| Governance (NEW) | Não existia | PRD + CHECKPOINTs + CHANGELOG + Sprints + Smith verifies + TECH-DEBT + ADRs + Runbooks links |
+
+**Sections PRESERVED (Quickstart instructions ainda úteis para dev local):**
+
+- Quickstart 5min (Operator vai atualizar versions + git tags + production deploy reference)
+- CLI subcomandos (revisar, init-audit, populate-vault)
+- Detalhes técnicos historical
+
+**Sections MARKED for Operator collaborative finish (🚧 indicador):**
+
+- **Estado:** Operator updates ongoing Sprint 8 cleanup checkboxes
+- **Governance:** Operator finishes links com mais file paths se necessário
+- Quickstart sections: Operator updates `revisor --version` output (0.1.0 → 0.2.10.0) + `--port 8501` reference accuracy
+
+**File modified:** `README.md` (top sections + 4 new sections added, Quickstart preserved)
+
+**Phase A Stories Progress:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #0 disk cleanup | ✅ DONE D-OPS-S07-007 | @devops |
+| #2 marker cache volume | ✅ DONE D-OPS-S07-007 | @devops |
+| #1.5 tempfile audit | ✅ DONE D-DEV-S08-001 + D-OPS-S08-001 | @dev + @devops |
+| #1.6 /docs disable | ✅ DONE D-DEV-S08-001 + D-OPS-S08-001 | @dev + @devops |
+| **#2.5 README rewrite** | **✅ ARCHITECT PARTS DONE D-ARIA-S08-001** (Operator finish PENDENTE) | @architect + @devops |
+| **#7 backup automation ADR-029** | **✅ DESIGN DONE D-ARIA-S08-001** (Operator implementation PENDENTE) | @architect + @devops |
+
+**Phase A 4/6 fully DONE + 2 partial (Architect parts done, Operator finish pending).**
+
+**Smith F-CRIT findings progress:**
+
+- ✅ F-CRIT-01 disk 94% RESOLVED (Story #0)
+- ✅ F-CRIT-02 tempfile LGPD §16 RESOLVED (Story #1.5)
+- ✅ F-CRIT-03 /docs Swagger RESOLVED (Story #1.6)
+- ✅ F-CRIT-04 marker cache RESOLVED (Story #2)
+- 🚧 F-CRIT-05 README outdated ARCHITECT DONE — Operator collaborative finish pending
+- 🚧 F-CRIT-06 backup automation invisible ARCHITECT DESIGN DONE — Operator implementation pending
+
+**4/6 fully RESOLVED + 2/6 Architect design done (Operator implementation pending).**
+
+**Files:**
+
+- `governance/architecture/adr/adr-029-backup-strategy.md` (NEW comprehensive ADR ~290 lines)
+- `governance/runbook-backup-restore.md` (NEW DR runbook ~250 lines)
+- `README.md` (modified — 4 new sections + visão/estado refactored)
+- `.lmas/handoffs/handoff-devops-to-architect-2026-05-16-sprint-8-phase-a-stories-2-5-7-design.yaml` (consumed=true)
+- `.lmas/handoffs/handoff-architect-to-devops-2026-05-16-sprint-8-phase-a-stories-2-5-7-finish.yaml` (NEW consumed=false)
+- `governance/CHECKPOINT-active.md` (D-ARIA-S08-001 entry)
+
+**Próximo:** Operator handoff cascade Story #2.5 (README operator finish: Estado checkboxes + Quickstart versions) + Story #7 implementation (Neo retention env + Operator cron exporter + Alertmanager rule + restore test). Após ALL Phase A done (6/6 fully) → Smith full Phase A mini-verify confirma 6 CRIT RESOLVED.

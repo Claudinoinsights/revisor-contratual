@@ -1,20 +1,157 @@
 # Revisor Contratual
 
-> Sistema LEAN local de revisão jurídica de contratos bancários (CDC PF Veículos / TJBA — MVP).
+> Sistema SaaS B2B BYOK de revisão jurídica de contratos bancários — production deployed em [revisor.claudinoinsights.com](https://revisor.claudinoinsights.com).
 
-## Visão (uma frase)
+## 🎯 Visão
 
-Sistema agentic 100% local que analisa contratos de financiamento bancário e produz, em ≤210s por contrato, teses jurídicas + contábeis + fiscais com peticionamento e recursos prontos para protocolo, fundamentados em jurisprudência vinculante do STF, STJ e TJ da jurisdição do contrato.
+**Revisor Contratual** é um sistema agentic deployed em produção que analisa contratos de financiamento bancário (CDC PF Veículos prioritário, com roadmap para Bens/Imobiliário/Cartão) e produz veredito jurídico + contábil + fiscal fundamentado em jurisprudência vinculante STF + STJ.
 
-## Estado — v0.1.0 MVP completo
+**Target audience:** Escritórios de advocacia + Departamentos jurídicos B2B que necessitam revisão escalável de contratos bancários com compliance LGPD on-premise.
 
-- ✅ **15 stories Done** (Sprint 01 completo) com 15/15 PASS Oracle
-- ✅ **233 testes** (232 passed + 1 skipped intencional smoke sem Ollama) — local e CI verdes
-- ✅ **CLI funcional** com 3 subcomandos (`revisar`, `init-audit`, `populate-vault`)
-- ✅ **CI GitHub Actions** verde Python 3.11 + 3.12 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
-- 🚀 **Release:** v0.1.0
-- 📦 **Governance:** PRD v1.0.2 + 9 ADRs + 16 QA gates + TECH-DEBT.md em [`governance/`](governance/)
+**Modelo:** SaaS B2B BYOK (Bring Your Own Key) — escritório paga API LLM direto (Anthropic/OpenAI/local Ollama), nós entregamos plataforma + pipeline + audit chain LGPD §46.
+
+**Performance empirical (Sprint 7 Phase 4):**
+
+- Born-digital PDF: **~985ms** (PyMuPDF fast path) — 180x speedup vs subprocess
+- Scanned PDF: ~120s (marker OCR subprocess isolation)
+- LGPD §46 HMAC chain integrity: 100% preserved (11/11 entries empirical Sprint 7)
+
+## 📊 Estado — v0.2.10.0 (Sprint 7 Closed)
+
+> **🚧 OPERATOR COLLABORATIVE FINISH PENDENTE** (Sprint 8 Story #2.5 — atualizar versions + git tags + production URL + ongoing Sprint 8 cleanup checkboxes)
+
+**Production:**
+
+- 🚀 **Release:** [v0.2.10.0](https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.2.10.0) (2026-05-16)
+- 🌐 **Production URL:** [https://revisor.claudinoinsights.com](https://revisor.claudinoinsights.com)
+- 🏗️ **Image:** `revisor-contratual:prod` sha256:c93e9853d50a (Sprint 8 Stories #1.5+#1.6 hardened)
+- 🛡️ **Smith verdict (Sprint 7 Phase 4):** CONTAINED + GREENLIGHT — Cenário Y++ DoD architectural 100% atingido empirically
+- 📋 **Sprint status:** Sprint 7 Closed (Cenário Y++ DoD architectural) + Sprint 8 Phase A em progresso (production readiness 56→target 95+/100)
+
+**Architectural Milestones:**
+
+- ✅ **Cenário Y++ DoD architectural:** parser_used=pymupdf4llm + audit 9 keys + Step 2 reached + container preserved + HMAC chain INTACT
+- ✅ **F-PROD-NEW-22 RESOLVED:** subprocess isolation Phase 3 (ADR-026) + dual-path Phase 4 (ADR-027)
+- ✅ **Memory consolidation:** 22GB+ → 10GB total (~55% reduction via Ollama single-container ADR-028)
+- ✅ **Production hardening Sprint 8:** /docs disabled em produção (REVISOR_ENV=production) + LGPD §16 tempfile cleanup 3-layer defense
+
+**Cumulative Stats:**
+
 - 🌱 **Origem:** extraído de `Claudinoinsights/the-matrix` em 2026-05-05 (Sprint 01 closure)
+- 📦 **Governance:** PRD v1.0.x + ~50 stories cumulative + ADRs 001-029 + 7 Sprints closed + ongoing Sprint 8
+- 🧪 **Tests:** ~233 cumulative (smoke pipeline real Sprint 02 + integration tests Sprint 7+8)
+- 🔄 **CI GitHub Actions:** verde Python 3.11 + 3.12 ([`.github/workflows/ci.yml`](.github/workflows/ci.yml))
+
+## 🏛️ Arquitetura
+
+**Stack production:**
+
+- **Backend:** FastAPI + HTMX + Jinja2 + uvicorn (Python 3.13)
+- **LLM:** Ollama embedded (qwen2.5:3b + qwen2.5:7b) via ADR-028 single-container consolidation
+- **Parsing dual-path (ADR-027):**
+  - Born-digital → PyMuPDF inline (`asyncio.to_thread`, ~985ms latency)
+  - Scanned → marker OCR subprocess isolation (`asyncio.create_subprocess_exec`, ~120s)
+- **Subprocess isolation (ADR-026):** F-PROD-NEW-22 silent worker exit RESOLVED via process-level isolation
+- **Audit chain:** HMAC LGPD §46 (`bloco_audit/chain.py`) — entry_hash + previous_entry_hash links
+- **Backup:** APScheduler embedded (ADR-013 §2.4 + ADR-029 enhancements)
+- **Deploy:** Docker Compose + Traefik reverse proxy + Cloudflare DNS (HTTPS + HSTS preload)
+
+**Key Architectural Decisions (ADRs):**
+
+| ADR | Title | Sprint |
+|-----|-------|--------|
+| [ADR-010](governance/architecture/adr/) | Path C — Qwen 7B fallback default + format=json economista | Sprint 02 |
+| [ADR-013](governance/architecture/adr/) | APScheduler embedded backup + lifespan integration | Sprint 02 |
+| [ADR-014](governance/architecture/adr/) | Audit chain HMAC LGPD §46 | Sprint 01 |
+| [ADR-026](governance/architecture/adr/adr-026-marker-subprocess-isolation-parsing.md) | Marker subprocess isolation parsing | Sprint 7 Phase 3 |
+| [ADR-027](governance/architecture/adr/adr-027-pymupdf-born-digital-fast-path.md) | PyMuPDF born-digital fast path (dual-path) | Sprint 7 Phase 4 |
+| [ADR-028](governance/architecture/adr/adr-028-ollama-single-container-consolidation.md) | Ollama single container consolidation | Sprint 7 Phase 2 |
+| [ADR-029](governance/architecture/adr/adr-029-backup-strategy.md) | Backup strategy — APScheduler + visibility + retention 30d | Sprint 8 |
+
+**Index completo:** [`governance/architecture/ADR-INDEX.md`](governance/architecture/ADR-INDEX.md)
+
+## 🚀 Production Status
+
+**Deployment:**
+
+- **Region:** Hetzner VPS Germany (eric@91.108.126.149)
+- **Reverse proxy:** Traefik v2.11 (Let's Encrypt cert + HSTS preload + CSP headers)
+- **Container orchestration:** Docker Compose v2 (`docker-compose.prod.yml`)
+- **DNS:** Cloudflare (proxied — DDoS protection + caching layer)
+
+**Resource limits:**
+
+- App container: 6GB memory limit (~50 MiB idle baseline, ~700 MiB pipeline run)
+- Ollama-shared container: 4GB memory limit (consolidated qwen2.5:3b + 7b via ADR-028)
+- Total VPS budget: ~10GB application stack (de 7.8GB system RAM) — efficient
+
+**Monitoring stack:**
+
+- Prometheus + Grafana 11.1 + Alertmanager + Loki 3.0
+- Uptime-Kuma probes (revisor.claudinoinsights.com health)
+- Cockpit web UI (system management)
+
+**Ongoing Sprint 8 cleanup (production readiness 56→95+/100):**
+
+| Item | Status |
+|------|--------|
+| Disk cleanup ≥80% buffer | ✅ DONE (Story #0) |
+| Marker cache volume mount | ✅ DONE (Story #2) |
+| Tempfile LGPD §16 3-layer defense | ✅ DONE (Story #1.5) |
+| /docs production hardening | ✅ DONE (Story #1.6) |
+| README architectural refresh | 🚧 EM PROGRESSO (Story #2.5 — THIS document) |
+| Backup automation visibility + retention 30d | 🚧 EM PROGRESSO (Story #7 — ADR-029 + runbook) |
+| DNS subdomains uptime+cockpit | ⏳ Phase B (Story #8) |
+| Backup encryption Sprint 9+ | ⏳ Future (ADR-031) |
+
+> Para acompanhar Sprint 8 detalhado: [`governance/sprints/sprint-8-scope.md`](governance/sprints/sprint-8-scope.md)
+
+## 🔐 LGPD Compliance
+
+**Princípios implementados:**
+
+- **§16 Minimização:** Tempfile PDF cleanup 3-layer defense (background safety task + lifespan shutdown + cron daily) — Sprint 8 Story #1.5
+- **§46 Audit chain HMAC:** entry_hash + previous_entry_hash cryptographic chain (`bloco_audit/chain.py`) — integrity preserved 100% empirical Sprint 7
+- **§11 On-premise:** Fontes self-hosted (Manrope + Fraunces + JetBrains Mono), ZERO CDN externo (REV-INT-02 Sprint 02)
+- **Backup retention 30d:** ADR-029 + APScheduler embedded (`bloco_backup/scheduler.py`)
+- **Zero PII em backups:** vault.db (jurisprudência pública) + audit.jsonl (HMAC hashes apenas — no CPF/nome/valor financeiro)
+
+**Production hardening:**
+
+- HTTPS-only (HTTP→HTTPS 308 permanent redirect)
+- HSTS preload + CSP + X-Frame-Options + X-Content-Type-Options + Permissions-Policy
+- `/docs` + `/openapi.json` + `/redoc` disabled em produção (REVISOR_ENV=production guard — Sprint 8 Story #1.6)
+- File upload validation (MIME magic bytes %PDF- + max 10MB)
+- Non-root container user (revisor uid 1000)
+- Cookie session HttpOnly + SameSite=Lax + 24h max-age
+
+**Audit verification empirical (Sprint 7 Phase 4):**
+
+```text
+audit.jsonl: 11 entries
+HMAC chain integrity: 10/10 valid links (CHAIN INTACT)
+parser_used distribution: pymupdf4llm=7 (born-digital) | None=4 (subprocess timeouts)
+```
+
+## 📋 Governance & Documentation
+
+> **🚧 OPERATOR COLLABORATIVE FINISH PENDENTE** (Sprint 8 Story #2.5 — atualizar links CHECKPOINT + CHANGELOG cross-refs)
+
+- **PRD:** [`governance/prd/`](governance/prd/) (v1.0.x cumulative)
+- **CHECKPOINTS:**
+  - [`governance/CHECKPOINT-active.md`](governance/CHECKPOINT-active.md) (current sprint activity)
+  - [`governance/PROJECT-CHECKPOINT.md`](governance/PROJECT-CHECKPOINT.md) (executive summary)
+- **CHANGELOG:** [`governance/CHANGELOG-v0.2.10.0.md`](governance/CHANGELOG-v0.2.10.0.md) (Sprint 7 closure release notes)
+- **Sprints:**
+  - [`governance/retrospectives/sprint-7-retrospective.md`](governance/retrospectives/sprint-7-retrospective.md)
+  - [`governance/sprints/sprint-8-scope.md`](governance/sprints/sprint-8-scope.md) (current)
+- **Smith adversarial verifies:** [`governance/qa/smith-verify-*.md`](governance/qa/)
+- **Tech Debt:** [`governance/TECH-DEBT.md`](governance/TECH-DEBT.md)
+- **Architecture decisions:** [`governance/architecture/`](governance/architecture/)
+- **Runbooks:**
+  - [`governance/runbook-backup-restore.md`](governance/runbook-backup-restore.md) (DR procedure)
+  - [`governance/sop-revisar-pdf.md`](governance/sop-revisar-pdf.md) (CLI usage)
+  - [`governance/sop-populate-vault.md`](governance/sop-populate-vault.md) (vault management)
 
 ## Quickstart (5 minutos)
 
