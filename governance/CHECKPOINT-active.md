@@ -8596,3 +8596,71 @@ Stories #10/#8/#9 são **MOSTLY claudino-insights project domain** OR Sprint 9+ 
 A) **Skill devops Operator** push Aria refinement commit
 B) **Skill analyst** Story #1 real CDC PDF fixture procurement
 C) **Pause for Eric direction** — Sprint 8 Phase C scope clarification (Phase 1-3 LOWs = 14 Smith LOWs absorption?)
+
+---
+
+### D-ANALYST-S08-001 (2026-05-16) — Atlas Sprint 7-8 LOWs cataloging research 🔍 **39 LOWs INVENTORIED**
+
+**Research deliverable:** `governance/research/phase-1-3-lows-cataloging-2026-05-16.md` (~370 lines comprehensive inventory).
+
+**Decisão:** Catalog 39 cumulative LOW-severity findings across Sprint 7 Phase 1-4 + Sprint 8 Phase A/B mini-verifies + disposition matrix per finding. Read-only inspection 4 Smith reports + 2 mini-verifies. Zero LOWs invented per feedback_no_invention.
+
+**Por quê:** Pendente "Phase 1-3 LOWs cleanup" tinha scope NÃO clear. Eric directive "Execute os pendentes sempre pela Skill" requires research-first approach para identify what's actually pending vs RESOLVED vs deferred-by-design vs cross-project.
+
+**Aggregate Disposition (39 LOWs):**
+
+| Disposition | Count | Action Required |
+|-------------|-------|-----------------|
+| ✅ RESOLVED EMPIRICAL | 12 | None (already addressed) |
+| 📋 DEFER Sprint 9+ | 10 | Sprint 9 scope reflection |
+| 🟡 Future Phase 5 polish | 6 | Optional brief mini-sprint |
+| ⚠️ NEEDS Eric input | 1 | TECH-DEBT.md formalization decision (F-S7P4-LOW-06) |
+| ⚠️ CROSS-PROJECT | 2 | Claudino-insights scope |
+| 🔍 DOCUMENTATION ONLY | 8 | No action needed |
+
+**Per Sprint Phase breakdown:**
+
+- Sprint 7 Phase 1: 7 LOWs (memory optimization foundation)
+- Sprint 7 Phase 2: 9 LOWs (ADR-028 ollama consolidation)
+- Sprint 7 Phase 3: 7 LOWs (ADR-026 marker subprocess)
+- Sprint 7 Phase 4: 6 LOWs (ADR-027 dual-path)
+- Sprint 8 Phase A mini: 4 LOWs (Phase A verification)
+- Sprint 8 Phase B mini: 5 LOWs (**ALL 5 RESOLVED** D-OPS-S08-007 + D-ARIA-S08-003)
+- Sprint 8 Phase B FINAL: 1 NEW LOW (claudino-insights scope)
+
+**Key insights:**
+
+1. **31% LOWs already RESOLVED** (12/39) — most via subsequent sprint work
+2. **26% LOWs deferred by design Sprint 9+** (10/39) — acceptable carryover
+3. **15% LOWs are Phase 5 polish** (6/39) — Sprint 7+ original explicit scope
+4. **21% LOWs are documentation/observation only** (8/39) — no action mandated
+5. **5% LOWs cross-project boundary** (2/39) — claudino-insights infra scope
+6. **2% NEEDS Eric input** (1/39) — TECH-DEBT.md formalization
+
+**🎯 Zero immediate action required for revisor-contratual scope.**
+
+**Eric Decisions Pendentes:**
+
+1. **F-S7P4-LOW-06 TECH-DEBT.md formalization** — Accept research doc as informal registry OR create formal TECH-DEBT.md (Skill architect)
+2. **Sprint 9+ planning hooks** — 10 LOWs reflect em Sprint 9 scope (Skill pm OR architect)
+3. **Phase 5 polish mini-sprint** — Skip OR brief cleanup (Skill devops 1-2h)
+4. **Cross-project claudino-insights** — Switch context OR defer
+
+**Handoff Routing (after Eric decision):**
+
+| Eric choice | Next Skill |
+|-------------|-----------|
+| Formal TECH-DEBT.md | Skill architect (Aria) |
+| Sprint 9+ scope reflection | Skill pm OR architect |
+| Phase 5 cleanup mini-sprint | Skill devops (Operator) |
+| Cross-project | Switch project context |
+| Accept current state | No action — research doc IS deliverable |
+
+**Files created Sprint 8 D-ANALYST-S08-001:**
+
+- governance/research/phase-1-3-lows-cataloging-2026-05-16.md (NEW ~370 lines comprehensive inventory + disposition matrix)
+- governance/CHECKPOINT-active.md (D-ANALYST-S08-001 entry)
+
+**Commit pendente Operator push** (Atlas governance-only, no deploy).
+
+**Próximo Skill:** Eric review research doc + decide Priority 1 (TECH-DEBT.md formalization) + Priority 2+3 (Sprint 9+ planning).
