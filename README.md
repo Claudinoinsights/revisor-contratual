@@ -18,8 +18,6 @@
 
 ## 📊 Estado — v0.2.10.0 (Sprint 7 Closed)
 
-> **🚧 OPERATOR COLLABORATIVE FINISH PENDENTE** (Sprint 8 Story #2.5 — atualizar versions + git tags + production URL + ongoing Sprint 8 cleanup checkboxes)
-
 **Production:**
 
 - 🚀 **Release:** [v0.2.10.0](https://github.com/Claudinoinsights/revisor-contratual/releases/tag/v0.2.10.0) (2026-05-16)
@@ -135,8 +133,6 @@ parser_used distribution: pymupdf4llm=7 (born-digital) | None=4 (subprocess time
 
 ## 📋 Governance & Documentation
 
-> **🚧 OPERATOR COLLABORATIVE FINISH PENDENTE** (Sprint 8 Story #2.5 — atualizar links CHECKPOINT + CHANGELOG cross-refs)
-
 - **PRD:** [`governance/prd/`](governance/prd/) (v1.0.x cumulative)
 - **CHECKPOINTS:**
   - [`governance/CHECKPOINT-active.md`](governance/CHECKPOINT-active.md) (current sprint activity)
@@ -165,7 +161,7 @@ pip install -e ".[dev]"
 
 # Verificar instalação
 revisor --version
-# → revisor, version 0.1.0
+# → revisor, version 0.2.10.0
 ```
 
 ### 2. Configurar AUTH_COOKIE_KEY (obrigatório)
@@ -234,7 +230,7 @@ uvicorn bloco_interface.web.app:app --port 8501 --reload
 # Design system orsheva (laranja accent + Manrope/Fraunces) aplicado via tokens CSS
 ```
 
-> 🚧 **UI Web v0.1.0 é workspace minimal** — só ações do operador (upload, configurar, revisar, ver veredito). Invocação real do pipeline será implementada na STORY UI-1 do Sprint 02. Por agora roda em modo demo (mock SSE 7 steps + mock veredito HITL 78%). CLI é canônica para uso real.
+> ✅ **UI Web v0.2.10.0 production-grade** — Sprint 02 STORY UI-1 entregou pipeline real connected (não mais mock). FastAPI + HTMX + Jinja2 + SSE streaming + fontes self-hosted (LGPD on-premise). Sprint 04 SPA OrSheva 7 + Sprint 7 dual-path Phase 4 (born-digital fast path 985ms). Production deployed [revisor.claudinoinsights.com](https://revisor.claudinoinsights.com).
 >
 > **Stack:** FastAPI + HTMX 2.0 + Jinja2 + uvicorn. HTMX local em `bloco_interface/web/static/htmx.min.js` (sem CDN runtime).
 > **Migração de Streamlit:** REV-INT-01 (2026-05-05) — Streamlit removido por limitar controle CSS profundo. Filosofia LEAN preservada.
@@ -306,7 +302,7 @@ Fan-out paralelo via `asyncio.gather` em **2 instâncias Ollama distintas**:
 | WCAG 2.1 AA + Lighthouse ≥90 | NFR-A11Y-01 (futuro UI) |
 | Tela CFOAB obrigatória antes de PDF (Estatuto OAB art. 32) | FR-DELIV-06 |
 
-## Limitações conhecidas (v0.1.0)
+## Limitações conhecidas (v0.2.10.0)
 
 | Limitação | Workaround | Endereçada em |
 |-----------|------------|---------------|

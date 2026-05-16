@@ -199,7 +199,43 @@ ssh eric@91.108.126.149 "sudo docker exec revisor-prod-app python -c 'from bloco
 
 ## 🔧 Monitoring & Alerts
 
-### Prometheus Metric Setup (Operator Sprint 8 Story #7 implementation)
+### ⚡ Sprint 8 Story #7 Deployed: journald + Loki (node_exporter ausente VPS)
+
+**Deployed approach (Sprint 8 D-OPS-S08-002):**
+
+- **Script:** `/usr/local/bin/revisor-backup-check.sh` (chmod 755, root:root)
+- **Cron:** `/etc/cron.d/revisor-backup-monitor` → `*/15 * * * * root /usr/local/bin/revisor-backup-check.sh`
+- **Output:** journald via `logger -t revisor-backup-check` (auto-collected by Alloy → Loki)
+- **Log levels:** INFO (backup_ok) | WARN (backup_incomplete) | ERROR (backup_stale)
+
+**Loki query for alerting (manual setup Sprint 9+ TD):**
+
+```logql
+{tag="revisor-backup-check"} |~ "ERROR backup_stale"
+```
+
+**Grafana alert configuration (Sprint 9+ TD):**
+
+- Datasource: Loki
+- Query: above LogQL
+- Condition: count > 0 over last 1h
+- Notification: email via Alertmanager smtp config
+
+**Verify deployment:**
+
+```bash
+ssh eric@91.108.126.149 "
+sudo journalctl -t revisor-backup-check --since '1 hour ago' --no-pager | head -5
+sudo cat /etc/cron.d/revisor-backup-monitor
+sudo /usr/local/bin/revisor-backup-check.sh; echo exit=\$?
+"
+```
+
+---
+
+### Sprint 9+ TD: Prometheus Metric Setup (Option A original, deferred)
+
+**TD-S8P7-MED-03:** Prometheus textfile-collector integration deferred — VPS NÃO tem node_exporter installed (apenas prometheus + postgres-exporter containers). Sprint 9+ install node_exporter container com `--collector.textfile.directory` + migrate `revisor-backup-check.sh` to write `.prom` format.
 
 **Option A — Endpoint-based (Sprint 8 Phase B, requires Neo code change):**
 
