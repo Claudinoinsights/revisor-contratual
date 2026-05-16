@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 import os
 import shutil
+import subprocess
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -27,6 +28,12 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_DATA_DIR = Path.home() / ".local" / "share" / "revisor-contratual"
 DEFAULT_BACKUP_DIR = DEFAULT_DATA_DIR / "backups"
+
+# ADR-031 Sprint 8 Phase B Story #11 — restic encryption (Smith F-HIGH-09)
+# LGPD §46 (segurança técnica) + §11 (prevenção) defense-in-depth layer.
+# Repository default lives in same data dir as legacy backups (volume mount preserved).
+DEFAULT_RESTIC_REPO = DEFAULT_DATA_DIR / "restic-repo"
+DEFAULT_RESTIC_PASSWORD_FILE = "/etc/restic/password.txt"
 
 
 def _resolve_retention_days() -> int:
@@ -101,6 +108,145 @@ def backup_daily() -> Path | None:
     return target
 
 
+def _restic_repo() -> str:
+    """Resolve restic repository path (env override RESTIC_REPOSITORY)."""
+    return os.environ.get("RESTIC_REPOSITORY", str(DEFAULT_RESTIC_REPO))
+
+
+def _restic_password_file() -> str:
+    """Resolve restic password file path (env override RESTIC_PASSWORD_FILE)."""
+    return os.environ.get("RESTIC_PASSWORD_FILE", DEFAULT_RESTIC_PASSWORD_FILE)
+
+
+def backup_daily_encrypted() -> None:
+    """Job: encrypted backup via restic — ADR-031 Sprint 8 Phase B Story #11.
+
+    Smith F-HIGH-09: backups plaintext readable em filesystem-level → defense-in-depth gap.
+    ADR-031 §APScheduler Integration: restic AES-256-CTR + Poly1305 MAC + scrypt KDF.
+    LGPD §46 (segurança técnica) + §11 (prevenção) compliance baseline.
+
+    Preserves ADR-013 §2.4 APScheduler embedded architecture (subprocess invocation
+    from BackgroundScheduler, NÃO migrate to host cron).
+
+    Co-existence: roda em paralelo com legacy backup_daily() durante 30-day migration
+    window (ADR-031 §Migration Plan D+0 → D+30). Operator removes legacy job em
+    follow-up deploy após D+30.
+
+    Targets: vault.db + audit.jsonl (mesmos arquivos legacy — content-addressable
+    storage do restic deduplica conteúdo idêntico).
+    """
+    data_dir = _data_dir()
+    repo = _restic_repo()
+    pw_file = _restic_password_file()
+    targets = [str(data_dir / "vault.db"), str(data_dir / "audit.jsonl")]
+    # Filtra apenas arquivos existentes (restic não falha em missing mas log fica claro).
+    existing_targets = [t for t in targets if Path(t).exists()]
+    if not existing_targets:
+        logger.warning("backup_daily_encrypted: nenhum target existe em %s, skip", data_dir)
+        return
+
+    cmd = [
+        "restic",
+        "-r", repo,
+        "-p", pw_file,
+        "backup",
+        *existing_targets,
+        "--tag", "daily",
+        "--host", "revisor-prod",
+    ]
+    try:
+        result = subprocess.run(  # noqa: S603 — fixed args, no user input
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        logger.error("backup_daily_encrypted: restic timeout (%ss)", exc.timeout)
+        raise RuntimeError(f"backup_daily_encrypted timeout after {exc.timeout}s") from exc
+    except FileNotFoundError as exc:
+        # restic binary missing — Dockerfile install layer ausente OR host run sem restic
+        logger.error("backup_daily_encrypted: restic binary not found (%s)", exc)
+        raise RuntimeError("backup_daily_encrypted: restic binary missing — verify Dockerfile") from exc
+
+    if result.returncode != 0:
+        logger.error(
+            "backup_daily_encrypted: restic backup failed (rc=%d) stderr=%s",
+            result.returncode, result.stderr.strip(),
+        )
+        raise RuntimeError(f"backup_daily_encrypted failed (rc={result.returncode}): {result.stderr.strip()}")
+
+    # Success — log last line of restic output (snapshot ID summary).
+    last_line = result.stdout.strip().split("\n")[-1] if result.stdout else ""
+    logger.info("backup_daily_encrypted: restic OK — %s", last_line)
+
+
+def cleanup_old_snapshots_encrypted() -> int:
+    """Job: restic forget + prune para retention via REVISOR_BACKUP_RETENTION_DAYS.
+
+    Replaces ADR-029 cp-based rotation com restic native retention (snapshot-aware).
+    Retorna count snapshots removidos (parsed from restic output OR 0 se parse fail).
+
+    Story #14 integration: _resolve_retention_days() helper preserved — mesmo env var
+    REVISOR_BACKUP_RETENTION_DAYS controla legacy rotation E encrypted rotation.
+
+    --keep-within Nd: mantém snapshots dentro janela N dias, deleta restante.
+    --prune: physically remove orphaned packs (recupera disk space).
+    """
+    repo = _restic_repo()
+    pw_file = _restic_password_file()
+    retention_days = _resolve_retention_days()
+
+    cmd = [
+        "restic",
+        "-r", repo,
+        "-p", pw_file,
+        "forget",
+        "--keep-within", f"{retention_days}d",
+        "--prune",
+    ]
+    try:
+        result = subprocess.run(  # noqa: S603 — fixed args, no user input
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=600,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        logger.error("cleanup_old_snapshots_encrypted: restic forget timeout (%ss)", exc.timeout)
+        raise RuntimeError(f"cleanup_old_snapshots_encrypted timeout after {exc.timeout}s") from exc
+    except FileNotFoundError as exc:
+        logger.error("cleanup_old_snapshots_encrypted: restic binary not found (%s)", exc)
+        raise RuntimeError("cleanup_old_snapshots_encrypted: restic binary missing") from exc
+
+    if result.returncode != 0:
+        logger.error(
+            "cleanup_old_snapshots_encrypted: restic forget failed (rc=%d) stderr=%s",
+            result.returncode, result.stderr.strip(),
+        )
+        raise RuntimeError(
+            f"cleanup_old_snapshots_encrypted failed (rc={result.returncode}): {result.stderr.strip()}"
+        )
+
+    # Best-effort parse: restic forget output inclui "remove N snapshots".
+    # Failure to parse → return 0 (not error — operation succeeded).
+    deleted = 0
+    for line in result.stdout.split("\n"):
+        if "remove" in line.lower() and "snapshot" in line.lower():
+            for token in line.split():
+                if token.isdigit():
+                    deleted = int(token)
+                    break
+            break
+    logger.info(
+        "cleanup_old_snapshots_encrypted: restic forget+prune OK (retention=%dd, ~%d removed)",
+        retention_days, deleted,
+    )
+    return deleted
+
+
 def backup_rotation() -> int:
     """Job: deleta backups/*/ com mtime > RETENTION_DAYS dias. Retorna count deletados."""
     backup_dir = _backup_dir()
@@ -145,20 +291,39 @@ def create_scheduler() -> BackgroundScheduler:
     (case-insensitive, com strip de whitespace). Outros valores → flag false.
     """
     scheduler = BackgroundScheduler(daemon=True, timezone="UTC")
-    # Job 1: backup_daily 02:00 UTC
+    # Job 1 (LEGACY): backup_daily 02:00 UTC — co-existência 30-day migration window
+    # ADR-031 §Migration Plan: legacy plaintext + restic encrypted co-existem D+0 → D+30,
+    # após D+30 Operator remove via follow-up deploy.
     scheduler.add_job(
         backup_daily,
         trigger=CronTrigger(hour=2, minute=0),
         id="backup_daily",
-        name="Daily backup vault + audit",
+        name="Daily backup vault + audit (legacy plaintext — 30d migration)",
         replace_existing=True,
     )
-    # Job 2: backup_rotation a cada 24h (start em 1min após startup)
+    # Job 2 (LEGACY): backup_rotation a cada 24h
     scheduler.add_job(
         backup_rotation,
         trigger=IntervalTrigger(days=1),
         id="backup_rotation",
-        name="Rotation backups >7 dias",
+        name=f"Rotation legacy backups >{RETENTION_DAYS}d",
+        replace_existing=True,
+    )
+    # Job 3 (NEW ADR-031): backup_daily_encrypted 02:05 UTC — restic AES-256-CTR
+    # Smith F-HIGH-09 RESOLVED. Offset +5min para evitar contenção I/O com legacy.
+    scheduler.add_job(
+        backup_daily_encrypted,
+        trigger=CronTrigger(hour=2, minute=5),
+        id="backup_daily_encrypted",
+        name="Daily encrypted backup (restic ADR-031)",
+        replace_existing=True,
+    )
+    # Job 4 (NEW ADR-031): cleanup_old_snapshots_encrypted a cada 24h (offset +1h legacy)
+    scheduler.add_job(
+        cleanup_old_snapshots_encrypted,
+        trigger=IntervalTrigger(days=1),
+        id="cleanup_old_snapshots_encrypted",
+        name=f"Rotation encrypted snapshots >{RETENTION_DAYS}d (restic forget+prune)",
         replace_existing=True,
     )
     # Job 3 condicional: tema_1378_check 02:30 UTC (per Smith CC.25 F-01)

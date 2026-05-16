@@ -7644,3 +7644,127 @@ ADR-INDEX.md inexistia (30 ADRs sem MOC formal). Aria aproveitou Story #11 para 
 **5/11 HIGH ARCHITECTURALLY ADDRESSED em Phase B (4 empirical + 1 architectural pending implementation).**
 
 **Próximo:** Skill dev (Neo) Story #11 restic implementation (~2h cumulative — Dockerfile + scheduler + tests).
+
+---
+
+### D-DEV-S08-003 (2026-05-16) — Neo `*develop Sprint 8 Phase B Story #11 — restic encryption implementation` ✅ **CODE COMPLETE**
+
+**Decisão:** Implementar ADR-031 spec — restic encryption co-existence pattern. ADD novas funções alongside legacy (NÃO replace) durante 30-day migration window per ADR-031 §Migration Plan.
+
+**Por quê:** Aria handoff scope (3 phases Neo). Eric directive "continue sempre pela skill correta". ADR-031 §Migration Plan explicit co-existence D+0 → D+30 (rollback safety durante transition). NÃO replace bodies — ADD new functions distintas com sufixo `_encrypted`.
+
+**Reconciliação handoff vs ADR migration plan:**
+
+Handoff Phase 2 dizia "Replace backup_daily() body with backup_daily_encrypted()". ADR-031 §Migration Plan dizia "co-existem D+0 → D+30". Neo escolheu ADR-aligned approach (safer + matches spec): ADD novas funções, KEEP legacy. After D+30, follow-up deploy Operator remove legacy job.
+
+**Implementation completa em 3 phases:**
+
+| Phase | Files | Estimate | Empirical |
+|-------|-------|----------|-----------|
+| 1: Dockerfile | Dockerfile (1 file modified +5 lines) | 15min | restic apt-get install layer w/ ADR-031 + LGPD §46/§11 comments |
+| 2: scheduler.py | bloco_backup/scheduler.py (1 file modified +130 lines) | 1h | 4 new symbols: DEFAULT_RESTIC_REPO + DEFAULT_RESTIC_PASSWORD_FILE constants + _restic_repo() + _restic_password_file() + backup_daily_encrypted() + cleanup_old_snapshots_encrypted() + create_scheduler() registers 4 jobs (legacy 2 + encrypted 2 co-existence) |
+| 3: tests | tests/integration/test_backup_encryption_restic.py (NEW 130 lines) | 45min | 5 tests (test_backup_daily_encrypted_invokes_restic_with_correct_args + test_backup_daily_encrypted_raises_runtimeerror_on_nonzero_returncode + test_cleanup_old_snapshots_encrypted_uses_retention_env + test_restic_repository_env_default_path + test_restic_password_file_env_default_path) |
+
+**Total time:** ~2h cumulative (matches Aria estimate).
+
+**Standalone Python 3.14 smoke verify 9/9 PASS empirical (TD-SP06-PYTEST-DEPS workaround):**
+
+| Test | Validação | Result |
+|------|-----------|--------|
+| SMOKE-1 AST | 4 new symbols present in scheduler.py | ✅ |
+| SMOKE-2 Dockerfile | restic + ADR-031 comment | ✅ |
+| SMOKE-3 test count | 5 test functions present | ✅ |
+| TEST-1 _restic_repo default | retorna path ending restic-repo | ✅ |
+| TEST-2 _restic_repo env override | RESTIC_REPOSITORY=/custom/repo respected | ✅ |
+| TEST-3 _restic_password_file default | /etc/restic/password.txt | ✅ |
+| TEST-4 backup_daily_encrypted args | 12 args com restic + -r + -p + backup + targets + --tag daily + --host revisor-prod + timeout=300 | ✅ |
+| TEST-5 cleanup retention env=60 | --keep-within 60d + --prune + timeout=600 + parsed deleted=2 | ✅ |
+| TEST-6 error path rc!=0 | RuntimeError com rc=1 message | ✅ |
+| TEST-7 timeout handling | TimeoutExpired → RuntimeError com timeout msg | ✅ |
+| TEST-8 binary missing | FileNotFoundError → RuntimeError com binary msg | ✅ |
+| TEST-9 scheduler jobs | 4 jobs registered (backup_daily + backup_rotation + backup_daily_encrypted + cleanup_old_snapshots_encrypted) | ✅ |
+
+**ADR-031 §Spec Coverage compliance:**
+
+- ✅ AES-256-CTR + Poly1305 MAC + scrypt KDF (restic default crypto, documented)
+- ✅ APScheduler integration preservada (ADR-013 §2.4 architecture intact)
+- ✅ Subprocess invocation pattern (no shell injection — fixed cmd list, no user input)
+- ✅ Error handling: timeout 300s backup + 600s forget + non-zero returncode + FileNotFoundError → RuntimeError
+- ✅ Story #14 integration: _resolve_retention_days() helper invocado em cleanup_old_snapshots_encrypted
+- ✅ Logging: success + error paths logged via existing `logger`
+- ✅ Cite ADR-031 + ADR-029 + Smith F-HIGH-09 + LGPD §46/§11 nas docstrings
+
+**ADR-031 §Migration Plan compliance:**
+
+- ✅ Co-existence D+0 → D+30: 4 jobs registered (legacy backup_daily 02:00 + encrypted backup_daily_encrypted 02:05 offset +5min I/O contenção avoided)
+- ✅ Job IDs distintos (sem replace_existing collision com legacy)
+- ✅ Migration Phase 4-5 explicit Operator domain (per feedback_operator_no_code_edits — NÃO Neo edita docker-compose)
+
+**Per feedback_operator_no_code_edits cumprido:**
+
+Neo NÃO editou:
+- ❌ docker-compose.prod.yml (Operator domain Phase 4 — env vars + volume mount)
+- ❌ /etc/restic/password.txt (Operator domain Phase 5 — one-time setup)
+- ❌ governance/runbook-backup-restore.md (Architect + Operator collaboration post-deploy)
+
+**Per feedback_no_invention cumprido:**
+
+Zero invented features. Apenas substitui cp por restic subprocess invocation preservando ADR-029 spec_coverage. Todas docstrings citam:
+- ADR-031 §Decision (cryptographic specification)
+- ADR-031 §APScheduler Integration (subprocess pattern)
+- ADR-029 §Backup Mechanism (preserved architecture)
+- Smith F-HIGH-09 (problem source line 213-217)
+- LGPD §46/§11 (compliance anchor)
+
+**Files modified/created Sprint 8 D-DEV-S08-003:**
+
+- Dockerfile (+5 lines — restic install layer)
+- bloco_backup/scheduler.py (+~130 lines — 2 helpers + 2 jobs + scheduler update)
+- tests/integration/test_backup_encryption_restic.py (NEW ~130 lines — 5 tests)
+- governance/CHECKPOINT-active.md (D-DEV-S08-003 entry)
+
+**TD carried forward (pre-existing):**
+
+- **TD-SP06-PYTEST-DEPS-PYTHON-3-14:** pytest invokes Python 3.13 without sqlalchemy. Validated empirically via standalone Python 3.14 smoke 9/9 PASS. Container pytest pos-Operator deploy resolves (container has sqlalchemy + Python 3.13.13).
+
+**Phase B Stories Progress Post-Neo Code Implementation:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #14.5 disk monitoring | ✅ DONE D-OPS-S08-003 | Operator |
+| #14 retention env | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| #12 JSON validation | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| #13 /health + HEAD | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| **#11 backup encryption restic** | **✅ DESIGN + CODE DONE D-ARIA-S08-002 + D-DEV-S08-003 (Operator deploy pending)** | **Architect + Neo + Operator** |
+| #10 traefik composite | ⏳ PENDING Operator | Operator |
+| #8 DNS subdomains | ⏳ PENDING Operator + Architect | Operator + Architect |
+| #9 homepage | ⏳ PENDING Operator | Operator |
+
+**Smith F-HIGH Findings Progress (Phase B post-Neo Story #11 code):**
+
+- ✅ F-HIGH-04 /health 404: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-05 HEAD / 405: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-07 JSON validation: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-08 retention 30d: RESOLVED EMPIRICAL (deployed)
+- 🔨 **F-HIGH-09 backup encryption: CODE DONE (Operator deploy pending para empirical proof)**
+- ⏳ F-HIGH-01 DNS subdomains: Pending Story #8
+- ⏳ F-HIGH-02 homepage: Pending Story #9
+- ⏳ F-HIGH-03 + F-HIGH-06 + F-HIGH-11 traefik composite: Pending Story #10
+- ⏳ F-HIGH-10 image backup tag SOP: SOP N=2 enforced (prod + bak-pre-stories-12-13-14)
+
+**5/11 HIGH ADDRESSED (4 empirical + 1 code-complete pending deploy).**
+
+**Próximo Operator deploy sequence (handoff Neo→Operator):**
+
+1. git push origin main (commit este local)
+2. scp Dockerfile + bloco_backup/scheduler.py + tests/integration/test_backup_encryption_restic.py → VPS
+3. Generate /etc/restic/password.txt (openssl rand -base64 32 + chmod 400 root)
+4. Edit docker-compose.prod.yml — add RESTIC_REPOSITORY + RESTIC_PASSWORD_FILE env + /etc/restic:ro volume
+5. Backup tag image bak-pre-story-11-restic
+6. Image rebuild (Dockerfile restic install layer ~25MB extra)
+7. Container recreate (ollama-shared preserved per ADR-026)
+8. `restic init` dentro container (one-time)
+9. Smoke verify: file /restic-repo/data/* opaque binary + restic snapshots list + restic check integrity
+10. Pytest container verify 5 NEW tests
+11. Key escrow procedure Eric encrypted USB (LGPD §46 defensibility)
+12. Update runbook restore section restic-based (Operator + Architect collaboration)

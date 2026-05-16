@@ -26,6 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     # HTTP healthcheck
     curl \
+    # Backup encryption (ADR-031 Sprint 8 Phase B Story #11 — Smith F-HIGH-09)
+    # restic AES-256-CTR + Poly1305 MAC + scrypt KDF — defense-in-depth LGPD §46/§11
+    restic \
     # Build deps (compile native wheels)
     gcc \
     g++ \
