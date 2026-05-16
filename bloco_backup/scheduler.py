@@ -352,3 +352,38 @@ def create_scheduler() -> BackgroundScheduler:
             "(ENABLE_TEMA_1378_AUTO_CHECK=false — set env var to enable in prod)"
         )
     return scheduler
+
+
+def get_jobs_diagnostic() -> list[dict]:
+    """Diagnostic-safe job introspection — Sprint 8 Phase B Smith F-S8PB-MV-MED-02.
+
+    Smith mini-verify finding: `j.next_run_time` raises AttributeError when
+    scheduler is NOT started (APScheduler API — computed only after start()).
+    This degrades Operator post-deploy diagnostic capability — cannot easily
+    verify scheduled job timing via simple Python query.
+
+    This helper returns job metadata WITHOUT requiring scheduler.start(), using
+    the trigger object's string representation for human-readable schedule.
+
+    Use case: Operator post-deploy verification via:
+        docker exec app python -c "from bloco_backup.scheduler import get_jobs_diagnostic; import json; print(json.dumps(get_jobs_diagnostic(), indent=2))"
+
+    Preserves ADR-013 §2.4 APScheduler embedded architecture — no state change,
+    pure read of trigger configuration.
+
+    Returns:
+        List of dicts com {id, name, trigger_str, trigger_type} para cada job
+        registrado em create_scheduler() (legacy backup_daily + backup_rotation +
+        new backup_daily_encrypted + cleanup_old_snapshots_encrypted = 4 jobs
+        during co-existence window per ADR-031 §Migration Plan).
+    """
+    scheduler = create_scheduler()
+    return [
+        {
+            "id": j.id,
+            "name": j.name,
+            "trigger_str": str(j.trigger),
+            "trigger_type": type(j.trigger).__name__,
+        }
+        for j in scheduler.get_jobs()
+    ]

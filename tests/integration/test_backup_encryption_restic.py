@@ -133,3 +133,39 @@ def test_restic_password_file_env_default_path(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.delenv("RESTIC_PASSWORD_FILE", raising=False)
     from bloco_backup.scheduler import _restic_password_file
     assert _restic_password_file() == "/etc/restic/password.txt"
+
+
+def test_get_jobs_diagnostic_returns_all_4_jobs() -> None:
+    """AC_F_MED_02: get_jobs_diagnostic() returns 4 jobs without scheduler.start().
+
+    Smith F-S8PB-MV-MED-02 fix: scheduler introspection via job.next_run_time
+    raises AttributeError when scheduler is NOT started. get_jobs_diagnostic()
+    helper avoids that — returns metadata via trigger string representation.
+
+    Verifies all 4 ADR-031 §Migration Plan co-existence jobs registered:
+    - backup_daily (legacy plaintext)
+    - backup_rotation (legacy rotation)
+    - backup_daily_encrypted (NEW restic AES-256-CTR)
+    - cleanup_old_snapshots_encrypted (NEW restic forget+prune)
+    """
+    from bloco_backup.scheduler import get_jobs_diagnostic
+    jobs = get_jobs_diagnostic()
+    assert len(jobs) == 4, f"Expected 4 jobs, got {len(jobs)}"
+    ids = {j["id"] for j in jobs}
+    expected = {
+        "backup_daily",
+        "backup_rotation",
+        "backup_daily_encrypted",
+        "cleanup_old_snapshots_encrypted",
+    }
+    assert ids == expected, f"Job IDs mismatch — expected {expected}, got {ids}"
+    # Verify all 4 fields present in each dict
+    for j in jobs:
+        assert "id" in j, f"job missing 'id' field: {j}"
+        assert "name" in j, f"job missing 'name' field: {j}"
+        assert "trigger_str" in j, f"job missing 'trigger_str' field: {j}"
+        assert "trigger_type" in j, f"job missing 'trigger_type' field: {j}"
+        # trigger_type should be CronTrigger or IntervalTrigger
+        assert j["trigger_type"] in {"CronTrigger", "IntervalTrigger"}, (
+            f"unexpected trigger_type: {j['trigger_type']}"
+        )
