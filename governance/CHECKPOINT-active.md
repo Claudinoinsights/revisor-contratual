@@ -7232,3 +7232,111 @@ ssh eric@91.108.126.149 "sudo docker builder prune -af && sudo docker image prun
 - `governance/CHECKPOINT-active.md` (D-SMITH-S08-001 entry)
 
 **Próximo:** Operator emergency disk cleanup (~5min) → Phase B Story #14.5 disk monitoring + Phases B+C parallel execution.
+
+### D-OPS-S08-003 (2026-05-16) — Operator emergency cleanup + Story #14.5 disk monitoring + Phase B start ✅ **PRE-PHASE-B COMPLETE**
+
+**Trigger:** Smith handoff (consumed=true) — Phase B authorization com mandatory disk cleanup pré-requisite.
+
+**Verdict:** All Smith mandatory pré-Phase-B requirements satisfied empirically em ~10min cumulative.
+
+**Actions Executed:**
+
+#### 1. Emergency Disk Cleanup ✅
+
+- Pre: 89% (86G/97G used, 12G remaining) — Smith F-S8PA-MINI-HIGH-01
+- `sudo docker builder prune -af` → 10GB build cache freed
+- `sudo docker image prune -f` → 0B additional (already clean)
+- Post: **65% (63G/97G used, 35G remaining) — +23GB freed**
+
+#### 2. F-HIGH-02 Mitigation Sprint 7 Archived Tags Removed ✅
+
+- `sudo docker rmi revisor-contratual:bak-pre-phase-3` → sha256:72f4122307dc deleted
+- `sudo docker rmi revisor-contratual:bak-pre-phase-4` → sha256:f830797a3143 deleted
+- Freed: additional ~13GB (incluído nos +23GB total)
+
+**Image tags remaining (3 total):**
+
+- `prod` (sha256:c93e9853d50a) — Active production
+- `bak-pre-sprint-8` (sha256:55e96a3c29d4) — Sprint 8 baseline
+- `bak-pre-stories-1-5-1-6` (sha256:55e96a3c29d4) — DUPLICATE SHA (same as bak-pre-sprint-8 — Sprint 9+ SOP retain N=2)
+
+#### 3. Story #14.5 — Disk Monitoring Script + Cron ✅
+
+**Script deployed VPS:** `/usr/local/bin/revisor-disk-check.sh` (chmod 755 root:root)
+
+**Logic:**
+
+- Reads `df / | tail -1 | awk '{print $5}'` (used%)
+- Computes `df -BG / | tail -1 | awk '{print $4}'` (available GB)
+- Thresholds: WARNING ≥80%, CRITICAL ≥90%
+- Logs via `logger -t revisor-disk-check` to journald (Alloy → Loki auto-collected)
+- Exit codes: 0 (disk_ok), 1 (disk_high WARN), 2 (disk_critical ERROR)
+- Metric format compat Prometheus textfile-collector (Sprint 9+ TD)
+
+**Cron installed:** `/etc/cron.d/revisor-disk-monitor` → `*/15 * * * * root /usr/local/bin/revisor-disk-check.sh`
+
+**Test run empirical:**
+
+```text
+exit_code=0
+journald: INFO disk_ok used_pct=65 available_gb=35 revisor_disk_used_pct=65 ...
+cron service reloaded OK
+```
+
+**Loki alerting query (Sprint 9+ Grafana setup):**
+
+```logql
+{tag="revisor-disk-check"} |~ "WARN disk_high|ERROR disk_critical"
+```
+
+**Sprint 8 Phase A→B Smith F-CRIT Updates:**
+
+- F-CRIT-01 disk: ✅ RESOLVED (65% << 80% target) + monitoring ATIVO (regression prevention)
+- F-S8PA-MINI-HIGH-01 disk regression: ✅ MITIGATED (current 65%) + monitoring ATIVO
+- F-S8PA-MINI-HIGH-02 backup tag inflation: ⚠️ PARTIAL (Sprint 7 archived removed, bak-pre-sprint-8 + bak-pre-stories-1-5-1-6 duplicate remain — Sprint 9+ SOP)
+
+**VPS State Post-Cleanup:**
+
+| Resource | State |
+|----------|-------|
+| Disk | 65% used (35G remaining) ✅ |
+| App container | Up healthy + RestartCount=0 preserved |
+| Ollama-shared | Up 6+ hours healthy preserved |
+| Audit chain | 11 lines + HMAC INTACT (10/10 valid links) |
+| Backup script | /usr/local/bin/revisor-backup-check.sh ✅ |
+| Disk monitor script | /usr/local/bin/revisor-disk-check.sh ✅ (NEW Story #14.5) |
+| Backup cron | /etc/cron.d/revisor-backup-monitor */15min ✅ |
+| Disk monitor cron | /etc/cron.d/revisor-disk-monitor */15min ✅ (NEW Story #14.5) |
+| docs security | /docs+/openapi+/redoc 404 ✅ |
+
+**Phase B Stories Progress:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| **#14.5 disk monitoring** | **✅ DONE D-OPS-S08-003** | @devops Operator |
+| Story #8.5 backup retention 30d (consolidates #14) | ⏳ Awaiting Neo #14 | @dev Neo |
+| Story #8.6 backup tag SOP retain N=2 | 🚧 PARTIAL DONE (Sprint 7 archived removed) | @devops Operator |
+| Story #10 traefik composite F-HIGH-03+06+11 | ⏳ PENDING Operator parallel | @devops |
+| Story #8 DNS subdomains OR /painel | ⏳ PENDING Architect + Operator | @architect + @devops |
+| Story #9 homepage claudinoinsights.com | ⏳ PENDING Operator | @devops |
+| Story #14 retention env Neo code change | ⏳ PENDING Neo handoff (with #12+#13 batch) | @dev Neo |
+| Story #13 /health + HEAD endpoint | ⏳ PENDING Neo | @dev Neo |
+| Story #12 API JSON validation | ⏳ PENDING Neo | @dev Neo |
+| Story #11 backup encryption ADR-031 | ⏳ PENDING Architect | @architect + @devops |
+
+**Phase B 1/9+ stories DONE (~10min cumulative actual). 8 remaining stories require handoffs cascade Operator→Neo + Operator→Architect.**
+
+**Files:**
+
+- VPS: `/usr/local/bin/revisor-disk-check.sh` (chmod 755, 853 bytes)
+- VPS: `/etc/cron.d/revisor-disk-monitor` (*/15min)
+- VPS: 2 image tags removed (bak-pre-phase-3 + bak-pre-phase-4)
+- governance/CHECKPOINT-active.md (D-OPS-S08-003 entry)
+- .lmas/handoffs/handoff-smith-to-operator-2026-05-16-sprint-8-phase-b-authorization-disk-cleanup-mandatory.yaml (consumed=true)
+- .lmas/handoffs/handoff-devops-to-dev-2026-05-16-sprint-8-phase-b-neo-batch-12-13-14.yaml (NEW consumed=false)
+- .lmas/handoffs/handoff-devops-to-architect-2026-05-16-sprint-8-phase-b-story-11-backup-encryption-adr-031.yaml (NEW consumed=false)
+
+**Próximo:** Phase B parallel execution via Skills:
+- Skill dev (Neo) — Stories #12 JSON validation + #13 /health+HEAD + #14 retention env (batch ~2h10min)
+- Skill architect (Aria) — Story #11 backup encryption ADR-031 design (2-3h)
+- Operator parallel: #10 traefik composite + #8 DNS/painel + #9 homepage (~6-8h)

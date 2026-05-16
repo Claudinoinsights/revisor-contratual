@@ -10,11 +10,10 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 Phase A 6/6 FULLY DONE empirically (~2h30min cumulative, ~80% speed bonus mantido).
-  6 Smith F-CRIT ALL RESOLVED: disk 73% + tempfile LGPD §16 3-layer + /docs 404 + marker volume + README v0.2.10.0 SaaS + backup ADR-029 visibility.
-  Phase B caveat: retention env Neo code change Phase B batch (Stories #12+#13+#14 retention).
-  Próxima invocação: Skill smith mini-verify Phase A FULL (17 ACs empirical, ~30min).
-  Após Smith verdict CLEAN/CONTAINED → Phases B+C parallel start (14 stories, ~5-7h actual estimate).
+  Sprint 8 Phase A 6/6 FULLY DONE + Smith mini-verify CONTAINED+GREENLIGHT (16/17 ACs PASS).
+  F-S8PA-MINI-HIGH-01 detected: disk 73%→89% REGRESSION (Phase A operations +13GB). NÃO Operator lie — state evolution.
+  Phase B+C AUTHORIZED com 1 pré-requisite MANDATORY: emergency disk cleanup re-run + NEW Story #14.5 disk monitoring.
+  Próxima invocação: Skill devops *push Sprint 8 Phase B Story #14.5 disk monitoring + emergency cleanup + Phase B start (14 stories ~5-7h actual).
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined
