@@ -2,7 +2,33 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-06"
+last_updated: "2026-05-16T04:30"
+status_executive_2026_05_16: |
+  Sprint 7 OFICIALMENTE CLOSED 2026-05-16 (commit a1b93c1 origin/main) — Cenário Y++ DoD Architectural 100% atingido empirically.
+  4 phases sequenciais (Phase 1-4) + Smith verify CONTAINED+GREENLIGHT cada + 5 git tags + 3 ADRs + 180x speedup born-digital empirical.
+  F-PROD-NEW-22 + F-S7P3-MED-01 ARQUITETONICAMENTE RESOLVED. HMAC chain LGPD §46 PRESERVED (11/11).
+  Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
+
+contexto_ativo_2026_05_16: |
+  Eric directive: Smith ultrathink na aplicação por completo — adversarial deep review aplicação real-world end-to-end + hardware funcional.
+  Goal: 100/100 score até aqui + identificar TODOS os erros/problemas que podem fazer usuário real não funcionar.
+  Phase: pós Sprint 7 closure pre-Sprint 8 start — gate completo production readiness.
+  Smith escopo expected: 12 dimensões (UX real, hardware VPS, code quality, LGPD, security, performance, monitoring, docs, production readiness).
+
+decisoes_tomadas_2026_05_16: |
+  - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined
+  - Smith ultrathink invocado pós closure (pre-Sprint 8 gate)
+  - Conservative cadence pattern mantido: Smith verify entre cada step
+  - Operator NÃO edita código (feedback_operator_no_code_edits) — apenas docs/git/CHANGELOG/TECH-DEBT
+  - Skill chain estrito (feedback_workflow_via_skill_strict) — todos handoffs via Skill tool
+  - 180x speedup born-digital empirical demonstrado (985ms vs 180s subprocess)
+
+proximos_passos_2026_05_16: |
+  1. Smith ultrathink adversarial review aplicação completa + hardware (em curso agora)
+  2. Eric decisão pós Smith ultrathink findings (cleanup priority OR Sprint 8 start)
+  3. Se Smith CRITICAL findings → block Sprint 8 start, Operator/Neo cleanup imediato
+  4. Se Smith CONTAINED OR CLEAN → Sprint 8 Story #1 priority HIGH (real CDC PDF fixture)
+  5. Production readiness assessment empirical (VPS health, monitoring, SLA, scalability)
 active_story: "🎯 ADVOGADO(A) FULFILLMENT 20/32 ABSORVIDO 2026-05-12: Advogado(a) Orsheva entregou Bloco A Bancário Base + B.1 CCB + B.2 Cartão + B.3 Consignado + C Geral = 20 prompts FINAL (62.5% coverage). Artefato canônico PREENCHIMENTO-ADVOGADO-2026-05-12-FINAL.md. BRIEF v2.0.2 + PRD v2.0.4.1 Changelog atualizados. Súmulas/BACEN/Leis validadas pelo profissional (resolve F-D3-HIGH-01 anchor bias). Sprint 04 PRs #3/#4/#5/#6 já merged 2026-05-08/10. CHECKPOINT shard II aplicado (1607 linhas active). 17/19 Smith findings resolved. PRs OPEN: #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING+CI FAIL). **Próximo Eric decide:** A (Neo dispatch SP04-DOCTYPE-01 chunks 5-6 Bancário+Geral funcionais — backend pronto testes) OR B (Aguardar Blocos D/E/F advogado(a) ~6h) OR C (Sprint 04 features secundárias OCR/PDF/APPROVE/DASH/ADMIN/NOTIFY paralelas) OR D (Resolver PRs OPEN #1+#2)"
 status: sprint-03-phase-0-vault-fix-01-PUSHED-cc1a-FECHADO-cc2-aria-em-curso
 

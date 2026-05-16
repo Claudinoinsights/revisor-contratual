@@ -6486,3 +6486,152 @@ governance/CHECKPOINT-active.md (D-OPS-S07-005 closure entry)
 **Sprint 7 OFICIALMENTE CLOSED 2026-05-16. Sprint 8 ready to start (TBD Eric directive).**
 
 **Próximo:** Eric directive — Sprint 8 start now OR pause antes Sprint 8 OR review closure artifacts antes proceeding. Operator commit + push pending.
+
+### D-SMITH-S07-005 (2026-05-16) — Smith `*verify ULTRATHINK aplicação completa + hardware funcional` 🩸 **INFECTED — Score 56/100**
+
+**Trigger:** Eric directive verbatim: "use smith ultrathink na aplicação por completo, encontre todos os detalhes que podem fazer o usu real não funcionar, possíveis erros ou problemas. quero que a aplicação fique 100/100 até aqui e com o hardware funcional!!!"
+
+**Veredito:** **🩸 INFECTED — Score 56/100** (NÃO 100/100 como Eric requested empirically)
+
+**Methodology:** Empirical SSH probes + HTTP probes + audit chain HMAC verification + container introspection + source code review + concurrent stress test (12 dimensões)
+
+**Findings: 51 total**
+- **CRITICAL: 6** (BLOCK production declaration)
+- **HIGH: 11** (block 100/100 score)
+- **MEDIUM: 13** (Sprint 8 absorption)
+- **LOW: 14** (Sprint 9+ backlog)
+- **INFO: 7** (positive observations)
+
+**Production Readiness Scorecard (12 dimensões — 100-point scale):**
+
+| # | Dimensão | Score | Verdict |
+|---|---------|-------|---------|
+| 1 | User Real Workflow E2E | 65/100 | INFECTED |
+| 2 | Hardware VPS Health | 50/100 | INFECTED (disk 94%) |
+| 3 | Ollama Models | 90/100 | CONTAINED |
+| 4 | Marker OCR Subprocess | 45/100 | INFECTED (cache vazio) |
+| 5 | PyMuPDF Born-Digital | 95/100 | CONTAINED |
+| 6 | LGPD Compliance + Audit | 55/100 | INFECTED (tempfile leak) |
+| 7 | Security Production | 50/100 | INFECTED (/docs exposed) |
+| 8 | Performance SLA | 70/100 | CONTAINED |
+| 9 | Monitoring Observability | 30/100 | INFECTED |
+| 10 | Documentation User | 25/100 | INFECTED (README mentiroso) |
+| 11 | Production Readiness DR | 40/100 | INFECTED (no backup automation) |
+| 12 | Sprint 7 Artifacts Integrity | 95/100 | CONTAINED |
+
+**Score cumulativo: 56/100** ⚠️ INFECTED
+
+**6 CRITICAL Findings (must-fix before production declarável):**
+
+1. **F-CRIT-01** Disk space 94% (`91G/97G used, 6.7G remaining`) — VPS imminent failure
+2. **F-CRIT-02** Tempfile PDF leak `/tmp/` (3 PDFs persisting) — **VIOLATION LGPD §16**
+3. **F-CRIT-03** `/docs` + `/openapi.json` exposed produção — security hardening violation
+4. **F-CRIT-04** Marker cache `/home/revisor/.cache/marker` vazio — TD-MARKER-CACHE-EPHEMERAL CONFIRMED, ~5min cold start scanned PDFs
+5. **F-CRIT-05** README desatualizado v0.1.0 vs produção v0.2.10.0 SaaS — major mismatch
+6. **F-CRIT-06** Backup automation INVISIBLE (no cron, no systemd timer) — opaque process, no runbook
+
+**11 HIGH Findings (block 100/100):**
+
+- F-HIGH-01 Monitoring external uptime+cockpit subdomains FAIL (DNS missing)
+- F-HIGH-02 claudinoinsights.com root 404 (no homepage)
+- F-HIGH-03 traefik-g9oq-traefik-1 stale container restarting
+- F-HIGH-04 No /health endpoint (production standard missing)
+- F-HIGH-05 HEAD / returns 405 Method Not Allowed
+- F-HIGH-06 /api/analytics 401 loop in logs (auth misconfigured)
+- F-HIGH-07 Validation errors return HTML not JSON (API consumers broken)
+- F-HIGH-08 Backup retention only 2 days (insufficient DR)
+- F-HIGH-09 Backups NOT encrypted at rest
+- F-HIGH-10 Image backup tags incomplete (only Phase 3+4, no pre-Sprint-7)
+- F-HIGH-11 Traefik dashboard `dashboard: true` enabled
+
+**Empirical Highlights:**
+
+- **Audit chain HMAC INTACT** (10/10 valid) ✅ — LGPD §46 robusto
+- **VPS uptime 48 days** ✅ — estável
+- **Memory baseline saudável** (1.3GB/7.8GB ~16.7%) ✅
+- **Security headers EXCELLENT** (HSTS preload + CSP + 5 outros) ✅
+- **Sprint 7 Phase 4 architectural proof CONFIRMED** ✅
+- **Disk 94% used** ❌ critical
+- **Marker cache vazio** ❌ TD-MARKER-CACHE-EPHEMERAL active
+- **Tempfile leak /tmp/** ❌ LGPD §16 violation
+
+**Sprint 8 Scope MUST EXPAND:**
+
+Atual scope (6 stories, ~11-12h estimate) é INSUFICIENTE. Smith recomenda escalar para ~17 stories absorber 6 CRITICAL + 11 HIGH (~30-40h estimate, ~15-20h actual com Sprint 7 ~95% speed bonus pattern).
+
+**Smith Recommended Next Action Eric:**
+
+- **Option A (Smith preference):** Sprint 8 scope expanded com 6 CRITICAL + 11 HIGH absorber
+- **Option B:** Execute Sprint 8 AS-IS, defer CRITICAL — risk production degradation
+- **Option C (hybrid):** Emergency cleanup top-3 CRITICAL (~6h), then Sprint 8 atual, then Smith re-verify ultrathink
+
+**Files:**
+
+- `governance/qa/smith-ultrathink-aplicacao-completa-hardware-2026-05-16.md` (NEW comprehensive 51-finding report)
+- `.lmas/handoffs/handoff-devops-to-smith-2026-05-16-ultrathink-aplicacao-completa-hardware.yaml` (consumed=true)
+- `.lmas/handoffs/handoff-smith-to-operator-2026-05-16-ultrathink-cleanup-cascade.yaml` (NEW)
+
+**Próximo:** Eric directive — Option A/B/C escolha. Smith available para re-verify após cleanup.
+
+### D-OPS-S07-006 (2026-05-16) — Operator `*update Sprint 8 scope EXPANDED Option A` ✅ **SCOPE v2.0 PUBLISHED**
+
+**Trigger:** Eric directive Option A (Smith preference). Smith ultrathink INFECTED 56/100 (D-SMITH-S07-005).
+
+**Verdict:** Sprint 8 scope **expanded de 6 stories (~11-12h) para 20 stories (~30-40h estimate, ~15-20h actual)** com 95% speed bonus pattern. Structure 3 Phases (A=CRITICAL, B=HIGH, C=Original LOWs).
+
+**3 Phases Structure:**
+
+| Phase | Stories | Severity | Estimate | Acceptance |
+|-------|---------|----------|----------|------------|
+| **A — CRITICAL Emergency** | #0, #1.5, #1.6, #2, #2.5, #7 (6 stories) | CRITICAL | ~10-13h estimate / ~5-7h actual | Smith mini-verify (~30min) confirma 6 CRIT RESOLVED |
+| **B — HIGH Cleanup** | #8, #8.5, #8.6, #9, #10, #11, #12, #13 (8 stories) | HIGH | ~10-13h estimate / ~5-7h actual | Smith mini-verify (~30min) confirma 11 HIGH RESOLVED |
+| **C — Original LOWs + DoD Final Business** | #1, #3, #4, #5, #6, #6.5 (6 stories) | LOW + Story #1 HIGH PRIO | ~10-15h estimate / ~5-7h actual | Smith ULTRATHINK re-verify (~1h) target 95+/100 |
+
+**Total Sprint 8 v2.0:** 20 stories, ~30-40h estimate, ~15-20h actual com 95% speed bonus.
+
+**Smith Findings → Stories Cross-Reference:**
+
+- **F-CRIT-01** disk 94% → Story #0 (Operator emergency)
+- **F-CRIT-02** tempfile LGPD §16 → Story #1.5 (Neo audit)
+- **F-CRIT-03** /docs exposed → Story #1.6 (Neo code)
+- **F-CRIT-04** marker cache vazio → Story #2 (Operator volume mount, escalated MEDIUM→CRITICAL)
+- **F-CRIT-05** README outdated → Story #2.5 (Operator + Architect)
+- **F-CRIT-06** backup automation invisible → Story #7 (Operator + Architect)
+- **F-HIGH-01** monitoring URLs FAIL → Story #8 (Operator + Architect Sati)
+- **F-HIGH-02** homepage 404 → Story #9 (Operator Cloudflare Pages)
+- **F-HIGH-03 + F-HIGH-06 + F-HIGH-11** traefik composite → Story #10 (Operator)
+- **F-HIGH-04 + F-HIGH-05** /health + HEAD → Story #13 (Neo)
+- **F-HIGH-07** JSON validation → Story #12 (Neo)
+- **F-HIGH-08** backup retention → Story #8.5 (Operator)
+- **F-HIGH-09** backup encryption → Story #11 (Architect ADR + Operator)
+- **F-HIGH-10** image backup tags → Story #8.6 (Operator)
+
+**Eric Directive Required (Execution Order):**
+
+| Option | Strategy | Estimate Actual | Pros | Cons |
+|--------|----------|-----------------|------|------|
+| **A1 sequential** | Phase A → mini-verify → Phase B → mini-verify → Phase C → ultrathink re-verify | ~15-20h | Conservative | Longest |
+| **A2 full parallel** | All 20 stories simultaneously | ~10-13h | Fastest | Coordination overhead, dependency conflicts |
+| **A3 hybrid (Smith preference)** | Phase A parallel → mini-verify → Phases B+C parallel → ultrathink re-verify | ~13-17h | Balance speed + quality gate | Coordination Phase A→B handoff |
+
+**Files:**
+
+- `governance/sprints/sprint-8-scope.md` (UPDATED v2.0 — 20 stories expanded + 3 phases + dependencies + parallelism)
+- `governance/CHECKPOINT-active.md` (D-OPS-S07-006 entry)
+- `.lmas/handoffs/handoff-smith-to-operator-2026-05-16-ultrathink-cleanup-cascade.yaml` (consumed=true)
+
+**Cenário Y++ DoD Final Closure Criterion:**
+
+Sprint 8 OFICIALMENTE CLOSED quando ALL atendidos:
+1. ✅ 20 stories Done
+2. ✅ 6 CRITICAL Smith findings RESOLVED empirical
+3. ✅ 11 HIGH Smith findings RESOLVED empirical
+4. ✅ Story #1 real CDC PDF status=success exato (DoD final business validation)
+5. ✅ Smith ULTRATHINK re-verify CONTAINED+GREENLIGHT OR CLEAN (target 95+/100)
+6. ✅ TECH-DEBT.md cumulative LOWs absorbed
+7. ✅ Sprint 8 retrospective documented
+8. ✅ Sprint 9+ scope defined
+
+**Cenário Y++ DoD Final 100%** = architectural (Sprint 7 ✅) + business validation real-world (Sprint 8 Story #1) + production readiness completo (Sprint 8 Phases A+B).
+
+**Próximo:** Eric directive — execution order A1/A2/A3 + Phase A start.
