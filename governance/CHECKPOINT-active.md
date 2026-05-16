@@ -7437,3 +7437,102 @@ Story #13 tests: 5/5 PASS (GET /health + HEAD / + GET / preserved + functions ca
 - `.lmas/handoffs/handoff-dev-to-devops-2026-05-16-sprint-8-phase-b-neo-batch-deploy.yaml` (NEW consumed=false)
 
 **Próximo:** Operator deploy Neo batch via Skill devops (push + scp + REVISOR_BACKUP_RETENTION_DAYS=30 + image rebuild + container recreate + smoke verify 8 ACs + pytest container).
+
+---
+
+### D-OPS-S08-004 (2026-05-16) — Operator `*push Sprint 8 Phase B Neo batch deploy Stories #12 + #13 + #14` 🟢 **DEPLOY COMPLETE + 4 HIGH RESOLVED**
+
+**Decisão:** Deploy Neo batch Phase B Stories #12 + #13 + #14 + REVISOR_BACKUP_RETENTION_DAYS=30 env var em produção, com smoke verify empirical + pytest container.
+
+**Por quê:** Neo handoff `handoff-dev-to-devops-2026-05-16-sprint-8-phase-b-neo-batch-deploy.yaml` (consumed=false) com commits locais ff9e661 + d20a234 aguardando push. Per Eric directive Opção A3 hybrid Phase B parallel — Operator deploy + Architect Story #11 parallel.
+
+**Workflow executado (9 steps sequential):**
+
+1. **git push origin main** (ff9e661 + d20a234) — OK, HEAD=origin/main=d20a234
+2. **scp 2 files → VPS /tmp staging** — scheduler.py + app.py (SHA verified)
+3. **sudo cp /tmp → /opt/revisor-contratual/** + cleanup staging
+4. **sed -i docker-compose.prod.yml** — `REVISOR_BACKUP_RETENTION_DAYS: "30"` inserido após `REVISOR_ENV: "production"` linha 79 (backup `.bak-pre-s8pb` salvo)
+5. **docker tag** revisor-contratual:prod → `bak-pre-stories-12-13-14` (rollback target SHA c93e9853d50a)
+6. **docker compose build app** — 308.9s build time, NEW SHA `7f96948f4fef` (manifest list) vs OLD `c93e9853d50a`
+7. **docker compose up -d app** — container recreate IMMEDIATE healthy (restart=0)
+8. **5 ACs smoke verify empirical** — 5/5 PASS (após domain typo fix + emergency disk prune)
+9. **pytest container** — 15/15 tests PASS (via docker cp tests/ — production excludes by design)
+
+**ADR-026 terminology atingido:**
+- ✅ image rebuilt SIM (308.9s, NEW SHA 7f96948f4fef)
+- ✅ container recreated SIM (revisor-prod-app Up Less than a second → healthy)
+- ✅ ollama-shared preserved (revisor-prod-ollama-shared Up 11h+ uptime intact)
+
+**8 ACs validados empiricamente:**
+
+| AC | Story | Critério | Resultado |
+|----|-------|----------|-----------|
+| AC_DEPLOY_1 image_new_sha256 | All | NEW SHA ≠ prev c93e9853d50a | ✅ `7f96948f4fef` |
+| AC_DEPLOY_2 lifecycle_declared | All | rebuilt + recreated + ollama preserved | ✅ ADR-026 cumprido |
+| AC_DEPLOY_3 health_endpoint | #13 (F-HIGH-04) | curl /health → 200 JSON v0.2.10.0 | ✅ `{"status":"ok","version":"0.2.10.0","ollama":"configured","audit_chain_age_hours":9.35,"backup_age_hours":10.92}` |
+| AC_DEPLOY_4 head_root | #13 (F-HIGH-05) | curl -I / → 200 (was 405) | ✅ HTTP/2 200 |
+| AC_DEPLOY_5 json_validation | #12 (F-HIGH-07) | POST /revisar Accept:json bad PDF → 400 JSON | ✅ `{"error":true,"status_code":400,"detail":"Arquivo não é um PDF válido..."}` |
+| AC_DEPLOY_6 retention_env | #14 (F-HIGH-08) | docker exec → REVISOR_BACKUP_RETENTION_DAYS=30 | ✅ 30 |
+| AC_DEPLOY_7 app_healthy | All | Health.Status=healthy RestartCount=0 | ✅ healthy + 0 |
+| AC_DEPLOY_8 disk_post_deploy | Regression | df / Use% ≤ 80% | ✅ 65% (após emergency prune 81%→65% +16GB) |
+
+**Pytest container 15/15 PASS (TD-SP06-PYTEST-DEPS resolved em container):**
+
+- 5 backup_retention env tests (Story #14)
+- 5 JSON validation tests (Story #12)
+- 5 health endpoint tests (Story #13)
+
+Tempo total: 1.00s em container (Python 3.13.13 + sqlalchemy + pytest 9.0.3 + pluggy 1.6.0).
+
+**Smith F-HIGH Findings Progress Update (Phase B):**
+
+- ✅ F-HIGH-04 /health 404: **RESOLVED EMPIRICAL** (deployed + verified)
+- ✅ F-HIGH-05 HEAD / 405: **RESOLVED EMPIRICAL** (deployed + verified)
+- ✅ F-HIGH-07 JSON validation: **RESOLVED EMPIRICAL** (deployed + verified)
+- ✅ F-HIGH-08 retention 30d: **RESOLVED EMPIRICAL** (env deployed + verified)
+- ⏳ F-HIGH-01 DNS subdomains: Pending Story #8
+- ⏳ F-HIGH-02 homepage: Pending Story #9
+- ⏳ F-HIGH-03 + F-HIGH-06 + F-HIGH-11 traefik composite: Pending Story #10
+- ⏳ F-HIGH-09 backup encryption: Pending Story #11 ADR-031 (Architect)
+- ⏳ F-HIGH-10 image backup tag SOP: SOP N=2 enforced agora (prod + bak-pre-stories-12-13-14)
+
+**4/11 HIGH RESOLVED EMPIRICAL em Phase B (Neo code + Operator deploy ~45min cumulative vs estimate ~2h10min Neo + ~30min Operator).**
+
+**Disk regression mitigation (F-S8PA-MINI-HIGH-01 patrón repetido):**
+
+Smith mini-verify Phase A previu este patrón — Phase A pós-cleanup 65% mas Phase A operações +13GB → 89% (Sprint 7 pre-cleanup). Phase B build adicionou 10.1GB nova image + 10.02GB builder cache → 81% (1% over 80% threshold). Emergency prune:
+- Removidos `bak-pre-sprint-8` + `bak-pre-stories-1-5-1-6` (mesma SHA 55e96a3c — Sprint 7 + Phase A rollback obsoletos, Phase B agora prod stable)
+- `docker builder prune -af` (10.02GB cache freed)
+- SOP N=2 enforced: retain prod (atual) + bak-pre-stories-12-13-14 (Phase B rollback)
+- Resultado: 81% → 65% (+16GB recuperado)
+
+**Files modified/created Sprint 8 D-OPS-S08-004:**
+
+- VPS `/opt/revisor-contratual/bloco_backup/scheduler.py` (scp from Neo commit ff9e661)
+- VPS `/opt/revisor-contratual/bloco_interface/web/app.py` (scp from Neo commit ff9e661)
+- VPS `/opt/revisor-contratual/docker-compose.prod.yml` (sed inserted REVISOR_BACKUP_RETENTION_DAYS line 79)
+- VPS `/opt/revisor-contratual/docker-compose.prod.yml.bak-pre-s8pb` (rollback backup)
+- Container `revisor-prod-app` (recreated NEW SHA 7f96948f4fef)
+- Docker image `revisor-contratual:bak-pre-stories-12-13-14` (NEW backup tag)
+- Docker images cleanup (-2 tags + builder cache → +16GB disk recovered)
+
+**Phase B Stories Progress Post-Operator Deploy:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #14.5 disk monitoring | ✅ DONE D-OPS-S08-003 | Operator |
+| **#14 retention env** | **✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004** | **Neo + Operator** |
+| **#12 JSON validation** | **✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004** | **Neo + Operator** |
+| **#13 /health + HEAD** | **✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004** | **Neo + Operator** |
+| #11 backup encryption ADR-031 | ⏳ PENDING Architect | Architect + Operator |
+| #10 traefik composite | ⏳ PENDING Operator parallel | Operator |
+| #8 DNS subdomains | ⏳ PENDING Operator + Architect | Operator + Architect |
+| #9 homepage | ⏳ PENDING Operator | Operator |
+
+**Próximo Skill chain (per Eric "continue com o recomendado e sempre pela skill correta"):**
+
+A) **Skill architect** — Story #11 backup encryption ADR-031 (decisão GPG vs LUKS vs restic ages encryption)
+B) **Skill devops** futuro — Phase B Operator stories #10 + #8 + #9
+C) **Skill smith** — Phase B mini-verify (after ALL Phase B done)
+
+Recommendation: A (Architect Story #11) próximo — Eric A3 hybrid pattern Phase B parallel Architect ADR work.

@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-16T04:30"
+last_updated: "2026-05-16T13:00"
 status_executive_2026_05_16: |
   Sprint 7 OFICIALMENTE CLOSED 2026-05-16 (commit a1b93c1 origin/main) — Cenário Y++ DoD Architectural 100% atingido empirically.
   4 phases sequenciais (Phase 1-4) + Smith verify CONTAINED+GREENLIGHT cada + 5 git tags + 3 ADRs + 180x speedup born-digital empirical.
@@ -10,10 +10,13 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 Phase A 6/6 FULLY DONE + Smith mini-verify CONTAINED+GREENLIGHT (16/17 ACs PASS).
-  F-S8PA-MINI-HIGH-01 detected: disk 73%→89% REGRESSION (Phase A operations +13GB). NÃO Operator lie — state evolution.
-  Phase B+C AUTHORIZED com 1 pré-requisite MANDATORY: emergency disk cleanup re-run + NEW Story #14.5 disk monitoring.
-  Próxima invocação: Skill devops *push Sprint 8 Phase B Story #14.5 disk monitoring + emergency cleanup + Phase B start (14 stories ~5-7h actual).
+  Sprint 8 Phase B — Neo batch deploy COMPLETE (D-OPS-S08-004). 4/11 HIGH RESOLVED EMPIRICAL.
+  4/9 Phase B stories DONE: #14.5 disk + #14 retention env + #12 JSON validation + #13 /health+HEAD.
+  Production state: NEW SHA 7f96948f4fef + container healthy restart=0 + ollama-shared preserved 11h+ + disk 65%.
+  Smith F-HIGH-04/05/07/08 RESOLVED empirical via 8 ACs + 15/15 pytest container PASS.
+  Próxima invocação: Skill architect (Aria) Story #11 backup encryption ADR-031 (GPG vs LUKS vs restic).
+  Pending Operator Phase B: stories #10 traefik composite + #8 DNS subdomains + #9 homepage.
+  Após ALL Phase B done → Smith Phase B mini-verify + ultrathink re-verify (target 95+/100).
 
 decisoes_tomadas_2026_05_16: |
   - Sprint 7 closure Opção A (Smith preference): close + Sprint 8 scope defined
@@ -24,9 +27,12 @@ decisoes_tomadas_2026_05_16: |
   - 180x speedup born-digital empirical demonstrado (985ms vs 180s subprocess)
 
 proximos_passos_2026_05_16: |
-  1. Smith ultrathink adversarial review aplicação completa + hardware (em curso agora)
-  2. Eric decisão pós Smith ultrathink findings (cleanup priority OR Sprint 8 start)
-  3. Se Smith CRITICAL findings → block Sprint 8 start, Operator/Neo cleanup imediato
+  1. Skill architect (Aria) Story #11 backup encryption ADR-031 — decisão GPG vs LUKS vs restic
+  2. Skill devops Operator deploy Story #11 implementation (após Architect ADR Accepted)
+  3. Skill devops Operator Phase B stories #10 traefik composite + #8 DNS subdomains + #9 homepage
+  4. Skill smith Phase B mini-verify (após ALL Phase B done) — confirma 11/11 HIGH carryover RESOLVED
+  5. Skill smith ULTRATHINK re-verify Sprint 8 completo — target score 95+/100
+  6. Sprint 8 Phase C — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + 14 Smith LOWs absorption
   4. Se Smith CONTAINED OR CLEAN → Sprint 8 Story #1 priority HIGH (real CDC PDF fixture)
   5. Production readiness assessment empirical (VPS health, monitoring, SLA, scalability)
 active_story: "🎯 ADVOGADO(A) FULFILLMENT 20/32 ABSORVIDO 2026-05-12: Advogado(a) Orsheva entregou Bloco A Bancário Base + B.1 CCB + B.2 Cartão + B.3 Consignado + C Geral = 20 prompts FINAL (62.5% coverage). Artefato canônico PREENCHIMENTO-ADVOGADO-2026-05-12-FINAL.md. BRIEF v2.0.2 + PRD v2.0.4.1 Changelog atualizados. Súmulas/BACEN/Leis validadas pelo profissional (resolve F-D3-HIGH-01 anchor bias). Sprint 04 PRs #3/#4/#5/#6 já merged 2026-05-08/10. CHECKPOINT shard II aplicado (1607 linhas active). 17/19 Smith findings resolved. PRs OPEN: #1 OLLAMA-MGR-01 + #2 MVP-LEAN-01 (CONFLICTING+CI FAIL). **Próximo Eric decide:** A (Neo dispatch SP04-DOCTYPE-01 chunks 5-6 Bancário+Geral funcionais — backend pronto testes) OR B (Aguardar Blocos D/E/F advogado(a) ~6h) OR C (Sprint 04 features secundárias OCR/PDF/APPROVE/DASH/ADMIN/NOTIFY paralelas) OR D (Resolver PRs OPEN #1+#2)"
