@@ -2,7 +2,7 @@
 type: checkpoint
 title: "Revisor Contratual — Project Checkpoint (Index)"
 project: revisor-contratual
-last_updated: "2026-05-16T13:00"
+last_updated: "2026-05-16T13:45"
 status_executive_2026_05_16: |
   Sprint 7 OFICIALMENTE CLOSED 2026-05-16 (commit a1b93c1 origin/main) — Cenário Y++ DoD Architectural 100% atingido empirically.
   4 phases sequenciais (Phase 1-4) + Smith verify CONTAINED+GREENLIGHT cada + 5 git tags + 3 ADRs + 180x speedup born-digital empirical.
@@ -10,12 +10,15 @@ status_executive_2026_05_16: |
   Sprint 8 scope defined: 6 stories core (real CDC fixture + marker cache + cleanup LOWs).
 
 contexto_ativo_2026_05_16: |
-  Sprint 8 Phase B — Neo batch deploy COMPLETE (D-OPS-S08-004). 4/11 HIGH RESOLVED EMPIRICAL.
-  4/9 Phase B stories DONE: #14.5 disk + #14 retention env + #12 JSON validation + #13 /health+HEAD.
-  Production state: NEW SHA 7f96948f4fef + container healthy restart=0 + ollama-shared preserved 11h+ + disk 65%.
-  Smith F-HIGH-04/05/07/08 RESOLVED empirical via 8 ACs + 15/15 pytest container PASS.
-  Próxima invocação: Skill architect (Aria) Story #11 backup encryption ADR-031 (GPG vs LUKS vs restic).
-  Pending Operator Phase B: stories #10 traefik composite + #8 DNS subdomains + #9 homepage.
+  Sprint 8 Phase B — Architect ADR-031 DESIGN COMPLETE (D-ARIA-S08-002). F-HIGH-09 architecturally resolved.
+  Neo Story #11 implementation pending (handoff Architect→Neo consumed=false).
+  ADR-031 decision: restic AES-256-CTR + Poly1305 MAC (selected over GPG + LUKS via 5/7 criteria scoring).
+  ADR-029 §3 amended (encryption deferred → implemented Sprint 8 Phase B). ADR-INDEX.md MOC criado (30 ADRs organized).
+  Production state preserved: SHA 7f96948f4fef + healthy + ollama 11h+ + disk 65%.
+  4/9 Phase B stories DONE (#14.5 + #14 + #12 + #13) + Story #11 ADR design DONE (code+deploy pending).
+  Próxima invocação: Skill dev (Neo) Story #11 restic implementation (Dockerfile + scheduler refactor + 5 tests, ~2h).
+  Pending Operator Phase B: #10 traefik composite + #8 DNS subdomains + #9 homepage.
+  Após Neo Story #11 done → Operator deploy (docker-compose + /etc/restic + restic init + key escrow + smoke).
   Após ALL Phase B done → Smith Phase B mini-verify + ultrathink re-verify (target 95+/100).
 
 decisoes_tomadas_2026_05_16: |
@@ -27,10 +30,10 @@ decisoes_tomadas_2026_05_16: |
   - 180x speedup born-digital empirical demonstrado (985ms vs 180s subprocess)
 
 proximos_passos_2026_05_16: |
-  1. Skill architect (Aria) Story #11 backup encryption ADR-031 — decisão GPG vs LUKS vs restic
-  2. Skill devops Operator deploy Story #11 implementation (após Architect ADR Accepted)
-  3. Skill devops Operator Phase B stories #10 traefik composite + #8 DNS subdomains + #9 homepage
-  4. Skill smith Phase B mini-verify (após ALL Phase B done) — confirma 11/11 HIGH carryover RESOLVED
+  1. Skill dev (Neo) Story #11 restic implementation — Dockerfile + bloco_backup/scheduler.py refactor + 5 tests (~2h)
+  2. Skill devops Operator deploy Story #11 — docker-compose.prod.yml env + /etc/restic password + restic init + key escrow Eric + smoke verify
+  3. Skill devops Operator Phase B remaining: #10 traefik composite + #8 DNS subdomains + #9 homepage
+  4. Skill smith Phase B mini-verify (após ALL Phase B done) — confirma 11/11 HIGH RESOLVED (F-HIGH-04/05/07/08 já empirical + F-HIGH-09 via restic-repo opaque file test + F-HIGH-01/02/03/06/10/11 via stories #8/9/10)
   5. Skill smith ULTRATHINK re-verify Sprint 8 completo — target score 95+/100
   6. Sprint 8 Phase C — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + 14 Smith LOWs absorption
   4. Se Smith CONTAINED OR CLEAN → Sprint 8 Story #1 priority HIGH (real CDC PDF fixture)

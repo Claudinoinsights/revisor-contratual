@@ -7536,3 +7536,111 @@ B) **Skill devops** futuro — Phase B Operator stories #10 + #8 + #9
 C) **Skill smith** — Phase B mini-verify (after ALL Phase B done)
 
 Recommendation: A (Architect Story #11) próximo — Eric A3 hybrid pattern Phase B parallel Architect ADR work.
+
+---
+
+### D-ARIA-S08-002 (2026-05-16) — Architect `*create ADR-031 backup encryption strategy` 🏛️ **DESIGN COMPLETE — restic SELECTED**
+
+**Decisão:** Criar ADR-031 backup encryption — restic AES-256-CTR + Poly1305 MAC + scrypt KDF (selected sobre GPG e LUKS via 5/7 critérios decisão). ADR-029 §3 amended (encryption promoted deferred Sprint 9+ → implemented Sprint 8 Phase B).
+
+**Por quê:** Operator handoff (D-OPS-S08-004) requested ADR-031 para resolver F-HIGH-09. ADR-029 original deferiu Sprint 9+ mas Sprint 8 v2.0 expansion Eric directive escalou F-HIGH-09 para Sprint 8 Phase B Story #11. Aria ultrathink reavaliou: 4 razões emergentes justificam promoção (Sprint 8 scope expansion, Phase B parallel pattern, future-proofing PII evolution, LGPD §46 best practice baseline).
+
+**Ultrathink architectural analysis (3 options):**
+
+| Critério | A (GPG) | B (LUKS) | C (restic) |
+|----------|---------|----------|-----------|
+| Implementation effort | 3h | 4-6h (intrusive) | 2-3h |
+| Ops overhead (passphrase rotation) | High (re-encrypt history) | Medium (keyfile) | Low (multi-key add+remove) |
+| LGPD §46 defensibility | Medium | Medium (keyfile-on-disk reduz) | **High** (snapshot manifest signed) |
+| RTO incremental compatible APScheduler | Medium (full re-encrypt) | **High** (transparent) | **High** (dedup+incremental) |
+| Future S3 scalability | Poor (hand-rolled rsync) | Impossible (block device) | **First-class** (native backend) |
+| Defense-in-depth quality | Good | Good (whole-volume) | **Best** (per-snapshot key) |
+| Cross-platform dev consistency | OK | **Linux-only** | OK |
+| **SCORE** | 2/7 | 2/7 | **5/7** ✅ |
+
+**Critical decision driver — LUKS rejection:** LUKS requires keyfile-on-disk para auto-mount em VPS reboot (sem console keyboard). Mas se attacker tem root acesso VPS, attacker lê keyfile + monta volume = encryption defeated contra F-HIGH-09 RCE scenario. LUKS protege physical theft (cenário Hetzner negligível), NÃO contra VPS RCE (cenário real).
+
+**Critical decision driver — GPG rejection:** GPG designed para file-at-a-time (email, signed releases), NÃO backup workloads. Sem incremental + sem dedup = vault.db (3.5MB) full re-encrypt nightly desperdiça CPU + storage. Passphrase rotation requer re-encrypt todos backups históricos OR multi-version key management (operational overhead high).
+
+**restic selected reasons:**
+
+1. Purpose-built (designed para encrypted backups exatamente)
+2. AES-256-CTR + Poly1305 MAC (industry-standard authenticated encryption)
+3. scrypt KDF (resistant brute-force, ~1s derivation cost)
+4. Per-snapshot encryption (compromised snapshot ≠ compromised repo)
+5. Content-addressable storage (deduplication)
+6. Atomic snapshot model (restore by snapshot-id)
+7. Multi-backend nativo (local, SFTP, S3, B2, Azure, GCS, REST, rclone)
+8. Audited externamente (Filippo Valsorda 2018 — Apple/Cloudflare cryptography reviewer)
+9. Active maintenance + community
+
+**ADR-031 spec_coverage (adr_level: spec):**
+
+- Cryptographic specification (AES-256-CTR + Poly1305 MAC + scrypt KDF)
+- APScheduler integration (subprocess.run pattern preserving ADR-013 §2.4)
+- Storage architecture (/restic-repo/ + /etc/restic/password.txt)
+- Dockerfile changes (apt-get install restic)
+- docker-compose.prod.yml changes (RESTIC_REPOSITORY + RESTIC_PASSWORD_FILE env + /etc/restic:ro volume)
+- Passphrase generation procedure (openssl rand -base64 32 + chmod 400 root)
+- Repository initialization (restic init dentro container)
+- Key escrow procedure (Eric encrypted USB custody + PASSWORD-RECOVERY-PLAN.md local)
+- Passphrase rotation policy (annual + post-incident triggers + atomic key add+remove procedure)
+- Migration plan (30-day transitional co-existence legacy plaintext + restic-repo)
+- 7 Smith verification targets pós-implementation (file opaque + restore drill + integrity check + retention env + APScheduler logs + permissions + no plaintext leak)
+
+**Implementation outline para Neo (Story #11):**
+
+- Phase 1: Dockerfile restic install (~15min)
+- Phase 2: bloco_backup/scheduler.py refactor 2 functions (~1h)
+- Phase 3: tests/integration/test_backup_encryption_restic.py 5 tests NEW (~45min)
+- Phase 4-7: Operator domain (docker-compose + /etc/restic + restic init + key escrow + runbook update)
+- Total Neo estimate: ~2h cumulative
+
+**Files created/modified Sprint 8 D-ARIA-S08-002:**
+
+- governance/architecture/adr/adr-031-backup-encryption.md (NEW 24.4KB spec-level)
+- governance/architecture/adr/adr-029-backup-strategy.md (amendment §3 cross-reference para ADR-031)
+- governance/architecture/adr/ADR-INDEX.md (NEW MOC primeiro do projeto — 30 ADRs organized por domain + status + cross-reference map + anti-padrão detection + reviews programadas)
+- governance/CHECKPOINT-active.md (D-ARIA-S08-002 entry)
+- governance/PROJECT-CHECKPOINT.md (contexto_ativo + proximos_passos updated)
+- .lmas/handoffs/handoff-devops-to-architect-2026-05-16-sprint-8-phase-b-story-11-adr-031.yaml (consumed=true)
+- .lmas/handoffs/handoff-architect-to-dev-2026-05-16-sprint-8-phase-b-story-11-restic-impl.yaml (NEW consumed=false)
+
+**ADR-INDEX MOC criação (overdue debt — primeiro index do projeto):**
+
+ADR-INDEX.md inexistia (30 ADRs sem MOC formal). Aria aproveitou Story #11 para criar:
+- Agrupamento por domínio (8 domínios) substituindo numérica sequencial
+- Status breakdown (24 accepted + 4 proposed + 4 superseded + 1 deprecated + 1 reserved)
+- Cross-reference map (supersede chains + work-together clusters)
+- Anti-padrão detection per adr-governance.md (5 checks ✅ compliant + 1 watch flag LLM Pipeline cluster)
+- Reviews programadas (max 10 ADRs/domain — todos under limit)
+- ADR-030 reservado offsite backup Sprint 9+
+
+**Phase B Stories Progress Post-Architect ADR-031:**
+
+| Story | Status | Owner |
+|-------|--------|-------|
+| #14.5 disk monitoring | ✅ DONE D-OPS-S08-003 | Operator |
+| #14 retention env | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| #12 JSON validation | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| #13 /health + HEAD | ✅ FULLY DONE D-DEV-S08-002 + D-OPS-S08-004 | Neo + Operator |
+| **#11 backup encryption ADR-031** | **✅ DESIGN DONE D-ARIA-S08-002 (code+deploy pending)** | **Architect + Neo + Operator** |
+| #10 traefik composite | ⏳ PENDING Operator | Operator |
+| #8 DNS subdomains | ⏳ PENDING Operator + Architect | Operator + Architect |
+| #9 homepage | ⏳ PENDING Operator | Operator |
+
+**Smith F-HIGH Findings Progress (Phase B post-Aria):**
+
+- ✅ F-HIGH-04 /health 404: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-05 HEAD / 405: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-07 JSON validation: RESOLVED EMPIRICAL (deployed)
+- ✅ F-HIGH-08 retention 30d: RESOLVED EMPIRICAL (deployed)
+- 🏛️ **F-HIGH-09 backup encryption: ARCHITECTURALLY RESOLVED via ADR-031 (Neo impl + Operator deploy pending)**
+- ⏳ F-HIGH-01 DNS subdomains: Pending Story #8
+- ⏳ F-HIGH-02 homepage: Pending Story #9
+- ⏳ F-HIGH-03 + F-HIGH-06 + F-HIGH-11 traefik composite: Pending Story #10
+- ⏳ F-HIGH-10 image backup tag SOP: SOP N=2 enforced (prod + bak-pre-stories-12-13-14)
+
+**5/11 HIGH ARCHITECTURALLY ADDRESSED em Phase B (4 empirical + 1 architectural pending implementation).**
+
+**Próximo:** Skill dev (Neo) Story #11 restic implementation (~2h cumulative — Dockerfile + scheduler + tests).

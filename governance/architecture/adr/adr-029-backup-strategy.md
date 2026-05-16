@@ -80,18 +80,25 @@ Backups são gerados por **APScheduler embedded** dentro do FastAPI app via `blo
 
 ### 3. Encryption Decision (Smith F-HIGH-09 — Sprint 9+ scope)
 
-**Decision: Backup encryption recomendada MAS NÃO obrigatória Sprint 8.**
+> ⚠️ **AMENDMENT 2026-05-16:** Esta seção foi **superseded em parte** por [ADR-031 Backup Encryption](adr-031-backup-encryption.md).
+> ADR-031 promove encryption de "deferred Sprint 9+" para "implemented Sprint 8 Phase B Story #11" via restic AES-256-CTR + Poly1305 MAC.
+> Rationale ZERO-PII permanece **válido para audit defense LGPD §46 obrigatório strict**, MAS ADR-031 implementa como **defense-in-depth + future-proof + LGPD §46 best practice baseline**.
+> ADR-029 §1 (visibility), §2 (retention 30d), §4 (offsite Sprint 9+) permanecem `accepted` sem mudança.
 
-**Rationale empirical:**
+**Decision (ORIGINAL 2026-05-16 — preserved historical context):** Backup encryption recomendada MAS NÃO obrigatória Sprint 8.
+
+**Rationale empirical (preserved):**
 
 | Backup file | PII content | LGPD risk |
 |-------------|-------------|-----------|
 | `vault.db` | Jurisprudência STJ/STF (dados PÚBLICOS) | ZERO |
 | `audit.jsonl` | `entry_hash`, `previous_entry_hash` (HMAC chain), `parser_used`, `error_msg`, `contract_hash` | LOW (no CPF, no nome, no valor financeiro) |
 
-**Backups contêm ZERO dados pessoais** — encryption é "defense in depth" não LGPD §46 obrigatório.
+**Backups contêm ZERO dados pessoais** — encryption é "defense in depth" não LGPD §46 obrigatório strict.
 
-**Sprint 9+ scope (separate ADR):** GPG file-level encryption OR LUKS volume mount, decidir conforme threat model evolution (e.g., offsite backup S3).
+**Sprint 9+ scope (separate ADR — ORIGINAL intent):** GPG file-level encryption OR LUKS volume mount, decidir conforme threat model evolution (e.g., offsite backup S3).
+
+**Sprint 8 Phase B Story #11 ACTUAL decision (ADR-031):** restic AES-256-CTR + Poly1305 MAC selected over GPG/LUKS por 5 critérios (purpose-built, encrypted-by-default, incremental+dedup, snapshot atomic, multi-backend S3-ready). Implementation outline em ADR-031 §"Spec Coverage".
 
 ### 4. Offsite Backup Recommendation (Sprint 9+ scope)
 
