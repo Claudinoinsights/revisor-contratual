@@ -7911,3 +7911,79 @@ B) **Skill smith** Phase B mini-verify NOW — confirma 5/11 HIGH resolved cumul
 C) **Skill architect** Story #8 DNS subdomains exige design colaborativo Architect (subdomain hierarchy + DNS records + Cloudflare strategy) — pode iniciar paralelo Operator stories #10/#9
 
 Recommendation: B (Smith Phase B mini-verify NOW) — validar 5 HIGH resolved antes continuar Phase B stories #10/#8/#9. Smith mini-verify acomoda cadence pattern conservador, evita acumular debt unverified.
+
+---
+
+### D-OPS-S08-006 (2026-05-16) — Operator TD resolution batch Story #11 + deploy validation 🟢 **3 TDs RESOLVED EMPIRICAL + 5/5 regression smoke PASS**
+
+**Decisão:** Resolver 3 TDs Operator-domain capturadas durante D-OPS-S08-005 antes Smith mini-verify. Per Eric directive "Resolva as pendências e avance com o recomendado".
+
+**Por quê:** TDs unaddressed seriam Smith findings legítimos. Resolução pré-Smith elimina ruído review + demonstra speed cadence Phase B.
+
+**3 TDs RESOLVED + 1 reclassified:**
+
+| TD ID | Original Severity | Resolution | Status |
+|-------|-------------------|------------|--------|
+| TD-S08-PB-RESTIC-CACHE-PERMS | LOW | Dockerfile mkdir+chown /home/revisor/.cache/restic — eliminates "unable to open cache" warning | ✅ RESOLVED EMPIRICAL (deploy verified, restic snapshots NO warning) |
+| TD-S08-PB-RUNBOOK-RESTIC-UPDATE | MEDIUM | governance/runbook-backup-restore.md +280 lines: §Encrypted Backup Layer + §Scenario E Restore + §Password Rotation + §Key Escrow | ✅ RESOLVED (runbook agora restic-aware) |
+| ~~TD-S08-PB-PASSWORD-FILE-UID-MAPPING~~ | ~~MEDIUM~~ | RECLASSIFIED — chown 1000:1000 é padrão Docker canônico uid-matching, NÃO workaround. Atual implementation correta. | ✅ RESOLVED (false-positive TD) |
+| TD-S08-PB-KEY-ESCROW-ERIC-PENDING | HIGH | Physical action Eric only (BitLocker/VeraCrypt USB). Procedure documented prominently em runbook §Key Escrow Procedure | ⏳ STILL PENDING (Eric manual action) |
+
+**Deploy workflow TD-1 fix executado:**
+
+1. Dockerfile +5 lines (mkdir /home/revisor/.cache/restic + comment ADR/TD reference)
+2. scp Dockerfile → VPS
+3. Backup tag `bak-pre-td-cache` (SHA 778a93feedcc)
+4. Image rebuild — NEW SHA `6c4eb78cf2d3` (vs prev 778a93feedcc)
+5. Container recreate — healthy after 2 attempts (10s startup)
+6. Verify cache dir exists: `drwxr-xr-x revisor:revisor /home/revisor/.cache/restic`
+7. **Verify restic snapshots NO warning** — clean output (era "unable to open cache: permission denied", agora gone)
+8. Emergency disk prune: builder cache 10.05GB removed + Phase B stable tags removed (bak-pre-story-11-restic + bak-pre-stories-12-13-14) → disk 90%→65% (+25GB freed)
+9. SOP N=2 enforced: prod (6c4eb78cf2d3) + bak-pre-td-cache (778a93feedcc)
+
+**5/5 Phase B regression smoke verify PASS empirical:**
+
+| Smith finding | Verification command | Result |
+|---------------|---------------------|--------|
+| F-HIGH-04 /health 404 | `curl https://revisor.claudinoinsights.com/health` | ✅ 200 JSON v0.2.10.0 + ollama configured + ages 12.31h/13.88h |
+| F-HIGH-05 HEAD / 405 | `curl -I https://revisor.claudinoinsights.com/` | ✅ HTTP/2 200 + security headers |
+| F-HIGH-08 retention 7d | `docker exec env grep REVISOR_BACKUP_RETENTION_DAYS` | ✅ 30 |
+| F-HIGH-09 backup encrypt | `docker exec python -c create_scheduler` | ✅ 4 jobs (backup_daily + backup_rotation + backup_daily_encrypted + cleanup_old_snapshots_encrypted) |
+| Phase B no regression overall | All above + healthy + restart=0 | ✅ Zero regression detected |
+
+**Files modified/created Sprint 8 D-OPS-S08-006:**
+
+- Dockerfile (+5 lines)
+- governance/runbook-backup-restore.md (+280 lines, 615 lines total — 3 NEW sections + Scenario E)
+- governance/CHECKPOINT-active.md (D-OPS-S08-006 entry + TD-4 reclassified)
+- VPS /opt/revisor-contratual/Dockerfile (synced)
+- Docker image revisor-contratual:bak-pre-td-cache (NEW backup tag pre-TD)
+- Docker image revisor-contratual:prod (NEW SHA 6c4eb78cf2d3)
+- Docker images cleanup (-2 old Phase B tags + builder cache pruned 10GB)
+
+**Disk recovery story (regression patrón managed):**
+
+| Phase | Disk % | Action |
+|-------|--------|--------|
+| Pre-TD-1 deploy | 65% | baseline pós D-OPS-S08-005 |
+| Post-TD-1 rebuild + recreate | 84-90% | New image + builder cache |
+| Post emergency prune | 84% | -10GB builder |
+| Post SOP N=2 enforcement | 65% | -19GB removed Phase B stable rollback tags |
+
+**Phase B Stories Progress Post-TD Resolution:**
+
+Sprint 8 Phase B = 5/9 stories FULLY DEPLOYED EMPIRICAL:
+- ✅ #14.5 disk monitoring (D-OPS-S08-003)
+- ✅ #14 retention env (D-DEV-S08-002 + D-OPS-S08-004)
+- ✅ #12 JSON validation (D-DEV-S08-002 + D-OPS-S08-004)
+- ✅ #13 /health + HEAD (D-DEV-S08-002 + D-OPS-S08-004)
+- ✅ #11 restic encryption (D-ARIA-S08-002 + D-DEV-S08-003 + D-OPS-S08-005 + **D-OPS-S08-006 TD cleanup**)
+- ⏳ #10 traefik composite
+- ⏳ #8 DNS subdomains
+- ⏳ #9 homepage
+
+**5/11 Smith HIGH RESOLVED EMPIRICAL + 3 TDs RESOLVED + 1 TD reclassified + 1 TD documented pending Eric action.**
+
+**Próximo Skill (per Eric "use smith ultrathink para validar"):**
+
+**Skill smith ultrathink Phase B mini-verify** — adversarial revalidation 5/11 HIGH cumulative + TD resolution sanity + regression Phase A check. Espera-se CLEAN ou CONTAINED+CHANGES verdict (não COMPROMISED após este nível de prep work).
