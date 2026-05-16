@@ -340,6 +340,76 @@ sudo chown 1000:1000 /etc/restic/password.txt
 
 ---
 
+### ⚠️ Total Password Loss (Catastrophic Scenario — Smith F-S8PB-MV-LOW-05)
+
+> **Adicionado D-ARIA-S08-003 (2026-05-16):** Smith mini-verify identificou ausência de documentação explícita do cenário catastrófico "ALL Eric devices lost". Esta seção documenta a limitação por design + mitigações multi-camada.
+
+**Scenario:** Both `/etc/restic/password.txt` (VPS filesystem) AND Eric encrypted USB (BitLocker/VeraCrypt) são lost simultaneously OR irrecoverable.
+
+**Result:** Encrypted snapshots become **PERMANENTLY irrecoverable** — restic cryptographic design (AES-256-CTR + Poly1305 MAC + scrypt KDF) significa: **no password = no data, no recovery path possible**.
+
+#### Acceptance Criteria (Design Trade-off Documentado)
+
+| Trade-off Dimension | Decision (ADR-031) |
+|---------------------|-------------------|
+| Encryption strength | Maximum (AES-256-CTR industry-standard) |
+| Recovery probability se key lost | **Zero** (by design) |
+| Operational complexity | Low (single password file management) |
+| Alternative if zero-loss-tolerance required | Plaintext backups (rejected — ADR-031 §Cryptographic Guarantees) |
+
+**Trade-off aceito:** Superior cryptographic protection vs zero-recovery-if-key-lost. Trocar isso = aceitar plaintext-readable backups (defeats F-HIGH-09 Smith finding original).
+
+#### Multi-Layer Probability Mitigation
+
+| Layer | Location | Status Atual | Loss-Resilience |
+|-------|----------|--------------|-----------------|
+| **1 (Primary)** | `/etc/restic/password.txt` em VPS production | ✅ Active | Single disk failure = total loss (UNACCEPTABLE alone) |
+| **2 (Secondary)** | Eric encrypted USB (BitLocker/VeraCrypt) | ⏳ Pending (F-S8PB-MV-MED-03) | Layer 1 + 2 both lost = total loss (LOW probability) |
+| **3 (Tertiary)** | Sprint 9+ ADR-030 offsite backup S3/B2 com SEPARATE encryption key | 🔲 Future | Multiple geographic + cryptographic failures required (VERY LOW) |
+| **4 (Quaternary)** | Eric secondary USB at second physical location (family/bank safety deposit) | 🔲 Future Sprint 9+ | Practically impossible total loss (NEGLIGIBLE) |
+
+**Current state (2026-05-16):** Layer 1 only operacional. Layer 2 pending Eric F-MED-03 physical action.
+
+**Risk window:** Until Eric completes BitLocker/VeraCrypt USB procedure, single VPS disk failure = total backup loss. Smith mini-verify flagged como F-S8PB-MV-MED-03 escalating risk.
+
+#### Recovery Probability Matrix
+
+| Mitigation Layers Active | Backup Recovery Probability | Recommendation |
+|--------------------------|-----------------------------|----------------|
+| **1 layer only (VPS)** | ~0% if VPS disk failure | UNACCEPTABLE — Eric MUST execute Layer 2 ASAP |
+| **2 layers (VPS + USB)** | ~99% requires both disk failure + USB destruction simultaneously | Current target — acceptable LOW probability |
+| **3 layers (above + offsite separate key)** | ~99.99% requires geographically distinct simultaneous failures | Sprint 9+ target — VERY LOW probability |
+| **4 layers (above + secondary USB)** | Practically 100% | Sprint 9+ stretch goal |
+
+#### ❌ NEVER Acceptable Scenarios
+
+| Anti-Practice | Why Forbidden | Detection |
+|---------------|---------------|-----------|
+| Storing password as plaintext em git | Repository compromised = all backups compromised forever | Git pre-commit hook + Smith adversarial probe |
+| Sharing password via email/Slack/SMS/messaging | Messaging history compromised = compromise | Eric self-discipline; Smith cannot detect post-fact |
+| Reusing password across services | Single service breach = backup compromise | Random openssl -base64 32 per service (ADR-031 spec) |
+| Storing password unencrypted on Eric work laptop | Laptop theft = compromise | Eric MUST use BitLocker/VeraCrypt only |
+| Password recovery via security questions OR email reset | Restic has no recovery mechanism — would defeat encryption | N/A — design limitation, not Eric's choice |
+
+#### Mitigation Roadmap (Sprint 9+ Future Work)
+
+| Sprint | Action | Reduces Risk |
+|--------|--------|--------------|
+| **Sprint 8 Phase C** | Eric F-MED-03 USB completion (Layer 2 activation) | Single disk failure → both layers required |
+| **Sprint 9+ ADR-030** | Offsite backup S3/B2 com separate encryption key (Layer 3) | Geographic + cryptographic isolation |
+| **Sprint 9+** | Secondary USB at second physical location (Layer 4) | Practically eliminates total loss |
+| **Sprint 9+ ADR-032** | Docker Secrets migration (F-S8PB-MV-LOW-01) | Defense-in-depth env var hardening |
+
+#### Cross-References
+
+- **ADR-031 §Cryptographic Guarantees:** Encryption strength rationale (justifies "no recovery" trade-off)
+- **Smith F-S8PB-MV-MED-03:** Eric key escrow USB pending action (Layer 2 activation blocker)
+- **Smith F-S8PB-MV-LOW-05:** This section addresses (originally undocumented catastrophic scenario)
+- **Sprint 9+ ADR-030:** Offsite backup future ADR (Layer 3 implementation path)
+- **ADR-031 §Migration Plan:** During D+0 → D+30 transition, legacy plaintext backups provide temporary Layer-0 fallback
+
+---
+
 ## 🆘 Restore Procedure (Step-by-Step DR)
 
 ### Scenario A: Audit chain corruption (HMAC integrity broken)

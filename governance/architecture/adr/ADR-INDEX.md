@@ -3,11 +3,11 @@ type: dashboard
 title: "ADR Index — Revisor Contratual"
 project: revisor-contratual
 last_updated: "2026-05-16"
-total_adrs: 30
+total_adrs: 31
 active_adrs: 24
 superseded_adrs: 4
 deprecated_adrs: 1
-proposed_adrs: 4
+proposed_adrs: 5
 tags:
   - project/revisor-contratual
   - adr
@@ -19,7 +19,7 @@ tags:
 
 > **MOC (Map of Content)** seguindo `adr-governance.md` — agrupamento por domínio (NÃO sequencial numérica). Superseded ADRs em seção separada com strikethrough.
 > **Created:** 2026-05-16 (Sprint 8 Phase B Story #11, junto com ADR-031).
-> **Total ADRs:** 30 (ADR-001 → ADR-031, ADR-030 reserved para offsite backup Sprint 9+).
+> **Total ADRs:** 31 (ADR-001 → ADR-032, ADR-030 reserved para offsite backup Sprint 9+).
 
 ---
 
@@ -43,6 +43,7 @@ tags:
 | [ADR-004](adr-004-validacao-semantica-citacoes.md) | Validação semântica citações: similarity + NLI híbrido | ✅ Accepted | 2026-05-01 |
 | [ADR-006](adr-006-preview-seguro-pdf.md) | Preview seguro PDF server-side via pdf2image | ✅ Accepted | 2026-05-01 |
 | [ADR-014](adr-014-provider-abstraction-byok.md) | Provider Abstraction Anthropic Only + BYOK Key Management | ✅ Accepted | 2026-05-07 |
+| [ADR-032](adr-032-docker-secrets-migration.md) | Docker Secrets Migration — Env Vars → /run/secrets/ Pattern | 🟡 Proposed (Sprint 9+ deferred) | 2026-05-16 |
 
 ### Personas & Orquestração LLM
 
@@ -106,7 +107,7 @@ ADRs ativos representando decisões em vigor:
 
 ADR-001, ADR-002, ADR-003, ADR-004, ADR-005, ADR-006, ADR-008, ADR-012, ADR-014, ADR-019, ADR-020, ADR-021, ADR-022, ADR-023, ADR-024, ADR-025, ADR-026, ADR-027, ADR-028, **ADR-029** (§3 amended), **ADR-031** (new)
 
-### 🟡 Proposed (4 pending acceptance)
+### 🟡 Proposed (5 pending acceptance)
 
 ADRs em discussão, ainda não aplicados em produção:
 
@@ -115,6 +116,7 @@ ADRs em discussão, ainda não aplicados em produção:
 | [ADR-015](adr-015-vision-ocr-architecture.md) | Vision OCR | Aguarda Sprint que active OCR (atualmente born-digital fast path ADR-027 cobre 95%+ casos) |
 | [ADR-017](adr-017-multi-tenant-isolation-rls.md) | Multi-tenancy PostgreSQL RLS | Aguarda decisão SaaS B2B multi-tenant evolution (atual single-tenant Eric operador) |
 | [ADR-018](adr-018-saas-pricing-billing-event.md) | SaaS pricing | Aguarda decisão pricing model concreto (BYOK customer pays direct API) |
+| [ADR-032](adr-032-docker-secrets-migration.md) | Docker Secrets Migration | Aguarda Sprint 9+ capacity OR multi-tenant SaaS pivot OR security audit trigger (atualmente single-tenant env vars acceptable) |
 
 ### 🔄 Superseded (4 arquivados)
 

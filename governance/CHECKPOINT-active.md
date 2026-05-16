@@ -8226,3 +8226,91 @@ docker exec app python -c "from bloco_backup.scheduler import get_jobs_diagnosti
 **7/12 Smith findings RESOLVED (6 Operator empirical + 1 Neo code-complete) + 2 pending Skill architect + 1 pending Eric.**
 
 **Próximo Skill:** Skill devops Operator deploy F-MED-02 (image rebuild + container recreate + verify) OR Skill architect (parallel) F-LOW-05+F-LOW-01.
+
+---
+
+### D-ARIA-S08-003 (2026-05-16) — Architect `*document Sprint 8 Phase B post-Smith governance findings` ✅ **GOVERNANCE COMPLETE**
+
+**Decisão:** Documentar 2 Smith findings governance-domain — F-S8PB-MV-LOW-05 (disaster recovery scenario) + F-S8PB-MV-LOW-01 (Docker secrets ADR-032 proposed Sprint 9+).
+
+**Por quê:** Smith mini-verify cataloged 12 findings — 2 são pure governance (sem código, sem deploy) que Aria pode resolver em paralelo ao Neo F-MED-02 + Operator deploys. Sprint 8 Phase B post-Smith closure requires todos os findings addressed (RESOLVED OR documented).
+
+**Artefatos criados:**
+
+| Artefato | Tipo | Tamanho |
+|----------|------|---------|
+| `governance/runbook-backup-restore.md` §Total Password Loss | NEW section (after §Key Escrow) | ~95 lines |
+| `governance/architecture/adr/adr-032-docker-secrets-migration.md` | NEW ADR proposed | ~270 lines spec-level |
+| `governance/architecture/adr/ADR-INDEX.md` | UPDATED (+ADR-032 entry + counts) | +5 lines |
+
+**F-S8PB-MV-LOW-05 disaster recovery section content:**
+
+- Acceptance criteria (design trade-off documentado — encryption strength vs zero-recovery)
+- Multi-layer probability mitigation table (4 layers — Primary VPS + Secondary Eric USB + Tertiary Sprint 9+ offsite + Quaternary secondary USB)
+- Recovery probability matrix (per layer activation)
+- ❌ NEVER acceptable scenarios (5 anti-practices documented)
+- Mitigation roadmap (Sprint 8 Phase C → Sprint 9+ progression)
+- Cross-references (ADR-031 §Cryptographic Guarantees + Smith F-MED-03 + F-LOW-05)
+
+**F-S8PB-MV-LOW-01 ADR-032 Docker Secrets Migration (proposed Sprint 9+):**
+
+- Status: `proposed` (NOT accepted — Sprint 9+ deferred)
+- adr_level: `design` (operational outline included but spec implementation deferred)
+- Decision: Docker Secrets pattern (compose v3.1+ `secrets:` mount em /run/secrets/ chmod 400)
+- 4 Alternatives Considered: A) status quo env vars (current acceptable) + B) Docker Secrets (selected) + C) HashiCorp Vault (overkill) + D) Encrypted .env files (doesn't solve runtime)
+- Spec coverage: 6-phase implementation outline (app code + tests + Operator host + compose update + migration + key escrow)
+- Sprint planning triggers: 5 conditions que promovem proposed → accepted (multi-tenant pivot, security audit, capacity, incident, high-value secrets)
+- Cross-references: ADR-031 pattern precedent + ADR-029 env pattern coexistence + LGPD §46
+
+**Why Sprint 9+ deferred (NOT Sprint 8):**
+
+- Current pattern works (single-tenant Eric operador acceptable)
+- Migration is opt-in incremental (per-secret rollout)
+- Sprint 8 v2.0 scope discipline (17 stories — momentum maintained)
+- Threat model already mitigated via Layer 2/3/4 (ADR-031 §Total Password Loss multi-layer defense)
+
+**ADR-INDEX updates:**
+
+- Frontmatter: total_adrs 30→31 + proposed_adrs 4→5
+- Backup cluster: ADR-032 added Security & Audit section (mesma área backup encryption)
+- §Por Status §Proposed: ADR-032 added (5 proposed total)
+- Cross-reference: ADR-031 pattern precedent established
+
+**Files modified/created Sprint 8 D-ARIA-S08-003:**
+
+- governance/runbook-backup-restore.md (+~95 lines §Total Password Loss section)
+- governance/architecture/adr/adr-032-docker-secrets-migration.md (NEW ~270 lines proposed ADR)
+- governance/architecture/adr/ADR-INDEX.md (+5 lines: ADR-032 entry + counts update)
+- governance/CHECKPOINT-active.md (D-ARIA-S08-003 entry)
+
+**Per feedback_no_invention:**
+
+- ADR-032 cita Smith F-S8PB-MV-LOW-01 source line directamente
+- Cross-references ADR-031 pattern precedent
+- ADR-029 env pattern preserved (no contradiction)
+- LGPD §46 + §11 compliance anchors
+- ADR-013 §2.4 APScheduler embedded preserved
+
+**Smith Findings Status Post-D-ARIA-S08-003:**
+
+| Finding | Status |
+|---------|--------|
+| F-S8PB-MV-HIGH-01 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| F-S8PB-MV-MED-01 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| F-S8PB-MV-MED-02 | ✅ CODE COMPLETE D-DEV-S08-004 (Operator deploy pending) |
+| F-S8PB-MV-MED-03 | ⏳ Eric physical action |
+| F-S8PB-MV-MED-04 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| **F-S8PB-MV-LOW-01** | **✅ DOCUMENTED governance D-ARIA-S08-003 (ADR-032 proposed Sprint 9+)** |
+| F-S8PB-MV-LOW-02 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-03 | ✅ RESOLVED governance (D-OPS-S08-007) |
+| F-S8PB-MV-LOW-04 | ✅ RESOLVED EMPIRICAL (D-OPS-S08-007) |
+| **F-S8PB-MV-LOW-05** | **✅ RESOLVED governance D-ARIA-S08-003 (runbook §Total Password Loss)** |
+| F-S8PB-MV-INFO-01/02 | ✅ Already validated (positive) |
+
+**9/12 Smith findings RESOLVED OR DOCUMENTED + 1 pending Operator deploy F-MED-02 + 1 pending Eric F-MED-03.**
+
+**Commit:** Local pendente Operator push (Aria git read-only per agent-authority).
+
+**Handoff Architect→Operator created** (.lmas/handoffs/handoff-architect-to-devops-final-batch.yaml) — Operator deploy includes Neo F-MED-02 (3 files local commit d46bfc6 + 3e991ef) + Aria governance (NEW files runbook + ADR-032 + ADR-INDEX) em single batch deploy.
+
+**Próximo Skill:** Skill devops Operator final batch deploy (Neo F-MED-02 code + Aria governance docs together) — economiza 1 rebuild cycle.
