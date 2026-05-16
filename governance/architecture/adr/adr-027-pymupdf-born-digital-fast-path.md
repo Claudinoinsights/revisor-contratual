@@ -424,13 +424,103 @@ sudo docker compose -p revisor-prod up -d app
 | [ADR-027](adr/adr-027-pymupdf-born-digital-fast-path.md) | PyMuPDF Born-Digital Fast Path — Dual-Path Pipeline Step 1 (Sprint 7 Phase 4) — RESOLVE F-S7P3-MED-01 pipeline E2E REAL 9/9 keys | ✅ Accepted | 2026-05-16 |
 ```
 
+## 🎯 Empirical Closure (Sprint 7 Phase 4 Post-Deployment)
+
+> **Refinement D-ARIA-S08-004 (Sprint 8 Phase C start, 2026-05-16):** Esta seção adiciona evidência empirical pós-deployment ao ADR original (escrito pré-deploy). Sprint 7 Phase 4 foi oficialmente fechado (commit a1b93c1 origin/main) com Smith verify CRITICAL CONTAINED+GREENLIGHT.
+
+### F-S7P3-MED-01 RESOLVED EMPIRICAL
+
+**Original claim:** Pipeline E2E REAL 9/9 audit keys BLOCKED por subprocess timeout 180s antes de Step 2-9 atingíveis.
+
+**Sprint 7 Phase 4 post-deploy evidence:**
+
+- ✅ Born-digital path: pipeline completa **985ms** average com 9/9 audit keys empirically
+- ✅ Scanned path (ADR-026 preserved): subprocess fallback funcional + 9/9 audit keys quando OCR completa
+- ✅ `parser_used` field populated em audit chain (`pymupdf4llm` OR `marker_ocr`)
+- ✅ Container RestartCount=0 across both paths (lifecycle preserved)
+
+**Cenário Y++ DoD final criterion** — `pipeline E2E REAL 9/9 audit keys ATINGIDO` — confirmado empirically.
+
+### 180x Speedup Measurement
+
+Comparação direta born-digital path vs Phase 3 subprocess (ADR-026 baseline):
+
+| Métrica | Phase 3 (ADR-026 sempre subprocess) | Phase 4 (ADR-027 dual-path born-digital) | Speedup |
+|---------|---------------------------------------|-------------------------------------------|---------|
+| Latency 80% cases (born-digital CDC veículo) | ~180s (timeout fired) | **~985ms** empirical | **~180x faster** |
+| Memory baseline | ~3.3GB (marker library load) | <500MB (PyMuPDF native only) | **~6.6x lighter** |
+| Subprocess overhead | 200-500ms startup + 3-5s marker imports | 0ms (asyncio.to_thread inline) | Eliminated |
+| Cenário Y++ 9/9 keys atingíveis | ❌ NO (timeout) | ✅ YES empirically | Goal reached |
+
+**Source:** Smith verify Sprint 7 Phase 4 CRITICAL CONTAINED+GREENLIGHT (governance/qa/smith-verify-sprint-7-phase-4-2026-05-16.md). 985ms baseline measured via SSE complete event timestamp delta empirically Phase 4 deploy.
+
+### ADR-026 / ADR-027 Co-Existence Pattern
+
+ADR-027 NÃO supersede ADR-026 — ambos compõem dual-path complementar:
+
+```text
+pipeline.py Step 1:
+├── detect_pdf_type(pdf_path) → "born_digital" OR "scanned"
+│
+├── IF born_digital (80% cases):
+│   └── parse_contract() INLINE via asyncio.to_thread (ADR-027 fast path)
+│       └── PyMuPDF native text extraction ~10ms/page
+│           └── audit: parser_used="pymupdf4llm"
+│
+└── IF scanned (20% cases):
+    └── parse_contract() VIA SUBPROCESS (ADR-026 isolation preserved)
+        └── marker OCR + Tesseract ~30-90s/page
+            └── audit: parser_used="marker_ocr"
+```
+
+**Dual-path invariants preserved:**
+
+- ADR-026 subprocess isolation **STILL ESSENTIAL** para scanned (marker + torch.multiprocessing high-risk crash domain)
+- ADR-027 fast path **NÃO disables** ADR-026 — both ACTIVE simultaneously, decided per-PDF
+- F-PROD-NEW-22 (silent worker exit) **PERMANENTLY mitigated** by ADR-026 architecture (marker stays isolated)
+
+### Sprint 8 Inheritance
+
+Sprint 7 Phase 4 dual-path foundation enabled subsequent Sprint 8 work:
+
+| Sprint 8 Story | Inheritance from ADR-027 |
+|----------------|--------------------------|
+| Phase A Story #1.5 tempfile cleanup LGPD §16 | Dual-path tempfile creation pattern verified safe (born-digital uses inline tempfile, scanned uses subprocess) |
+| Phase B Story #13 /health endpoint | `audit_chain_age_hours` + `backup_age_hours` JSON fields leverage audit chain populated by ADR-027 `parser_used` work |
+| Phase B Story #14 retention env | Audit chain integrity preserved across rotation policies (dual-path doesn't impact retention) |
+| Phase B Story #11 restic encryption (ADR-031) | Audit.jsonl encrypted in restic snapshots includes `parser_used` field (forensic continuity across encryption layer) |
+
+### Smith Verification History
+
+| Smith Review | Date | Verdict | Findings |
+|--------------|------|---------|----------|
+| Sprint 7 Phase 3 (ADR-026) | 2026-05-15 | CONTAINED+GREENLIGHT | F-PROD-NEW-22 architecturally resolved (subprocess isolation) |
+| Sprint 7 Phase 4 (ADR-027) | 2026-05-16 | CRITICAL CONTAINED+GREENLIGHT | F-S7P3-MED-01 RESOLVED empirical (985ms born-digital) |
+| Sprint 8 Phase B mini-verify | 2026-05-16 | CONTAINED+GREENLIGHT | 12 findings cataloged (no regression dual-path) |
+| Sprint 8 Phase B FINAL re-verify | 2026-05-16 | CONTAINED+CHANGES | 8/12 resolved (no impact dual-path stability) |
+
+### Lessons Learned
+
+1. **Pre-detection cheaper than over-isolation:** ~50ms PyMuPDF heuristic saves 200-500ms subprocess overhead in 80% of cases. Threshold-based detection (DEFAULT_TEXT_THRESHOLD_PER_PAGE=500 chars) calibrated empirically Phase 4.
+2. **Subprocess isolation NÃO é silver bullet:** ADR-026 fix solved CRASH problem but introduced LATENCY problem. Solution wasn't "remove subprocess" but "use subprocess SELECTIVELY".
+3. **Dual-path > single-strategy:** Forcing 100% of traffic through one path (always inline OR always subprocess) optimized for one scenario at expense of other. Pre-detection enables per-PDF optimization.
+4. **Empirical thresholds beat theoretical:** 500 chars/page threshold determined via Phase 4 fixture testing, NOT a priori calculation. Born-digital PDFs consistently exceed; scanned reliably below.
+
 ## References
 
-- [Smith Verify Sprint 7 Phase 3 CONTAINED](../../qa/smith-verify-sprint-7-phase-3-2026-05-15.md)
-- [ADR-026 Marker Subprocess Isolation](adr-026-marker-subprocess-isolation-parsing.md) (preserved fallback)
+- [Smith Verify Sprint 7 Phase 3 CONTAINED](../../qa/smith-verify-sprint-7-phase-3-2026-05-15.md) — ADR-026 architectural fix
+- [Smith Verify Sprint 7 Phase 4 CONTAINED+GREENLIGHT](../../qa/smith-verify-sprint-7-phase-4-2026-05-16.md) — ADR-027 empirical proof
+- [Smith Verify Sprint 8 Phase B mini-verify](../../qa/smith-verify-sprint-8-phase-b-mini-2026-05-16.md) — no regression dual-path
+- [Smith Verify Sprint 8 Phase B FINAL re-verify](../../qa/smith-verify-sprint-8-phase-b-final-mini-verify-2026-05-16.md) — Phase B closure
+- [ADR-026 Marker Subprocess Isolation](adr-026-marker-subprocess-isolation-parsing.md) (preserved fallback — dual-path co-existence)
+- [ADR-028 Ollama Single-Container Consolidation](adr-028-ollama-single-container-consolidation.md) (Sprint 7 Phase 2 parallel work)
+- [ADR-029 Backup Strategy](adr-029-backup-strategy.md) (Sprint 8 Phase A — audit chain backup inherits dual-path)
+- [ADR-031 Backup Encryption](adr-031-backup-encryption.md) (Sprint 8 Phase B — restic encryption preserves audit forensic continuity)
 - [Sprint 7 Feasibility Study](../sprint-7-memory-optimization-feasibility-2026-05-15.md)
-- ADR-023/024/025/028 (preserved)
+- ADR-023/024/025/028 (preserved — sequential LLM + tier + cascade + ollama-shared)
 
 ---
 
-*— Aria, Visionary. Phase 4 é o último passo antes do Cenário Y++ DoD final. Subprocess isolation cura crashes catastróficos (Phase 3). PyMuPDF fast path cura latência inaceitável para born-digital (80% casos). Juntos: pipeline E2E REAL 9/9 audit keys finalmente atingível. Neo, sua hora de construir o detector. 🏗️*
+*— Aria, Visionary. Phase 4 era o último passo antes do Cenário Y++ DoD final. Subprocess isolation cura crashes catastróficos (Phase 3). PyMuPDF fast path cura latência inaceitável para born-digital (80% casos). Juntos: pipeline E2E REAL 9/9 audit keys finalmente atingível.*
+
+*— Aria, refinement D-ARIA-S08-004 (Sprint 8 Phase C start). O ADR foi escrito pré-deploy; agora carrega empirical evidence pós-deploy. 180x speedup, F-S7P3-MED-01 RESOLVED empirical, Sprint 7 Phase 4 fechado, Sprint 8 herdou foundation estável. A arquitetura provou-se. 🏗️*

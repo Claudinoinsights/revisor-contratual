@@ -8548,3 +8548,51 @@ Stories #10/#8/#9 são **MOSTLY claudino-insights project domain** OR Sprint 9+ 
 - **Sprint 8 Phase C** — Story #1 real CDC PDF fixture + Phase 1-3 LOWs cleanup + ADR-027 narrative
 - **Sprint 9+ planning** — multi-tenant SaaS evolution, ADR-030/033 implementation, Smith full ULTRATHINK re-verify
 - **Claudino-insights project** — F-HIGH-02 homepage scope (separate project context)
+
+---
+
+### D-ARIA-S08-004 (2026-05-16) — Architect Sprint 8 Phase C start — ADR-027 narrative refinement ✅ **GOVERNANCE COMPLETE**
+
+**Decisão:** Refinar ADR-027 (PyMuPDF born-digital fast path) com seção §Empirical Closure documentando Sprint 7 Phase 4 post-deploy evidence + Sprint 8 inheritance + Smith verification history.
+
+**Por quê:** Sprint 8 Phase C inicia com governance refinement (zero deploy risk, low complexity). ADR-027 original (16.8KB) foi escrito PRE-deploy — agora carrega empirical evidence post-deploy (Sprint 7 Phase 4 fechado a1b93c1 + Sprint 8 herdou foundation). Per Eric directive "Execute o recomendado sempre pelas skills corretas".
+
+**Refinement aplicado (~110 linhas adicionais):**
+
+| Subsection NEW | Conteúdo |
+|----------------|----------|
+| §F-S7P3-MED-01 RESOLVED EMPIRICAL | Post-deploy evidence: pipeline E2E REAL 9/9 keys atingido empirically (born-digital 985ms + scanned subprocess) |
+| §180x Speedup Measurement | Tabela comparativa Phase 3 (180s timeout) vs Phase 4 (985ms born-digital) — 180x faster + 6.6x lighter memory |
+| §ADR-026 / ADR-027 Co-Existence Pattern | Dual-path ASCII diagram + invariants preserved (ADR-026 NÃO superseded — both ACTIVE complementar) |
+| §Sprint 8 Inheritance | Mapping Sprint 8 Story #1.5 + #11 + #13 + #14 → ADR-027 foundation inheritance |
+| §Smith Verification History | 4 reviews tabela (Phase 3 + Phase 4 + Phase B mini + Phase B FINAL) cross-referenciados |
+| §Lessons Learned | 4 architectural learnings (pre-detection cheaper + subprocess NÃO silver bullet + dual-path > single-strategy + empirical thresholds) |
+| §References (expanded) | +6 cross-references (Smith Phase 4 + Phase B mini + Phase B FINAL + ADR-026 + ADR-028 + ADR-029 + ADR-031) |
+
+**Per feedback_no_invention:**
+
+- Todas claims cite empirical sources (Smith reports + Sprint 7 Phase 4 closure commit a1b93c1)
+- 985ms baseline measured via SSE complete event timestamp delta empirically Phase 4
+- 180x speedup é (~180s timeout) / (~985ms born-digital) — direct measurement
+- ADR-026/027 co-existence pattern documented (não invented — already existed em pipeline.py code, just now explicitly documented)
+
+**Files modified Sprint 8 D-ARIA-S08-004:**
+
+- governance/architecture/adr/adr-027-pymupdf-born-digital-fast-path.md (+~110 linhas §Empirical Closure)
+- governance/CHECKPOINT-active.md (D-ARIA-S08-004 entry)
+
+**Sprint 8 Phase C Progress:**
+
+| Sub-task | Status | Skill Owner |
+|----------|--------|-------------|
+| ADR-027 narrative refinement | ✅ COMPLETE D-ARIA-S08-004 | Architect (this entry) |
+| Story #1 real CDC PDF fixture | ⏳ Pending | Analyst (procure) + Neo (integrate) |
+| Phase 1-3 LOWs cleanup | ⏳ Pending | Operator/Neo (per finding type) |
+
+**Commit pendente Operator push** (Aria git read-only per agent-authority).
+
+**Próximo Skill recomendação:**
+
+A) **Skill devops Operator** push Aria refinement commit
+B) **Skill analyst** Story #1 real CDC PDF fixture procurement
+C) **Pause for Eric direction** — Sprint 8 Phase C scope clarification (Phase 1-3 LOWs = 14 Smith LOWs absorption?)
