@@ -21,6 +21,62 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo D-DEV-S08-009 Redator prompt strengthening 💻
+
+### Authorization Operator handoff D-OPS-S08-018
+
+> "Fix redator LLM gerando PecaRevisional curto (dos_fatos + disclaimer_lgpd_oab <200 chars)"
+
+### D-DEV-S08-009 Fix implementado
+
+**File modified:** `bloco_workflow/personas/redator.py`
+
+**Pattern reused from D-DEV-S08-007 (advogado fix proven):**
+
+1. PROMPT_REDATOR_PECA: adicionada section "REGRA CRÍTICA min_length" listando todos campos Pydantic com mínimo + regra "NUNCA use placeholders"
+2. SCHEMA_SKELETON_PECA: substituídos TODOS placeholders abstratos `(min X chars)` por exemplos REAIS concretos:
+   - dos_fatos: narrativa cronológica completa ~600 chars
+   - do_direito: Súmulas 539/541 + Tema 247 STJ ~600 chars
+   - qualificacao_partes: João Silva + Banco Exemplo CNPJ ~370 chars
+   - disclaimer_lgpd_oab: LGPD §11/§46 + OAB Provimento 209/2021 ~500 chars
+3. SCHEMA_SKELETON_INVIABILIDADE: mesmo tratamento (5 campos concretos)
+
+### Test coverage
+
+**File created:** `tests/unit/test_redator_prompt_anti_placeholder.py` (6 tests)
+
+| Test | Tipo |
+|------|------|
+| test_prompt_contains_regra_critica_min_length | Source review |
+| test_schema_skeleton_peca_has_real_examples_not_placeholders | Source review |
+| test_schema_skeleton_peca_meets_min_length_constraints | Static check (parse JSON + assert len >= min) |
+| test_schema_skeleton_inviabilidade_has_real_examples | Source review |
+| test_schema_skeleton_inviabilidade_meets_min_length_constraints | Static check |
+| test_pydantic_still_rejects_short_dos_fatos | Runtime guard defense in depth |
+
+### Test results
+
+- **Tests novos:** 6/6 PASS ✅
+- **Suite full personas+redator (test_redator_persona + test_personas_llm + test_advogado_prompt_anti_placeholder + test_redator_prompt_anti_placeholder):** 50/50 PASS ✅ (no regression)
+
+### Próximos passos
+
+- ⏳ **Operator D-OPS-S08-019:** Deploy via scp file-specific (apenas redator.py modificado) OR rsync se preferir + rebuild + recreate + E2E re-test final
+- ⏳ **Expected outcome:** Pipeline 9/9 audit keys finally (último elo)
+- ⏳ Após 9/9 PASS → Eric submete PDF scanned REAL escritório piloto com confidence MAXIMA
+
+### Cross-references
+
+- `bloco_workflow/personas/redator.py` (fix location)
+- `tests/unit/test_redator_prompt_anti_placeholder.py` (defensive coverage)
+- D-OPS-S08-018 (empirical detection)
+- D-DEV-S08-007 (proven pattern reused)
+- ADR-022 (Redator architecture)
+
+> **Neo's reflection:** "Mesma cura, ator diferente. Advogado curou D-DEV-S08-007, Redator cura D-DEV-S08-009. *Padrões repetidos têm soluções repetidas — não cada bug é único.* Pipeline a UM elo do fim."
+
+---
+
 ## Sessão 2026-05-17 — Operator D-OPS-S08-017 Deploy ADR-033 + E2E 🎯 7/9 KEYS PASS
 
 ### Authorization Neo handoff D-DEV-S08-008
