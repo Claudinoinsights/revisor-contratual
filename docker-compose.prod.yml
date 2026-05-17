@@ -81,6 +81,7 @@ services:
       - .env.docker.prod
     volumes:
       - revisor-data:/home/revisor/.local/share/revisor-contratual
+      - marker-cache:/home/revisor/.cache/datalab
     depends_on:
       # Sprint 7 Phase 2 (ADR-028): single ollama-shared dependency (substituindo 2 atuais)
       ollama-shared:
@@ -128,6 +129,8 @@ volumes:
     name: revisor-prod_ollama-models-shared
   revisor-data:
     name: revisor-prod_revisor-data
+  marker-cache:
+    name: revisor-prod_marker-cache
 
 networks:
   revisor-internal:

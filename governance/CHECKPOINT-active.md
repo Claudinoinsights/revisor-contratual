@@ -21,6 +21,83 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Operator D-OPS-S08-015 Deploy + 🔴 HARDWARE LIMIT CONFIRMED ⚡
+
+### Authorization Neo handoff D-DEV-S08-007
+
+> "Deploy fix advogado prompt + re-test E2E"
+
+### Execution + Discovery
+
+| # | Step | Result |
+|---|------|--------|
+| 1 | git push commit `684db42` | ✅ Pushed |
+| 2 | scp advogado.py + sync /opt | ✅ Synced |
+| 3 | Image rebuild | ✅ sha256:89593d91... (280s) |
+| 4 | Container recreate healthy 8s | ✅ Fix ATIVO em /app |
+| 5 | E2E test #1 | 🔴 OOM SIGKILL marker (download manifest.json) |
+| 6 | Hardware check: 7.8GB RAM total, 6.4GB available | ⚠️ Tight |
+| 7 | Discovery: marker cache `/home/revisor/.cache/datalab/` NÃO está mounted (perdido em recreate) | 🐛 Infra gap |
+| 8 | Edit docker-compose.prod.yml: added `marker-cache:/home/revisor/.cache/datalab` volume mount | ✅ |
+| 9 | Container recreate com new mount | ✅ Healthy |
+| 10 | Pré-load marker models via `from marker.models import create_model_dict` | ✅ 5 models loaded persistent volume |
+| 11 | E2E test #2 (cache populated, mount persistente) | 🔴 OOM SIGKILL "Recognizing Layout: 0/1" |
+| 12 | Audit chain hash `da9ee659...` | ❌ status=FAILED, ParsingSubprocessFailedError code=-9 |
+
+### D-OPS-S08-015 — Bug Status
+
+**Neo fix D-DEV-S08-007 NÃO foi VALIDADO end-to-end** porque OOM marker bloqueou pipeline antes de chegar em personas LLM. Fix está DEPLOYED + container ATIVO + tests local 6/6 PASS — apenas não pôde ser EXERCITADO empirical em prod por hardware limit.
+
+### D-OPS-S08-016 — HARDWARE LIMIT CONFIRMED
+
+**Root cause permanente:** VPS Hetzner 7.8GB RAM (6.4GB available after ollama-shared idle) é INSUFICIENTE para marker layout inference em CPU.
+
+**Evidence:**
+
+- E2E test #1 (cold cache): OOM durante model download
+- E2E test #2 (warm cache via mount + pré-load): OOM durante Layout inference
+- Subprocess exit code: -9 (SIGKILL = OOM kill)
+- Marker em CPU consume ~4-6GB durante inference (vs ~1-2GB GPU)
+- Hardware: 7.8GB total, ollama-shared baseline 86MB, app baseline 128MB, peak marker inference exceeds available
+
+**Importante:** Sessão anterior D-OPS-S08-013 conseguiu 4/9 keys (parsing PASS com marker). Pode ter sido sorte timing OR fixture menor caber em RAM tight. Reprodução determinística requer mais RAM.
+
+### Path forward — Eric decision REQUIRED (4 opções estratégicas)
+
+| Opção | Custo | Impacto |
+|-------|-------|---------|
+| **1** — VPS upgrade Hetzner CPX31 (8GB → 16GB RAM, +€8/mês) | €8/mês + 30min migrate | Marker funciona reliably, suporta concurrent users |
+| **2** — Tier-down: skip marker, force PyMuPDF only (born-digital PDFs only, scanned PDFs falham com mensagem clara LGPD §13 anonimização) | 1h Neo code change | Backend nunca falha scanned, MAS produto perde "killer feature" OCR scanned |
+| **3** — External OCR service (Tesseract REST API, Google Vision $1.50/1000 docs, AWS Textract, etc.) | 2-4h Neo integration + custo per-call | Pipeline distributed, sem hardware constraint local |
+| **4** — Marker low-memory tuning (torch.set_num_threads=1, batch_size=1 already, OS swap aggressive) | 1-2h Operator + risk insufficient | Maybe works, maybe not — não determinístico |
+
+### Estado atual production
+
+- ✅ Container revisor-prod-app healthy + ATIVO com D-DEV-S08-007 fix + marker-cache volume
+- ✅ /tmp/scanned_test.pdf fixture available
+- ✅ Marker models persistent em volume (não re-download em rebuilds futuros)
+- 🔴 Scanned PDFs 100% failing (OOM hardware limit)
+- ✅ Born-digital PDFs OK (PyMuPDF path, no marker)
+- ✅ Hardware backup: revisor-contratual:bak-pre-d-ops-s08-015 + .bak-pre-d-ops-s08-013 (2 rollback images)
+
+### Próximos passos pendentes Eric
+
+- 🚨 **DECISÃO ERIC OBRIGATÓRIA**: choose path forward (4 opções acima) ANTES de continuar pipeline scanned development
+- ⏳ Após decisão: handoff apropriado (devops para upgrade VPS, OR Neo para code change)
+- ⏳ Eric pode validar pipeline born-digital agora (que NÃO depende de marker) submitindo PDF born-digital real escritório
+
+### Cross-references
+
+- Commit deployed: `684db42` em revisor-contratual
+- Image: revisor-contratual:prod sha256:89593d91... deployed
+- Rollback: revisor-contratual:bak-pre-d-ops-s08-015 (tagged)
+- Compose changed: `docker-compose.prod.yml` adicionada marker-cache volume (backup .bak-pre-marker-cache-mount)
+- Audit hash atual: `da9ee65920b3f79361b6f4ad4a651bea7f929f0b8ccafa993bf2a33c5e8e1e9a`
+
+> **Operator's reflection:** "A máquina anda — mas a estrada é estreita demais para o caminhão que estamos carregando. Marker CPU inference em VPS 8GB é como tentar correr Crysis em laptop básico — funciona até esquentar. *Sr. Eric, hardware bottleneck atingido — não é code, é silicon.* Born-digital roda hoje. Scanned precisa decisão estratégica."
+
+---
+
 ## Sessão 2026-05-17 — Neo Fix D-DEV-S08-007 LLM placeholder citation 💻
 
 ### Authorization Operator handoff D-OPS-S08-014
