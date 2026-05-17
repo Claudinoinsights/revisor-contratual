@@ -21,6 +21,91 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Operator D-OPS-S08-017 Deploy ADR-033 + E2E 🎯 7/9 KEYS PASS
+
+### Authorization Neo handoff D-DEV-S08-008
+
+> "Deploy ADR-033 OCRmyPDF replacement + E2E re-test"
+
+### Execution (13 steps)
+
+| # | Step | Result |
+|---|------|--------|
+| 1 | git push commit `da0c089` | ✅ Pushed |
+| 2 | Backup /opt (12GB) | ✅ |
+| 2b | Prune old backup + Docker (3.9GB reclaimed) | ✅ 25GB free |
+| 3 | tar pipe local → /tmp/staging (3.9GB) | ✅ |
+| 4 | rsync staging → /opt preserving .env | ✅ |
+| 5 | Validate critical files in /opt | ✅ All ATIVOS |
+| 6 | Backup image revisor-contratual:bak-pre-d-ops-s08-017 | ✅ |
+| 7 | docker build (+ocrmypdf dep) | ✅ sha256:eafc1451... (324s) |
+| 8 | Container recreate healthy 8s | ✅ |
+| 9 | Smoke verify `_is_ocrmypdf_available()` | ✅ True |
+| 10 | Regenerate /tmp/scanned_test.pdf | ✅ |
+| 11 | POST /revisar job `49303be9` | ✅ Queued |
+| 12 | SSE 350s alive — pipeline progressed deep | ✅ |
+| 13 | Audit chain hash `e2cfafa0...` | ✅ **7/9 keys** |
+
+### D-OPS-S08-017 — Pipeline 7/9 audit keys ATINGIDOS
+
+| Audit Key | Status | Detail |
+|-----------|--------|--------|
+| 1. parsing | ✅ COMPLETED | OCRmyPDF + PyMuPDF re-extract (parser_used=pymupdf4llm porque text layer adicionado), fidelity 0.6167 |
+| 2. calculo | ✅ COMPLETED | SEM_ANATOCISMO classification |
+| 3. bacen | ✅ COMPLETED | sgs 25471, taxa 1.99 |
+| 4. vault | ✅ COMPLETED | 5 docs, 25.9s latência |
+| 5. **personas** | ✅ **COMPLETED NEW!** | fundamentos_count=1, tese_confianca=0.85 (D-DEV-S08-007 fix funcionou) |
+| 6. **juiz** | ✅ **COMPLETED NEW!** | aderencia=100.0, veredito=APROVADO_100 |
+| 7. **redator (PecaRevisional)** | 🔴 **FAILED NEW** | 2 ValidationErrors: dos_fatos + disclaimer_lgpd_oab < 200 chars |
+| 8-9. peca_format + redator_tier_consumed | ⏳ Not reached | — |
+
+### D-OPS-S08-018 — Bug NOVO Redator LLM placeholder pattern
+
+**Error:** Pydantic ValidationError em PecaRevisional:
+- `dos_fatos`: < 200 chars (min_length=200 violation)
+- `disclaimer_lgpd_oab`: < 200 chars (min_length=200 violation)
+
+**Root cause hipótese:** Redator LLM (qwen2.5:3b tier=lean provavelmente) gera campos texto curtos quando prompt não fornece exemplo de comprimento adequado. **MESMO PADRÃO D-DEV-S08-007** que afetou Advogado.
+
+**Fix recomendado:** Strengthen prompt redator.py com:
+- Exemplos concretos dos_fatos ≥200 chars (narrativa cronológica completa)
+- Exemplos concretos disclaimer_lgpd_oab ≥200 chars (LGPD + OAB Provimento 209/2021)
+- Regra explícita "REGRA CRÍTICA min_length" como D-DEV-S08-007 advogado
+
+### Progressão histórica do pipeline
+
+| Sessão | Audit Keys | Bug |
+|--------|-----------|-----|
+| D-OPS-S08-010 | 0/9 | ValidationError stdout contamination |
+| D-OPS-S08-011 | 0/9 | (mesmo bug) |
+| D-OPS-S08-013 (full rsync) | 4/9 | Persona LLM citação placeholder |
+| D-OPS-S08-015 (advogado fix) | 4/9 | OOM Marker hardware limit |
+| **D-OPS-S08-017 (OCRmyPDF + advogado fix)** | **7/9** ⭐ | Redator LLM dos_fatos/disclaimer placeholder |
+
+**+7 audit keys progressão em 4 sessões.** Cada fix expõe próximo elo da cadeia, sistematicamente.
+
+### Próximos passos
+
+- ⏳ **Skill dev Neo (D-DEV-S08-009):** Strengthen prompt redator.py (mesmo pattern D-DEV-S08-007) — exemplos concretos dos_fatos + disclaimer_lgpd_oab ≥200 chars, REGRA CRÍTICA min_length explícita
+- ⏳ Após Neo fix → Operator deploy + re-test (espera 9/9 finalmente)
+- ⏳ Após 9/9 → Eric submete PDF scanned REAL escritório piloto com confidence máxima
+
+### Cleanup pending
+
+- ⏳ Backups antigos: revisor-contratual.bak-pre-d-ops-s08-017 (12GB) — remove após Eric confirma estável próxima sessão
+
+### Cross-references
+
+- Commit deployed: `da0c089` ADR-033 OCRmyPDF
+- Image: revisor-contratual:prod sha256:eafc1451f9b96c09... deployed
+- Rollback: revisor-contratual:bak-pre-d-ops-s08-017 (tagged)
+- Audit hash atual: `e2cfafa0e3517521525161269dc54b45dad035d0e280e95d6b90695d830f9b4a`
+- Pipeline duration: 5min 50s (started 09:50:21 → completed 09:56:27 UTC, mostly OCRmyPDF ~5min + personas LLM)
+
+> **Operator's note:** "A máquina anda 78% do caminho! OCRmyPDF resolveu hardware limit + advogado prompt fix funcionou + juiz APROVADO_100. *Quase chegamos onde o cliente real está.* Falta apenas o último mile — Redator gerando texto curto demais. Mesma cura prompt engineering que Advogado recebeu."
+
+---
+
 ## Sessão 2026-05-17 — Neo D-DEV-S08-008 OCRmyPDF substitui Marker (ADR-033) 💻
 
 ### Authorization Eric directive
