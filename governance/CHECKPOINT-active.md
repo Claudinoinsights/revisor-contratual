@@ -21,6 +21,63 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo D-DEV-S08-010 num_predict fix llm_factory 💻
+
+### Authorization Operator handoff D-OPS-S08-020
+
+> "Fix root cause REAL: Ollama default num_predict=128 trunca output"
+
+### D-DEV-S08-010 Fix
+
+**File modified:** `bloco_workflow/personas/llm_factory.py`
+
+**Changes:**
+
+1. `get_advogado_llm`: adicionados params `num_predict=2048` + `num_ctx=4096` + passed to ChatOllama
+2. `get_economista_llm`: mesmos params (CRÍTICO — Redator usa esta function per ADR-024 audit-honored tier mapping)
+3. Comments inline referenciando D-DEV-S08-010 + D-OPS-S08-020 root cause
+
+**Defaults escolhidos:**
+
+- `num_predict=2048` — fits PecaRevisional 8 campos ~1500 tokens output com margem
+- `num_ctx=4096` — fits prompt ~2k + output ~2k
+
+**Trade-off latência:** +10-30s LLM inference por output longo, mas resolve truncation 100%.
+
+### Test coverage
+
+**File created:** `tests/unit/test_llm_factory_num_predict.py` (6 tests)
+
+| Test | Verifica |
+|------|----------|
+| test_llm_factory_imports_correctly | num_predict + num_ctx presentes no source |
+| test_get_advogado_llm_has_num_predict_param | signature inclui params + default >=1024 |
+| test_get_economista_llm_has_num_predict_param | signature + default fits PecaRevisional |
+| test_llm_factory_documents_root_cause_in_source | D-DEV-S08-010 + D-OPS-S08-020 docs |
+| test_get_advogado_llm_passes_num_predict_to_chat_ollama | Runtime mock verifica kwargs |
+| test_get_economista_llm_passes_num_predict_to_chat_ollama | Runtime mock economista |
+
+### Test results
+
+- **Tests novos:** 6/6 PASS ✅
+- **Suite full personas+redator+llm_factory:** 56/56 PASS ✅ (no regression)
+
+### Próximos passos
+
+- ⏳ **Operator D-OPS-S08-021:** Deploy via scp llm_factory.py + rebuild + recreate + E2E re-test FINAL
+- ⏳ **Expected outcome:** Pipeline 9/9 audit keys (output não truncará mais)
+
+### Cross-references
+
+- `bloco_workflow/personas/llm_factory.py` (fix location)
+- `tests/unit/test_llm_factory_num_predict.py` (defensive coverage)
+- D-OPS-S08-020 (root cause empirical)
+- D-DEV-S08-007, D-DEV-S08-009 (prompt fixes necessary but insufficient alone)
+
+> **Neo's reflection:** "Defaults silenciosos são piores que erros explícitos. 128 tokens parecia razoável quando feature foi escrita — agora viramos contra parede. *Cada framework tem seu pecado original; o nosso era num_predict.* Resolveu."
+
+---
+
 ## Sessão 2026-05-17 — Operator D-OPS-S08-019 Deploy redator fix 🔴 STILL 7/9 — ROOT CAUSE REAL FOUND
 
 ### Execution

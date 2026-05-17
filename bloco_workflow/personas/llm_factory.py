@@ -75,6 +75,8 @@ def get_advogado_llm(
     host: str = DEFAULT_HOST_ADVOGADO,
     temperature: float = 0.2,
     timeout_seconds: float = 120.0,
+    num_predict: int = 2048,
+    num_ctx: int = 4096,
 ) -> Any:
     """Cria ChatOllama para Advogado.
 
@@ -83,6 +85,10 @@ def get_advogado_llm(
         host: base_url EXPLÍCITO (F-MIN-01 — nunca confiar em env default).
         temperature: 0.2 default (criativo o suficiente para tese, conservador para citação).
         timeout_seconds: cap para evitar wait infinito.
+        num_predict: max tokens output. D-DEV-S08-010 (D-OPS-S08-020 fix):
+            Ollama default=128 trunca TeseAdvogado/PecaRevisional output mid-generation.
+            2048 fits longest expected JSON outputs (PecaRevisional 8 campos ~1500 tokens).
+        num_ctx: context window. D-DEV-S08-010: aumentar para fits prompt ~2k + output 2k.
 
     Returns:
         ChatOllama configurado.
@@ -96,6 +102,8 @@ def get_advogado_llm(
         temperature=temperature,
         timeout=timeout_seconds,
         format="json",  # FR-TESE-01: força output JSON estruturado (Pydantic-friendly)
+        num_predict=num_predict,  # D-DEV-S08-010: prevent truncation (Ollama default=128)
+        num_ctx=num_ctx,          # D-DEV-S08-010: fits prompt + output (default=2048 borderline)
     )
 
 
@@ -104,6 +112,8 @@ def get_economista_llm(
     host: str = DEFAULT_HOST_ECONOMISTA,
     temperature: float = 0.0,
     timeout_seconds: float = 60.0,
+    num_predict: int = 2048,
+    num_ctx: int = 4096,
 ) -> Any:
     """Cria ChatOllama para Economista (Qwen 2.5 3B FIXO).
 
@@ -111,6 +121,11 @@ def get_economista_llm(
         host: base_url EXPLÍCITO (porta DISTINTA do Advogado — F-MIN-01).
         temperature: 0.0 default (determinístico para análise macro reproduzível).
         timeout_seconds: cap mais agressivo (Qwen 3B é rápido).
+        num_predict: max tokens output. D-DEV-S08-010 (D-OPS-S08-020 fix):
+            Ollama default=128 trunca AnaliseMacroEconomica/PecaRevisional output
+            (Redator usa get_economista_llm — ADR-024 audit-honored tier mapping).
+            2048 fits longest expected PecaRevisional 8 campos ~1500 tokens output.
+        num_ctx: context window — fits prompt ~2k + output 2k.
 
     Returns:
         ChatOllama configurado.
@@ -123,4 +138,6 @@ def get_economista_llm(
         temperature=temperature,
         timeout=timeout_seconds,
         format="json",  # ADR-010: defensive consistency com get_advogado_llm
+        num_predict=num_predict,  # D-DEV-S08-010: prevent truncation (Redator uses this)
+        num_ctx=num_ctx,          # D-DEV-S08-010: fits prompt + output
     )
