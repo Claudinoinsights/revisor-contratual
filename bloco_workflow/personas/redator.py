@@ -82,6 +82,18 @@ REGRAS INEGOCIÁVEIS (anti-hallucination):
 5. Valor causa: numerado (R$ X.XXX,XX formato BR) E por extenso.
 6. Disclaimer LGPD/OAB obrigatório no fecho.
 
+REGRA CRÍTICA min_length (D-DEV-S08-009 — Pydantic hard-fail se violar):
+- cabecalho: MÍNIMO 50 caracteres — Excelentíssimo + Juízo + Comarca + Vara completos
+- qualificacao_partes: MÍNIMO 100 caracteres — Autor (qualificação completa) + Ré (banco + CNPJ + endereço)
+- dos_fatos: MÍNIMO 200 caracteres — Narrativa cronológica DETALHADA do contrato (data, valor, parcelas, taxa, contexto)
+- do_direito: MÍNIMO 300 caracteres — Fundamentação jurídica com Súmulas vault + dispositivos legais
+- do_pedido: MÍNIMO 100 caracteres — Pedidos formais enumerados (a, b, c) com requisitos específicos
+- fecho: MÍNIMO 50 caracteres — Termos + cidade + data + assinatura placeholder
+- disclaimer_lgpd_oab: MÍNIMO 200 caracteres — Disclaimer COMPLETO LGPD §11/§46 + OAB Provimento 209/2021
+- valor_causa_extenso: MÍNIMO 10 caracteres — valor por extenso completo (ex: cinco mil reais)
+
+NUNCA use placeholders genéricos como "(min X chars)", "..." OR "[texto]" — sempre escreva texto LITERAL completo.
+
 CONTRATO ANALISADO:
 - Modalidade: {modalidade}
 - UF: {uf}
@@ -122,28 +134,28 @@ Schema esperado:
 
 SCHEMA_SKELETON_PECA = """\
 {
-  "cabecalho": "Excelentíssimo Senhor Juiz de Direito da... (min 50 chars)",
-  "qualificacao_partes": "Autor: {nome}, brasileiro... Ré: Banco X... (min 100 chars)",
-  "dos_fatos": "Em {data}, o autor celebrou contrato... (min 200 chars)",
-  "do_direito": "Aplicam-se ao caso as Súmulas STJ X, Y... (min 300 chars com citações vault)",
-  "do_pedido": "Diante do exposto, requer-se: a) ... b) ... (min 100 chars)",
+  "cabecalho": "Excelentíssimo Senhor Doutor Juiz de Direito da Vara Cível da Comarca de São Paulo/SP",
+  "qualificacao_partes": "AUTOR: João da Silva, brasileiro, casado, portador do RG nº 12.345.678-9 SSP/SP, inscrito no CPF nº 123.456.789-00, residente e domiciliado na Rua Exemplo, nº 100, São Paulo/SP. RÉ: Banco Exemplo S.A., pessoa jurídica de direito privado, CNPJ nº 12.345.678/0001-90, com sede na Av. Paulista, 1000, São Paulo/SP.",
+  "dos_fatos": "Em 15 de maio de 2025, o autor celebrou com a ré contrato de financiamento de veículo (CDC) no valor de R$ 35.000,00, parcelado em 48 prestações mensais consecutivas, com taxa de juros declarada de 1,89% ao mês. O contrato apresenta cláusulas que ensejam revisão judicial, notadamente quanto à capitalização mensal de juros, comissão de permanência e tarifas administrativas cobradas sem previsão legal expressa, conforme entendimento pacificado pelo Superior Tribunal de Justiça.",
+  "do_direito": "Aplicam-se ao caso as Súmulas 539 e 541 do STJ, bem como o Tema Repetitivo 247, que disciplinam a capitalização mensal de juros nos contratos bancários celebrados após 31/03/2000 (MP 1.963-17), exigindo pactuação expressa. O Código de Defesa do Consumidor (Lei 8.078/90) incide na relação contratual, impondo nulidade às cláusulas abusivas (art. 51, IV). A jurisprudência consolidada do STJ veda a cobrança cumulativa de comissão de permanência com outros encargos moratórios, conforme entendimento sedimentado em sede de recursos repetitivos.",
+  "do_pedido": "Diante do exposto, requer-se: a) a citação da ré para responder aos termos da presente ação; b) a inversão do ônus da prova com fundamento no art. 6º, VIII, do CDC; c) ao final, a procedência total da demanda para revisar o contrato em comento, declarando-se a nulidade das cláusulas abusivas identificadas e condenando-se a ré à restituição em dobro dos valores cobrados indevidamente (art. 42, parágrafo único, CDC).",
   "valor_causa": "R$ 5.107,00",
   "valor_causa_extenso": "cinco mil cento e sete reais",
-  "fecho": "Termos em que pede deferimento. {cidade}, {data}. {advogado} OAB/XX 00000 (min 50 chars)",
-  "disclaimer_lgpd_oab": "Insumo técnico-jurídico... LGPD §11 §46... OAB Provimento 209/2021... não substitui responsabilidade (min 200 chars)",
-  "citacoes_jurisprudencia": ["STJ-S539", "STJ-S472"],
+  "fecho": "Termos em que pede deferimento. São Paulo, 15 de maio de 2025. Advogado Exemplo OAB/SP nº 000.000",
+  "disclaimer_lgpd_oab": "Este documento constitui insumo técnico-jurídico gerado por sistema de apoio à decisão jurídica, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018, art. 11 §1º e art. 46) e o Provimento 209/2021 da OAB que regulamenta o uso de inteligência artificial na advocacia. O conteúdo aqui apresentado NÃO substitui o juízo crítico, a análise técnica e a responsabilidade profissional do advogado subscritor.",
+  "citacoes_jurisprudencia": ["STJ-S539", "STJ-S541", "STJ-T247"],
   "pontos_atencao": null
 }
 """
 
 SCHEMA_SKELETON_INVIABILIDADE = """\
 {
-  "cabecalho": "Relatório de Inviabilidade Revisional — Contrato {hash} (min 30 chars)",
-  "sintese_analise": "A análise concluiu pela inviabilidade da ação revisional... (min 100 chars)",
-  "diagnostico_tecnico": "Scores C1={c1}, C2={c2}, C3={c3}, aderência={ad}%... (min 200 chars)",
-  "motivos_rejeicao": ["Taxa BACEN coerente com mercado", "Ausência de Súmulas aplicáveis", ...],
-  "recomendacao": "Recomenda-se NÃO protocolar a presente ação... (min 100 chars)",
-  "disclaimer_lgpd_oab": "Insumo técnico-jurídico... LGPD §11... OAB 209/2021 (min 200 chars)"
+  "cabecalho": "Relatório de Inviabilidade Revisional — Contrato CDC Veículos 991fd186 — Análise Técnica",
+  "sintese_analise": "A análise técnica do contrato em comento concluiu pela INVIABILIDADE da propositura de ação revisional, em razão da ausência de fundamentos jurídicos suficientes para sustentar a tese de abusividade, conforme detalhamento técnico apresentado nas seções subsequentes.",
+  "diagnostico_tecnico": "Os scores objetivos calculados pelo Juiz Revisor indicam: C1 (divergência BACEN) = 0.30 (taxa contratual dentro da banda de mercado), C2 (peso vinculação jurisprudencial) = 0.50 (Súmulas aplicáveis com peso médio), C3 (aderência jurisdicional) = 0.40 (jurisprudência local não favorável), resultando em aderência consolidada de 40%, abaixo do threshold de 70% exigido para viabilidade da ação revisional conforme protocolo interno.",
+  "motivos_rejeicao": ["Taxa contratual BACEN compatível com a média de mercado vigente à época da contratação", "Súmulas STJ aplicáveis possuem peso vinculação insuficiente para o caso concreto", "Jurisprudência da jurisdição de domicílio do autor não é majoritariamente favorável à tese revisional"],
+  "recomendacao": "Recomenda-se ENFATICAMENTE a NÃO propositura da presente ação revisional, sob risco de improcedência e eventual condenação em honorários de sucumbência. Sugere-se ao patrono buscar outros fundamentos jurídicos ou orientar o cliente quanto à inviabilidade técnica da pretensão.",
+  "disclaimer_lgpd_oab": "Este documento constitui insumo técnico-jurídico gerado por sistema de apoio à decisão jurídica, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018, art. 11 §1º e art. 46) e o Provimento 209/2021 da OAB que regulamenta o uso de inteligência artificial na advocacia. O conteúdo aqui apresentado NÃO substitui o juízo crítico, a análise técnica e a responsabilidade profissional do advogado subscritor."
 }
 """
 
