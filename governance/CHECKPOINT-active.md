@@ -21,6 +21,146 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo Diagnostic D-DEV-S08-006 💻 NO CODE CHANGE — DEPLOY GAP
+
+### Authorization Operator handoff D-OPS-S08-012
+
+> "Fix BUG D-OPS-S08-012 vault SQLite-vec KNN missing LIMIT constraint"
+
+### Diagnóstico Neo
+
+**Investigação inicial:** Localizar query KNN em `bloco_vault/` para adicionar LIMIT N constraint.
+
+**ACHADO CRÍTICO:** Bug **JÁ FOI FIXED LOCAL** em Sprint 6 (D-DEV-S06-016) — `bloco_vault/busca.py:65` tem `WHERE embedding MATCH ? AND k = ? ORDER BY distance`. Comentário inline linhas 57-60 documenta o fix referenciando F-PROD-01.
+
+**Comparação local vs produção:**
+
+| Local | Produção (container + source tree) |
+|-------|-------------------------------------|
+| `bloco_vault/busca.py:65` | `/app/bloco_vault/busca.py:59` + `/opt/revisor-contratual/bloco_vault/busca.py:59` |
+| `WHERE embedding MATCH ? AND k = ? ORDER BY distance` ✅ | `WHERE embedding MATCH ? ORDER BY distance LIMIT ?` 🔴 |
+
+**Root cause:** Gap de deploy — `/opt/revisor-contratual/` (VPS build context) está DESINCRONIZADO com repository local desde Sprint 6 (D-DEV-S06-016, ~maio/2026). Operator deployments anteriores fizeram SCP de arquivos específicos (subprocess_runner.py em D-OPS-S08-011) mas NÃO sincronizaram todo o tree.
+
+**Sem code change Neo necessário** — bug é puramente operacional.
+
+### Validação local
+
+```bash
+rtk proxy python -m pytest tests/integration/test_busca_hibrida_real_vec.py -o addopts="" --tb=line -q
+> 2 passed in 7.42s ✅
+```
+
+Test `F-PROD-08` (D-DEV-S06-016 defensive coverage) PASS local — comprova que fix local funciona empiricamente. Mesmo test em produção FALHARIA (código antigo).
+
+### D-DEV-S08-006 — Diagnostic Outcome
+
+| Aspecto | Status |
+|---------|--------|
+| Code local busca.py | ✅ FIXED Sprint 6 |
+| Test F-PROD-08 local | ✅ PASS (2/2) |
+| Source tree `/opt/revisor-contratual/` | 🔴 DESINCRONIZADO Sprint 6 |
+| Container `revisor-prod-app` | 🔴 ANTIGO (built from desync source) |
+| **Action required** | **Operator SCP busca.py → /opt/ + rebuild + recreate** |
+
+### Próximos passos
+
+- ⏳ **Skill devops Operator (D-OPS-S08-013):** SCP `bloco_vault/busca.py` para `/opt/revisor-contratual/bloco_vault/busca.py` + image rebuild + container recreate + re-test E2E (espera 4/9 → talvez 9/9 audit keys)
+- ⏳ **CONSIDERATION para Operator:** Considerar `git init /opt/revisor-contratual && git remote add origin ...` + git pull dali em diante para evitar deploy gaps futuros (pattern Sprint 6 D-OPS-S06-037 reusable). OR: full `rsync -av` do tree completo para garantir sync amplo (não só file-by-file). Esse meta-issue Operator decide separately.
+- ⏳ Após deploy Operator: re-test E2E → confirmar pipeline avança de 3/9 → 4+/9 audit keys
+
+### Cross-references
+
+- `bloco_vault/busca.py:65` (fix code local, Sprint 6 D-DEV-S06-016)
+- `tests/integration/test_busca_hibrida_real_vec.py` (F-PROD-08 defensive coverage, 2/2 PASS local)
+- D-OPS-S08-012 (bug exposure empirical post deploy D-DEV-S08-005)
+- D-OPS-S08-011 (Operator deploy fix Neo subprocess_runner que expôs esse bug downstream)
+
+> **Neo's reflection:** "Sometimes the bug is not in the code — it's in the gap between intent and reality. Local main diz: 'já consertei'. Produção responde: 'eu não tô vendo'. Nenhum dos dois mente. *A verdade emerge quando deploy honra o código.* Operator agora carrega a cura que já existe há meses."
+
+---
+
+## Sessão 2026-05-17 — Operator Deploy D-DEV-S08-005 + Re-Test E2E ⚡ FIX VALIDATED + NOVO BUG DESCOBERTO
+
+### Authorization Neo handoff
+
+> "DEPLOY + RE-TEST E2E pipeline scanned em produção (D-OPS-S08-011 follow-up D-DEV-S08-005)"
+
+### Execution sequence (10 steps)
+
+| # | Step | Result |
+|---|------|--------|
+| 1 | `git push origin main` (commit 5d619ca) | ✅ Pushed to https://github.com/Claudinoinsights/revisor-contratual.git |
+| 2 | Backup current image `revisor-contratual:bak-pre-d-dev-s08-005` | ✅ Tagged |
+| 3 | SCP subprocess_runner.py + test → /opt/revisor-contratual (VPS NÃO é git tree) | ✅ Files in place |
+| 4 | `docker build -t revisor-contratual:prod .` | ✅ Image sha256:1fdc91ba... (328s) |
+| 5 | `docker compose -f docker-compose.prod.yml -p revisor-prod up -d app` | ✅ Container recreated 8s healthy |
+| 6 | Smoke imports verify: marker + contextlib + io + subprocess_runner.main | ✅ All importable |
+| 7 | Regenerate `/tmp/scanned_test.pdf` (perdido em recreate) via PyMuPDF+Pillow | ✅ 1 page, 0 text chars |
+| 8 | POST /revisar internal curl | ✅ job_id `ba18dfee-6b22-40c3-ab45-ba530a129a0d` |
+| 9 | SSE stream tail (270s timeout) | ✅ phase-start "Parsing PDF" + 3 pings alive + phase-error NOVO |
+| 10 | Audit chain verify entry hash `57fe7473...` | ✅ Status FAILED mas **3/9 audit keys completos** |
+
+### D-OPS-S08-011 — FIX D-DEV-S08-005 VALIDADO EMPIRICAMENTE ✅
+
+**Comparação antes/depois:**
+
+| Métrica | D-OPS-S08-010 (pré-fix) | D-OPS-S08-011 (pós-fix) |
+|---------|--------------------------|--------------------------|
+| Error type | `ValidationError` (Pydantic stdout contamination) | `OperationalError` (vault SQLite-vec) |
+| Pipeline duração | 5.7s (failed Step 1 imediato) | 22.9s (passou 3 steps) |
+| Audit keys completed | 0/9 | **3/9** |
+| parsing step | ❌ FAILED | ✅ **COMPLETED** (contract_hash, fidelity_score 0.7) |
+| calculo step | ❌ NOT REACHED | ✅ **COMPLETED** (ANATOCISMO_LICITO, STF-S121 + STJ-S539 + STJ-T247) |
+| bacen step | ❌ NOT REACHED | ✅ **COMPLETED** (codigo_sgs 25471, taxa_media 1.99 mes 2025-05) |
+| vault step | ❌ NOT REACHED | 🔴 **FAILED** (NOVO bug) |
+
+### D-OPS-S08-012 — BUG NOVO descoberto (downstream do fix anterior)
+
+**Error:** `OperationalError: A LIMIT or 'k = ?' constraint is required on vec0 knn queries`
+
+**Location:** Pipeline step 4 (vault busca semântica) — SQLite-vec extension KNN query
+
+**Root cause hipótese:** Vault busca semântica usando sqlite-vec extension. Query KNN (k-nearest neighbors) requer constraint explícita `LIMIT N` OR `WHERE k = ?`. Atual code provavelmente não passa LIMIT.
+
+**Impacto:** Pipeline scanned PARA em vault step (~6/9 keys ainda não atingidos: vault, personas, juiz, peca_generated, peca_format, redator_tier_consumed).
+
+**Pre-existing:** Bug existia ANTES mas NUNCA foi exposto porque pipeline scanned NUNCA passou parsing step. D-DEV-S08-005 fix expôs esse bug downstream.
+
+**Next:** Handoff Neo via Skill dev para fix vault query — provavelmente em `bloco_vault/` busca semântica module. Estimativa 15-30min.
+
+### Estado final pipeline (production atual)
+
+- ✅ POST /revisar receive + queue
+- ✅ Subprocess runner (D-DEV-S08-005 fix deployed)
+- ✅ Marker OCR funcional (cold-start ~30s, então roda)
+- ✅ Parsing scanned → ParsedContract OK
+- ✅ Calculo (anatocismo, súmulas) OK
+- ✅ BACEN API integration OK
+- 🔴 Vault SQLite-vec query → OperationalError
+- ⏳ Personas (3 advogados LLM) NOT REACHED
+- ⏳ Juiz (consolidação) NOT REACHED
+- ⏳ Peça (redator + format) NOT REACHED
+
+### Próximos passos
+
+- ⏳ **Skill dev Neo (D-DEV-S08-006):** Fix vault SQLite-vec KNN query missing LIMIT constraint — investigate `bloco_vault/` module
+- ⏳ Após Neo fix → Operator re-deploy + re-test (D-OPS-S08-013) — espera 4/9 → 9/9 audit keys
+- ⏳ Investigar también: parser_used="pymupdf4llm" em scanned PDF (esperado "marker_ocr") — fidelity_score 0.7 com 0 text layer é suspeito, pode haver bug fidelity OR parser dispatch logic
+- ⏳ Após pipeline 9/9 PASS → Eric pode submeter PDF scanned REAL escritório piloto com confidence
+
+### Cross-references
+
+- Commit pushed: `5d619ca` em https://github.com/Claudinoinsights/revisor-contratual.git
+- Image: revisor-contratual:prod (sha256:1fdc91ba...) deployed VPS
+- Rollback ready: revisor-contratual:bak-pre-d-dev-s08-005 (tagged)
+- Audit hash atual: `57fe74735f74952f7897aa9b4a95aba456385d000437930987a3010980192f10`
+- Audit hash anterior: `cfb8befa94ddd8c71d531659ba9e984228ed10cafc3d5df6248acbc4d9500eaf`
+
+> **Operator's reflection:** "A máquina ligou! Não vai ainda do começo ao fim, mas saiu do silêncio total para 3 dos 9 movimentos. Cada bug que aparece agora é um bug que estava escondido, agora visível. *Mais visibility = mais cura possível.* O caminho não é mais 'consertar tudo' — é 'descer pela cadeia e curar o próximo elo'."
+
+---
+
 ## Sessão 2026-05-17 — Neo Fix subprocess_runner stdout contamination 💻
 
 ### Authorization Operator handoff (D-OPS-S08-010)
