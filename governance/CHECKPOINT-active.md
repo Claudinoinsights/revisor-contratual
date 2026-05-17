@@ -21,6 +21,65 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo D-DEV-S08-008 OCRmyPDF substitui Marker (ADR-033) 💻
+
+### Authorization Eric directive
+
+> "Preciso de uma solução onde eu não preciso aumentar a minha VPS. Preciso de uma solução real, de qualidade e resolva meu problema de fato." → Eric escolheu Opção A (OCRmyPDF)
+
+### Implementação
+
+**Arquivos modificados/criados:**
+
+| File | Type | Purpose |
+|------|------|---------|
+| `bloco_engine/parsing/ocrmypdf_parser.py` | NEW (140 lines) | OCRmyPDF wrapper + PyMuPDF re-extract pipeline |
+| `bloco_engine/parsing/orchestrator.py` | EDIT | parse_pdf_ocrmypdf default OCR; marker_fn injection opt-in |
+| `bloco_contratos/contrato.py` | EDIT | Literal parser_used += "ocrmypdf_tesseract" |
+| `pyproject.toml` | EDIT | extras_require ocr = ["ocrmypdf>=16.0", "marker-pdf>=0.2"] |
+| `tests/integration/test_ocrmypdf_scanned.py` | NEW (~200 lines, 7 tests) | Source review + runtime guards + E2E |
+| `tests/unit/test_parsing.py` | EDIT | Marker test usa marker_fn injection explicit |
+| `tests/unit/test_parsing_subprocess_runner.py` | EDIT | Skipif sem OCR backend local |
+| `governance/architecture/adr/adr-033-ocrmypdf-replace-marker.md` | NEW (~250 lines) | ADR formal Accepted |
+
+### D-DEV-S08-008 — Decisão arquitetural
+
+**OCRmyPDF substitui Marker como primary OCR engine em produção:**
+
+| Critério | OCRmyPDF (novo) | Marker (legacy) |
+|----------|-----------------|------------------|
+| RAM inference | **~600MB** ✅ cabe VPS | 4-6GB 🔴 OOM |
+| Velocidade single page | 3-5s | 15-30s |
+| LGPD | ✅ local | ✅ local |
+| Qualidade CDC veículo (texto plano) | ⭐⭐⭐⭐ suficiente | ⭐⭐⭐⭐⭐ overkill |
+| Marker preserved | N/A | ✅ opt-in via marker_fn injection (tests + future) |
+
+**Architectural fit:** OCRmyPDF adiciona text layer → PDF born-digital-like → pipeline ADR-027 (PyMuPDF dual-path) reusado integralmente. ADR-026 subprocess isolation preservado.
+
+### Test results
+
+- **Tests novos (test_ocrmypdf_scanned.py):** 6/6 PASS + 1 skipped (E2E só prod com ocrmypdf instalado)
+- **Suite full parsing+pipeline+contratos:** 92 passed + 2 skipped + 1 failure pre-existing (test_markdown_rico Ollama LLM dependency, NÃO relacionado)
+- **Zero regressions** introduzidas pelo D-DEV-S08-008
+
+### Próximos passos
+
+- ⏳ **Operator D-OPS-S08-017:** Deploy ADR-033 — sync todos arquivos modificados via rsync (mais arquivos que file-specific scp) + image rebuild (pip install ocrmypdf adicionará dep) + container recreate + E2E re-test scanned PDF
+- ⏳ **Expected outcome:** Pipeline avança 4/9 → idealmente 9/9 audit keys (OCR funcionará sem OOM)
+- ⏳ Após PASS → Eric pode finalmente submeter PDF scanned REAL escritório piloto
+
+### Cross-references
+
+- `bloco_engine/parsing/ocrmypdf_parser.py` (new module)
+- `governance/architecture/adr/adr-033-ocrmypdf-replace-marker.md` (formal ADR)
+- D-OPS-S08-016 (hardware limit empirical)
+- ADR-026 (subprocess isolation preserved)
+- ADR-027 (PyMuPDF dual-path reused)
+
+> **Neo's reflection:** "Marker era o atleta olímpico que não cabia no carro. Tesseract é o veterano que entrega o trabalho diariamente há 30 anos. *Quality without humility creates infeasibility — humility delivered via Tesseract.* CDC veículo não precisa state-of-art OCR; precisa de OCR que **roda**."
+
+---
+
 ## Sessão 2026-05-17 — Operator D-OPS-S08-015 Deploy + 🔴 HARDWARE LIMIT CONFIRMED ⚡
 
 ### Authorization Neo handoff D-DEV-S08-007

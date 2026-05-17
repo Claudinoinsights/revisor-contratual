@@ -27,7 +27,8 @@ from bloco_contratos.contrato import (
     ParsedContract,
 )
 from bloco_engine.parsing.fidelity import compute_fidelity_score
-from bloco_engine.parsing.marker_parser import ParserOCRRequired, parse_pdf_marker
+from bloco_engine.parsing.marker_parser import ParserOCRRequired
+from bloco_engine.parsing.ocrmypdf_parser import parse_pdf_ocrmypdf
 from bloco_engine.parsing.pymupdf_parser import ParserError, parse_pdf_pymupdf
 
 ParserFn = Callable[[Path], tuple[str, int]]
@@ -546,9 +547,20 @@ def parse_contract(
     fidelity = compute_fidelity_score(markdown)
 
     if fidelity < fidelity_threshold:
-        # Fallback Marker — pode levantar ParserOCRRequired
-        markdown, pages_count = parse_pdf_marker(pdf_path, parser_fn=marker_fn)
-        parser_used = "marker_ocr"
+        # ADR-033 (D-DEV-S08-008): OCRmyPDF (Tesseract) substitui Marker em produção
+        # devido a hardware limit VPS 7.8GB RAM (D-OPS-S08-016).
+        # OCRmyPDF RAM ~600MB vs Marker 4-6GB. Pipeline: scanned PDF →
+        # OCRmyPDF adds text layer → PyMuPDF re-extract (reusa ADR-027 dual-path).
+        # marker_fn arg preserved para backward compat com tests existentes que
+        # injetavam mock Marker; quando provided, usa Marker (testing OR override).
+        if marker_fn is not None:
+            from bloco_engine.parsing.marker_parser import parse_pdf_marker
+
+            markdown, pages_count = parse_pdf_marker(pdf_path, parser_fn=marker_fn)
+            parser_used = "marker_ocr"
+        else:
+            markdown, pages_count = parse_pdf_ocrmypdf(pdf_path)
+            parser_used = "ocrmypdf_tesseract"
         fidelity = compute_fidelity_score(markdown)
 
     metadata = extract_metadata_from_markdown(

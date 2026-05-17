@@ -71,7 +71,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ocr = ["marker-pdf>=0.2"]
+# ADR-033 (D-DEV-S08-008): OCRmyPDF substitui marker-pdf como primary OCR
+# devido a hardware limit VPS 7.8GB RAM (D-OPS-S08-016).
+# OCRmyPDF wrapper Tesseract — RAM peak ~600MB vs marker 4-6GB.
+# marker-pdf preserved como optional fallback testing/dev only.
+ocr = ["ocrmypdf>=16.0", "marker-pdf>=0.2"]
 dev = [
   "pytest>=8.0",
   "pytest-asyncio>=0.23",

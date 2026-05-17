@@ -330,19 +330,13 @@ class TestParseContract:
         def mock_marker_runtime_fail(*args: object, **kwargs: object) -> tuple[str, int]:
             raise RuntimeError("Surya OCR timeout simulado")
 
-        # marker disponível (mocked True) mas _default_marker_parser injetado falhando
-        monkeypatch.setattr(
-            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: True
-        )
-        monkeypatch.setattr(
-            "bloco_engine.parsing.marker_parser._default_marker_parser",
-            mock_marker_runtime_fail,
-        )
+        # ADR-033 D-DEV-S08-008: orchestrator default agora é OCRmyPDF (não Marker).
+        # Para testar marker error propagation, injetar marker_fn explicit força marker path.
         with pytest.raises(RuntimeError, match="Surya OCR timeout"):
             parse_contract(
                 pdf_path,
                 pymupdf_fn=_fake_parser(MARKDOWN_VAZIO),
-                marker_fn=None,  # força default → _default_marker_parser → fail
+                marker_fn=mock_marker_runtime_fail,  # marker_fn explicit → force marker path (orchestrator branch)
             )
 
     def test_metadata_extraction_falha_com_overrides_ausentes(self, pdf_path: Path) -> None:

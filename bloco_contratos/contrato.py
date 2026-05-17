@@ -113,7 +113,7 @@ class ParsedContract(BaseModel):
 
     metadata: ContratoMetadata
     markdown_extracted: str = Field(..., description="PyMuPDF4LLM output")
-    parser_used: Literal["pymupdf4llm", "marker_ocr"] = "pymupdf4llm"
+    parser_used: Literal["pymupdf4llm", "marker_ocr", "ocrmypdf_tesseract"] = "pymupdf4llm"
     parsed_at: datetime
     pages_count: int = Field(..., ge=1)
     fidelity_score: float | None = Field(

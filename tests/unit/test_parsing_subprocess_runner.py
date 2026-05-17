@@ -123,15 +123,35 @@ def test_subprocess_runner_corrupt_pdf_error(corrupt_pdf, metadata_json):
     assert error["error_type"] != "PDFNotFound"
 
 
+def _ocrmypdf_or_marker_available() -> bool:
+    """Check if any OCR backend is installed locally (D-DEV-S08-008)."""
+    try:
+        import ocrmypdf  # noqa: F401  # type: ignore[import-not-found]
+
+        return True
+    except ImportError:
+        pass
+    try:
+        import marker  # noqa: F401  # type: ignore[import-not-found]
+
+        return True
+    except ImportError:
+        return False
+
+
 @pytest.mark.skipif(
     not REAL_PDF_PATH.exists(),
     reason="Real PDF fixture not available (documentos-para-teste/...)",
 )
+@pytest.mark.skipif(
+    not _ocrmypdf_or_marker_available(),
+    reason="No OCR backend installed locally (ocrmypdf nor marker) — install via [ocr] extras",
+)
 def test_subprocess_runner_real_pdf_success(metadata_json):
     """AC-1: subprocess_runner returns valid JSON ParsedContract para real PDF.
 
-    SLOW test (pode demorar 30-90s para Marker OCR PDF imagem).
-    Skipped se PDF fixture não disponível.
+    SLOW test (pode demorar 30-90s para OCR PDF imagem).
+    Skipped se PDF fixture não disponível OR nenhum OCR backend instalado.
     """
     result = subprocess.run(
         [
