@@ -21,6 +21,81 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Operator D-OPS-S08-013 Full Rsync Deploy + E2E ⚡ 4/9 KEYS PASS
+
+### Authorization Neo handoff D-DEV-S08-006 Opção 2
+
+> "Execute Opção 2: full rsync source tree + rebuild + recreate + E2E re-test"
+
+### Execution sequence (12 steps)
+
+| # | Step | Result |
+|---|------|--------|
+| 1 | git push origin main commit `f5e4963` | ✅ Pushed |
+| 2 | Backup VPS source tree `/opt/revisor-contratual.bak-pre-rsync-D-OPS-S08-013` (7.9GB) | ✅ Tagged |
+| 3 | tar pipe local → VPS `/tmp/revisor-rsync-staging` (rsync N/A Windows) | ✅ 3.9GB transferred |
+| 4 | `sudo rsync /tmp/staging/ → /opt/revisor-contratual/` preserving .env files | ✅ 12GB synced |
+| 5 | Validate critical files in /opt: `AND k = ?` busca.py:65 + `contextlib.redirect_stdout` subprocess_runner.py:88 | ✅ BOTH present |
+| 6a | docker build FAILED com `No space left on device` (98% disk) | 🔴 Cleanup needed |
+| 6b | Cleanup: rm staging (3.9GB) + docker builder prune (10GB) + image prune (6.7GB) → 32GB free | ✅ Recovered |
+| 6c | docker build retry | ✅ Image sha256:79ecc0964ffd... (302s) |
+| 7 | Container recreate `docker compose up -d app` | ✅ Healthy 8s |
+| 8 | Smoke verify both fixes ATIVOS in /app/ | ✅ Confirmed |
+| 9 | Regenerate `/tmp/scanned_test.pdf` | ✅ 1 page 0 chars text |
+| 10 | POST /revisar internal curl | ✅ job_id `bbb63688-1d36-4130-87fd-4353907949ce` |
+| 11 | SSE stream (~150s alive, 14 pings) | ✅ Phase progressed deep |
+| 12 | Audit chain entry hash `303bd402...` verify | ✅ **4/9 audit keys** (vs 3/9 anterior) |
+
+### D-OPS-S08-013 — Progressão empírica massiva
+
+| Audit Key | Status | Detail |
+|-----------|--------|--------|
+| 1. parsing | ✅ COMPLETED | PyMuPDF4LLM fidelity 0.7 hash 09465e30... |
+| 2. calculo | ✅ COMPLETED | ANATOCISMO_LICITO + STF-S121 + STJ-S539 + STJ-T247 |
+| 3. bacen | ✅ COMPLETED | sgs 25471 taxa 1.99 mes 2025-05 |
+| 4. **vault** | ✅ **COMPLETED (NEW!)** | 5 docs recuperados (STJ-S102, STF-SV62, STJ-S252, STF-SV61, STJ-S93) latência 25.8s |
+| 5. **personas** | 🔴 **FAILED (NOVO BUG)** | ValidationError TeseAdvogado.fundamentos_invocados[0].citacao_textual='...' (3 chars < min_length 10) |
+| 6-9. juiz/peca/format/redator | ⏳ Not reached | — |
+
+### D-OPS-S08-014 — Bug NOVO descoberto
+
+**Error:** Pydantic ValidationError em LLM advogado response — `TeseAdvogado.fundamentos_invocados[0].citacao_textual` retornou `'...'` (3 chars) violando `min_length=10`.
+
+**Layer:** Personas LLM (qwen2.5:3b tier=lean provavelmente — primeira persona advogado a responder).
+
+**Root cause hipótese:** LLM tier=lean (qwen2.5:3b small) está gerando placeholder `'...'` em vez de citação textual real. Pode ser:
+1. Prompt LLM não enforça min_length nem mostra exemplo "citação textual literal"
+2. Tier lean inadequate para tarefa (small model hallucination)
+3. Pydantic validator strict (10 chars OK mas LLM não compreende)
+
+**Fix opções (Neo decide):**
+- (a) Strengthen prompt LLM com exemplo concreto de citação literal
+- (b) Tier-up para qwen2.5:7b se lean inadequate
+- (c) Add Pydantic field_validator que retry/fallback se citação muito curta
+- (d) Cascade fallback ADR-025 trigger (graceful degradation)
+
+### Próximos passos
+
+- ⏳ **Skill dev Neo (D-DEV-S08-007):** Investigar LLM advogado response chain — bloco_workflow/personas/ OR similar — identify prompt engineering OR validator fix
+- ⏳ Após Neo fix → Operator deploy (já temos sync pattern + tar pipe established) + re-test (espera 5/9 → talvez 9/9)
+- ⏳ NOTE: Quando 9/9 atingido → Eric pode finalmente submeter PDF scanned REAL escritório piloto
+
+### Cleanup pending
+
+- ⏳ Remove `/opt/revisor-contratual.bak-pre-rsync-D-OPS-S08-013` (7.9GB) após Eric confirma deploy estável (rollback insurance)
+
+### Cross-references
+
+- Commit pushed: `f5e4963` em revisor-contratual repo
+- Image: revisor-contratual:prod sha256:79ecc0964ffd... deployed
+- Rollback: revisor-contratual:bak-pre-d-ops-s08-013 (tagged)
+- Source backup: /opt/revisor-contratual.bak-pre-rsync-D-OPS-S08-013/ (7.9GB)
+- Audit hash atual: `303bd402f3c84fcdc102a972473169a9501a1261708fb110c942a858001f4f8b`
+
+> **Operator's mark:** "Saí de 0/9 em 2 sessões. Saí de 3/9 em 1 hora. *Cada fix expõe o próximo elo da cadeia.* A máquina não parou — ela revelou seus internals camada por camada. LLM persona é o próximo. Sr. Eric, a máquina anda — só precisa parar de tropeçar em placeholders."
+
+---
+
 ## Sessão 2026-05-17 — Neo Diagnostic D-DEV-S08-006 💻 NO CODE CHANGE — DEPLOY GAP
 
 ### Authorization Operator handoff D-OPS-S08-012
