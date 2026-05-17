@@ -22,6 +22,8 @@ Refs:
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import sys
 from datetime import date
@@ -77,14 +79,21 @@ def main() -> int:
         # parse_contract() chamado dentro do subprocess — marker library +
         # PyMuPDF + surya carregados aqui. Se chamarem os._exit() OR SIGABRT,
         # apenas o subprocess morre. Parent worker continua via asyncio.subprocess.
-        parsed = parse_contract(
-            pdf_path,
-            pdf_bytes=pdf_path.read_bytes(),
-            uf_override=uf_override,
-            data_override=data_override,
-        )
+        #
+        # D-DEV-S08-005 fix (D-OPS-S08-010 empirical): marker library imprime
+        # diagnostic messages em stdout ("=== Document parser messages ===",
+        # progress bars surya). Estas contaminam JSON output → Pydantic
+        # ValidationError no parent. Redireciona stdout durante parse_contract
+        # para io.StringIO descartável — apenas o JSON final vai para stdout.
+        with contextlib.redirect_stdout(io.StringIO()):
+            parsed = parse_contract(
+                pdf_path,
+                pdf_bytes=pdf_path.read_bytes(),
+                uf_override=uf_override,
+                data_override=data_override,
+            )
 
-        # Pydantic native JSON serialization
+        # Pydantic native JSON serialization — ÚNICO output em stdout (limpo)
         print(parsed.model_dump_json())
         return 0
 

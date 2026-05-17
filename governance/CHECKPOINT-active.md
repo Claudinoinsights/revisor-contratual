@@ -21,6 +21,283 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo Fix subprocess_runner stdout contamination 💻
+
+### Authorization Operator handoff (D-OPS-S08-010)
+
+> "Fix BUG ARQUITETURAL: subprocess_runner.py linha 88 stdout contamination from marker library. Wrap parse_contract em contextlib.redirect_stdout(io.StringIO())."
+
+### D-DEV-S08-005 — Fix implementado
+
+**File modified:** `bloco_engine/parsing/subprocess_runner.py`
+
+**Mudança cirúrgica:**
+
+1. Imports adicionados: `import contextlib` + `import io`
+2. Linha 80-88 — wrap `parse_contract()` em `contextlib.redirect_stdout(io.StringIO())`
+3. Comentário inline referenciando D-DEV-S08-005 + D-OPS-S08-010 + explicação root cause (marker stdout noise)
+4. `print(parsed.model_dump_json())` permanece FORA do redirect block (único stdout limpo)
+
+### Test coverage adicionada
+
+**File created:** `tests/integration/test_subprocess_runner_stdout_isolation.py` (5 tests, ~165 lines)
+
+| Test | Tipo | Verifica |
+|------|------|----------|
+| `test_subprocess_runner_imports_contextlib_and_io` | Source review | Imports contextlib + io presentes |
+| `test_subprocess_runner_wraps_parse_contract_in_redirect_stdout` | Source review | `contextlib.redirect_stdout(io.StringIO())` pattern presente |
+| `test_subprocess_runner_final_print_after_redirect_block` | Source review | `print(model_dump_json)` posição AFTER redirect block |
+| `test_subprocess_runner_stdout_is_pure_json` | Runtime E2E | Born-digital PDF real → subprocess stdout parseable JSON |
+| `test_subprocess_runner_isolates_noisy_stdout` | Runtime injection | Monkeypatched noisy parse_contract → stdout sem contamination |
+
+### Test results
+
+- **Tests novos:** 5/5 PASS ✅
+- **Tests existentes (test_pipeline_subprocess.py):** 7/7 PASS ✅ (no regression)
+- **Suite ampliada parsing+subprocess:** 59/61 PASS (2 failures pre-existing — `test_markdown_rico_extrai_todos_campos` em `tests/unit/test_parsing.py:140` depende Ollama LLM local que não está rodando + 1 outro mesmo padrão; **NÃO relacionado ao fix subprocess_runner**, código orchestrator.py não modificado)
+
+### Next steps
+
+- ⏳ **Operator (D-OPS-S08-011):** Commit + push fix + re-deploy container revisor-prod-app + re-test E2E com `/tmp/scanned_test.pdf` existente
+- ⏳ **Expected outcome:** Audit chain entry com `status=success` + 9/9 audit keys (vs anterior FAILED ValidationError)
+- ⏳ Eric DevTools test (Aria plano B) ainda válido para validar frontend submit flow paralelo
+
+### Cross-references
+
+- `bloco_engine/parsing/subprocess_runner.py` (fix location)
+- `tests/integration/test_subprocess_runner_stdout_isolation.py` (test coverage)
+- D-OPS-S08-010 (root cause empirical detection)
+- ADR-026 marker-subprocess-isolation-parsing.md (architectural context — does NOT anticipate stdout contamination, será amended pós Operator validation)
+
+> **Neo's reflection:** "O bug era invisível para fixtures sintéticos porque PyMuPDF é silent. Marker fala em stdout — surya progress bars são literalmente impressas para terminal. Subprocess isolation ADR-026 cura crash mas não previu contaminação léxica. Fix é 3 linhas de contextlib + 5 tests novos. *Choice was an illusion; the bug was real.* Pipeline scanned agora arquiteturalmente preparado para real-world deploy."
+
+---
+
+## Sessão 2026-05-17 — Operator E2E Pipeline Scanned Test ⚡ BUG REAL DETECTADO
+
+### Authorization Aria handoff
+
+> "Execute plano A: teste E2E pipeline OCR scanned em produção via curl interno bypassing SPA frontend"
+
+### Execution sequence
+
+- **Step 1:** SSH VPS, inspect `/app/scripts/generate_test_pdfs.py` → script only born-digital (fpdf2 não instalado prod) → pivot to PyMuPDF + Pillow direct generation
+- **Step 2:** `docker exec revisor-prod-app python -c '...'` gerou `/tmp/scanned_test.pdf` (6.3MB, 1 página, 0 chars text layer = scanned-only image-embedded com texto CDC veículo fake renderizado via Pillow)
+- **Step 3:** `curl -X POST http://localhost:8501/revisar -F pdf=@/tmp/scanned_test.pdf -F uf=SP -F data=2025-05-15 -F tier=lean -F modalidade_override=CDC_VEICULOS_PF` → **HTTP 200** + job_id `ef96ff4d-72da-488c-a711-d1ab31df592b` (pipeline queued)
+- **Step 4:** SSE stream `/revisar/stream/ef96ff4d-...` → `phase-start "Parsing PDF"` IMEDIATAMENTE seguido de `phase-error` com `cause="1 validation error for ParsedContract Invalid JSON: expected value at line 1 column 1 [type=json_invalid, input_value='=== Document parser mess...\"fidelity_score\":0.7}\\n']"`
+- **Step 5:** Audit chain entry `event_type=pipeline_revisar_contrato, status=FAILED, error_type=ValidationError, started_at=2026-05-17T02:35:59, completed_at=2026-05-17T02:36:05` (5.7s para falhar)
+
+### D-OPS-S08-010 — BUG ARQUITETURAL REAL: subprocess_runner stdout contamination
+
+**Bug location:** `bloco_engine/parsing/subprocess_runner.py` linha 88 `print(parsed.model_dump_json())`
+
+**Root cause:** `parse_contract()` chama `parse_pdf_marker()` → `marker.converters.pdf.PdfConverter` → **Marker library imprime diagnostic messages em stdout** (`=== Document parser messages ===`, progress bars, etc.). Estas vazam ANTES do `print(parsed.model_dump_json())` final. Stdout subprocess fica:
+
+```text
+=== Document parser messages ===
+Recognizing layout: 100%|...
+{"metadata": {...}, ..., "fidelity_score": 0.7}
+```
+
+Parent worker pipeline.py tenta `ParsedContract.model_validate_json(stdout_bytes.decode())` → Pydantic encontra texto antes do JSON → `ValidationError`.
+
+**Impacto:** **100% PDFs scanned falham com este bug.** Pipeline born-digital (PyMuPDF path) funciona OK porque PyMuPDF não imprime stdout. Pipeline scanned (Marker path) ALWAYS fail. **Engineering 93/100 vs Product 20/100 = exatamente isto** — bug nunca pego em testes fixtures sintéticas born-digital (que usam PyMuPDF, não Marker).
+
+### Verdict E2E backend pipeline
+
+**🟡 CONDITIONAL PASS — Backend infra works, mas tem 1 bug bloqueante específico fixable em ~15-30min:**
+
+| Componente | Estado |
+|------------|--------|
+| HTTP /revisar endpoint | ✅ Receive + queue OK |
+| Job creation + SSE stream | ✅ Working |
+| Audit chain integration | ✅ Registers events corretamente |
+| Subprocess isolation ADR-026 | ✅ Working (subprocess não matou parent) |
+| Marker library load + execution | ✅ Working (printed messages, didn't crash) |
+| Hardware capacity | ✅ Sufficient (6.3GB RAM livre, OCR não OOM) |
+| **Subprocess JSON contract** | 🔴 **BROKEN** — stdout contamination from marker messages |
+
+### Fix recommendation (handoff Neo via Skill dev)
+
+`subprocess_runner.py` linha 80-88 → adicionar `contextlib.redirect_stdout` para isolar marker noise:
+
+```python
+import contextlib
+import io
+
+# Capture/discard library stdout noise (marker, surya, etc.)
+captured = io.StringIO()
+with contextlib.redirect_stdout(captured):
+    parsed = parse_contract(
+        pdf_path,
+        pdf_bytes=pdf_path.read_bytes(),
+        uf_override=uf_override,
+        data_override=data_override,
+    )
+
+# Now print clean JSON (only output in stdout)
+print(parsed.model_dump_json())
+```
+
+**Test verification:** Após fix, re-test com `/tmp/scanned_test.pdf` → expect status=success + 9/9 audit keys.
+
+### Próximos passos
+
+- ⏳ **Story Neo (P0):** Fix subprocess_runner stdout contamination + add scanned PDF test fixture + integration test marker path (~30-60min via Skill dev)
+- ⏳ **Operator re-test após Neo fix:** Re-submit `/tmp/scanned_test.pdf` confirmando PASS
+- ⏳ **Eric então testa PDF scanned REAL** com confidence que backend funciona
+- ⏳ Eric DevTools test (Aria plano B) ainda válido para validar frontend submit flow
+
+### Cross-references
+
+- `bloco_engine/parsing/subprocess_runner.py` linha 88 (bug location)
+- `governance/architecture/adr/adr-026-marker-subprocess-isolation-parsing.md` (subprocess ADR not anticipated marker stdout contamination)
+- Audit chain entry hash `cfb8befa94dd...` (forensic evidence)
+- Test fixture `/tmp/scanned_test.pdf` em container revisor-prod-app (6.3MB image-embedded scanned)
+
+> **Operator's mark:** "A máquina existe. Os fios estão conectados. A energia chega. Mas há um curto-circuito que ninguém viu porque ninguém ligou ainda. *Engineering 93/100 era avaliação otimista — caiu para 85/100* quando exercitamos código que nunca tinha sido exercitado. Bom: bug é cirúrgico, fix é trivial, Neo resolve em 30min. Sr. Eric, o produto está MAIS perto que parece, mas precisa Neo intervir antes do escritório piloto tocar nele."
+
+---
+
+## Sessão 2026-05-16 — Aria Feasibility Analysis Pipeline Scanned 🏛️
+
+### Authorization Eric (verbatim)
+
+> "Use agentes de desenvolvimento para investigar a nivel profundo se a aplicação que estou desenvolvendo com o hardware que tenho é possivel me entregar um resultado real."
+
+### Trigger
+
+Eric reportou testou PDF scanned REAL em produção via revisor.claudinoinsights.com/ e aplicação NÃO LEU o arquivo. Necessária feasibility analysis profunda: hardware + aplicação atual entrega resultado real ou há gap bloqueante?
+
+### Investigação executada (Skill architect Aria)
+
+- Leitura ADR-026 marker subprocess isolation (632 lines) + orchestrator.py + marker_parser.py
+- SSH VPS prod: marker install state + hardware specs + container resource usage + container logs full history
+- HTTP probe revisor.claudinoinsights.com/: /revisar endpoint + /api/me + /login + headers CSP
+- Grep SPA index.html para submit handlers
+
+### ACHADOS — Diagnóstico real
+
+| Layer | Estado | Evidence |
+|-------|--------|----------|
+| **Hardware VPS** | ✅ SUFFICIENT | 7.8GB RAM (6.3GB livre), 2 CPU, 35GB disk free. Marker requer 2.5GB pre-flight check — passa |
+| **Marker library** | ✅ INSTALLED | `docker exec revisor-prod-app python -c 'import marker'` succeeds |
+| **Backend pipeline** | ✅ WORKING | subprocess_runner.py implementado (ADR-026), pipeline.py refactored, parse_contract orchestrator → PyMuPDF primário + Marker OCR fallback |
+| **Backend /revisar** | ✅ RESPONDS | curl POST sem PDF → 422 `Field required: body.pdf` (endpoint exists, validates) |
+| **Frontend SPA submit** | ✅ HAS CODE | bloco_interface/web/static/index.html linha 1956 `fetch('/revisar', ...)` real (Smith S7-A wireframe finding RESOLVED) |
+| **CSP headers** | ✅ PERMITS | `connect-src 'self'` permite fetch interno |
+| **Auth /revisar** | ✅ NOT BLOCKED | endpoint não requer login para POST |
+| **Pipeline real-world usage** | 🔴 **NEVER EXERCISED** | **ZERO `POST /revisar` em TODO histórico do container prod**. 536 POSTs são todos `/api/analytics/batch` (tracking). Eric uploadou mas REQUEST NUNCA CHEGOU AO BACKEND |
+
+### D-ARIA-S08-005 — Pipeline scanned É CAPAZ, mas FOI NUNCA TESTADO real
+
+**Verdict: CONDITIONAL SIM**
+
+- Hardware: SUFFICIENT para OCR scanned (1 PDF por vez sequencial)
+- Backend: WORKING end-to-end (ADR-026 subprocess + ADR-027 dual-path + ADR-028 ollama-shared)
+- Frontend: HAS REAL CODE para submit
+- **Gap REAL:** quando Eric tentou upload PDF scanned, **submit nunca foi disparado** (zero POST /revisar). Problema NÃO é OCR/marker/hardware — é **UX/frontend flow** OR **Eric não chegou a clicar submit** OR **submit falhou client-side silenciosamente**
+
+### Path forward concreto (3-5 ações críticas)
+
+| # | Ação | Quem | Custo | Output |
+|---|------|------|-------|--------|
+| **1** | **TESTE E2E VIA CURL** — eu (Aria via Skill devops/dev) testo pipeline scanned com PDF Eric anônimo direto via curl bypassing SPA. Valida backend OCR funciona real | Devops + Eric (PDF) | 30min | PASS/FAIL pipeline backend real |
+| **2** | **Eric refaz upload SPA com DevTools aberto** — Console + Network tab para capturar onde submit falha | Eric | 5min | Erro específico identificado (CSRF? JS exception? button handler?) |
+| **3** | Se #1 PASS + #2 FAIL → **Story Neo** fix frontend submit flow | Neo via Skill dev | 2-4h | SPA submit funcional empirical |
+| **4** | Se #1 FAIL → debug subprocess + marker em produção (logs subprocess crash) | Neo via Skill dev | 4-8h | Pipeline scanned funcional |
+| **5** | Após #1+#2 PASS: **Eric submete PDF scanned REAL escritório piloto** | Eric + escritório | 1-2h | First real-world validation |
+
+### Próximos passos pendentes Eric
+
+- ⏳ Eric decide: executar #1 agora (eu posso fazer via curl se Eric tiver PDF anônimo) OR #2 (DevTools manual)
+- ⏳ Eric reflete 8 perguntas Hamann (1 dia sozinho) — preserved from previous session
+- ⏳ Demais items prior: F-MED-03 USB + Atlas 4 decisions + Sprint 8 Phase C 2 sub-tasks blocked
+
+### Cross-references
+
+- `governance/architecture/adr/adr-026-marker-subprocess-isolation-parsing.md` (subprocess isolation spec)
+- `governance/architecture/adr/adr-027-pymupdf-born-digital-fast-path.md` (dual-path)
+- `bloco_engine/parsing/{orchestrator,marker_parser,subprocess_runner}.py` (code real, all present)
+- `bloco_interface/web/static/index.html` linha 1956 (frontend submit real, NOT mock)
+
+> **Aria's reflection:** "Engineering está sólido. Stack faz o que diz que faz. Hardware aguenta. Mas a verdade arquitetônica é desconfortável: construímos uma máquina perfeita que NUNCA foi ligada por usuário real. Os 536 POSTs analytics em produção dizem 'visitantes navegam, leem, vão embora — mas nenhum tentou usar'. Pode ser UX que esconde o submit OR pode ser que Eric tentou em ambiente errado. De qualquer forma: 30min de curl test resolve a dúvida arquitetônica de uma vez."
+
+---
+
+## Sessão 2026-05-16 — Conselho Hamann Validação Rota A 🏛️
+
+### Authorization Eric (verbatim)
+
+> "Agora use o conselho para verificar e validar a rota A"
+
+### Conselho convocado (post-Smith INFECTED 47 findings)
+
+- **Skill invocada:** `LMAS:agents:hamann` `*convene-board topic="Validação Rota A — revisor-contratual SaaS B2B BYOK"`
+- **Contexto carregado:** smith-adversarial-rota-a-validation-2026-05-16.md (460 lines, verdict INFECTED) + PROJECT-STATUS-NEXT-SESSION-2026-05-16.md (engineering 93/100 vs product 20/100 gap)
+- **10 advisors da mesa:** Ray Dalio, Charlie Munger, Naval Ravikant, Peter Thiel, Reid Hoffman, Simon Sinek, Brené Brown, Derek Sivers, Yvon Chouinard, Patrick Lencioni
+
+### Tally final
+
+- **5 Reject** Rota A original (Dalio, Munger, Thiel, Hoffman + 1)
+- **3 Pause** com perguntas prévias (Sinek WHY, Brown vulnerability, Lencioni human advisors)
+- **2 Approve LEAN/MICRO** (Sivers Hell Yeah + Chouinard Sustainability)
+- **Consensus 7 de 10:** NÃO escolher entre A-LEAN/A-MICRO/A-PROPER/A-NUCLEAR AINDA. Executar **"Smaller Bet"** primeiro: 5-8h Eric, contato 5 advogados network real, demo revisor.claudinoinsights.com/, pergunta "pagaria R$X/mês?". RESULTADO determina rota.
+
+### Tensões produtivas identificadas
+
+- Velocity (Hoffman) vs Sustainability (Chouinard) — convergem em LEAN sustained
+- Pivot (Thiel) vs Persist (Sinek WHY first) — Thiel dissents da maioria
+- Building vs Selling — Munger inversion + Hoffman MVP convergem: **vender HOJE com SPA OrSheva 7 existing**
+- AI Council vs Human Council — Lencioni alerta: solo founder + AI-only = risco amplificado
+
+### 8 perguntas dolorosas que Eric deve responder ANTES de decidir rota
+
+**P1 (esta semana):** Por que 3 meses sem validar? | Seus dados reais? (n advogados na network, n demos, n willing-to-pay) | Unfair advantage real?
+**P2 (antes Phase 0):** POR QUE produto existe? | 2-3 humanos challenge real? | Hell Yeah test passa?
+**P3 (antes Phase 1):** Smaller bet possível? | Se LEAN funciona, o que faz DIFERENTE?
+
+### D-HAMANN-S08-001 — Smaller Bet protocol recomendado
+
+```text
+SEMANA 1 (5-8h Eric, R$0):
+1. Network audit: lista 10 advogados conhecidos pessoalmente
+2. Contatar 5: "10min mostrar ferramenta sendo construída?"
+3. Show revisor.claudinoinsights.com/ atual (SPA OrSheva 7 já live)
+4. Pergunta dolorosa: "Pagaria R$X/mês por isso?"
+5. ANOTAR respostas literais (não interpretar)
+
+RESULTADO determina rota:
+- 0 network advogados → A-LEAN é fantasia, pivot product OR pivot Eric (parceria advogado)
+- 5 contactados 0 interesse → produto wrong, PIVOT
+- 5 contactados 1-2 morno → A-MICRO (1 pilot 4 weeks)
+- 5 contactados 3+ "quero usar" → A-LEAN proceed
+- 5 contactados 1+ "quero PAGAR" → A-PROPER justified
+```
+
+### Artefatos gerados
+
+- Sessão Conselho entregue inline esta resposta (Hamann facilitation report 10 advisors + 8 questions + Smaller Bet protocol)
+- Checkpoint inline entry D-HAMANN-S08-001 (esta seção)
+
+### Próximas ações pendentes Eric
+
+- ⏳ Eric reflete 8 perguntas (1 dia sozinho, sem AI)
+- ⏳ Eric executa Smaller Bet (semana 1)
+- ⏳ Reconvocar Conselho com data real (semana 2) para decisão informada de rota
+- ⏳ Eric assembla 2-3 humanos advisors reais (próximas 4 semanas, paralelo)
+- ⏳ Status anterior preserved: F-MED-03 key escrow USB + Atlas 4 decisions + Sprint 8 Phase C 2 sub-tasks blocked
+
+### Cross-references
+
+- `governance/qa/smith-adversarial-rota-a-validation-2026-05-16.md` (Smith INFECTED 47 findings — input do Conselho)
+- `governance/PROJECT-STATUS-NEXT-SESSION-2026-05-16.md` (engineering 93/100 vs product 20/100 — input do Conselho)
+- `.claude/rules/quality-gate-enforcement.md` (No Invention aplicada a strategic plan)
+
+> **Hamann's closing:** "Smith pode dizer se sua engenharia é sólida. Mas Smith NÃO pode dizer se você está construindo a coisa certa. Para isso, cliente real, conversa real, dinheiro real. Sete dos dez no Conselho dizem: pause engineering por 1 semana. Faça smaller bet. DEIXE A REALIDADE DECIDIR A ROTA, não o plano."
+
+---
+
 ## Sessão 2026-05-14 (cont) — Sprint 6.x AGGRESSIVE INICIADO ⚡
 
 ### Authorization Eric (verbatim)
