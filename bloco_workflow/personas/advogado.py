@@ -43,15 +43,27 @@ INSTRUÇÕES OBRIGATÓRIAS:
 2. Atribua peso_vinculacao 1-5 conforme jurisprudência (5=súmula vinculante STF, 4=súmula STJ, 3=tema repetitivo, 2=jurisprudência dominante, 1=acórdão isolado).
 3. Retorne APENAS JSON válido conforme schema TeseAdvogado.
 
-Schema esperado:
+REGRA CRÍTICA citacao_textual (D-DEV-S08-007):
+- DEVE ter PELO MENOS 10 caracteres (validação Pydantic hard-fail).
+- DEVE ser texto LITERAL do enunciado/ementa do documento citado (ex: súmula completa).
+- NUNCA use "..." ou "[texto]" ou placeholders genéricos — sempre escreva a frase completa.
+- Se você não conseguir lembrar texto literal exato, escreva paráfrase fiel >=10 chars
+  baseada na ementa fornecida acima.
+
+Schema esperado (use EXEMPLOS REAIS de citacao_textual, não placeholders):
 {{
-  "tese_principal": "string >=50 chars",
+  "tese_principal": "Cabe revisional do contrato CDC veículo para apurar capitalização mensal indevida...",
   "fundamentos_invocados": [
-    {{"id_doc": "STJ-S539", "citacao_textual": "...", "peso_vinculacao": 4, "court_id": "STJ"}}
+    {{
+      "id_doc": "STJ-S539",
+      "citacao_textual": "E licita a capitalizacao mensal de juros nos contratos bancarios celebrados apos 31/03/2000, desde que expressamente pactuada.",
+      "peso_vinculacao": 4,
+      "court_id": "STJ"
+    }}
   ],
-  "docs_consultados_ids": ["STJ-S539", ...],
-  "docs_efetivamente_citados_ids": ["STJ-S539", ...],
-  "confianca": 0.0-1.0
+  "docs_consultados_ids": ["STJ-S539", "STJ-T247"],
+  "docs_efetivamente_citados_ids": ["STJ-S539"],
+  "confianca": 0.85
 }}
 """
 

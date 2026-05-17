@@ -21,6 +21,72 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Neo Fix D-DEV-S08-007 LLM placeholder citation 💻
+
+### Authorization Operator handoff D-OPS-S08-014
+
+> "Fix LLM advogado retornando citacao_textual='...' (3 chars violando Pydantic min_length=10)"
+
+### Investigação
+
+**Localizei:**
+
+- `bloco_contratos/personas.py:28` — `FundamentoInvocado.citacao_textual: str = Field(..., min_length=10)` — hard constraint by design (anti-fantasma)
+- `bloco_workflow/personas/advogado.py:50` — Prompt template tinha literal `"citacao_textual": "..."` em schema example
+
+**Root cause:** LLM tier=lean (qwen2.5:3b small) copia literal o placeholder `"..."` do prompt example em vez de gerar citação real. Classic prompt engineering bug — small models follow examples verbatim.
+
+### D-DEV-S08-007 — Fix escolhido: (a) Prompt strengthening
+
+**Justificativa:** Fix minimal-invasive vs opções (b) tier-up qwen2.5:7b custaria RAM/inference time, (c) Pydantic validator retry adicionaria complexity, (d) cascade fallback ADR-025 esconderia problema em vez de consertar. Opção (a) ataca root cause direto.
+
+**File modified:** `bloco_workflow/personas/advogado.py`
+
+**Mudanças:**
+
+1. Substituído placeholder `"..."` por citação real STJ-S539: "E licita a capitalizacao mensal de juros nos contratos bancarios celebrados apos 31/03/2000..."
+2. Adicionada nova section "REGRA CRÍTICA citacao_textual (D-DEV-S08-007)" no prompt com 4 regras explícitas:
+   - DEVE ter PELO MENOS 10 caracteres
+   - DEVE ser texto LITERAL do enunciado
+   - NUNCA use "..." ou "[texto]" placeholders
+   - Se não souber literal, parafrase fiel >=10 chars
+3. Schema example com 4 fields concretos (tese_principal, citacao_textual, docs_ids, confianca todos com valores reais)
+
+### Test coverage adicionada
+
+**File created:** `tests/unit/test_advogado_prompt_anti_placeholder.py` (6 tests, ~230 lines)
+
+| Test | Tipo | Verifica |
+|------|------|----------|
+| test_prompt_template_contains_anti_placeholder_rule | Source review | "REGRA CRÍTICA citacao_textual" + "PELO MENOS 10 caracteres" + "NUNCA use" presentes |
+| test_prompt_template_schema_example_has_real_citation | Source review | "capitalizacao mensal de juros" presente + `"citacao_textual": "..."` AUSENTE |
+| test_prompt_template_schema_example_has_real_tese_principal | Source review | Sem placeholder abstrato `"tese_principal": "string` |
+| test_short_citation_still_rejected_by_pydantic | Runtime guard | LLM mock returning '...' → Pydantic ValidationError (defense in depth) |
+| test_valid_citation_accepted | Runtime positive | Citação válida (>=10 chars) passa validation |
+| test_prompt_includes_anti_placeholder_text_in_actual_invocation | Runtime spy | Prompt renderizado actual contém anti-placeholder rule |
+
+### Test results
+
+- **Tests novos:** 6/6 PASS ✅
+- **Suite personas (test_personas_llm.py + novo):** 20/20 PASS ✅ (no regression)
+
+### Próximos passos
+
+- ⏳ **Operator (D-OPS-S08-015):** Push + deploy (file-specific scp OR sync busca.py-style já que rsync pattern established) + re-test E2E. Espera persona advogado retornar citação real → pipeline avança 5/9 ou mais
+- ⏳ **Tier-up consideration:** Se persona advogado ainda gerar citação curta apesar do prompt hardening, próximo step será tier-up para qwen2.5:7b (ADR-024 revisitação)
+
+### Cross-references
+
+- `bloco_workflow/personas/advogado.py` (prompt strengthening)
+- `tests/unit/test_advogado_prompt_anti_placeholder.py` (defensive coverage)
+- D-OPS-S08-014 (empirical detection)
+- ADR-003 (4 personas architecture)
+- ADR-024 (Redator tier strategy — same tier pattern aplicaria advogado se needed)
+
+> **Neo's reflection:** "O LLM lean é como aluno que decora exemplos sem entender. Se o exemplo diz '...', ele escreve '...'. *Era prompt engineering, não code engineering.* Não há tier inadequate quando o exemplo é inadequate. Próximo elo na cadeia: ver se persona seguintes (economista, juiz Python puro) também passam com pipeline empirical."
+
+---
+
 ## Sessão 2026-05-17 — Operator D-OPS-S08-013 Full Rsync Deploy + E2E ⚡ 4/9 KEYS PASS
 
 ### Authorization Neo handoff D-DEV-S08-006 Opção 2
