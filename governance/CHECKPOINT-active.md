@@ -21,6 +21,46 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Operator D-OPS-S08-019 Deploy redator fix 🔴 STILL 7/9 — ROOT CAUSE REAL FOUND
+
+### Execution
+
+- ✅ Push d1219b2 + scp redator.py + sync /opt + image rebuild + container recreate
+- ✅ Smoke verify "REGRA CRÍTICA" loaded in container
+- ✅ E2E test job `5ba6f31b` → audit chain `019453af...`
+- 🔴 **SAME ERROR** — dos_fatos + disclaimer_lgpd_oab still <200 chars
+
+### D-OPS-S08-019 Discovery — Root Cause REAL
+
+**Truncation pattern em error_msg:**
+- `dos_fatos`: "Em 15 de maio de 2025, a...mento de um automóvel." (truncated mid-word)
+- `disclaimer_lgpd_oab`: "Insumo técnico-jurídic...nstituição bancária." (truncated mid-word)
+
+**Hipótese D-DEV-S08-009 (prompt placeholder) era INCOMPLETA.** Real root cause: **`num_predict` default Ollama = 128 tokens** cortando LLM output antes campos completarem. PecaRevisional precisa ~1500+ tokens output (8 campos longos), 128 é insufficient.
+
+**Evidence:** grep llm_factory.py: **ZERO ocorrências de `num_predict`/`max_tokens`/`num_ctx`** — usa defaults Ollama (128 tokens output, 2048 context).
+
+### D-OPS-S08-020 — Bug catalog REAL
+
+**Error:** Ollama default num_predict=128 tokens truncates LLM output mid-generation.
+**Location:** `bloco_workflow/personas/llm_factory.py` get_redator_llm function (provavelmente).
+**Fix:** Configure `options={"num_predict": 2048}` (ou maior, fits PecaRevisional 1500-2000 tokens) em ChatOllama instantiation.
+
+### Próximos passos
+
+- ⏳ **Skill dev Neo (D-DEV-S08-010):** Add `num_predict=2048` config em llm_factory.get_redator_llm() (15-30min code change)
+- ⏳ Operator deploy + E2E re-test → espera 9/9 finally
+
+### Cross-references
+
+- Audit hash `019453af86c3bba61753603bf3171b8a78fcd829036eb8c11097f1109fc0519a`
+- D-DEV-S08-009 (prompt fix deployed but insufficient alone)
+- llm_factory.py (location of num_predict missing)
+
+> **Operator's note:** "Camadas da cebola — D-DEV-S08-007 prompt advogado FUNCIONOU porque output curto cabia em 128 tokens. Redator precisa output 10x maior — num_predict default mata antes prompt completar. *Cada bug expõe próximo elo até chegar ao real root cause.* Última peça."
+
+---
+
 ## Sessão 2026-05-17 — Neo D-DEV-S08-009 Redator prompt strengthening 💻
 
 ### Authorization Operator handoff D-OPS-S08-018
