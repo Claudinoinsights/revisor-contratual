@@ -271,17 +271,18 @@ class TestParseContract:
     def test_marker_indisponivel_levanta_ocr_required(
         self, pdf_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        # primary devolve markdown insuficiente E marker_fn=None com Marker não instalado.
-        # CC.34: marker pode estar instalado em dev (CC.33 install [ocr]); mock para
-        # forçar path "indisponível" e exercitar mensagem ParserOCRRequired.
+        # ADR-034 D-DEV-S08-013: orchestrator default agora é tesseract_direct.
+        # Mock _is_tesseract_direct_available=False para forçar path indisponível
+        # e exercitar mensagem ParserOCRRequired.
         monkeypatch.setattr(
-            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+            "bloco_engine.parsing.tesseract_direct_parser._is_tesseract_direct_available",
+            lambda: False,
         )
         with pytest.raises(ParserOCRRequired):
             parse_contract(
                 pdf_path,
                 pymupdf_fn=_fake_parser(MARKDOWN_VAZIO),
-                marker_fn=None,  # força default — Marker indisponível (mocked CC.34)
+                marker_fn=None,  # força default → tesseract_direct → indisponível (mocked)
             )
 
     def test_parser_ocr_required_message_contem_solucao_acionavel(
@@ -289,7 +290,8 @@ class TestParseContract:
     ) -> None:
         """F-PIPELINE-LOW-01 hardening UX: mensagem PT-BR contém comando pip install acionável."""
         monkeypatch.setattr(
-            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+            "bloco_engine.parsing.tesseract_direct_parser._is_tesseract_direct_available",
+            lambda: False,
         )
         with pytest.raises(ParserOCRRequired) as exc_info:
             parse_contract(
@@ -306,7 +308,8 @@ class TestParseContract:
     ) -> None:
         """F-PIPELINE-LOW-01 hardening UX: mensagem oferece alternativa para usuário sem OCR."""
         monkeypatch.setattr(
-            "bloco_engine.parsing.marker_parser._is_marker_available", lambda: False
+            "bloco_engine.parsing.tesseract_direct_parser._is_tesseract_direct_available",
+            lambda: False,
         )
         with pytest.raises(ParserOCRRequired) as exc_info:
             parse_contract(

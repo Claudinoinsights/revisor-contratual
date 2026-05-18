@@ -28,8 +28,9 @@ from bloco_contratos.contrato import (
 )
 from bloco_engine.parsing.fidelity import compute_fidelity_score
 from bloco_engine.parsing.marker_parser import ParserOCRRequired
-from bloco_engine.parsing.ocrmypdf_parser import parse_pdf_ocrmypdf
+from bloco_engine.parsing.ocrmypdf_parser import parse_pdf_ocrmypdf  # noqa: F401  # ADR-034: deprecated emergency rollback
 from bloco_engine.parsing.pymupdf_parser import ParserError, parse_pdf_pymupdf
+from bloco_engine.parsing.tesseract_direct_parser import parse_pdf_tesseract_direct
 
 ParserFn = Callable[[Path], tuple[str, int]]
 
@@ -547,10 +548,11 @@ def parse_contract(
     fidelity = compute_fidelity_score(markdown)
 
     if fidelity < fidelity_threshold:
-        # ADR-033 (D-DEV-S08-008): OCRmyPDF (Tesseract) substitui Marker em produção
-        # devido a hardware limit VPS 7.8GB RAM (D-OPS-S08-016).
-        # OCRmyPDF RAM ~600MB vs Marker 4-6GB. Pipeline: scanned PDF →
-        # OCRmyPDF adds text layer → PyMuPDF re-extract (reusa ADR-027 dual-path).
+        # ADR-034 (D-DEV-S08-013): Tesseract Direct (pdf2image + pytesseract)
+        # substitui OCRmyPDF eliminando dependência Ghostscript (D-OPS-S08-028).
+        # Debian bookworm gs 10.0.0 regression bloqueou OCRmyPDF em múltiplos
+        # paths internos — escape definitivo: eliminar wrapper inteiro.
+        # Pipeline: PDF scanned → pdf2image (poppler) → PIL Images → pytesseract → markdown.
         # marker_fn arg preserved para backward compat com tests existentes que
         # injetavam mock Marker; quando provided, usa Marker (testing OR override).
         if marker_fn is not None:
@@ -559,8 +561,8 @@ def parse_contract(
             markdown, pages_count = parse_pdf_marker(pdf_path, parser_fn=marker_fn)
             parser_used = "marker_ocr"
         else:
-            markdown, pages_count = parse_pdf_ocrmypdf(pdf_path)
-            parser_used = "ocrmypdf_tesseract"
+            markdown, pages_count = parse_pdf_tesseract_direct(pdf_path)
+            parser_used = "tesseract_direct"
         fidelity = compute_fidelity_score(markdown)
 
     metadata = extract_metadata_from_markdown(

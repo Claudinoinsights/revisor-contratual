@@ -71,11 +71,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# ADR-033 (D-DEV-S08-008): OCRmyPDF substitui marker-pdf como primary OCR
-# devido a hardware limit VPS 7.8GB RAM (D-OPS-S08-016).
-# OCRmyPDF wrapper Tesseract — RAM peak ~600MB vs marker 4-6GB.
-# marker-pdf preserved como optional fallback testing/dev only.
-ocr = ["ocrmypdf>=16.0", "marker-pdf>=0.2"]
+# ADR-034 (D-DEV-S08-013): Tesseract Direct (pdf2image + pytesseract) substitui
+# OCRmyPDF eliminando dependência Ghostscript (D-OPS-S08-028).
+# Debian bookworm gs 10.0.0 regression bloqueava OCRmyPDF em múltiplos paths
+# internos. Escape definitivo: pipeline direto pdf2image (poppler) + pytesseract.
+# pdf2image>=1.17 já em deps base. ocrmypdf + marker preserved como emergency rollback.
+ocr = ["pytesseract>=0.3.10", "ocrmypdf>=16.0", "marker-pdf>=0.2"]
 dev = [
   "pytest>=8.0",
   "pytest-asyncio>=0.23",

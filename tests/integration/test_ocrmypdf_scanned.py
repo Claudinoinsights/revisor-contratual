@@ -49,16 +49,18 @@ def test_orchestrator_imports_ocrmypdf_parser():
     )
 
 
-def test_orchestrator_uses_ocrmypdf_when_no_marker_fn():
-    """D-DEV-S08-008: orchestrator uses OCRmyPDF default, marker only via injection."""
+def test_orchestrator_keeps_ocrmypdf_as_emergency_rollback_import():
+    """ADR-034 D-DEV-S08-013: orchestrator default mudou para tesseract_direct,
+    mas mantém import de parse_pdf_ocrmypdf como emergency rollback (noqa F401)."""
     from bloco_engine.parsing import orchestrator
 
     source = Path(orchestrator.__file__).read_text(encoding="utf-8")
-    assert "parse_pdf_ocrmypdf(pdf_path)" in source, (
-        "orchestrator must call parse_pdf_ocrmypdf as default OCR path"
+    # OCRmyPDF preserved como import emergency rollback (ADR-033 → ADR-034 transition)
+    assert "parse_pdf_ocrmypdf" in source, (
+        "orchestrator must keep parse_pdf_ocrmypdf import (emergency rollback per ADR-034)"
     )
-    assert 'parser_used = "ocrmypdf_tesseract"' in source, (
-        "parser_used must be tagged 'ocrmypdf_tesseract' when OCRmyPDF used"
+    assert "deprecated emergency rollback" in source or "ADR-034" in source, (
+        "Import must be marked as deprecated/rollback for clarity"
     )
 
 
