@@ -287,7 +287,7 @@ async def revisar_contrato(
                 )
                 try:
                     stdout_bytes, stderr_bytes = await asyncio.wait_for(
-                        proc.communicate(), timeout=180.0
+                        proc.communicate(), timeout=600.0
                     )
                 except asyncio.TimeoutError as timeout_exc:
                     proc.terminate()
@@ -297,7 +297,7 @@ async def revisar_contrato(
                         proc.kill()
                         await proc.wait()
                     raise ParsingSubprocessTimeoutError(
-                        f"parse_contract subprocess timeout 180s for {pdf_path}"
+                        f"parse_contract subprocess timeout 600s for {pdf_path}"
                     ) from timeout_exc
 
                 if proc.returncode != 0:

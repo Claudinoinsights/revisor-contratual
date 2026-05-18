@@ -42,7 +42,7 @@ ParserFn = Callable[[Path], tuple[str, int]]
 
 # Tesseract configuration — sweet spots para texto jurídico CDC veículo
 TESSERACT_LANGUAGE = "por"  # Português brasileiro via tesseract-ocr-por
-TESSERACT_DPI = 150  # 150dpi = balanço qualidade OCR vs memory/speed
+TESSERACT_DPI = 100  # D-DEV-S08-014: 100dpi (era 150) — ~2x mais rápido CPU, qualidade OCR ainda aceitável CDC
 TESSERACT_PSM = 3  # Page Segmentation Mode 3 = auto (default, robusto)
 
 
