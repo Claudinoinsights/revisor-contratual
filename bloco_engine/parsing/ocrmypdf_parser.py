@@ -103,6 +103,11 @@ def _default_ocrmypdf_parser(pdf_path: Path) -> tuple[str, int]:
             progress_bar=False,
             # Quiet mode (less log noise in subprocess)
             quiet=True,
+            # D-DEV-S08-012 fix (D-OPS-S08-026 Eric empirical): output_type="pdf"
+            # bypasses Ghostscript redo-ocr path. Debian bookworm ships gs 10.0.0
+            # which OCRmyPDF refuses (known regression corrupts PDFs with existing
+            # text when skip_text=True). output_type="pdf" uses pikepdf directly.
+            output_type="pdf",
         )
 
         # PyMuPDF extract from now-text-enriched PDF
