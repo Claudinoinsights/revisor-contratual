@@ -40,10 +40,11 @@ logger = logging.getLogger(__name__)
 
 ParserFn = Callable[[Path], tuple[str, int]]
 
-# Tesseract configuration — sweet spots para texto jurídico CDC veículo
+# Tesseract configuration — qualidade prioridade para precisão extração datas/valores
 TESSERACT_LANGUAGE = "por"  # Português brasileiro via tesseract-ocr-por
-TESSERACT_DPI = 100  # D-DEV-S08-014: 100dpi (era 150) — ~2x mais rápido CPU, qualidade OCR ainda aceitável CDC
-TESSERACT_PSM = 3  # Page Segmentation Mode 3 = auto (default, robusto)
+TESSERACT_DPI = 200  # D-DEV-S08-015: 200dpi (era 100) — Eric directive accuracy datas/valores. Trade-off: 2x lento mas confiável.
+TESSERACT_PSM = 6  # D-DEV-S08-015: PSM 6 (uniform block of text) — melhor para contratos vs PSM 3 (auto)
+TESSERACT_OEM = 1  # D-DEV-S08-015: OEM 1 = LSTM neural engine — mais preciso que default legacy
 
 
 def _is_tesseract_direct_available() -> bool:
@@ -123,7 +124,7 @@ def _default_tesseract_direct_parser(pdf_path: Path) -> tuple[str, int]:
             text = pytesseract.image_to_string(
                 img,
                 lang=TESSERACT_LANGUAGE,
-                config=f"--psm {TESSERACT_PSM}",
+                config=f"--oem {TESSERACT_OEM} --psm {TESSERACT_PSM} -c preserve_interword_spaces=1",
             )
             pages_text.append(text.strip())
             logger.debug(
