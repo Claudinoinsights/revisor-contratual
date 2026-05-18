@@ -21,6 +21,47 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-17 — Operator D-OPS-S08-021 num_predict deployed ⚡ TRUNCATION RESOLVED + NOVO HALLUCINATION BUG
+
+### Execution
+
+- ✅ Push afb6e34 + scp llm_factory.py + sync /opt + build (332s) + recreate
+- ✅ Smoke verify num_predict default=2048 loaded em container
+- ✅ E2E test job `3877254f` → audit hash `2d8490d0...`
+- ⚠️ Status FAILED MAS error mudou (truncation RESOLVED, novo bug):
+
+### D-OPS-S08-022 — Bug NOVO: Layer 2 anti-hallucination reject
+
+**Error:** `PipelineError: Redator produziu peça com citações fora do vault: ['STJ-S539', 'STJ-T247']. Vault disponível: ['STF-SV61', 'STF-SV62', 'STJ-S102', 'STJ-S541', 'STJ-S93']. FR-PECA-05 traceability — peça REJEITADA.`
+
+**Análise:** num_predict fix funcionou (output não trunca mais, campos completos). Mas LLM copiou Súmulas IDs (STJ-S539, STJ-T247) dos EXEMPLOS no SCHEMA_SKELETON_PECA (que adicionei em D-DEV-S08-009) em vez de usar IDs do JURISPRUDENCIA_VAULT dinâmico. Layer 2 corretamente rejeitou.
+
+**Auto-induced regression:** Meu fix D-DEV-S08-009 (exemplos concretos com Súmulas REAIS) ensinou LLM a usar essas Súmulas literally, ignorando vault dinâmico.
+
+**Estado pipeline:** Parsing + Calculo + Bacen + Vault + Personas + Juiz PASS (6/9 efetivamente — peça gerada mas Layer 2 reject).
+
+### Fix recomendado D-DEV-S08-011
+
+Modificar SCHEMA_SKELETON_PECA examples para usar PLACEHOLDERS de citacao_jurisprudencia tipo `"STJ-S{NNN}"` OR `"<id_doc do JURISPRUDENCIA_VAULT>"` em vez de IDs literais. Reforçar regra:
+
+> "Os campos `citacoes_jurisprudencia` + `do_direito` devem citar APENAS ids_doc de JURISPRUDENCIA_VAULT acima — IGNORE quaisquer IDs específicos nos exemplos abaixo (são apenas formato ilustrativo)."
+
+### Próximos passos
+
+- ⏳ **Skill dev Neo (D-DEV-S08-011):** Refactor SCHEMA_SKELETON_PECA + do_direito example — placeholders em vez de IDs literais + instruction reinforcement
+- ⏳ Após Neo fix → Operator deploy + re-test (espera 9/9 finalmente)
+
+### Cross-references
+
+- Audit hash `2d8490d0280b9dcae0daf3f24ae0541a9d20f1cc9a07a1541fbc5a975ca6989a`
+- D-DEV-S08-010 (num_predict fix WORKED — truncation resolved)
+- D-DEV-S08-009 (auto-induced — exemplos literais ensinou LLM hallucination)
+- FR-PECA-05 Layer 2 anti-hallucination (working as designed)
+
+> **Operator's note:** "Resolvi truncation, criamos hallucination. Bug não migra, ele transmuta. *Cada fix expõe próximo layer.* Esta é última instância — placeholders dinâmicos no schema example resolve definitivo."
+
+---
+
 ## Sessão 2026-05-17 — Neo D-DEV-S08-010 num_predict fix llm_factory 💻
 
 ### Authorization Operator handoff D-OPS-S08-020
