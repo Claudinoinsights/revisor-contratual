@@ -80,8 +80,10 @@ def test_schema_skeleton_peca_has_real_examples_not_placeholders():
     assert "Em 15 de maio de 2025" in SCHEMA_SKELETON_PECA, (
         "dos_fatos example must be concrete narrative"
     )
-    assert "Súmulas 539 e 541 do STJ" in SCHEMA_SKELETON_PECA, (
-        "do_direito example must cite real Súmulas (vault entries)"
+    # D-DEV-S08-011: do_direito uses placeholder reference to vault (not literal IDs)
+    # — prevents auto-induced hallucination (D-OPS-S08-022)
+    assert "JURISPRUDENCIA_VAULT" in SCHEMA_SKELETON_PECA, (
+        "do_direito example must reference JURISPRUDENCIA_VAULT (placeholder, not literal)"
     )
     assert "Provimento 209/2021 da OAB" in SCHEMA_SKELETON_PECA, (
         "disclaimer_lgpd_oab example must reference OAB Provimento"
@@ -136,6 +138,42 @@ def test_schema_skeleton_inviabilidade_has_real_examples():
     )
     assert "NÃO propositura" in SCHEMA_SKELETON_INVIABILIDADE, (
         "recomendacao example must be concrete (recomendar não protocolar)"
+    )
+
+
+def test_schema_skeleton_peca_has_no_literal_sumula_ids_in_citacoes():
+    """D-DEV-S08-011: SCHEMA_SKELETON_PECA.citacoes_jurisprudencia uses placeholders.
+
+    Prevents auto-induced hallucination (D-OPS-S08-022) where LLM copies
+    literal Súmula IDs from examples instead of using JURISPRUDENCIA_VAULT
+    dynamic IDs → Layer 2 anti-hallucination rejection.
+    """
+    # Specific Súmula IDs that previously caused hallucination
+    forbidden_literal_ids = ['"STJ-S539"', '"STJ-S541"', '"STJ-T247"', '"STJ-S539", "STJ-S541"']
+    for forbidden in forbidden_literal_ids:
+        assert forbidden not in SCHEMA_SKELETON_PECA, (
+            f"SCHEMA_SKELETON_PECA must NOT contain literal Súmula ID {forbidden} — "
+            "LLM copies literally (D-OPS-S08-022 root cause)"
+        )
+
+    # Placeholder pattern should be present
+    assert "JURISPRUDENCIA_VAULT" in SCHEMA_SKELETON_PECA, (
+        "Example should reference JURISPRUDENCIA_VAULT (placeholder, not literal IDs)"
+    )
+
+
+def test_prompt_contains_anti_vault_hallucination_rule():
+    """D-DEV-S08-011: prompt has explicit REGRA CRÍTICA citações vault section."""
+    from bloco_workflow.personas.redator import PROMPT_REDATOR_PECA
+
+    assert "REGRA CRÍTICA citações vault" in PROMPT_REDATOR_PECA, (
+        "Prompt must contain explicit anti-vault-hallucination rule (D-OPS-S08-022 fix)"
+    )
+    assert "IGNORE quaisquer IDs específicos" in PROMPT_REDATOR_PECA, (
+        "Prompt must explicitly tell LLM to ignore literal IDs in schema examples"
+    )
+    assert "REJEIÇÃO AUTOMÁTICA Layer 2" in PROMPT_REDATOR_PECA, (
+        "Prompt must warn about Layer 2 automatic rejection"
     )
 
 

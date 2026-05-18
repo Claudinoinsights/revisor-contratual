@@ -82,6 +82,13 @@ REGRAS INEGOCIÁVEIS (anti-hallucination):
 5. Valor causa: numerado (R$ X.XXX,XX formato BR) E por extenso.
 6. Disclaimer LGPD/OAB obrigatório no fecho.
 
+REGRA CRÍTICA citações vault (D-DEV-S08-011 — Layer 2 anti-hallucination):
+- Cite EXCLUSIVAMENTE ids_doc presentes em JURISPRUDENCIA_VAULT acima.
+- IGNORE quaisquer IDs específicos nos exemplos do Schema abaixo (são apenas FORMATO ilustrativo).
+- Citacoes_jurisprudencia DEVE conter APENAS strings que existem em JURISPRUDENCIA_VAULT.
+- Citar IDs fora do vault = REJEIÇÃO AUTOMÁTICA Layer 2 (FR-PECA-05).
+- Se vault está vazio, deixe citacoes_jurisprudencia=[] e do_direito sem IDs específicos.
+
 REGRA CRÍTICA min_length (D-DEV-S08-009 — Pydantic hard-fail se violar):
 - cabecalho: MÍNIMO 50 caracteres — Excelentíssimo + Juízo + Comarca + Vara completos
 - qualificacao_partes: MÍNIMO 100 caracteres — Autor (qualificação completa) + Ré (banco + CNPJ + endereço)
@@ -137,13 +144,13 @@ SCHEMA_SKELETON_PECA = """\
   "cabecalho": "Excelentíssimo Senhor Doutor Juiz de Direito da Vara Cível da Comarca de São Paulo/SP",
   "qualificacao_partes": "AUTOR: João da Silva, brasileiro, casado, portador do RG nº 12.345.678-9 SSP/SP, inscrito no CPF nº 123.456.789-00, residente e domiciliado na Rua Exemplo, nº 100, São Paulo/SP. RÉ: Banco Exemplo S.A., pessoa jurídica de direito privado, CNPJ nº 12.345.678/0001-90, com sede na Av. Paulista, 1000, São Paulo/SP.",
   "dos_fatos": "Em 15 de maio de 2025, o autor celebrou com a ré contrato de financiamento de veículo (CDC) no valor de R$ 35.000,00, parcelado em 48 prestações mensais consecutivas, com taxa de juros declarada de 1,89% ao mês. O contrato apresenta cláusulas que ensejam revisão judicial, notadamente quanto à capitalização mensal de juros, comissão de permanência e tarifas administrativas cobradas sem previsão legal expressa, conforme entendimento pacificado pelo Superior Tribunal de Justiça.",
-  "do_direito": "Aplicam-se ao caso as Súmulas 539 e 541 do STJ, bem como o Tema Repetitivo 247, que disciplinam a capitalização mensal de juros nos contratos bancários celebrados após 31/03/2000 (MP 1.963-17), exigindo pactuação expressa. O Código de Defesa do Consumidor (Lei 8.078/90) incide na relação contratual, impondo nulidade às cláusulas abusivas (art. 51, IV). A jurisprudência consolidada do STJ veda a cobrança cumulativa de comissão de permanência com outros encargos moratórios, conforme entendimento sedimentado em sede de recursos repetitivos.",
+  "do_direito": "Aplicam-se ao caso as Súmulas e Temas Repetitivos indicados em JURISPRUDENCIA_VAULT acima, que disciplinam a capitalização mensal de juros nos contratos bancários celebrados após 31/03/2000 (MP 1.963-17), exigindo pactuação expressa. O Código de Defesa do Consumidor (Lei 8.078/90) incide na relação contratual, impondo nulidade às cláusulas abusivas (art. 51, IV). A jurisprudência consolidada do STJ veda a cobrança cumulativa de comissão de permanência com outros encargos moratórios, conforme entendimento sedimentado em sede de recursos repetitivos disponíveis no vault.",
   "do_pedido": "Diante do exposto, requer-se: a) a citação da ré para responder aos termos da presente ação; b) a inversão do ônus da prova com fundamento no art. 6º, VIII, do CDC; c) ao final, a procedência total da demanda para revisar o contrato em comento, declarando-se a nulidade das cláusulas abusivas identificadas e condenando-se a ré à restituição em dobro dos valores cobrados indevidamente (art. 42, parágrafo único, CDC).",
   "valor_causa": "R$ 5.107,00",
   "valor_causa_extenso": "cinco mil cento e sete reais",
   "fecho": "Termos em que pede deferimento. São Paulo, 15 de maio de 2025. Advogado Exemplo OAB/SP nº 000.000",
   "disclaimer_lgpd_oab": "Este documento constitui insumo técnico-jurídico gerado por sistema de apoio à decisão jurídica, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018, art. 11 §1º e art. 46) e o Provimento 209/2021 da OAB que regulamenta o uso de inteligência artificial na advocacia. O conteúdo aqui apresentado NÃO substitui o juízo crítico, a análise técnica e a responsabilidade profissional do advogado subscritor.",
-  "citacoes_jurisprudencia": ["STJ-S539", "STJ-S541", "STJ-T247"],
+  "citacoes_jurisprudencia": ["<copie ids_doc do JURISPRUDENCIA_VAULT acima>"],
   "pontos_atencao": null
 }
 """
