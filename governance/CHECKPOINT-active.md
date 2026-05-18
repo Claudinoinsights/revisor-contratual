@@ -21,6 +21,58 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-18 — Operator D-OPS-S08-023 Deploy D-DEV-S08-011 ⚡ MESMO BUG — CADEIA HALLUCINATION AVENGER
+
+### Execution
+
+- ✅ Push deb6a17 + scp redator.py + sync /opt + build (347s) + recreate + smoke
+- ✅ Redator em /opt SEM STJ-S539 (fix D-DEV-S08-011 LOADED)
+- ✅ E2E job `c0166264` → audit `3fc6edb471...`
+- 🔴 **MESMO ERROR**: `['STJ-S539', 'STJ-T247']` ainda aparecem em peça (Layer 2 reject)
+
+### D-OPS-S08-024 — ROOT CAUSE FINAL identificado (cadeia hallucination)
+
+**Discovery:** advogado.py linhas 58-65 AINDA têm STJ-S539 + STJ-T247 nos exemplos (do MEU fix D-DEV-S08-007). 
+
+**Cadeia hallucination multi-LLM:**
+
+1. Advogado LLM copia STJ-S539 do MEU exemplo schema D-DEV-S08-007 → `tese_principal` contém "Súmulas 539 STJ..."
+2. Redator recebe `tese_principal[:500]` → vê menção STJ-S539, STJ-T247
+3. Redator copia esses IDs para `citacoes_jurisprudencia` da peça
+4. Layer 2 (FR-PECA-05) valida vs vault dinâmico → rejeição
+
+**MEU fix D-DEV-S08-007 (advogado prompt strengthening) plantou raiz da hallucination que veio à tona quando num_predict permitiu output completo.**
+
+### Pipeline progressão histórica final
+
+| Sessão | Audit Keys | Bug |
+|--------|-----------|-----|
+| Inicio | 0/9 | Stdout contamination |
+| D-OPS-S08-013 | 4/9 | Marker OOM |
+| D-OPS-S08-017 | 7/9 | Redator dos_fatos curto (num_predict default) |
+| D-OPS-S08-021 | 7/9* | Redator hallucinated Súmula IDs from MY example |
+| D-OPS-S08-023 | 7/9* | SAME — advogado.py ainda tem MEU exemplo STJ-S539 |
+
+*7/9 efetivamente — parsing + calculo + bacen + vault + personas + juiz PASS, peça gerada mas Layer 2 reject.
+
+### Decisão Eric REQUIRED — 3 opções
+
+| Opção | Custo | Probabilidade sucesso |
+|-------|-------|----------------------|
+| **A** Fix advogado.py example (mesmo pattern D-DEV-S08-011) | Neo 15min + Operator 10min | Média — pode revelar próximo elo |
+| **B** Tier-up qwen2.5:3b → qwen2.5:7b (RAM caberia ~5GB) | Neo 5min + Operator deploy | Alta — modelo 7b segue instruções multi-constraint melhor |
+| **C** Aceitar 7/9 atual + Eric submete PDF born-digital REAL (PyMuPDF path skip OCR) | 0min code | Imediato — pipeline born-digital PROVADO funcional |
+
+### Cross-references
+
+- Audit `3fc6edb471bc8106df800088aa74a3868a831ee66fc4d89ce614fcce032ed42f`
+- advogado.py:58-65 (exemplo STJ-S539 — minha plantação D-DEV-S08-007)
+- D-DEV-S08-011 (redator fix LOADED — mas advogado feeds tese)
+
+> **Operator's reflection:** "Cada fix expôs o anterior. Eu mesmo plantei a hallucination tentando curar truncation. *Multi-LLM pipelines são castelos de cartas — toque uma carta, tremem todas.* Eric, ponto natural pausa para sua decisão."
+
+---
+
 ## Sessão 2026-05-17 — Operator D-OPS-S08-021 num_predict deployed ⚡ TRUNCATION RESOLVED + NOVO HALLUCINATION BUG
 
 ### Execution
