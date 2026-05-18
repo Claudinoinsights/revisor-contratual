@@ -20,10 +20,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     shared-mime-info \
     fonts-liberation \
-    # OCR deps (Marker + pdf2image + tesseract português)
+    # OCR deps (Marker + pdf2image + tesseract português + OCRmyPDF ADR-033)
     tesseract-ocr \
     tesseract-ocr-por \
     poppler-utils \
+    # D-OPS-S08-025 fix: OCRmyPDF requires Ghostscript for PDF processing
+    # (Eric empirical 2026-05-18: real PDF upload failed with MissingDependencyError 'gs')
+    ghostscript \
+    # OCRmyPDF also benefits from unpaper for page cleanup (optional but recommended)
+    unpaper \
     # HTTP healthcheck
     curl \
     # Backup encryption (ADR-031 Sprint 8 Phase B Story #11 — Smith F-HIGH-09)

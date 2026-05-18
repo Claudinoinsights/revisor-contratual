@@ -21,6 +21,55 @@ tags:
 
 > **Sharded II 2026-05-12 por Morpheus 0k** (F-D6-MED-01/F-R2-INFO-01 endereçamento). CHECKPOINT-active.md original atingiu 8279 linhas — Phase 1 archived em [CHECKPOINT-history-phase-1.md](./CHECKPOINT-history-phase-1.md) (sessões 24-92). Este arquivo cobre Phase 2+ (Sprint 04 development pós-pivot + sessão massiva 2026-05-12).
 
+## Sessão 2026-05-18 — Operator D-OPS-S08-025 Ghostscript fix 🔧
+
+### Discovery empirical Eric
+
+Eric tentou submeter PDF REAL via revisor.claudinoinsights.com/ — "não funcionou, aplicação não avançou ficou na primeira fase apos eu adicionar o documento".
+
+### Investigação
+
+- POST /revisar 200 OK (request chegou backend)
+- SSE stream conectou
+- Audit chain hash `1a104c7f...` revelou: `ParsingSubprocessFailedError: MissingDependencyError: Could not find program 'gs' on the PATH`
+
+### Root cause D-OPS-S08-025
+
+OCRmyPDF (deployed D-OPS-S08-017 ADR-033) requer **Ghostscript** (`gs` binary) para PDF processing. Dockerfile NÃO instalou ghostscript. Eric born-digital PDF caiu em OCRmyPDF path (fidelity < threshold OR force) → ghostscript missing → MissingDependencyError → subprocess exit code=1 → pipeline trava na "primeira fase" (parsing).
+
+**Por que synthetic fixtures sintéticas funcionaram MAS PDF real falhou:** Meu fixture synthetic talvez tivesse text layer mínimo que passou threshold PyMuPDF. PDF real do Eric provavelmente é born-digital com baixa fidelity OR scanned → fallback OCRmyPDF → ghostscript missing.
+
+### Fix D-OPS-S08-025
+
+**File modified:** `Dockerfile`
+
+Adicionado em apt-get install:
+
+- `ghostscript` (binary `gs` — required by OCRmyPDF)
+- `unpaper` (page cleanup — recommended by OCRmyPDF for image preprocessing)
+
+### Deploy
+
+- Dockerfile scp → /opt
+- Image rebuild (365s)
+- Container recreate healthy
+- Smoke verify: `gs --version` → `10.00.0` ✅
+
+### Próxima ação Eric
+
+**Re-tentar submit PDF real agora** — Ghostscript installed, OCR path completo.
+
+### Cross-references
+
+- Audit hash `1a104c7fa62668cf4217a86643c5064a8c2a4f2e21faaffedf4f5e1afe97980f` (MissingDependencyError gs)
+- Dockerfile: linhas 23-31 (OCR deps section atualizada)
+- ADR-033 (OCRmyPDF replacement) — agora com Ghostscript dep documentada
+- D-OPS-S08-017 (ADR-033 deploy initial) — Ghostscript missing gap detected only via PDF real
+
+> **Operator's note:** "Synthetic fixtures escondem dependências reais. *PDF real do Eric foi mais útil que 12 testes meus.* Ghostscript adicionado — produto pronto para próxima tentativa."
+
+---
+
 ## Sessão 2026-05-18 — Eric Opção C: Sprint 8 CLOSURE + Born-Digital Path ⭐
 
 ### Authorization Eric (verbatim)
